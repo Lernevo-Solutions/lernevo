@@ -9,7 +9,6 @@ import nutritionImg from "./nutrition.png";
 import learningImg from "./learn.png";
 import trainerImg from "./trainer.png";
 import heroBg from "./image.png";
-import StepCard from './StepCard';
 import learImg from "./sign.png";
 import aiiImg from "./analyse.png";
 import fitnesImg from "./guidance.png";
