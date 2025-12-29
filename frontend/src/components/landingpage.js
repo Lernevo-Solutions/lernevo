@@ -10,6 +10,11 @@ import learningImg from "./learn.png";
 import trainerImg from "./trainer.png";
 import heroBg from "./image.png";
 import StepCard from './StepCard';
+import learImg from "./sign.png";
+import aiiImg from "./analyse.png";
+import fitnesImg from "./guidance.png";
+import trainersImg from "./imp.png";
+
 
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -109,7 +114,7 @@ const LandingPage = () => {
 
 
           <p className="hero-description">
-            Seamlessly integrate fitness, nutrition, mental health and sleep
+            Seamlessly integrate fitness, nutrition, mental health and Learning
             into your daily routine.
           </p>
 
@@ -362,15 +367,7 @@ const LandingPage = () => {
     <li>Mood tracking</li>
   </ul>
 
-</div>
-
-
-          
-
-
-  
-
-           
+</div>     
 
           <div className="service-card">
 
@@ -399,6 +396,7 @@ const LandingPage = () => {
      {/* ========== How It Works Section ========== */}
 <section id="about" className="how-it-works-section">
   <div className="container">
+
     {/* Header */}
     <div className="section-header">
       <h2 className="section-title">How Lernevo Works</h2>
@@ -409,45 +407,113 @@ const LandingPage = () => {
 
     {/* Steps Grid */}
     <div className="steps-grid">
-      {[
-        {
-          number: '01',
-          icon: '📝',
-          title: 'Sign Up & Assessment',
-          desc: 'Create your account and complete our wellness questionnaire. Share your goals, preferences, and lifestyle.',
-        },
-        {
-          number: '02',
-          icon: '🤖',
-          title: 'AI Analysis',
-          desc: 'Our AI analyzes your input and generates a personalized wellness plan tailored to your needs.',
-        },
-        {
-          number: '03',
-          icon: '🎯',
-          title: 'Daily Guidance',
-          desc: 'Get daily tasks, workouts, meal suggestions, and mindfulness exercises. Plan adjusts with your progress.',
-        },
-        {
-          number: '04',
-          icon: '📈',
-          title: 'Track & Improve',
-          desc: 'Monitor your progress with analytics and reports. Celebrate milestones and see real transformation.',
-        },
-      ].map((step) => (
-        <StepCard key={step.number} step={step} />
-      ))}
+
+      {/* STEP 1 */}
+      <div className="step-card">
+        <div className="step-image">
+          <img src={learImg} alt="Learning" />
+          <div className="step-overlay">
+            <h3>Sign Up & Assessment</h3>
+            <p>Create account and complete questionnaire</p>
+          </div>
+        </div>
+
+        <div className="step-footer">
+          <h3 className="step-title">Learning</h3>
+          <p className="step-desc">
+            Enhance your skills with AI-powered personalized learning.
+          </p>
+          <ul className="step-list">
+            <li>Personalized learning paths</li>
+            <li>Skill progress tracking</li>
+            <li>Daily learning reminders</li>
+            <li>AI-based improvement suggestions</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* STEP 2 */}
+      <div className="step-card">
+        <div className="step-image">
+          <img src={aiiImg} alt="AI Analysis" />
+          <div className="step-overlay">
+            <h3>AI Analysis</h3>
+            <p>AI creates personalized wellness plan</p>
+          </div>
+        </div>
+
+        <div className="step-footer">
+          <h3 className="step-title">AI Analysis</h3>
+          <p className="step-desc">
+            Smart AI understands your data and goals.
+          </p>
+          <ul className="step-list">
+            <li>AI-driven insights</li>
+            <li>Goal-based planning</li>
+            <li>Adaptive recommendations</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* STEP 3 */}
+      <div className="step-card">
+        <div className="step-image">
+          <img src={fitnesImg} alt="Daily Guidance" />
+          <div className="step-overlay">
+            <h3>Daily Guidance</h3>
+            <p>Daily workouts and mental wellness</p>
+          </div>
+        </div>
+
+        <div className="step-footer">
+          <h3 className="step-title">Daily Guidance</h3>
+          <p className="step-desc">
+            Simple daily actions to improve wellbeing.
+          </p>
+          <ul className="step-list">
+            <li>Workout routines</li>
+            <li>Mindfulness tasks</li>
+            <li>Nutrition tips</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* STEP 4 */}
+      <div className="step-card">
+        <div className="step-image">
+          <img src={trainersImg} alt="Track Progress" />
+          <div className="step-overlay">
+            <h3>Track & Improve</h3>
+            <p>Track progress and improve continuously</p>
+          </div>
+        </div>
+
+        <div className="step-footer">
+          <h3 className="step-title">Track & Improve</h3>
+          <p className="step-desc">
+            Monitor progress and stay motivated.
+          </p>
+          <ul className="step-list">
+            <li>Progress analytics</li>
+            <li>Milestone tracking</li>
+            <li>Performance reports</li>
+          </ul>
+        </div>
+      </div>
+
     </div>
 
-    {/* CTA Button */}
+    {/* CTA */}
     <div className="cta-container">
-      <button className="cta-btn" onClick={() => scrollToSection('services')}>
+      <button className="cta-btn">
         Start Your Journey Today
-        <span className="btn-subtext">Join 10,000+ happy users</span>
       </button>
     </div>
+
   </div>
 </section>
+
+
 
 
       {/* ========== Transform CTA Section ========== */}
