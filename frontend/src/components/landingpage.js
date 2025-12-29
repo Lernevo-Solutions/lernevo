@@ -8,13 +8,20 @@ import fitnessImg from "./fit.png";
 import nutritionImg from "./nutrition.png";
 import learningImg from "./learn.png";
 import trainerImg from "./trainer.png";
-import heroBg from "./image.png";
+import heroBg from "./back.png";
 import learImg from "./sign.png";
 import aiiImg from "./analyse.png";
 import fitnesImg from "./guidance.png";
 import trainersImg from "./imp.png";
+import workImg from "./work.png";
+import { FaHandsHelping } from "react-icons/fa";       // Understand User Needs
+import { BiCpu } from "react-icons/bi"; // AI / computer processing
+import { FaRobot } from "react-icons/fa"; // classic AI / robot icon
+import { FaChalkboardTeacher } from "react-icons/fa";
+import {  FaChartLine } from "react-icons/fa";
+import { MdHealthAndSafety } from "react-icons/md";
 
-
+import { FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -392,122 +399,68 @@ const LandingPage = () => {
         </div>
       </section>
 
-     {/* ========== How It Works Section ========== */}
-<section id="about" className="how-it-works-section">
-  <div className="container">
+    {/* ========== How Lernevo Works (Image Style Layout) ========== */}
+<section id="about" className="how-lernevo-works">
+  <div className="container how-works-wrapper">
 
-    {/* Header */}
-    <div className="section-header">
-      <h2 className="section-title">How Lernevo Works</h2>
-      <p className="section-subtitle">
-        Start your wellness journey in four simple steps
+    {/* LEFT CONTENT */}
+    <div className="how-works-left">
+      <h2>How Lernevo Works</h2>
+      <p className="how-desc">
+        Lernevo combines AI intelligence with human expertise to guide you
+        through a personalized wellness journey — body, mind, and lifestyle.
+      </p>
+
+      <p className="how-desc">
+        From assessment to daily guidance and progress tracking, everything
+        is designed to help you improve consistently and sustainably.
       </p>
     </div>
 
-    {/* Steps Grid */}
-    <div className="steps-grid">
-
-      {/* STEP 1 */}
-      <div className="step-card">
-        <div className="step-image">
-          <img src={learImg} alt="Learning" />
-          <div className="step-overlay">
-            <h3>Sign Up & Assessment</h3>
-            <p>Create account and complete questionnaire</p>
-          </div>
-        </div>
-
-        <div className="step-footer">
-          <h3 className="step-title">Learning</h3>
-          <p className="step-desc">
-            Enhance your skills with AI-powered personalized learning.
-          </p>
-          <ul className="step-list">
-            <li>Personalized learning paths</li>
-            <li>Skill progress tracking</li>
-            <li>Daily learning reminders</li>
-            <li>AI-based improvement suggestions</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* STEP 2 */}
-      <div className="step-card">
-        <div className="step-image">
-          <img src={aiiImg} alt="AI Analysis" />
-          <div className="step-overlay">
-            <h3>AI Analysis</h3>
-            <p>AI creates personalized wellness plan</p>
-          </div>
-        </div>
-
-        <div className="step-footer">
-          <h3 className="step-title">AI Analysis</h3>
-          <p className="step-desc">
-            Smart AI understands your data and goals.
-          </p>
-          <ul className="step-list">
-            <li>AI-driven insights</li>
-            <li>Goal-based planning</li>
-            <li>Adaptive recommendations</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* STEP 3 */}
-      <div className="step-card">
-        <div className="step-image">
-          <img src={fitnesImg} alt="Daily Guidance" />
-          <div className="step-overlay">
-            <h3>Daily Guidance</h3>
-            <p>Daily workouts and mental wellness</p>
-          </div>
-        </div>
-
-        <div className="step-footer">
-          <h3 className="step-title">Daily Guidance</h3>
-          <p className="step-desc">
-            Simple daily actions to improve wellbeing.
-          </p>
-          <ul className="step-list">
-            <li>Workout routines</li>
-            <li>Mindfulness tasks</li>
-            <li>Nutrition tips</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* STEP 4 */}
-      <div className="step-card">
-        <div className="step-image">
-          <img src={trainersImg} alt="Track Progress" />
-          <div className="step-overlay">
-            <h3>Track & Improve</h3>
-            <p>Track progress and improve continuously</p>
-          </div>
-        </div>
-
-        <div className="step-footer">
-          <h3 className="step-title">Track & Improve</h3>
-          <p className="step-desc">
-            Monitor progress and stay motivated.
-          </p>
-          <ul className="step-list">
-            <li>Progress analytics</li>
-            <li>Milestone tracking</li>
-            <li>Performance reports</li>
-          </ul>
-        </div>
-      </div>
-
+    {/* RIGHT IMAGE */}
+    <div className="how-works-right">
+      <img src={workImg} alt="Lernevo Team" />
     </div>
 
-    {/* CTA */}
-    <div className="cta-container">
-      <button className="cta-btn">
-        Start Your Journey Today
-      </button>
+  </div>
+
+  {/* BOTTOM CARDS */}
+  <div className="container how-works-cards">
+
+  <div className="how-card">
+    <div className="icon">
+      <FaHandsHelping size={80} color="#FF6B6B" /> {/* reddish */}
     </div>
+    <h4>Understand User Needs</h4>
+    <p>We carefully assess your personal goals, lifestyle habits, and wellness preferences to create a fully personalized and actionable plan that suits your daily routine.</p>
+  </div>
+
+  <div className="how-card">
+    <div className="icon">
+      <FaRobot size={80} color="#4ECDC4" />  {/* teal AI icon */}
+    </div>
+    <h4>AI-Powered Insights</h4>
+    <p>Our advanced AI system analyzes your data to provide intelligent insights and recommendations, combining technology with expert human guidance for maximum results.</p>
+  </div>
+
+  <div className="how-card">
+    <div className="icon">
+      <FaChalkboardTeacher size={60} color="#FFD93D" /> {/* bright yellow, teaching/guidance */}
+    </div>
+    <h4>Deliver Guidance</h4>
+    <p>We provide step-by-step guidance every day, including workouts, mindfulness exercises, nutrition plans, and learning tips to help you stay on track and achieve your wellness goals.</p>
+  </div>
+
+  <div className="how-card">
+    <div className="icon">
+      <FaChartLine size={80} color="#6A4C93" /> {/* purple progress icon */}
+    </div>
+    <h4>Track & Improve</h4>
+    <p>Continuous monitoring and feedback allow you to track your progress, celebrate milestones, and make adjustments along the way, ensuring sustainable and effective improvement.</p>
+  </div>
+
+
+
 
   </div>
 </section>
@@ -515,215 +468,116 @@ const LandingPage = () => {
 
 
 
-      {/* ========== Transform CTA Section ========== */}
-      <section className="transform-section">
-        <div className="container">
-          <div className="transform-content">
-            <h2 className="transform-title">
-              Ready to Transform Your <span className="highlight">Wellness Journey?</span>
-            </h2>
-            
-            <p className="transform-subtitle">
-              Join thousands who have discovered a healthier, happier life with Lernevo.<br />
-              Start your 14-day free trial today – no credit card required.
-            </p>
-            
-            <div className="transform-features">
-              <div className="transform-feature">
-                <div className="feature-check">✓</div>
-                <span>Personalized AI Coach</span>
-              </div>
-              <div className="transform-feature">
-                <div className="feature-check">✓</div>
-                <span>24/7 Health Tracking</span>
-              </div>
-              <div className="transform-feature">
-                <div className="feature-check">✓</div>
-                <span>Expert Support</span>
-              </div>
-            </div>
-            
-            <div className="transform-actions">
-              <button className="transform-btn primary" onClick={() => scrollToSection('services')}>
-                <span className="btn-text">Start Free Trial</span>
-                <span className="btn-sub">14 days • No credit card</span>
-              </button>
-              
-              <button className="transform-btn secondary" onClick={() => alert('Demo video coming soon!')}>
-                <span className="btn-icon">▶</span>
-                <span className="btn-text">Watch Demo</span>
-              </button>
-            </div>
-            
-            <div className="trust-badges">
-              <div className="trust-badge">
-                <div className="badge-icon">🔒</div>
-                <span>Secure & Private</span>
-              </div>
-              <div className="trust-badge">
-                <div className="badge-icon">⭐</div>
-                <span>4.9/5 Rating</span>
-              </div>
-              <div className="trust-badge">
-                <div className="badge-icon">👥</div>
-                <span>10K+ Users</span>
-              </div>
-            </div>
-          </div>
+     
+    {/* ========== Transform CTA – PILL STRIP STYLE ========== */}
+<section className="transform-pill-section">
+  <div className="container">
+
+    <div className="pill-header">
+      <h2>
+        Ready to <span>Elevate Your Wellness?</span>
+      </h2>
+      <p>
+        Simple habits. Smart guidance. Real progress.
+      </p>
+    </div>
+
+    {/* PILL STRIPS */}
+    <div className="pill-row">
+      <div className="pill-item">🤖 Personalized AI Coach</div>
+      <div className="pill-item">📊 24/7 Health Tracking</div>
+      <div className="pill-item">🧠 Expert-Backed Insights</div>
+    </div>
+
+    <div className="transform-actions">
+  <button
+    className="trial-btn"
+    onClick={() => scrollToSection('services')}
+  >
+    Start Your Free Trial
+  </button>
+</div>
+
+
+  </div>
+</section>
+
+
+
+
+    <footer className="footer-new">
+  <div className="container">
+
+    {/* TOP SECTION */}
+    <div className="footer-top">
+
+      {/* BRAND */}
+      <div className="footer-brand">
+        <div className="footer-logo">
+          <img src={logo} alt="Lernevo Logo" className="footer-logo-img" />
+          <span className="logo-text">LERNEVO</span>
         </div>
-      </section>
 
-      {/* ========== Footer ========== */}
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-brand">
-              <div className="footer-logo">
-                <span className="logo-icon">🧠</span>
-                <span className="logo-text">LERNEVO</span>
-              </div>
-              <p className="footer-tagline">
-                Your AI-powered wellness companion for holistic health and fitness.
-                Transform your life with personalized guidance.
-              </p>
-              
-              <div className="newsletter-section">
-                <h3 className="newsletter-title">Stay Updated</h3>
-                <div className="newsletter-form">
-                  <input
-                    type="email"
-                    placeholder="Your email address"
-                    className="newsletter-input"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <button className="newsletter-btn" onClick={handleSubscribe}>
-                    Subscribe
-                  </button>
-                </div>
-                <p className="newsletter-note">
-                  Join our newsletter for wellness tips, updates, and exclusive offers.
-                </p>
-              </div>
+        <p className="footer-desc">
+          Your AI-powered wellness companion helping you build
+          healthier habits across body, mind, and lifestyle.
+        </p>
 
-              <div className="social-icons">
-                <a href="#" className="social-icon" aria-label="Twitter">
-                  𝕏
-                </a>
-                <a href="#" className="social-icon" aria-label="Facebook">
-                  f
-                </a>
-                <a href="#" className="social-icon" aria-label="Instagram">
-                  ig
-                </a>
-                <a href="#" className="social-icon" aria-label="LinkedIn">
-                  in
-                </a>
-                <a href="#" className="social-icon" aria-label="YouTube">
-                  ▶
-                </a>
-              </div>
-            </div>
+    <div className="footer-social">
+  <a href="https://twitter.com" aria-label="Twitter" target="_blank" rel="noopener noreferrer">
+    <FaTwitter />
+  </a>
+  <a href="https://instagram.com" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+    <FaInstagram />
+  </a>
+  <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+    <FaLinkedin />
+  </a>
+  <a href="https://youtube.com" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
+    <FaYoutube />
+  </a>
+</div>
 
-            <div className="footer-links">
-              <div className="link-column">
-                <h4 className="column-title">Product</h4>
-                <a href="#" className="footer-link" onClick={() => scrollToSection('services')}>
-                  AI Coaching
-                </a>
-                <a href="#" className="footer-link" onClick={() => scrollToSection('services')}>
-                  Mental Health
-                </a>
-                <a href="#" className="footer-link" onClick={() => scrollToSection('services')}>
-                  Fitness Programs
-                </a>
-                <a href="#" className="footer-link" onClick={() => scrollToSection('services')}>
-                  Nutrition Plans
-                </a>
-                <a href="#" className="footer-link" onClick={() => scrollToSection('services')}>
-                  Sleep Tracking
-                </a>
-              </div>
+      </div>
 
-              <div className="link-column">
-                <h4 className="column-title">Company</h4>
-                <a href="#" className="footer-link" onClick={() => scrollToSection('about')}>
-                  About Us
-                </a>
-                <a href="#" className="footer-link">
-                  Careers
-                </a>
-                <a href="#" className="footer-link">
-                  Blog
-                </a>
-                <a href="#" className="footer-link">
-                  Press
-                </a>
-                <a href="#" className="footer-link">
-                  Contact Us
-                </a>
-              </div>
+      {/* LINKS */}
+      <div className="footer-links">
 
-              <div className="link-column">
-                <h4 className="column-title">Support</h4>
-                <a href="#" className="footer-link" onClick={() => scrollToSection('performance')}>
-                  Dashboard
-                </a>
-                <a href="#" className="footer-link">
-                  Help Center
-                </a>
-                <a href="#" className="footer-link">
-                  Privacy Policy
-                </a>
-                <a href="#" className="footer-link">
-                  Terms of Service
-                </a>
-                <a href="#" className="footer-link">
-                  Cookie Policy
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="footer-features">
-            <div className="footer-feature">
-              <div className="footer-feature-icon">🔒</div>
-              <div className="footer-feature-text">
-                <h4>Secure & Private</h4>
-                <p>Bank-level encryption</p>
-              </div>
-            </div>
-            <div className="footer-feature">
-              <div className="footer-feature-icon">📱</div>
-              <div className="footer-feature-text">
-                <h4>Multi-Platform</h4>
-                <p>iOS, Android & Web</p>
-              </div>
-            </div>
-            <div className="footer-feature">
-              <div className="footer-feature-icon">🤝</div>
-              <div className="footer-feature-text">
-                <h4>24/7 Support</h4>
-                <p>Always here to help</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="footer-bottom">
-            <p className="copyright">
-              © {new Date().getFullYear()} Lernevo Solutions. All rights reserved.
-              <br />
-              <a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a>
-            </p>
-            <div className="legal-links">
-              <a href="#" className="legal-link">Accessibility</a>
-              <a href="#" className="legal-link">Cookie Settings</a>
-              <a href="#" className="legal-link">Sitemap</a>
-              <a href="#" className="legal-link">Status</a>
-            </div>
-          </div>
+        <div className="link-col">
+          <h4>Product</h4>
+          <a onClick={() => scrollToSection('services')}>AI Coaching</a>
+          <a onClick={() => scrollToSection('services')}>Fitness</a>
+          <a onClick={() => scrollToSection('services')}>Mental Wellness</a>
+          <a onClick={() => scrollToSection('services')}>Nutrition</a>
         </div>
-      </footer>
+
+        <div className="link-col">
+          <h4>Company</h4>
+          <a onClick={() => scrollToSection('about')}>About</a>
+          <a href="#">Careers</a>
+          <a href="#">Blog</a>
+          <a href="#">Contact</a>
+        </div>
+
+        <div className="link-col">
+          <h4>Support</h4>
+          <a href="#">Help Center</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+
+      </div>
+    </div>
+
+    {/* BOTTOM */}
+    <div className="footer-bottom">
+      <p>
+        © {new Date().getFullYear()} Lernevo Solutions. All rights reserved.
+      </p>
+    </div>
+
+  </div>
+</footer>
     </div>
   );
 };
