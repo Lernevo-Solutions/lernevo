@@ -22,6 +22,11 @@ import {  FaChartLine } from "react-icons/fa";
 import { MdHealthAndSafety } from "react-icons/md";
 
 import { FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
+import insightimg from "./insight.png";
+import guidanceimg from "./gui.png";
+import improveimg from "./improve.png";
+import userimg from "./user.png";
+
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -103,6 +108,7 @@ const LandingPage = () => {
       </nav>
 
       {/* ========== Hero Section (Your AI Wellness Companion) ========== */}
+      {/* ========== Hero Section (Your AI Wellness Companion) ========== */}
       <section
       id="home"
       className="hero-section"
@@ -129,21 +135,11 @@ const LandingPage = () => {
           </button>
         </div>
 
-        {/* RIGHT ORBIT */}
-        <div className="hero-orbit-wrapper">
-          <div className="orbit-circle">
-
-            <img src={mentalImg} className="orbit-img i1" alt="Mental Health" />
-            <img src={fitnessImg} className="orbit-img i2" alt="Fitness" />
-            <img src={nutritionImg} className="orbit-img i3" alt="Nutrition" />
-            <img src={learningImg} className="orbit-img i4" alt="Learning" />
-            <img src={trainerImg} className="orbit-img i5" alt="Health" />
-
-          </div>
-        </div>
 
       </div>
     </section>
+
+
 
 
       {/* ========== Performance Dashboard Section (Moved Here) ========== */}
@@ -369,7 +365,6 @@ const LandingPage = () => {
   <ul className="service-features">
     <li>Mindfulness meditation</li>
     <li>Stress management</li>
-    <li>Sleep optimization</li>
     <li>Mood tracking</li>
   </ul>
 
@@ -399,7 +394,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-    {/* ========== How Lernevo Works (Image Style Layout) ========== */}
+   {/* ========== How Lernevo Works (Image Style Layout) ========== */}
 <section id="about" className="how-lernevo-works">
   <div className="container how-works-wrapper">
 
@@ -417,57 +412,111 @@ const LandingPage = () => {
       </p>
     </div>
 
-    {/* RIGHT IMAGE */}
+    {/* RIGHT IMAGE - WITH HOVER EFFECT */}
     <div className="how-works-right">
-      <img src={workImg} alt="Lernevo Team" />
+      {/* Image Container with Hover Effect */}
+      <div className="image-hover-container">
+        {/* Main Image */}
+        <img 
+          src={workImg} 
+          alt="Lernevo Team" 
+          className="main-image"
+        />
+        
+       
+      </div>
     </div>
 
   </div>
 
-  {/* BOTTOM CARDS */}
-  <div className="container how-works-cards">
+  {/* BOTTOM CARDS - WITH HOVER EFFECTS */}
+<div className="container how-works-cards">
 
-  <div className="how-card">
-    <div className="icon">
-      <FaHandsHelping size={80} color="#FF6B6B" /> {/* reddish */}
+  {/* CARD 1 */}
+  <div className="hover-full-card">
+    <div className="card-top">
+      <img src={userimg} alt="Understand User Needs" />
     </div>
-    <h4>Understand User Needs</h4>
-    <p>We carefully assess your personal goals, lifestyle habits, and wellness preferences to create a fully personalized and actionable plan that suits your daily routine.</p>
+
+    <div className="card-bottom">
+      <h4>Understand User Needs</h4>
+      <p>Personalized assessment based on your goals</p>
+    </div>
+
+    <div className="card-hover-full">
+      <h4>Personal Assessment</h4>
+      <p>
+        We deeply analyze your goals, habits, and lifestyle preferences to
+        design a wellness plan that perfectly fits your daily routine and
+        long-term vision.
+      </p>
+    </div>
   </div>
 
-  <div className="how-card">
-    <div className="icon">
-      <FaRobot size={80} color="#4ECDC4" />  {/* teal AI icon */}
+  {/* CARD 2 */}
+  <div className="hover-full-card">
+    <div className="card-top">
+      <img src={insightimg} alt="AI Powered Insights" />
     </div>
-    <h4>AI-Powered Insights</h4>
-    <p>Our advanced AI system analyzes your data to provide intelligent insights and recommendations, combining technology with expert human guidance for maximum results.</p>
+
+    <div className="card-bottom">
+      <h4>AI-Powered Insights</h4>
+      <p>Smart AI-driven recommendations</p>
+    </div>
+
+    <div className="card-hover-full">
+      <h4>Smart Analysis</h4>
+      <p>
+        Our advanced AI analyzes your data patterns and provides intelligent,
+        actionable insights to improve your wellness results consistently.
+      </p>
+    </div>
   </div>
 
-  <div className="how-card">
-    <div className="icon">
-      <FaChalkboardTeacher size={60} color="#FFD93D" /> {/* bright yellow, teaching/guidance */}
+  {/* CARD 3 */}
+  <div className="hover-full-card">
+    <div className="card-top">
+      <img src={guidanceimg} alt="Daily Guidance" />
     </div>
-    <h4>Deliver Guidance</h4>
-    <p>We provide step-by-step guidance every day, including workouts, mindfulness exercises, nutrition plans, and learning tips to help you stay on track and achieve your wellness goals.</p>
+
+    <div className="card-bottom">
+      <h4>Deliver Guidance</h4>
+      <p>Simple daily wellness actions</p>
+    </div>
+
+    <div className="card-hover-full">
+      <h4>Daily Guidance</h4>
+      <p>
+        Receive clear step-by-step daily guidance for workouts, nutrition,
+        mindfulness, and learning habits to stay consistent.
+      </p>
+    </div>
   </div>
 
-  <div className="how-card">
-    <div className="icon">
-      <FaChartLine size={80} color="#6A4C93" /> {/* purple progress icon */}
+  {/* CARD 4 */}
+  <div className="hover-full-card">
+    <div className="card-top">
+      <img src={improveimg} alt="Track & Improve" />
     </div>
-    <h4>Track & Improve</h4>
-    <p>Continuous monitoring and feedback allow you to track your progress, celebrate milestones, and make adjustments along the way, ensuring sustainable and effective improvement.</p>
-  </div>
 
+    <div className="card-bottom">
+      <h4>Track & Improve</h4>
+      <p>Monitor progress and growth</p>
+    </div>
+
+    <div className="card-hover-full">
+      <h4>Progress Tracking</h4>
+      <p>
+        Track improvements, celebrate milestones, and continuously optimize
+        your wellness journey for sustainable success.
+      </p>
+    </div>
+  </div>
 
 
 
   </div>
 </section>
-
-
-
-
      
     {/* ========== Transform CTA – PILL STRIP STYLE ========== */}
 <section className="transform-pill-section">
