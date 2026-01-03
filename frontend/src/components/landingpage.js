@@ -1,5 +1,6 @@
 // src/components/LandingPage.jsx
 import React, { useState, useEffect } from 'react';
+import { Dumbbell, Apple, Moon, Award } from "lucide-react";
 import './LandingPage.css';
 import logo from './logo.png';
 import aiImg from "./ai powerd.png";
@@ -8,7 +9,7 @@ import fitnessImg from "./fit.png";
 import nutritionImg from "./nutrition.png";
 import learningImg from "./learn.png";
 import trainerImg from "./trainer.png";
-import heroBg from "./back.png";
+import heroBg from "./b.png";
 import learImg from "./sign.png";
 import aiiImg from "./analyse.png";
 import fitnesImg from "./guidance.png";
@@ -26,6 +27,23 @@ import insightimg from "./insight.png";
 import guidanceimg from "./gui.png";
 import improveimg from "./improve.png";
 import userimg from "./user.png";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  BarElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, BarElement, LineElement, Title, Tooltip, Legend);
+
+
 
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -70,44 +88,98 @@ const LandingPage = () => {
       setEmail('');
     }
   };
+const weeklyBarData = {
+  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  datasets: [
+    {
+      label: "Workout Minutes",
+      data: [40, 55, 50, 60, 45, 70, 65],
+      backgroundColor: [
+        "#bfdbfe",
+        "#93c5fd",
+        "#60a5fa",
+        "#3b82f6",
+        "#60a5fa",
+        "#2563eb",
+        "#1e40af"
+      ],
+      borderRadius: 10,
+      barThickness: 35
+    }
+  ]
+};
+const weeklyBarOptions = {
+  responsive: true,
+  plugins: {
+    legend: { display: false },
+    title: {
+      display: true,
+      text: "Weekly Workout Overview",
+      font: { size: 16 }
+    }
+  },
+  scales: {
+    x: {
+      grid: { display: false }
+    },
+    y: {
+      beginAtZero: true,
+      grid: { color: "#e5e7eb" }
+    }
+  }
+};
+
 
   return (
     <div className="lernevo-landing">
       {/* ========== Navigation ========== */}
-      <nav className="navbar">
-        <div className="container nav-container">
-          <div className="logo-section">
-            <div className="logo">
-              <img src={logo} alt="Lernevo Logo" className="logo-icon" />
-              <span className="logo-text">LERNEVO</span>
-            </div>
-          </div>
+    <nav className="navbar fixed-navbar">
+  <div className="nav-container">
 
-          <div className="nav-links">
-            <button className={`nav-link ${activeSection === 'home' ? 'active' : ''}`} onClick={() => scrollToSection('home')}>Home</button>
-            <button className={`nav-link ${activeSection === 'performance' ? 'active' : ''}`} onClick={() => scrollToSection('performance')}>Dashboard</button>
-            <button className={`nav-link ${activeSection === 'services' ? 'active' : ''}`} onClick={() => scrollToSection('services')}>Services</button>
-            <button className={`nav-link ${activeSection === 'about' ? 'active' : ''}`} onClick={() => scrollToSection('about')}>How It Works</button>
-            <button className="login-btn" onClick={() => alert('Login feature coming soon!')}>Login</button>
-          </div>
 
-          <button className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>☰</button>
-          <button className="cta-btn primary-btn nav-cta" onClick={() => scrollToSection('services')}>Get Started</button>
-        </div>
+    {/* LOGO */}
+    <div className="logo absolute-logo">
+  <span className="logo-text">LERNEVO</span>
+</div>
 
-        {isMenuOpen && (
-          <div className="mobile-menu">
-            <button className="mobile-nav-link" onClick={() => scrollToSection('home')}>Home</button>
-            <button className="mobile-nav-link" onClick={() => scrollToSection('performance')}>Dashboard</button>
-            <button className="mobile-nav-link" onClick={() => scrollToSection('services')}>Services</button>
-            <button className="mobile-nav-link" onClick={() => scrollToSection('about')}>How It Works</button>
-            <button className="mobile-nav-link" onClick={() => alert('Login feature coming soon!')}>Login</button>
-            <button className="cta-btn primary-btn" onClick={() => scrollToSection('services')}>Get Started</button>
-          </div>
-        )}
-      </nav>
 
-      {/* ========== Hero Section (Your AI Wellness Companion) ========== */}
+    {/* NAV LINKS */}
+    <div className="nav-links">
+      <button className="nav-link active">Home</button>
+      <button className="nav-link">Services</button>
+      <button className="nav-link">About Us</button>
+      <button className="nav-link">FAQ</button>
+    </div>
+
+    {/* ACTIONS */}
+    <div className="nav-actions">
+      <button className="nav-link login-link">Login</button>
+      <button className="cta-btn primary-btn">Get Started</button>
+
+      <button
+        className="mobile-menu-btn"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+      >
+        ☰
+      </button>
+    </div>
+
+  </div>
+
+  {isMenuOpen && (
+    <div className="mobile-menu">
+      <button className="mobile-nav-link">Home</button>
+      <button className="mobile-nav-link">About Us</button>
+      <button className="mobile-nav-link">Services</button>
+      <button className="mobile-nav-link">FAQ</button>
+      <button className="mobile-nav-link">Login</button>
+      <button className="cta-btn primary-btn">Get Started</button>
+    </div>
+  )}
+</nav>
+
+
+      
       {/* ========== Hero Section (Your AI Wellness Companion) ========== */}
       <section
       id="home"
@@ -135,6 +207,7 @@ const LandingPage = () => {
           </button>
         </div>
 
+       
 
       </div>
     </section>
@@ -224,49 +297,113 @@ const LandingPage = () => {
         )}
 
         {/* ================= WEEKLY ================= */}
-        {activeTab === "weekly" && (
-          <div className="summary-grid">
-            <div className="summary-card">🏃 Workouts: <strong>5 days</strong></div>
-            <div className="summary-card">🔥 Calories Burned: <strong>2,900</strong></div>
-            <div className="summary-card">😴 Avg Sleep: <strong>7h 56m</strong></div>
-            <div className="summary-card">📈 Progress: <strong>+12%</strong></div>
-          </div>
-        )}
+{activeTab === "weekly" && (
+  <div className="weekly-dashboard">
+
+    {/* LEFT: Graph Card */}
+    <div className="weekly-graph-card">
+      <h3 className="card-title">Weekly Activity</h3>
+      <Bar data={weeklyBarData} options={weeklyBarOptions} />
+    </div>
+
+    {/* RIGHT: Side Content */}
+    <div className="weekly-side-cards">
+
+      <div className="side-card">
+        <h4>Active Days</h4>
+        <p><strong>5 / 7</strong></p>
+      </div>
+
+      <div className="side-card">
+        <h4>Total Calories</h4>
+        <p><strong>2,900 kcal</strong></p>
+      </div>
+
+      <div className="side-card">
+        <h4>Avg Workout</h4>
+        <p><strong>55 min</strong></p>
+      </div>
+
+    </div>
+  </div>
+)}
+
+
+        
 
         {/* ================= MONTHLY ================= */}
-        {activeTab === "monthly" && (
-          <div className="summary-grid">
-            <div className="summary-card">💪 Workouts Completed: <strong>22</strong></div>
-            <div className="summary-card">🥗 Nutrition Adherence: <strong>88%</strong></div>
-            <div className="summary-card">😴 Sleep Consistency: <strong>85%</strong></div>
-            <div className="summary-card">🏆 Achievements: <strong>6 Badges</strong></div>
-          </div>
-        )}
+       {activeTab === "monthly" && (
+  <div className="monthly-grid">
 
+    <div className="monthly-card">
+      <div className="monthly-icon workout">
+        <Dumbbell size={26} />
+      </div>
+      <h4>Workouts</h4>
+      <h2>22</h2>
+      <p>Sessions completed this month</p>
+    </div>
+
+    <div className="monthly-card">
+      <div className="monthly-icon nutrition">
+        <Apple size={26} />
+      </div>
+      <h4>Nutrition</h4>
+      <h2>88%</h2>
+      <p>Meal plan adherence</p>
+    </div>
+
+    <div className="monthly-card">
+      <div className="monthly-icon sleep">
+        <Moon size={26} />
+      </div>
+      <h4>Sleep</h4>
+      <h2>85%</h2>
+      <p>Consistent sleep routine</p>
+    </div>
+
+    <div className="monthly-card">
+      <div className="monthly-icon badge">
+        <Award size={26} />
+      </div>
+      <h4>Achievements</h4>
+      <h2>6</h2>
+      <p>Badges earned</p>
+    </div>
+
+  </div>
+)}
         {/* ================= PROGRESS DIARY ================= */}
         {activeTab === "diary" && (
-          <div className="progress-diary">
-            <h3>Your Progress Diary</h3>
+  <div className="progress-diary">
+    <h3>Your Progress Diary</h3>
 
-            <div className="diary-entry">
-              <span className="diary-date">Today</span>
-              <p>💪 45 min workout • 🥗 Calories on track • 😴 Slept 8h 42m</p>
-            </div>
+    <div className="diary-entry">
+      <span className="diary-date">Today</span>
+      <p>45 min workout • Calories on track • Slept 8h 42m</p>
+      <p className="motivation">🌟 Keep pushing! Every workout counts.</p>
+    </div>
 
-            <div className="diary-entry">
-              <span className="diary-date">Yesterday</span>
-              <p>🧠 Stress level low • 🏃 Cardio session completed</p>
-            </div>
+    <div className="diary-entry">
+      <span className="diary-date">Yesterday</span>
+      <p>Stress level low • Cardio session completed</p>
+      <p className="motivation">Consistency is your superpower!</p>
+    </div>
 
-            <div className="diary-entry">
-              <span className="diary-date">2 Days Ago</span>
-              <p>🥗 Clean eating day • 😴 Early bedtime</p>
-            </div>
-          </div>
-        )}
+    <div className="diary-entry">
+      <span className="diary-date">2 Days Ago</span>
+      <p>Clean eating day • Early bedtime</p>
+      <p className="motivation">Small steps lead to big results.</p>
+    </div>
+  </div>
+)}
+
+      
 
       </div>
     </section>
+
+
       {/* ========== Services Section ========== */}
       <section id="services" className="services-section">
         <div className="container">
@@ -563,7 +700,6 @@ const LandingPage = () => {
       {/* BRAND */}
       <div className="footer-brand">
         <div className="footer-logo">
-          <img src={logo} alt="Lernevo Logo" className="footer-logo-img" />
           <span className="logo-text">LERNEVO</span>
         </div>
 
