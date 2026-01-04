@@ -133,23 +133,25 @@ const weeklyBarOptions = {
   return (
     <div className="lernevo-landing">
       {/* ========== Navigation ========== */}
-    <nav className="navbar fixed-navbar">
+<nav className="navbar">
   <div className="nav-container">
+    
+    {/* LOGO - Now naturally floats to the left */}
+    <div className="logo" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
 
-
-    {/* LOGO */}
-    <div className="logo absolute-logo">
-  <span className="logo-text">LERNEVO</span>
-</div>
-
-
-    {/* NAV LINKS */}
-    <div className="nav-links">
-      <button className="nav-link active">Home</button>
-      <button className="nav-link">Services</button>
-      <button className="nav-link">About Us</button>
-      <button className="nav-link">FAQ</button>
+      <span className="logo-text">LERNEVO</span>
     </div>
+
+    {/* NAVIGATION LINKS - Centered via CSS absolute position */}
+    <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
+      <button className="nav-link" onClick={() => scrollToSection('home')}>Home</button>
+      <button className="nav-link" onClick={() => scrollToSection('services')}>Services</button>
+      <button className="nav-link" onClick={() => scrollToSection('about')}>About Us</button>
+      <button className="nav-link" onClick={() => scrollToSection('faq')}>FAQ</button>
+    </div>
+
+
+ 
 
     {/* ACTIONS */}
     <div className="nav-actions">
