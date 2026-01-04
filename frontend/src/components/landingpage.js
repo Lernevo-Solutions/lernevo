@@ -144,7 +144,7 @@ const weeklyBarOptions = {
 
     {/* NAVIGATION LINKS - Centered via CSS absolute position */}
     <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
-      <button className="nav-link" onClick={() => scrollToSection('home')}>Home</button>
+     <button className="nav-link active">Home</button>
       <button className="nav-link" onClick={() => scrollToSection('services')}>Services</button>
       <button className="nav-link" onClick={() => scrollToSection('about')}>About Us</button>
       <button className="nav-link" onClick={() => scrollToSection('faq')}>FAQ</button>
