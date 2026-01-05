@@ -9,7 +9,12 @@ import fitnessImg from "./fit.png";
 import nutritionImg from "./nutrition.png";
 import learningImg from "./learn.png";
 import trainerImg from "./trainer.png";
-import heroBg from "./b.png";
+import b5 from "./b5.png";
+import b1 from "./b1.png";
+import b2 from "./b2.png";
+import b3 from "./b3.png";
+import b4 from "./b4.png";
+
 import learImg from "./sign.png";
 import aiiImg from "./analyse.png";
 import fitnesImg from "./guidance.png";
@@ -24,8 +29,8 @@ import { MdHealthAndSafety } from "react-icons/md";
 
 import { FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
 import insightimg from "./insight.png";
-import guidanceimg from "./gui.png";
-import improveimg from "./improve.png";
+import guidanceimg from "./del.png";
+import improveimg from "./track.png";
 import userimg from "./user.png";
 import { Line } from "react-chartjs-2";
 import {
@@ -50,6 +55,17 @@ const LandingPage = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [email, setEmail] = useState('');
   const [activeTab, setActiveTab] = useState("daily");
+  const heroImages = [b1, b2, b3, b4, b5];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  useEffect(() => {
+  const interval = setInterval(() => {
+    setCurrentIndex((prevIndex) =>
+      (prevIndex + 1) % heroImages.length
+    );
+  }, 4000); // 4 seconds ku oru image
+
+  return () => clearInterval(interval);
+}, []);
 
   // Scroll tracking
   useEffect(() => {
@@ -183,39 +199,38 @@ const weeklyBarOptions = {
 
       
       {/* ========== Hero Section (Your AI Wellness Companion) ========== */}
-      <section
-      id="home"
-      className="hero-section"
-      style={{ backgroundImage: `url(${heroBg})` }}
-    >
+     <section
+  id="home"
+  className="hero-section"
+  style={{
+    backgroundImage: `url(${heroImages[currentIndex]})`
+  }}
+>
+
       <div className="hero-overlay"></div>
 
       <div className="container hero-container">
 
         {/* LEFT CONTENT */}
         <div className="hero-text-content">
-          <h1 className="hero-main-title">
-  <span className="highlight-text">Your AI Wellness Companion</span>
+       <h1 className="hero-main-title">
+  <span
+    className="highlight-text"
+    style={{ color: 'blueviolet' }} // change this to whatever color you want
+  >
+    Your AI Wellness Companion
+  </span>
 </h1>
 
-
           <p className="hero-description">
-            Seamlessly integrate fitness, nutrition, mental health and Learning
-            into your daily routine.
-          </p>
-
+  Seamlessly integrate fitness, nutrition, mental health, learning, and personalized AI guidance into your daily routine for a healthier, happier life.
+</p>
           <button className="cta-btn primary-btn">
             Start Free Trial
           </button>
         </div>
-
-       
-
       </div>
     </section>
-
-
-
 
       {/* ========== Performance Dashboard Section (Moved Here) ========== */}
       <section id="performance" className="performance-dashboard-section">
@@ -415,25 +430,7 @@ const weeklyBarOptions = {
           </div>
 
           <div className="services-grid">
-                    <div className="service-card">
-
-  <div className="service-image-box">
-    <img src={nutritionImg} alt="Nutrition Planning" />
-  </div>
-
-  <h3 className="service-title">Nutrition Planning</h3>
-  <p className="service-description">
-    Custom meal plans and dietary guidance based on your goals.
-  </p>
-  <ul className="service-features">
-    <li>Personalized meal plans</li>
-    <li>Calorie tracking</li>
-    <li>Recipe suggestions</li>
-    <li>Grocery lists</li>
-  </ul>
-
-</div>
-           <div className="service-card">
+            <div className="service-card">
 
   <div className="service-image-box">
     <img src={aiImg} alt="AI Powered Coaching" />
@@ -453,6 +450,25 @@ const weeklyBarOptions = {
   </ul>
 
 </div>
+                    <div className="service-card">
+
+  <div className="service-image-box">
+    <img src={nutritionImg} alt="Nutrition Planning" />
+  </div>
+
+  <h3 className="service-title">Nutrition Planning</h3>
+  <p className="service-description">
+    Custom meal plans and dietary guidance based on your goals.
+  </p>
+  <ul className="service-features">
+    <li>Personalized meal plans</li>
+    <li>Calorie tracking</li>
+    <li>Recipe suggestions</li>
+    <li>Grocery lists</li>
+  </ul>
+
+</div>
+           
  <div className="service-card">
 
   <div className="service-image-box">
@@ -651,9 +667,6 @@ const weeklyBarOptions = {
       </p>
     </div>
   </div>
-
-
-
   </div>
 </section>
      
@@ -693,7 +706,7 @@ const weeklyBarOptions = {
 
 
 
-    <footer className="footer-new">
+  <footer className="footer-new">
   <div className="container">
 
     {/* TOP SECTION */}
@@ -701,30 +714,25 @@ const weeklyBarOptions = {
 
       {/* BRAND */}
       <div className="footer-brand">
-        <div className="footer-logo">
-          <span className="logo-text">LERNEVO</span>
-        </div>
-
         <p className="footer-desc">
           Your AI-powered wellness companion helping you build
           healthier habits across body, mind, and lifestyle.
         </p>
 
-    <div className="footer-social">
-  <a href="https://twitter.com" aria-label="Twitter" target="_blank" rel="noopener noreferrer">
-    <FaTwitter />
-  </a>
-  <a href="https://instagram.com" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
-    <FaInstagram />
-  </a>
-  <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
-    <FaLinkedin />
-  </a>
-  <a href="https://youtube.com" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
-    <FaYoutube />
-  </a>
-</div>
-
+        <div className="footer-social">
+          <a href="https://twitter.com" aria-label="Twitter" target="_blank" rel="noopener noreferrer">
+            <FaTwitter />
+          </a>
+          <a href="https://instagram.com" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+            <FaInstagram />
+          </a>
+          <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+            <FaLinkedin />
+          </a>
+          <a href="https://youtube.com" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
+            <FaYoutube />
+          </a>
+        </div>
       </div>
 
       {/* LINKS */}
@@ -753,6 +761,14 @@ const weeklyBarOptions = {
           <a href="#">Terms of Service</a>
         </div>
 
+        {/* NEW CONTACT US COLUMN */}
+        <div className="link-col">
+          <h4>Contact Us</h4>
+          <p>Email: <a href="mailto:hello@lernevowellness.com">hello@lernevowellness.com</a></p>
+          <p>Phone: <a href="tel:+15551234567">+1 555-123-4567</a></p>
+          <p>Address: 123 Wellness Drive, Health City, HC 12345</p>
+        </div>
+
       </div>
     </div>
 
@@ -765,6 +781,7 @@ const weeklyBarOptions = {
 
   </div>
 </footer>
+
     </div>
   );
 };
