@@ -161,22 +161,7 @@ body {
   transform: translateY(-50%);
 }
 
-.login-link {
-  background: none;
-  border: 1px solid #d1d5db;
-  padding: 8px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #374151;
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
-}
-
-.login-link:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
+/* .login-link removed */
 
 .cta-btn {
   padding: 10px 24px;
@@ -265,7 +250,7 @@ body {
     justify-content: space-between; /* Back to space-between for mobile */
   }
   
-  .nav-links, .nav-actions .login-link, .nav-actions .primary-btn {
+  .nav-links, .nav-actions .primary-btn {
     display: none;
   }
   
@@ -288,9 +273,9 @@ body {
   }
 }
 
-/* Add padding to body to account for fixed navbar */
+/* Add padding equal to navbar height so content is not hidden behind fixed navbar */
 .lernevo-landing {
-  padding-top: 70px;
+  padding-top: 56px;
 }
 
 .secondary-btn {

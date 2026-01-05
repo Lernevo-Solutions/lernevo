@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dumbbell, Apple, Moon, Award } from "lucide-react";
 import './LandingPage.css';
+import Navbar from './Navbar';
 import logo from './logo.png';
 import aiImg from "./ai powerd.png";
 import mentalImg from "./mental health.png";
@@ -133,52 +134,7 @@ const weeklyBarOptions = {
   return (
     <div className="lernevo-landing">
       {/* ========== Navigation ========== */}
-<nav className="navbar">
-  <div className="nav-container">
-    
-    {/* LOGO - Now naturally floats to the left */}
-    <div className="logo" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-
-      <span className="logo-text">LERNEVO</span>
-    </div>
-
-    {/* NAVIGATION LINKS - Centered via CSS absolute position */}
-    <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
-     <button className="nav-link active">Home</button>
-      <button className="nav-link" onClick={() => scrollToSection('services')}>Services</button>
-      <button className="nav-link" onClick={() => scrollToSection('about')}>About Us</button>
-      <button className="nav-link" onClick={() => scrollToSection('faq')}>FAQ</button>
-    </div>
-
-
- 
-
-    {/* ACTIONS */}
-    <div className="nav-actions">
-      <button className="nav-link login-link">Login</button>
-      <button className="cta-btn primary-btn">Get Started</button>
-
-      <button
-        className="mobile-menu-btn"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-      >
-        ☰
-      </button>
-    </div>
-
-  </div>
-
-  {isMenuOpen && (
-    <div className="mobile-menu">
-      <button className="mobile-nav-link">Home</button>
-      <button className="mobile-nav-link">About Us</button>
-      <button className="mobile-nav-link">Services</button>
-      <button className="mobile-nav-link">FAQ</button>
-      <button className="mobile-nav-link">Login</button>
-      <button className="cta-btn primary-btn">Get Started</button>
-    </div>
-  )}
-</nav>
+      <Navbar />
 
 
       

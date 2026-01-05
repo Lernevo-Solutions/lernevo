@@ -1,35 +1,37 @@
-import React, { useState } from 'react';
-import './Navbar.css';
+import React, { useEffect, useState, useCallback } from 'react';
+import "./Navbar.css";
 
-function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-
+const AnimatedText = ({ text }) => {
   return (
-    <nav className="navbar">
-      <div className="container nav-container">
-        <div className="nav-logo">
-          <span className="logo-icon">🌊</span>
-          <span className="logo-text">BlueWave</span>
+    <span className="animated-text">
+      {text.split("").map((char, index) => (
+        <span key={index} style={{ transitionDelay: `${index * 40}ms` }}>
+          {char}
+        </span>
+      ))}
+    </span>
+  );
+};
+
+export default function Navbar() {
+  return (
+    <header className="navbar">
+      <div className="nav-content">
+        <div className="logo">
+          <span className="logo-text">LERNEVO</span>
         </div>
 
-        <div className={`nav-links ${isOpen ? 'open' : ''}`}>
-          <a href="#home" className="nav-link">Home</a>
-          <a href="#services" className="nav-link">Services</a>
-          <a href="#about" className="nav-link">About</a>
-          <a href="#testimonials" className="nav-link">Testimonials</a>
-          <a href="#contact" className="nav-link">Contact</a>
-          <button className="btn-primary nav-btn">Get Started</button>
-        </div>
+        <nav className="nav-links">
+          <a href="#home"><AnimatedText text="HOME" /></a>
+          <a href="#services"><AnimatedText text="SERVICES" /></a>
+          <a href="#about"><AnimatedText text="ABOUT US" /></a>
+          <a href="#faq"><AnimatedText text="FAQ" /></a>
+        </nav>
 
-        <button 
-          className="menu-toggle" 
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? '✕' : '☰'}
-        </button>
+        <button className="cta">GET STARTED</button>
       </div>
-    </nav>
+
+    </header> 
   );
 }
 
-export default Navbar;
