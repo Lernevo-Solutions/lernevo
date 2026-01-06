@@ -5,10 +5,10 @@ import './LandingPage.css';
 import Navbar from './Navbar';
 import logo from './logo.png';
 import aiImg from "./ai powerd.png";
-import mentalImg from "./mental health.png";
+import mentalImg from "./health.png";
 import fitnessImg from "./fit.png";
 import nutritionImg from "./nutrition.png";
-import learningImg from "./learn.png";
+import learningImg from "./learning.png";
 import trainerImg from "./trainer.png";
 import b5 from "./b5.png";
 import b1 from "./b1.png";
@@ -29,10 +29,10 @@ import {  FaChartLine } from "react-icons/fa";
 import { MdHealthAndSafety } from "react-icons/md";
 
 import { FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
-import insightimg from "./insight.png";
+import insightimg from "./in.png";
 import guidanceimg from "./del.png";
 import improveimg from "./track.png";
-import userimg from "./user.png";
+import userimg from "./needs.png";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -58,15 +58,14 @@ const LandingPage = () => {
   const [activeTab, setActiveTab] = useState("daily");
   const heroImages = [b1, b2, b3, b4, b5];
   const [currentIndex, setCurrentIndex] = useState(0);
-  useEffect(() => {
-  const interval = setInterval(() => {
-    setCurrentIndex((prevIndex) =>
-      (prevIndex + 1) % heroImages.length
-    );
-  }, 4000); // 4 seconds ku oru image
+const bgImages = [b1, b2, b3, b4, b5];
+const [background, setBackground] = useState("");
 
-  return () => clearInterval(interval);
+useEffect(() => {
+  const randomIndex = Math.floor(Math.random() * bgImages.length);
+  setBackground(bgImages[randomIndex]);
 }, []);
+
 
   // Scroll tracking
   useEffect(() => {
@@ -155,13 +154,13 @@ const weeklyBarOptions = {
 
       
       {/* ========== Hero Section (Your AI Wellness Companion) ========== */}
-     <section
-  id="home"
-  className="hero-section"
-  style={{
-    backgroundImage: `url(${heroImages[currentIndex]})`
-  }}
->
+    <section
+      className="hero-section"
+      style={{
+        backgroundImage: `url(${background})`,
+      }}
+    >
+
 
       <div className="hero-overlay"></div>
 
@@ -404,7 +403,20 @@ const weeklyBarOptions = {
     <li>Nutrition guidance</li>
     <li>Progress tracking</li>
   </ul>
-
+{/* 👇 HOVER CONTENT — ADD HERE */}
+  <div className="card-hover-full">
+    <h3>AI-Powered Coaching</h3>
+    <p>
+      Smart AI that tracks your fitness, nutrition and mental wellness daily.
+    </p>
+     <div className="hover-points">
+    <span>Tracks your daily fitness activity</span>
+    <span>Gives personalized nutrition guidance</span>
+    <span>Monitors mental wellness patterns</span>
+    <span>Adapts plans based on your progress</span>
+    <span>Keeps you motivated and consistent</span>
+  </div>
+  </div>
 </div>
                     <div className="service-card">
 
@@ -422,6 +434,19 @@ const weeklyBarOptions = {
     <li>Recipe suggestions</li>
     <li>Grocery lists</li>
   </ul>
+   <div className="card-hover-full">
+  <h3>Nutrition Planning</h3>
+  <p>
+    Tailored meal plans and dietary strategies for your health goals.
+  </p>
+  <div className="hover-points">
+    <span>Custom weekly meal plans</span>
+    <span>Calorie and macronutrient guidance</span>
+    <span>Healthy recipe suggestions</span>
+    <span>Smart grocery shopping tips</span>
+    <span>Track your nutrition habits</span>
+  </div>
+</div>
 
 </div>
            
@@ -441,6 +466,19 @@ const weeklyBarOptions = {
     <li>Progress analytics</li>
     <li>Form correction</li>
   </ul>
+ <div className="card-hover-full">
+  <h3>Fitness Programs</h3>
+  <p>
+    Structured workouts for all levels to maximize your results efficiently.
+  </p>
+  <div className="hover-points">
+    <span>Adaptive exercise routines</span>
+    <span>Video tutorials and guidance</span>
+    <span>Monitor performance & progress</span>
+    <span>Form correction tips</span>
+    <span>Daily motivation reminders</span>
+  </div>
+</div>
 
 </div>
 <div className="service-card">
@@ -460,6 +498,19 @@ const weeklyBarOptions = {
     <li>Daily learning reminders</li>
     <li>AI-based improvement suggestions</li>
   </ul>
+<div className="card-hover-full">
+  <h3>Learning</h3>
+  <p>
+    Personalized AI-powered learning paths to boost your skills effectively.
+  </p>
+  <div className="hover-points">
+    <span>Customized learning journeys</span>
+    <span>Track skill development</span>
+    <span>Daily learning challenges</span>
+    <span>Actionable improvement tips</span>
+    <span>Boost knowledge & productivity</span>
+  </div>
+</div>
 
 </div>
 
@@ -478,6 +529,19 @@ const weeklyBarOptions = {
     <li>Stress management</li>
     <li>Mood tracking</li>
   </ul>
+<div className="card-hover-full">
+  <h3>Mental Health Support</h3>
+  <p>
+    Tools and exercises to maintain emotional balance and manage stress.
+  </p>
+  <div className="hover-points">
+    <span>Mindfulness and meditation practices</span>
+    <span>Stress management techniques</span>
+    <span>Track moods and triggers</span>
+    <span>Daily emotional support tips</span>
+    <span>AI-assisted guidance for wellness</span>
+  </div>
+</div>
 
 </div>     
 
@@ -498,6 +562,19 @@ const weeklyBarOptions = {
     <li>Motivation & accountability</li>
     <li>Progress tracking</li>
   </ul>
+<div className="card-hover-full">
+  <h3>Trainer & Coach</h3>
+  <p>
+    Access guidance from AI-powered trainers and professional coaches.
+  </p>
+  <div className="hover-points">
+    <span>Custom coaching plans</span>
+    <span>Daily exercise guidance</span>
+    <span>Motivation and accountability tips</span>
+    <span>Track your training progress</span>
+    <span>Receive actionable feedback</span>
+  </div>
+</div>
 
 </div>
 
@@ -551,7 +628,6 @@ const weeklyBarOptions = {
 
     <div className="card-bottom">
       <h4>Understand User Needs</h4>
-      <p>Personalized assessment based on your goals</p>
     </div>
 
     <div className="card-hover-full">
@@ -572,7 +648,6 @@ const weeklyBarOptions = {
 
     <div className="card-bottom">
       <h4>AI-Powered Insights</h4>
-      <p>Smart AI-driven recommendations</p>
     </div>
 
     <div className="card-hover-full">
@@ -592,7 +667,6 @@ const weeklyBarOptions = {
 
     <div className="card-bottom">
       <h4>Deliver Guidance</h4>
-      <p>Simple daily wellness actions</p>
     </div>
 
     <div className="card-hover-full">
@@ -612,7 +686,6 @@ const weeklyBarOptions = {
 
     <div className="card-bottom">
       <h4>Track & Improve</h4>
-      <p>Monitor progress and growth</p>
     </div>
 
     <div className="card-hover-full">
@@ -627,37 +700,59 @@ const weeklyBarOptions = {
 </section>
      
     {/* ========== Transform CTA – PILL STRIP STYLE ========== */}
-<section className="transform-pill-section">
+<section className="transform-section">
   <div className="container">
 
-    <div className="pill-header">
+    <div className="transform-header">
       <h2>
-        Ready to <span>Elevate Your Wellness?</span>
+        Transform the way you <span>live healthier</span>
       </h2>
       <p>
-        Simple habits. Smart guidance. Real progress.
+        One intelligent platform to guide your fitness, nutrition,
+        mental wellness, and daily habits — built for long-term growth.
       </p>
     </div>
 
-    {/* PILL STRIPS */}
-    <div className="pill-row">
-      <div className="pill-item">🤖 Personalized AI Coach</div>
-      <div className="pill-item">📊 24/7 Health Tracking</div>
-      <div className="pill-item">🧠 Expert-Backed Insights</div>
+    <div className="transform-cards">
+
+      <div className="transform-card">
+        <h4>AI-Driven Guidance</h4>
+        <p>
+          Personalized recommendations that adapt to your lifestyle,
+          goals, and progress over time.
+        </p>
+      </div>
+
+      <div className="transform-card highlight">
+        <h4>Holistic Wellness</h4>
+        <p>
+          Fitness, nutrition, mental health, and learning — all connected
+          in one seamless experience.
+        </p>
+      </div>
+
+      <div className="transform-card">
+        <h4>Real-Time Insights</h4>
+        <p>
+          Track habits, understand patterns, and improve consistently
+          with data-backed clarity.
+        </p>
+      </div>
+
     </div>
 
     <div className="transform-actions">
-  <button
-    className="trial-btn"
-    onClick={() => scrollToSection('services')}
-  >
-    Start Your Free Trial
-  </button>
-</div>
-
+      <button
+        className="trial-btn"
+        onClick={() => scrollToSection('services')}
+      >
+        Start Your Free Trial
+      </button>
+    </div>
 
   </div>
 </section>
+      {/* ========== Footer Section (Redesigned) ========== */}
 
 
 
@@ -674,21 +769,57 @@ const weeklyBarOptions = {
           Your AI-powered wellness companion helping you build
           healthier habits across body, mind, and lifestyle.
         </p>
+        <div className="footer-business-enquiry">
+    <h5>Business Enquiry</h5>
+    <p>Let’s work together</p>
 
-        <div className="footer-social">
-          <a href="https://twitter.com" aria-label="Twitter" target="_blank" rel="noopener noreferrer">
-            <FaTwitter />
-          </a>
-          <a href="https://instagram.com" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
-            <FaInstagram />
-          </a>
-          <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
-            <FaLinkedin />
-          </a>
-          <a href="https://youtube.com" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
-            <FaYoutube />
-          </a>
-        </div>
+    <button
+      className="footer-enquiry-btn"
+      onClick={() => scrollToSection('contact')}
+    >
+      Enquire
+    </button>
+  </div>
+        
+        
+       <div className="footer-social">
+  <a
+    className="twitter"
+    href="https://twitter.com"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaTwitter />
+  </a>
+
+  <a
+    className="instagram"
+    href="https://instagram.com"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaInstagram />
+  </a>
+
+  <a
+    className="linkedin"
+    href="https://linkedin.com"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaLinkedin />
+  </a>
+
+  <a
+    className="youtube"
+    href="https://youtube.com"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaYoutube />
+  </a>
+</div>
+
       </div>
 
       {/* LINKS */}
@@ -717,14 +848,7 @@ const weeklyBarOptions = {
           <a href="#">Terms of Service</a>
         </div>
 
-        {/* NEW CONTACT US COLUMN */}
-        <div className="link-col">
-          <h4>Contact Us</h4>
-          <p>Email: <a href="mailto:hello@lernevowellness.com">hello@lernevowellness.com</a></p>
-          <p>Phone: <a href="tel:+15551234567">+1 555-123-4567</a></p>
-          <p>Address: 123 Wellness Drive, Health City, HC 12345</p>
-        </div>
-
+      
       </div>
     </div>
 
