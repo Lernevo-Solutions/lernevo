@@ -7,8 +7,8 @@ import logo from './logo.png';
 import aiImg from "./ai powerd.png";
 import mentalImg from "./health.png";
 import fitnessImg from "./fit.png";
-import nutritionImg from "./nutrition.png";
-import learningImg from "./learning.png";
+import nutritionImg from "./nut.png";
+import learningImg from "./learnings.png";
 import trainerImg from "./trainer.png";
 import b5 from "./b5.png";
 import b1 from "./b1.png";
@@ -385,120 +385,108 @@ const weeklyBarOptions = {
           </div>
 
           <div className="services-grid">
-            <div className="service-card">
+          <div className="service-card">
 
-  <div className="service-image-box">
+  {/* TOP IMAGE */}
+  <div className="service-card-top">
     <img src={aiImg} alt="AI Powered Coaching" />
   </div>
 
-  <h3 className="service-title">AI-Powered Coaching</h3>
+  {/* BOTTOM CONTENT (always visible) */}
+  <div className="service-card-bottom">
+    <h4>AI-Powered Coaching</h4>
+  </div>
 
-  <p className="service-description">
-    Personalized recommendations that adapt to your progress and goals in real-time.
-  </p>
-
-  <ul className="service-features">
-    <li>Daily wellness check-ins</li>
-    <li>Adaptive workout plans</li>
-    <li>Nutrition guidance</li>
-    <li>Progress tracking</li>
-  </ul>
-{/* 👇 HOVER CONTENT — ADD HERE */}
-  <div className="card-hover-full">
+  {/* FULL HOVER OVERLAY */}
+  <div className="service-card-hover">
     <h3>AI-Powered Coaching</h3>
     <p>
-      Smart AI that tracks your fitness, nutrition and mental wellness daily.
+      Smart AI that tracks your fitness, nutrition, and mental wellness daily.
     </p>
-     <div className="hover-points">
-    <span>Tracks your daily fitness activity</span>
-    <span>Gives personalized nutrition guidance</span>
-    <span>Monitors mental wellness patterns</span>
-    <span>Adapts plans based on your progress</span>
-    <span>Keeps you motivated and consistent</span>
-  </div>
-  </div>
-</div>
-                    <div className="service-card">
 
-  <div className="service-image-box">
+    <div className="hover-points">
+      <span>Tracks daily fitness activity</span>
+      <span>Personalized nutrition guidance</span>
+      <span>Mental wellness insights</span>
+      <span>Adaptive AI plans</span>
+      <span>Motivation & consistency</span>
+    </div>
+  </div>
+
+</div>
+ <div className="service-grid">
+<div className="service-card">
+
+  {/* TOP IMAGE */}
+  <div className="service-card-top">
     <img src={nutritionImg} alt="Nutrition Planning" />
   </div>
 
-  <h3 className="service-title">Nutrition Planning</h3>
-  <p className="service-description">
-    Custom meal plans and dietary guidance based on your goals.
-  </p>
-  <ul className="service-features">
-    <li>Personalized meal plans</li>
-    <li>Calorie tracking</li>
-    <li>Recipe suggestions</li>
-    <li>Grocery lists</li>
-  </ul>
-   <div className="card-hover-full">
-  <h3>Nutrition Planning</h3>
-  <p>
-    Tailored meal plans and dietary strategies for your health goals.
-  </p>
-  <div className="hover-points">
-    <span>Custom weekly meal plans</span>
-    <span>Calorie and macronutrient guidance</span>
-    <span>Healthy recipe suggestions</span>
-    <span>Smart grocery shopping tips</span>
-    <span>Track your nutrition habits</span>
-  </div>
-</div>
 
+  {/* TITLE BELOW IMAGE */}
+  <div className="service-card-bottom">
+  <h3>Nutrition Planning</h3>
+  </div>
+
+  {/* FULL HOVER OVERLAY */}
+  <div className="service-card-hover">
+    <h3>Nutrition Planning</h3>
+    <p>
+      Tailored meal plans and dietary strategies for your health goals.
+    </p>
+
+    <div className="hover-points">
+      <span>Custom weekly meal plans</span>
+      <span>Calorie & macronutrient guidance</span>
+      <span>Healthy recipe suggestions</span>
+      <span>Smart grocery shopping tips</span>
+      <span>Track your nutrition habits</span>
+    </div>
+  </div>
+
+</div>
 </div>
            
- <div className="service-card">
+<div className="service-card">
 
-  <div className="service-image-box">
+  {/* TOP IMAGE */}
+  <div className="service-card-top">
     <img src={fitnessImg} alt="Fitness Programs" />
   </div>
 
-  <h3 className="service-title">Fitness Programs</h3>
-  <p className="service-description">
-    Custom workout routines for all fitness levels and goals.
-  </p>
-  <ul className="service-features">
-    <li>Personalized workout plans</li>
-    <li>Video demonstrations</li>
-    <li>Progress analytics</li>
-    <li>Form correction</li>
-  </ul>
- <div className="card-hover-full">
+  
+  <div className="service-card-bottom">
   <h3>Fitness Programs</h3>
-  <p>
-    Structured workouts for all levels to maximize your results efficiently.
-  </p>
-  <div className="hover-points">
-    <span>Adaptive exercise routines</span>
-    <span>Video tutorials and guidance</span>
-    <span>Monitor performance & progress</span>
-    <span>Form correction tips</span>
-    <span>Daily motivation reminders</span>
   </div>
-</div>
+
+  {/* FULL HOVER OVERLAY */}
+  <div className="service-card-hover">
+    <h3>Fitness Programs</h3>
+    <p>
+      Structured workouts for all levels to maximize your results efficiently.
+    </p>
+
+    <div className="hover-points">
+      <span>Adaptive exercise routines</span>
+      <span>Video tutorials and guidance</span>
+      <span>Monitor performance & progress</span>
+      <span>Form correction tips</span>
+      <span>Daily motivation reminders</span>
+    </div>
+  </div>
+
 
 </div>
 <div className="service-card">
 
-  <div className="service-image-box">
+  <div className="service-card-top">
     <img src={learningImg} alt="Learning" />
   </div>
-
-  <h3 className="service-title">Learning</h3>
-  <p className="service-description">
-    Enhance your skills with AI-powered personalized learning.
-  </p>
-
-  <ul className="service-features">
-    <li>Personalized learning paths</li>
-    <li>Skill progress tracking</li>
-    <li>Daily learning reminders</li>
-    <li>AI-based improvement suggestions</li>
-  </ul>
-<div className="card-hover-full">
+  
+  <div className="service-card-bottom">
+  <h3>Learning</h3>
+</div>
+<div className="service-card-hover">
   <h3>Learning</h3>
   <p>
     Personalized AI-powered learning paths to boost your skills effectively.
@@ -516,20 +504,14 @@ const weeklyBarOptions = {
 
           <div className="service-card">
 
-  <div className="service-image-box">
+  <div className="service-card-top">
     <img src={mentalImg} alt="Mental Health" />
   </div>
 
-  <h3 className="service-title">Mental Health Support</h3>
-  <p className="service-description">
-    Comprehensive mental wellness programs and emotional support.
-  </p>
-  <ul className="service-features">
-    <li>Mindfulness meditation</li>
-    <li>Stress management</li>
-    <li>Mood tracking</li>
-  </ul>
-<div className="card-hover-full">
+  <div className="service-card-bottom">
+    <h3>Mental Health Support</h3>
+  </div>
+<div className="service-card-hover">
   <h3>Mental Health Support</h3>
   <p>
     Tools and exercises to maintain emotional balance and manage stress.
@@ -547,22 +529,14 @@ const weeklyBarOptions = {
 
           <div className="service-card">
 
-  <div className="service-image-box">
+  <div className="service-card-top">
     <img src={trainerImg} alt="Trainer & Coach" />
   </div>
 
-  <h3 className="service-title">Trainer & Coach</h3>
-  <p className="service-description">
-    Get guidance from AI-powered trainers and expert coaches.
-  </p>
-
-  <ul className="service-features">
-    <li>Personalized coaching plans</li>
-    <li>Daily workout guidance</li>
-    <li>Motivation & accountability</li>
-    <li>Progress tracking</li>
-  </ul>
-<div className="card-hover-full">
+  <div className="service-card-bottom">
+    <h3>Trainer & Coach</h3>
+  </div>
+<div className="service-card-hover">
   <h3>Trainer & Coach</h3>
   <p>
     Access guidance from AI-powered trainers and professional coaches.
@@ -769,17 +743,6 @@ const weeklyBarOptions = {
           Your AI-powered wellness companion helping you build
           healthier habits across body, mind, and lifestyle.
         </p>
-        <div className="footer-business-enquiry">
-    <h5>Business Enquiry</h5>
-    <p>Let’s work together</p>
-
-    <button
-      className="footer-enquiry-btn"
-      onClick={() => scrollToSection('contact')}
-    >
-      Enquire
-    </button>
-  </div>
         
         
        <div className="footer-social">
@@ -822,34 +785,47 @@ const weeklyBarOptions = {
 
       </div>
 
-      {/* LINKS */}
-      <div className="footer-links">
+     <div className="footer-top">
 
-        <div className="link-col">
-          <h4>Product</h4>
-          <a onClick={() => scrollToSection('services')}>AI Coaching</a>
-          <a onClick={() => scrollToSection('services')}>Fitness</a>
-          <a onClick={() => scrollToSection('services')}>Mental Wellness</a>
-          <a onClick={() => scrollToSection('services')}>Nutrition</a>
-        </div>
+  {/* PRODUCT */}
+  <div className="link-col">
+    <h4>Product</h4>
+    <a>AI Coaching</a>
+    <a>Fitness</a>
+    <a>Mental Wellness</a>
+    <a>Nutrition</a>
+  </div>
 
-        <div className="link-col">
-          <h4>Company</h4>
-          <a onClick={() => scrollToSection('about')}>About</a>
-          <a href="#">Careers</a>
-          <a href="#">Blog</a>
-          <a href="#">Contact</a>
-        </div>
+  {/* COMPANY */}
+  <div className="link-col">
+    <h4>Company</h4>
+    <a>About</a>
+    <a>Careers</a>
+    <a>Blog</a>
+    <a>Contact</a>
+  </div>
 
-        <div className="link-col">
-          <h4>Support</h4>
-          <a href="#">Help Center</a>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
-        </div>
+  {/* SUPPORT */}
+  <div className="link-col">
+    <h4>Support</h4>
+    <a>Help Center</a>
+    <a>Privacy Policy</a>
+    <a>Terms of Service</a>
+    <a>FAQs</a>
+  </div>
 
-      
-      </div>
+  {/* BUSINESS ENQUIRY */}
+  <div className="link-col">
+    <h4>Business</h4>
+    <a>Business Dashboard</a>
+    <a>Business Queries</a>
+    <a>Book a demo</a>
+    <a>Enquire</a>
+    
+  </div>
+
+</div>
+
     </div>
 
     {/* BOTTOM */}
