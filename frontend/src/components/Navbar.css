@@ -1,420 +1,486 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* Premium white navbar with blue accent and refined interactions */
-.premium-navbar{
-  background: #fff; /* deep white */
-  color: #000; /* default text color */
-  padding: 0; /* compact */
-  position: fixed; /* stick to top */
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  z-index:1000;
-  /* Removed flat border - decorative SVG wave applied via pseudo-elements */
-  box-shadow: none;
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-}  
-
-.nav-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px; /* tightened for compact layout */
-  display: flex;
-  align-items: center;
-  height: 48px; /* slimmed height for a compact navbar */
-  position: relative;
-  z-index: 1001; /* keep nav content above the wave */
-}  
-
-/* Left logo */
-.nav-left {
-  position: absolute;
-  left: 12px; /* align slightly closer to left edge */
-  top: 50%;
-  transform: translateY(-50%); /* vertically center */
-  display: flex;
-  align-items: center;
-  height: 100%;
-  z-index: 1001;
+/* Reset */
+* {
+  box-sizing: border-box;
 }
 
-/* Styles for the Navbar component used in Navbar.js */
-.navbar{
+:root {
+  --nav-height: 64px;
+  /* Minimal initial height */
+  --nav-height-compact: 54px;
+  /* Tight scroll height */
+  --primary-blue: #2563eb;
+  --hover-blue: #1d4ed8;
+  --text-dark: #0f172a;
+  /* Darker navy for better contrast */
+  --text-gray: #334155;
+  /* Darker gray for secondary text */
+  --bg-glass-top: rgba(253, 254, 255, 0.85);
+  /* Slightly more opaque for better glow visibility */
+  --bg-glass-scroll: rgba(255, 255, 255, 0.95);
+  /* Nearly opaque on scroll */
+  --border-glass: rgba(37, 99, 235, 0.1);
+  --shadow-elegant: 0 10px 30px rgba(0, 0, 0, 0.04);
+  --glow-soft-blue: rgba(37, 99, 235, 0.15);
+  /* Stronger base glow */
+  /* Animation Config */
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration: 0.5s;
+}
+
+/* Navbar Base */
+.navbar {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
   width: 100%;
-  background: #fff;
+  height: var(--nav-height);
+  /* Reduced, thin Height */
+  background: var(--bg-glass-top);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid var(--border-glass);
   z-index: 1000;
-}
-
-.nav-content{
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px;
+  transition: all 0.5s var(--ease-premium);
+  font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 48px; /* slim height */
-  position: relative;
+  border-radius: 0;
+  /* Balanced inner highlight */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(37, 99, 235, 0.12),
+    inset 0 2px 15px rgba(37, 99, 235, 0.08),
+    var(--shadow-elegant);
 }
 
-.logo{
+.navbar.scrolled {
+  height: 54px;
+  /* Slightly more height than before (48px) for a more premium feel */
+  background: var(--bg-glass-scroll);
+  box-shadow:
+    0 15px 45px rgba(0, 0, 0, 0.06),
+    0 0 25px rgba(37, 99, 235, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(37, 99, 235, 0.15),
+    inset 0 2px 18px rgba(37, 99, 235, 0.1);
+  border-bottom: 1px solid rgba(37, 99, 235, 0.18);
+}
+
+.navbar-container {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 40px;
+  /* Initial spacing */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  transition: padding 0.4s var(--ease-premium);
+}
+
+.navbar.scrolled .navbar-container {
+  padding: 0 90px;
+  /* Content feels tighter on scroll with more side padding */
+}
+
+/* Logo - Aligned to far left edge */
+.logo-section {
+  display: flex;
+  align-items: center;
   position: absolute;
-  left: 12px;
+  left: 40px;
+  /* Balanced initial spacing */
   top: 50%;
   transform: translateY(-50%);
+  z-index: 10;
+  transition: all 0.4s var(--ease-premium);
+}
+
+.navbar.scrolled .logo-section {
+  left: 140px;
+  /* Shifted even closer to the center nav links on scroll */
+}
+
+.logo-section:hover {
+  transform: translateY(-50%) scale(1.02);
+}
+
+.logo-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--primary-blue);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Navigation Menu - Centered */
+.nav-menu {
   display: flex;
   align-items: center;
+  gap: 32px;
+  /* Further reduced to ensure the prompt "closer" is fully met */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
   height: 100%;
-  z-index: 1001;
+  transition: gap var(--duration) var(--ease-premium);
 }
 
-.nav-links{
-  display: flex;
-  gap: 28px;
-  align-items: center;
+.navbar.scrolled .nav-menu {
+  gap: 24px;
+  /* Proportional reduction on scroll */
 }
 
-/* Nav link underline (animated) */
-.nav-links a{
-  position: relative;
-  color: #374151;
+.nav-item,
+.dropdown-trigger {
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  font-weight: 700;
+  /* Increased weight for clarity */
   text-decoration: none;
-  padding: 6px 0;
-  transition: color 180ms ease;
-  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 0;
+  transition: all var(--duration) var(--ease-premium);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  /* Soft lift to separate from background */
 }
 
-.nav-links a::after{
+.navbar.scrolled .nav-item,
+.navbar.scrolled .dropdown-trigger {
+  font-size: 0.85rem;
+  /* Maintain font size on scroll */
+}
+
+/* Generic Underline (Base) */
+.nav-item::after {
   content: '';
   position: absolute;
-  left: 50%;
-  bottom: -6px;
-  transform: translateX(-50%) scaleX(0);
-  transform-origin: center;
-  width: 64%;
+  bottom: 0;
+  left: 0;
+  width: 100%;
   height: 2px;
-  background: linear-gradient(90deg,#0e5cd6,#1a56db);
-  border-radius: 2px;
-  transition: transform 220ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease;
-  opacity: 0;
+  background: var(--primary-blue);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--duration) var(--ease-spring);
+  opacity: 0.8;
 }
 
-.nav-links a:hover::after,
-.nav-links a.active::after{
-  transform: translateX(-50%) scaleX(1);
-  opacity: 1;
+/* 1️⃣ HOME: Text moves up 2px, Underline left->right */
+.nav-home:hover {
+  transform: translateY(-2px);
+  color: var(--primary-blue);
 }
 
-.nav-links a:hover{ color: #0e5cd6; }
+.nav-home::after {
+  transform-origin: left;
+}
 
-.cta{
+.nav-home:hover::after {
+  transform: scaleX(1);
+}
+
+/* 2️⃣ HOW IT WORKS: Standard lift */
+.nav-how:hover {
+  transform: translateY(-2px);
+  color: var(--primary-blue);
+}
+
+.nav-how::after {
+  background: var(--primary-blue);
+}
+
+.nav-how:hover::after {
+  transform: scaleX(1);
+}
+
+/* 3️⃣ SERVICES: Lift 2px, Arrow Rotate, Underline center */
+.nav-services .dropdown-trigger {
+  transition: transform var(--duration) var(--ease-spring);
+}
+
+.nav-services:hover .dropdown-trigger {
+  transform: translateY(-2px);
+  color: var(--primary-blue);
+}
+
+.nav-services:hover .chevron {
+  transform: rotate(180deg);
+  color: var(--primary-blue);
+}
+
+.nav-services::after {
+  content: '';
   position: absolute;
-  right: 12px;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--primary-blue);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--duration) var(--ease-spring);
+  opacity: 0.8;
+}
+
+.nav-services:hover::after {
+  transform: scaleX(1);
+}
+
+/* 4️⃣ FOR YOU: Spreads letters, Rounded underline */
+.nav-foryou .dropdown-trigger {
+  transition: letter-spacing 0.3s ease, color 0.3s ease;
+}
+
+.nav-foryou:hover .dropdown-trigger {
+  letter-spacing: 0.08em;
+  /* Spread */
+  color: var(--primary-blue);
+}
+
+.nav-foryou:hover .chevron {
+  transform: rotate(180deg);
+  color: var(--primary-blue);
+}
+
+.nav-foryou::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--primary-blue);
+  border-radius: 4px;
+  /* Rounded ends */
+  transform: scaleX(0);
+  transition: transform 0.3s var(--ease-spring);
+}
+
+.nav-foryou:hover::after {
+  transform: scaleX(1);
+}
+
+/* 5️⃣ WHY LERNEVO: Semi-bold, Glow background */
+.nav-why {
+  transition: font-weight 0.2s ease, background 0.3s ease;
+  padding: 4px 8px;
+  /* Add padding for bg effect */
+  margin: 0 -8px;
+  /* Offset padding */
+  border-radius: 6px;
+}
+
+.nav-why:hover {
+  font-weight: 700;
+  background: rgba(37, 99, 235, 0.05);
+  /* Subtle glow */
+  color: var(--primary-blue);
+}
+
+.nav-why::after {
+  transition-duration: 0.5s;
+  /* Slow draw */
+}
+
+.nav-why:hover::after {
+  transform: scaleX(1);
+}
+
+/* 6️⃣ ABOUT US: Slide Right, Underline from left */
+.nav-about:hover {
+  transform: translateX(2px);
+  color: var(--primary-blue);
+}
+
+.nav-about::after {
+  transform-origin: left;
+}
+
+.nav-about:hover::after {
+  transform: scaleX(1);
+}
+
+/* Dropdown Animation (Shared) */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px) scale(0.95);
+  background: white;
+  min-width: 280px;
+  padding: 8px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s var(--ease-spring);
+  z-index: 100;
+}
+
+.dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* Services Dropdown - Slide down */
+.nav-services .dropdown-menu {
+  transform: translateX(-50%) translateY(-8px);
+  /* Start higher */
+}
+
+.nav-services:hover .dropdown-menu {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* For You Dropdown - Staggered fade in items */
+.nav-foryou .dropdown-link {
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.nav-foryou:hover .dropdown-link {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: calc(var(--d) * 0.1s);
+  /* Using --d index from JS */
+}
+
+/* Dropdown Links General */
+.dropdown-link {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.dropdown-link:hover {
+  background: #f0f7ff;
+  transform: translateX(4px);
+}
+
+.dropdown-link strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  margin-bottom: 3px;
+  font-weight: 700;
+}
+
+.dropdown-link span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-gray);
+  font-weight: 400;
+}
+
+/* CTA Button - Aligned to far right edge */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 40px;
+  /* Balanced initial spacing */
   top: 50%;
   transform: translateY(-50%);
-  z-index: 1002;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
+  z-index: 10;
+  transition: all 0.4s var(--ease-premium);
+}
+
+.navbar.scrolled .nav-actions {
+  right: 140px;
+  /* Shifted even closer to the center nav links on scroll */
+}
+
+.cta-btn {
+  background: var(--primary-blue);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  /* More minimal height button */
   border-radius: 8px;
-  background: linear-gradient(90deg,#0e5cd6,#1a56db);
-  color: #fff;
-  border: none;
-  cursor: pointer;
+  /* Subtle rounded button */
+  font-size: 0.85rem;
   font-weight: 700;
-  font-size: 13px;
-  box-shadow: 0 8px 20px rgba(14,92,214,0.12);
-  transition: box-shadow 220ms ease, transform 160ms ease;
-}
-
-/* Hide any leftover inline wave markup */
-.nav-wave{ display: none; }
-
-@media (max-width: 640px){
-  .nav-content{ height: 48px; padding: 0 12px; }
-  .logo{ left: 12px; }
-} 
-
-/* Wave divider removed */
-/* no decorative divider for the navbar */
- 
-.premium-logo-text{
-  color: #1a56db; /* brand blue logo text */
-  font-weight: 900; /* stronger, bolder logo weight */
-  font-variation-settings: 'wght' 900;
-  -webkit-font-smoothing: antialiased;
-  letter-spacing: 0.2px; /* tightened letter spacing */
-  font-size: 17.5px; /* slightly larger for refined presence */
-  padding: 2px 4px;
-  line-height: 1;
-  text-shadow: 0 1px 0 rgba(0,0,0,0.03);
-}
-
-/* Center menu */
-.nav-center{
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%); /* ensure perfect vertical centering */
-  display: flex;
-  gap: 28px; /* compact spacing */
-  align-items: center;
-} 
-
-.nav-item {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-/* Load animation */
-.nav-item.in {
-  animation-name: floatUp;
-  animation-duration: 480ms;
-  animation-fill-mode: both;
-  animation-timing-function: cubic-bezier(.2,.9,.2,1);
-}
-.nav-content {
-  max-width: 100%;
-  height: 60px;          /* was 72px */
-  padding: 0 20px;      /* side spacing */
-}
-
-/* Letter-level styling */
-.nav-link{
-  --mx: 0px;
-  --my: 0px;
-  display: inline-block;
-  color: #000; /* black text on white */
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  padding: 6px 0;
-  transition: color 220ms cubic-bezier(.2,.9,.2,1), transform 260ms cubic-bezier(.2,.9,.2,1);
+  cursor: pointer;
+  transition: all 0.3s var(--ease-spring);
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
   position: relative;
-  transform: translate(var(--mx), var(--my));
-  will-change: transform, color;
-}
-
-/* individual character */
-.char{
-  display: inline-block;
-  transform: translateY(8px);
-  opacity: 0;
-  transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 300ms ease;
-  will-change: transform, opacity;
-}
-
-/* entry animation per char (originally staggered via inline animationDelay)
-   Now the JS rAF loop will add the small utility class `char-visible`
-   when each character's scheduled start time is reached. */
-.char{
-  animation-name: charIn;
-  animation-duration: 420ms;
-  animation-fill-mode: both;
-  animation-timing-function: cubic-bezier(.2,.9,.2,1);
-}
-
-/* Utility class toggled via JS rAF loop to make a char visible */
-.char-visible{
-  transform: translateY(0);
-  opacity: 1;
-}
-
-@keyframes charIn{
-  from{ opacity: 0; transform: translateY(10px);} 
-  to { opacity: 1; transform: translateY(0);} 
-}
-
-/* hover: animate letters one-by-one using the transitionDelay set inline */
-.nav-link:hover .char,
-.nav-link:focus .char{
-  transform: translateY(-10px);
-  opacity: 1;
-}
-
-/* Animated underline */
-.nav-link::after{
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -8px;
-  transform: translateX(-50%) scaleX(0);
-  width: 72%;
-  height: 3px;
-  background: linear-gradient(90deg,#0e5cd6,#1a56db);
-  border-radius: 2px;
-  transform-origin: center;
-  transition: transform 240ms cubic-bezier(.2,.9,.2,1), opacity 240ms ease;
-  opacity: 0;
-}
-
-/* Soft glow on hover (subtle radial bloom) */
-.nav-link::before{
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%) scale(0.6);
-  width: 0;
-  height: 0;
-  background: radial-gradient(circle at center, rgba(26,86,219,0.12), rgba(26,86,219,0));
-  filter: blur(8px);
-  opacity: 0;
-  transition: width 260ms ease, height 260ms ease, opacity 220ms ease, transform 260ms ease;
-  pointer-events: none;
-}
-
-/* Screen reader only text */
-.sr-only{ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-
-/* Hover interactions - lively, not just color change */
-.nav-link:hover{
-  color: #0e5cd6;
-  transform: translate(var(--mx), var(--my)) translateY(-6px) scale(1.03);
-}
-
-.nav-link:hover::after{
-  transform: translateX(-50%) scaleX(1);
-  opacity: 1;
-}
-
-.nav-link:hover::before{
-  width: 140%;
-  height: 42px;
-  transform: translate(-50%,-50%) scale(1);
-  opacity: 1;
-}
-
-/* subtle focus for keyboard users */
-.nav-link:focus{
-  outline: none;
-  color: #0e5cd6;
-}
-
-/* CTA button */
-.cta-btn{
-  display: inline-flex;
+  overflow: hidden;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(90deg,#0e5cd6,#1a56db);
-  color: #fff;
-  border: none;
-  padding: 8px 14px;
+  flex-direction: row;
+  flex-shrink: 0;
+  gap: 6px;
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+/* Subtle shine effect on CTA hover */
+.cta-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.cta-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+  background: #2563eb;
+}
+
+.cta-btn:hover::before {
+  left: 100%;
+  /* Shine moves across */
+}
+
+/* Arrow Nudge */
+.cta-arrow {
+  transition: transform 0.3s var(--ease-spring);
+}
+
+.cta-btn:hover .cta-arrow {
+  transform: translateX(4px);
+}
+
+.cta-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Active State Styles */
+.nav-item.active {
+  color: var(--primary-blue);
   font-weight: 700;
-  font-size: 13px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform 200ms cubic-bezier(.2,.9,.2,1), box-shadow 200ms ease;
 }
 
-.cta-btn:hover{
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(26,86,219,0.12);
-}
-
-.cta-btn:active{ transform: translateY(-1px); }
-.cta-btn:focus{ outline: 3px solid rgba(26,86,219,0.14); }
-
-/* Right side */
-.nav-right { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 1001; }
-
-/* When screen is small, keep CTA inside the content area */
-@media (max-width: 640px){
-  .nav-right{ right: 12px; }
-}
-
-/* Animation keyframes */
-@keyframes floatUp{
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+.nav-item.active::after {
+  transform: scaleX(1);
 }
 
 /* Responsive */
-@media (max-width: 900px){
-  .nav-center{ gap: 28px; }
-  .premium-logo-text{ font-size: 17px; }
-  .nav-center{ gap: 28px; }
-}
-
-@media (max-width: 640px){
-  .nav-inner{ padding: 0 16px; height: 48px; }
-  .nav-left { left: 12px; }
-  .nav-center {
-    position: static;
-    transform: none;
-    margin: 0 auto;
-    gap: 20px;
-    overflow-x: auto;
-    padding: 6px 0;
-    white-space: nowrap;
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none;
   }
-  .nav-link{ font-size: 13px; }
-  .nav-right{ right: 12px; }
 }
-
-/* Respect reduced motion preference */
-@media (prefers-reduced-motion: reduce){
-  .nav-item.in { animation: none; opacity: 1; transform: none; }
-  .nav-link::after, .nav-link::before { transition: none; }
-  .nav-link:hover { transform: none; }
-}
-.animated-text {
-  display: inline-flex;
-}
-
-.animated-text span {
-  display: inline-block;
-  transition: transform 0.35s ease, color 0.35s ease;
-}
-
-.nav-links a:hover .animated-text span {
-  transform: translateY(-6px);
-  color: #2563eb;
-}
-
-/* smooth stagger effect */
-.nav-links a:hover .animated-text span:nth-child(even) {
-  transform: translateY(-3px);
-}
-
-/* Logo: static, no per-letter hover animation */
-.logo {
-  margin-left: 0;
-}
-.logo-text{
-  font-size: 17px;
-  font-weight: 800;
-  color: #2563eb;
-  letter-spacing: 0.6px;
-  display: inline-block;
-  line-height: 1;
-}
-
-/* CTA glow (pseudo + hover) */
-.cta::after{
-  content: "";
-  position: absolute;
-  left: -6px; right: -6px; top: -6px; bottom: -6px;
-  border-radius: 10px;
-  background: radial-gradient(circle at center, rgba(14,92,214,0.12), transparent 40%);
-  opacity: 0;
-  filter: blur(8px);
-  pointer-events: none;
-  transition: opacity 220ms ease;
-}
-/* hover: move up slightly while keeping the center offset */
-.cta:hover{
-  transform: translateY(calc(-50% - 2px));
-  box-shadow: 0 18px 36px rgba(14,92,214,0.18), 0 0 28px rgba(14,92,214,0.06);
-}
-.cta:hover::after{ opacity: 1; }

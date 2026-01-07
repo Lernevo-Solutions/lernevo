@@ -46,103 +46,7 @@ body {
   background: var(--white);
 }
 
-/* Navigation */
-.navbar {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  border-bottom: 1px solid var(--gray-100);
-}
-
-.nav-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logo {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.75rem;
-  font-weight: 700;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.logo-tag {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--primary-blue);
-  background: var(--gray-100);
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.nav-link {
-  text-decoration: none;
-  color: var(--gray-700);
-  font-weight: 500;
-  padding: 0.5rem 0;
-  position: relative;
-  transition: color 0.3s ease;
-}
-
-.nav-link:hover,
-.nav-link.active {
-  color: var(--primary-blue);
-}
-
-.nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--primary-blue);
-  border-radius: 1px;
-}
-
-.nav-btn {
-  background: var(--gradient-primary);
-  color: var(--white);
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-blue);
-}
-
-.nav-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.3);
-}
+/* Navigation styles moved to Navbar.css */
 
 /* Hero Section */
 .hero {
@@ -1089,8 +993,10 @@ body {
 .footer-logo .logo {
   font-size: 1.75rem;
   background: linear-gradient(135deg, #ffffff 0%, #93c5fd 100%);
-  background-clip: text;              /* standard */
-  -webkit-background-clip: text;      /* Chrome, Safari */
+  background-clip: text;
+  /* standard */
+  -webkit-background-clip: text;
+  /* Chrome, Safari */
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
@@ -1190,15 +1096,15 @@ body {
   .hero-title {
     font-size: 2.75rem;
   }
-  
+
   .steps-timeline {
     padding-left: 60px;
   }
-  
+
   .step-indicator {
     left: 0;
   }
-  
+
   .footer-main {
     grid-template-columns: 1fr;
     gap: 3rem;
@@ -1209,70 +1115,70 @@ body {
   .navbar {
     padding: 0.5rem 1rem;
   }
-  
+
   .nav-links {
     display: none;
   }
-  
+
   .hero-title {
     font-size: 2.25rem;
   }
-  
+
   .hero-subtitle {
     font-size: 1.125rem;
   }
-  
+
   .hero-buttons {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .btn-primary-glow,
   .btn-outline {
     width: 100%;
     justify-content: center;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .step-content {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .pillars-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .testimonials-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .faq-container {
     padding: 0 1rem;
   }
-  
+
   .cta-card {
     padding: 3rem 2rem;
   }
-  
+
   .cta-title {
     font-size: 2rem;
   }
-  
+
   .footer-links {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
-  
+
   .footer-bottom {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
   }
-  
+
   .footer-legal {
     flex-wrap: wrap;
     justify-content: center;
@@ -1283,25 +1189,25 @@ body {
   .hero-title {
     font-size: 1.875rem;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .hero-container,
   .section-container,
   .cta-container {
     padding: 2rem 1rem;
   }
-  
+
   .step-card {
     padding: 1.5rem;
   }
-  
+
   .cta-buttons {
     flex-direction: column;
   }
-  
+
   .btn-primary-large,
   .btn-outline-light {
     width: 100%;
@@ -1315,6 +1221,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1322,9 +1229,12 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }

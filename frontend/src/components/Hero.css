@@ -1,6 +1,6 @@
 /* Hero.css */
 .hero-section {
-  padding: 100px 0 50px;
+  padding: 64px 0 50px;
   position: relative;
   overflow: hidden;
 }
@@ -103,7 +103,7 @@
   border-radius: 30px;
   position: relative;
   overflow: hidden;
-  box-shadow: 
+  box-shadow:
     0 20px 40px rgba(0, 119, 182, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
@@ -195,19 +195,19 @@
     flex-direction: column;
     text-align: center;
   }
-  
+
   .hero-title {
     font-size: 2.8rem;
   }
-  
+
   .hero-buttons {
     justify-content: center;
   }
-  
+
   .hero-stats {
     justify-content: center;
   }
-  
+
   .hero-image {
     max-width: 100%;
   }
@@ -217,21 +217,21 @@
   .hero-title {
     font-size: 2.2rem;
   }
-  
+
   .hero-subtitle {
     font-size: 1rem;
   }
-  
+
   .hero-buttons {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .hero-btn {
     width: 100%;
     max-width: 300px;
   }
-  
+
   .hero-stats {
     flex-direction: column;
     gap: 20px;
