@@ -16,57 +16,53 @@
   /* Darker navy for better contrast */
   --text-gray: #334155;
   /* Darker gray for secondary text */
-  --bg-glass-top: rgba(253, 254, 255, 0.85);
-  /* Slightly more opaque for better glow visibility */
-  --bg-glass-scroll: rgba(255, 255, 255, 0.95);
-  /* Nearly opaque on scroll */
-  --border-glass: rgba(37, 99, 235, 0.1);
-  --shadow-elegant: 0 10px 30px rgba(0, 0, 0, 0.04);
-  --glow-soft-blue: rgba(37, 99, 235, 0.15);
-  /* Stronger base glow */
+  --bg-cloud-grey: #F0F2F5;
+  /* Slightly deeper base */
+  --bg-blue-grey-depth: #cbd5e1;
+  /* Stronger depth */
+  --neon-blue-bright: rgba(30, 144, 255, 0.25);
+  /* Stronger neon blue */
+  --neon-blue-soft: rgba(37, 99, 235, 0.15);
+  --border-subtle: rgba(226, 232, 240, 0.5);
+  --shadow-clinical: 0 4px 20px rgba(0, 0, 0, 0.04);
   /* Animation Config */
   --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration: 0.5s;
+  --duration: 0.4s;
 }
 
-/* Navbar Base */
+/* Navbar Base - Swapped to Soft Light Blue-Grey */
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: var(--nav-height);
-  /* Reduced, thin Height */
-  background: var(--bg-glass-top);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  border-bottom: 1px solid var(--border-glass);
+  background: #E8EEF5;
+  /* Soft, clean, and lightweight blue-grey */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   z-index: 1000;
-  transition: all 0.5s var(--ease-premium);
+  transition: all var(--duration) var(--ease-premium);
   font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0;
-  /* Balanced inner highlight */
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    inset 0 -1px 0 rgba(37, 99, 235, 0.12),
-    inset 0 2px 15px rgba(37, 99, 235, 0.08),
-    var(--shadow-elegant);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  /* Lighter shadow for softer feel */
+  overflow: visible;
+}
+
+/* Removed Wavy Overlays from Navbar */
+.navbar::before,
+.navbar::after,
+.navbar-bg-overlay {
+  display: none;
 }
 
 .navbar.scrolled {
-  height: 54px;
-  /* Slightly more height than before (48px) for a more premium feel */
-  background: var(--bg-glass-scroll);
-  box-shadow:
-    0 15px 45px rgba(0, 0, 0, 0.06),
-    0 0 25px rgba(37, 99, 235, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    inset 0 -1px 0 rgba(37, 99, 235, 0.15),
-    inset 0 2px 18px rgba(37, 99, 235, 0.1);
-  border-bottom: 1px solid rgba(37, 99, 235, 0.18);
+  height: var(--nav-height-compact);
+  background: rgba(232, 238, 245, 0.98);
+  /* Maintain softness on scroll */
+  backdrop-filter: blur(20px);
 }
 
 .navbar-container {
@@ -75,7 +71,6 @@
   height: 100%;
   margin: 0 auto;
   padding: 0 40px;
-  /* Initial spacing */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -85,16 +80,14 @@
 
 .navbar.scrolled .navbar-container {
   padding: 0 90px;
-  /* Content feels tighter on scroll with more side padding */
 }
 
-/* Logo - Aligned to far left edge */
+/* Logo - Enhanced Fluid Gradient for Light Background */
 .logo-section {
   display: flex;
   align-items: center;
   position: absolute;
   left: 40px;
-  /* Balanced initial spacing */
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
@@ -103,7 +96,6 @@
 
 .navbar.scrolled .logo-section {
   left: 140px;
-  /* Shifted even closer to the center nav links on scroll */
 }
 
 .logo-section:hover {
@@ -113,19 +105,43 @@
 .logo-text {
   font-family: 'Inter', sans-serif;
   font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: var(--primary-blue);
+  font-weight: 950;
+  /* Maximized weight for presence */
+  letter-spacing: 0.2em;
+  /* Increased for a more spacious, high-end feel */
   text-transform: uppercase;
   cursor: pointer;
+
+  /* Fluid Deep-to-Light Gradient for contrast on soft blue */
+  background: linear-gradient(135deg,
+      #0f172a 0%,
+      /* Deep Obsidian Blue for core visibility */
+      #2563eb 25%,
+      /* Primary AI Blue */
+      #1d4ed8 50%,
+      #60a5fa 75%,
+      /* Arctic Blue accents */
+      #0f172a 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  /* Compatibility fix */
+  -webkit-text-fill-color: transparent;
+  animation: shine 8s linear infinite;
+  filter: drop-shadow(0 0 1px rgba(15, 23, 42, 0.1));
 }
 
-/* Navigation Menu - Centered */
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Updated Nav Menu for Light Background */
 .nav-menu {
   display: flex;
   align-items: center;
   gap: 32px;
-  /* Further reduced to ensure the prompt "closer" is fully met */
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -136,15 +152,14 @@
 
 .navbar.scrolled .nav-menu {
   gap: 24px;
-  /* Proportional reduction on scroll */
 }
 
 .nav-item,
 .dropdown-trigger {
-  color: var(--text-dark);
+  color: #334155;
+  /* Refined Slate for contrast on soft blue */
   font-size: 0.85rem;
   font-weight: 700;
-  /* Increased weight for clarity */
   text-decoration: none;
   cursor: pointer;
   position: relative;
@@ -153,10 +168,9 @@
   gap: 6px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 4px 0;
+  padding: 6px 14px;
+  border-radius: 8px;
   transition: all var(--duration) var(--ease-premium);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-  /* Soft lift to separate from background */
 }
 
 .navbar.scrolled .nav-item,
@@ -165,186 +179,118 @@
   /* Maintain font size on scroll */
 }
 
-/* Generic Underline (Base) */
-.nav-item::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--primary-blue);
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform var(--duration) var(--ease-spring);
-  opacity: 0.8;
+.nav-item:hover,
+.nav-services:hover .dropdown-trigger {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.05);
+  transform: translateY(-2px);
 }
 
-/* 1️⃣ HOME: Text moves up 2px, Underline left->right */
+/* 1️⃣ HOME: Text moves up 2px */
 .nav-home:hover {
   transform: translateY(-2px);
-  color: var(--primary-blue);
-}
-
-.nav-home::after {
-  transform-origin: left;
-}
-
-.nav-home:hover::after {
-  transform: scaleX(1);
 }
 
 /* 2️⃣ HOW IT WORKS: Standard lift */
 .nav-how:hover {
   transform: translateY(-2px);
-  color: var(--primary-blue);
 }
 
-.nav-how::after {
-  background: var(--primary-blue);
-}
-
-.nav-how:hover::after {
-  transform: scaleX(1);
-}
-
-/* 3️⃣ SERVICES: Lift 2px, Arrow Rotate, Underline center */
-.nav-services .dropdown-trigger {
-  transition: transform var(--duration) var(--ease-spring);
-}
-
+/* 3️⃣ SERVICES: Lift 2px, Arrow Rotate */
 .nav-services:hover .dropdown-trigger {
   transform: translateY(-2px);
-  color: var(--primary-blue);
+  color: #2563eb;
 }
 
 .nav-services:hover .chevron {
   transform: rotate(180deg);
-  color: var(--primary-blue);
+  color: #ffffff;
 }
 
-.nav-services::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--primary-blue);
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform var(--duration) var(--ease-spring);
-  opacity: 0.8;
-}
-
-.nav-services:hover::after {
-  transform: scaleX(1);
-}
-
-/* 4️⃣ FOR YOU: Spreads letters, Rounded underline */
-.nav-foryou .dropdown-trigger {
-  transition: letter-spacing 0.3s ease, color 0.3s ease;
-}
-
+/* 4️⃣ FOR YOU: Spreads letters */
 .nav-foryou:hover .dropdown-trigger {
   letter-spacing: 0.08em;
   /* Spread */
-  color: var(--primary-blue);
+  color: #ffffff;
 }
 
 .nav-foryou:hover .chevron {
   transform: rotate(180deg);
-  color: var(--primary-blue);
+  color: #ffffff;
 }
 
-.nav-foryou::after {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: var(--primary-blue);
-  border-radius: 4px;
-  /* Rounded ends */
-  transform: scaleX(0);
-  transition: transform 0.3s var(--ease-spring);
-}
-
-.nav-foryou:hover::after {
-  transform: scaleX(1);
-}
-
-/* 5️⃣ WHY LERNEVO: Semi-bold, Glow background */
+/* 5️⃣ WHY LERNEVO: Glow background */
 .nav-why {
-  transition: font-weight 0.2s ease, background 0.3s ease;
-  padding: 4px 8px;
-  /* Add padding for bg effect */
-  margin: 0 -8px;
-  /* Offset padding */
-  border-radius: 6px;
+  transition: background 0.3s ease;
+  padding: 4px 10px;
+  border-radius: 8px;
 }
 
 .nav-why:hover {
-  font-weight: 700;
-  background: rgba(37, 99, 235, 0.05);
-  /* Subtle glow */
-  color: var(--primary-blue);
+  background: rgba(37, 99, 235, 0.08);
+  /* Updated for light theme */
 }
 
-.nav-why::after {
-  transition-duration: 0.5s;
-  /* Slow draw */
-}
-
-.nav-why:hover::after {
-  transform: scaleX(1);
-}
-
-/* 6️⃣ ABOUT US: Slide Right, Underline from left */
+/* 6️⃣ ABOUT US: Slide Right */
 .nav-about:hover {
   transform: translateX(2px);
-  color: var(--primary-blue);
 }
 
-.nav-about::after {
-  transform-origin: left;
+/* Glowing Underline (Updated for Blue) */
+.nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0px;
+  left: 14px;
+  width: calc(100% - 28px);
+  height: 2px;
+  background: var(--primary-blue);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--duration) var(--ease-premium);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
+  opacity: 0;
 }
 
-.nav-about:hover::after {
+.nav-item:hover::after {
   transform: scaleX(1);
+  opacity: 1;
 }
 
-/* Dropdown Animation (Shared) */
+/* Dropdown Animation (Clean & Solid) */
 .dropdown-menu {
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translateX(-50%) translateY(10px) scale(0.95);
-  background: white;
-  min-width: 280px;
-  padding: 8px;
+  transform: translateX(-50%) translateY(10px);
+  background: #ffffff;
+  /* Clean solid white background */
+  width: auto;
+  min-width: 220px;
+  padding: 12px;
+  overflow: hidden;
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   opacity: 0;
   visibility: hidden;
-  transition: all 0.25s var(--ease-spring);
+  transition: all 0.3s var(--ease-premium);
   z-index: 100;
+  pointer-events: none;
 }
 
 .dropdown:hover .dropdown-menu {
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-
-/* Services Dropdown - Slide down */
-.nav-services .dropdown-menu {
-  transform: translateX(-50%) translateY(-8px);
-  /* Start higher */
-}
-
-.nav-services:hover .dropdown-menu {
   transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+/* Services Dropdown Specifics */
+.nav-services .dropdown-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* For You Dropdown - Staggered fade in items */
@@ -361,42 +307,51 @@
   /* Using --d index from JS */
 }
 
-/* Dropdown Links General */
+/* Dropdown Links - No Cards, just clean text blending */
 .dropdown-link {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 12px 16px;
-  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
   text-decoration: none;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: all 0.3s var(--ease-premium);
+  border-radius: 12px;
+  background: transparent;
 }
 
 .dropdown-link:hover {
-  background: #f0f7ff;
-  transform: translateX(4px);
+  background: rgba(37, 99, 235, 0.06);
+  transform: scale(1.02);
 }
 
 .dropdown-link strong {
   display: block;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: var(--text-dark);
-  margin-bottom: 3px;
-  font-weight: 700;
+  margin-bottom: 2px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .dropdown-link span {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--text-gray);
-  font-weight: 400;
+  line-height: 1.2;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
-/* CTA Button - Aligned to far right edge */
+/* CTA Button - Aligned to far right (White Base) */
 .nav-actions {
   display: flex;
   align-items: center;
   position: absolute;
   right: 40px;
-  /* Balanced initial spacing */
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
@@ -405,31 +360,27 @@
 
 .navbar.scrolled .nav-actions {
   right: 140px;
-  /* Shifted even closer to the center nav links on scroll */
 }
 
 .cta-btn {
-  background: var(--primary-blue);
-  color: white;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  /* Deep, authoritative dark blue */
+  color: #ffffff;
+  /* Highly readable white text */
   border: none;
-  padding: 8px 20px;
-  /* More minimal height button */
-  border-radius: 8px;
-  /* Subtle rounded button */
-  font-size: 0.85rem;
+  padding: 8px 22px;
+  border-radius: 999px;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s var(--ease-spring);
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.25);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
-  flex-direction: row;
-  flex-shrink: 0;
   gap: 6px;
   white-space: nowrap;
-  min-width: max-content;
 }
 
 /* Subtle shine effect on CTA hover */
@@ -440,19 +391,18 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transition: left 0.6s var(--ease-premium);
 }
 
 .cta-btn:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.35);
 }
 
 .cta-btn:hover::before {
   left: 100%;
-  /* Shine moves across */
 }
 
 /* Arrow Nudge */
@@ -468,15 +418,7 @@
   transform: translateY(0) scale(0.98);
 }
 
-/* Active State Styles */
-.nav-item.active {
-  color: var(--primary-blue);
-  font-weight: 700;
-}
 
-.nav-item.active::after {
-  transform: scaleX(1);
-}
 
 /* Responsive */
 @media (max-width: 768px) {
