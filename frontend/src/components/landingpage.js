@@ -15,12 +15,13 @@ import b1 from "./b1.png";
 import b2 from "./b2.png";
 import b3 from "./b3.png";
 import b4 from "./b4.png";
+import b7 from "./b7.png";
 
 import learImg from "./sign.png";
 import aiiImg from "./analyse.png";
 import fitnesImg from "./guidance.png";
 import trainersImg from "./imp.png";
-import workImg from "./work.png";
+import workImg from "./works.png";
 import { FaHandsHelping } from "react-icons/fa";       // Understand User Needs
 import { BiCpu } from "react-icons/bi"; // AI / computer processing
 import { FaRobot } from "react-icons/fa"; // classic AI / robot icon
@@ -58,7 +59,7 @@ const LandingPage = () => {
   const [activeTab, setActiveTab] = useState("daily");
   const heroImages = [b1, b2, b3, b4, b5];
   const [currentIndex, setCurrentIndex] = useState(0);
-const bgImages = [b1, b2, b3, b4, b5];
+const bgImages = [b1, b2, b3, b4, b5,b7];
 const [background, setBackground] = useState("");
 
 useEffect(() => {
@@ -572,6 +573,12 @@ const weeklyBarOptions = {
         From assessment to daily guidance and progress tracking, everything
         is designed to help you improve consistently and sustainably.
       </p>
+      <p className="how-desc">
+  Lernevo learns from you every day — adapting to your habits, progress,
+  and challenges. Smart insights turn effort into results, while gentle
+  guidance keeps you motivated and moving forward.
+</p>
+
     </div>
 
     {/* RIGHT IMAGE - WITH HOVER EFFECT */}
@@ -674,58 +681,31 @@ const weeklyBarOptions = {
 </section>
      
     {/* ========== Transform CTA – PILL STRIP STYLE ========== */}
-<section className="transform-section">
+<section className="transform-section minimal">
   <div className="container">
 
     <div className="transform-header">
       <h2>
         Transform the way you <span>live healthier</span>
       </h2>
-      <p>
-        One intelligent platform to guide your fitness, nutrition,
-        mental wellness, and daily habits — built for long-term growth.
+
+      <p className="primary-desc">
+        Wellness shouldn’t feel complicated. Lernevo brings together
+        intelligent guidance, personalized insights, and daily clarity
+        to help you take control of your health with confidence.
       </p>
     </div>
 
-    <div className="transform-cards">
-
-      <div className="transform-card">
-        <h4>AI-Driven Guidance</h4>
-        <p>
-          Personalized recommendations that adapt to your lifestyle,
-          goals, and progress over time.
-        </p>
-      </div>
-
-      <div className="transform-card highlight">
-        <h4>Holistic Wellness</h4>
-        <p>
-          Fitness, nutrition, mental health, and learning — all connected
-          in one seamless experience.
-        </p>
-      </div>
-
-      <div className="transform-card">
-        <h4>Real-Time Insights</h4>
-        <p>
-          Track habits, understand patterns, and improve consistently
-          with data-backed clarity.
-        </p>
-      </div>
-
-    </div>
-
     <div className="transform-actions">
-      <button
-        className="trial-btn"
-        onClick={() => scrollToSection('services')}
-      >
+      <button className="trial-btn">
         Start Your Free Trial
       </button>
     </div>
 
   </div>
 </section>
+
+
       {/* ========== Footer Section (Redesigned) ========== */}
 
 
@@ -811,14 +791,14 @@ const weeklyBarOptions = {
     <a>Help Center</a>
     <a>Privacy Policy</a>
     <a>Terms of Service</a>
-    <a>FAQs</a>
+    <a>Trust & Safety</a>
   </div>
 
   {/* BUSINESS ENQUIRY */}
   <div className="link-col">
     <h4>Business</h4>
     <a>Business Dashboard</a>
-    <a>Business Queries</a>
+    <a>Partnerships</a>
     <a>Book a demo</a>
     <a>Enquire</a>
     
