@@ -794,7 +794,7 @@ body {
 
 /* Services Section */
 .services-section {
-  padding: 5rem 0;
+  padding: 3rem 0;
 }
 
 .section-header {
@@ -1097,18 +1097,20 @@ body {
 }
 
 /* Transform CTA Section */
-.transform-section {
-  padding: 6rem 0;
+transform-section {
+  padding: 5rem 0 6rem;
+  min-height: 600px; /* ensures the section always looks big enough */
   background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
   color: var(--white);
   position: relative;
   overflow: hidden;
 }
 
+
 .transform-section::before {
   content: '';
   position: absolute;
-  top: 0;
+  top: 30%;
   left: 0;
   right: 0;
   bottom: 0;
@@ -2016,7 +2018,34 @@ body {
   object-fit: contain;
   transition: transform 0.4s ease;
 }
+/* FULL HOVER OVERLAY */
+.service-card-hover {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  /* Soft translucent glass overlay */
+  backdrop-filter: blur(6px);
+  /* Frosted glass effect */
+  -webkit-backdrop-filter: blur(6px);
+  color: #ffffff;
+  padding: 2rem;
 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.4s var(--ease-premium);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* SHOW OVERLAY */
+.service-card:hover .service-card-hover {
+  opacity: 1;
+  transform: translateY(0);
+}
 /* Hover effect */
 .service-card:hover .service-image-wrapper {
   background: linear-gradient(135deg, #e0ecff, #f5f9ff);
@@ -2872,9 +2901,14 @@ body {
 }
 /* HOW LERNEVO WORKS – IMAGE STYLE */
 .how-lernevo-works {
-  padding: 2rem;
+  padding-top: 0.5rem;   /* 🔥 mela space kammi */
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-bottom: 2rem;
+  margin-top: -80px;
   background: #f8fafc;
 }
+
 
 /* TOP SECTION */
 .how-works-wrapper {
@@ -2885,23 +2919,33 @@ body {
 }
 
 .how-works-left h2 {
-  font-size: 3.4rem;
+  font-size:10rem;
   font-weight: 900;
+  margin-top: -100px; 
 }
 
 .how-desc {
   color: #f8f8f9;
-  line-height: 1.7;
+  line-height: 5;
   margin-bottom: 1rem;
   max-width: 520px;
 }
 
 /* IMAGE */
-.how-works-right img {
+.image-hover-container {
   width: 100%;
-  border-radius: 18px;
+  max-width: 1900px;   
+  height: 420px;      
+}
+
+.main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  /* full-ah fill aagum */
+  border-radius: 60px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.15);
 }
+
 
 /* BOTTOM CARDS */
 .how-works-cards {
@@ -3362,6 +3406,208 @@ body {
     font-size: 2.1rem;
   }
 }
+.transform-section {
+  position: relative;
+  padding: 6rem 0 8rem;
+  background: linear-gradient(180deg, #f8fafc, #ffffff);
+  overflow: hidden;
+}
+
+.transform-section::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 120px;
+  background: radial-gradient(
+    circle at center,
+    #dbeafe 0%,
+    transparent 70%
+  );
+}
+/* ================= TRANSFORM SECTION ================= */
+
+.transform-section {
+  position: relative;
+  padding: 8rem 0 8rem;        /* TOP & BOTTOM SPACE */
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  overflow: hidden;
+}
+.transform-card {
+  padding: 1rem 1rem; /* height reduce */
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06); /* subtle shadow */
+  transition: all 0.3s ease;
+  max-width: 300px;  /* optional width limit */
+  margin: 0 auto;    /* center if multiple cards stack */
+}
+
+/* SPACE FIX FROM PREVIOUS SECTION */
+.services-section {
+  margin-bottom: 3rem;
+}
+
+.transform-section {
+  position: relative;
+  padding: 2rem 0;
+  background:
+    linear-gradient(120deg, #f1f5f9 0%, #ffffff 45%, #eef2ff 100%);
+  overflow: hidden;
+}
+
+/* LEFT SOFT AURA */
+.transform-section::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -180px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(37,99,235,0.25), transparent 70%);
+  transform: translateY(-50%);
+}
+
+/* RIGHT SOFT AURA */
+.transform-section::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -180px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(79,70,229,0.25), transparent 70%);
+  transform: translateY(-50%);
+}
+
+/* CONTENT ABOVE */
+.transform-section .container {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* Keep content above glow */
+.transform-section .container {
+  position: relative;
+  z-index: 2;
+}
+.transform-section .container {
+  max-width: 680px; /* slightly smaller container */
+  margin: 0 auto;
+}
+
+/* HEADER */
+.transform-header {
+  max-width: 760px;
+  margin: 0 auto 3.5rem;
+  text-align: center;
+}
+
+.transform-header h2 {
+  font-size: 2.7rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.transform-header h2 span {
+  color: #2563eb;
+}
+
+.transform-header p {
+  margin-top: 1.2rem;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #64748b;
+}
+
+/* MINIMAL VISUAL DIVIDER */
+.transform-divider {
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+  margin: 3.5rem 0;
+}
+
+.transform-divider span {
+  width: 70px;
+  height: 6px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.transform-divider span:nth-child(2) {
+  width: 120px;
+  background: linear-gradient(90deg, #2563eb, #4f46e5);
+}
+
+/* CTA */
+.transform-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 3.5rem;
+}
+
+.transform-actions .trial-btn {
+  padding: 18px 46px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: #fff;
+  box-shadow:
+    0 30px 60px rgba(79,70,229,0.35),
+    0 0 0 14px rgba(79,70,229,0.08);
+}
+
+.primary-desc {
+  margin-top: 1.6rem;
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: #475569;
+}
+
+.secondary-desc {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: #64748b;
+}
+
+.highlight-desc {
+  margin-top: 1.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: 0.3px;
+}
+
+.transform-actions .trial-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 25px 55px rgba(79, 70, 229, 0.45);
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+  .transform-section {
+    padding: 5.5rem 0 6rem;
+  }
+
+  .transform-header h2 {
+    font-size: 2.1rem;
+  }
+
+  .transform-header p {
+    font-size: 1rem;
+  }
+
+  .services-section {
+    margin-bottom: 4rem;
+  }
+}
 
 /* ========== FREE TRIAL CTA BUTTON ========== */
 
@@ -3806,14 +4052,17 @@ body {
   font-size: 15px;
   line-height: 1.5;
   opacity: 0;
+  text-align: left;       /* align all points left */
+  padding-left: 0;   
   transform: translateX(-15px);
   transition: all 0.4s ease;
   position: relative;
 }
 
+
 /* optional: colored bullet */
 .hover-points span::before {
-  content: '→';  
+  content: '';  
   position: absolute;
   left: -18px;
   top: 0;
