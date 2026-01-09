@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import "./Navbar.css";
 import { ChevronDown } from "lucide-react";
 
+import { Link, useLocation } from "react-router-dom";
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,17 +30,23 @@ export default function Navbar() {
         {/* Center Navigation */}
         <nav className="nav-menu">
           {/* UI-only links for now */}
-          <div className="nav-item nav-home">
-            HOME
-          </div>
+         <Link
+  to="/"
+  className={`nav-item nav-home ${location.pathname === "/" ? "active" : ""}`}
+>
+  HOME
+</Link>
 
           <div className="nav-item nav-how">
             HOW IT WORKS
           </div>
+<Link
+  to="/about"
+  className={`nav-item nav-about ${location.pathname === "/about" ? "active" : ""}`}
+>
+  ABOUT US
+</Link>
 
-          <div className="nav-item nav-about">
-            ABOUT US
-          </div>
 
           <div className="nav-item nav-why">
             DASHBOARD
