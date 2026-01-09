@@ -160,49 +160,7 @@ const AboutUs = () => {
 
 
 
-      {/* ========== Our Values Section ========== */}
-      <section className="values-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Our Core Values</h2>
-            <p className="section-subtitle">The principles that guide every decision we make</p>
-          </div>
-          
-          <div className="values-container">
-            <div className="values-grid">
-              {values.map((value, index) => (
-                <div 
-                  key={value.id} 
-                  className={`value-card ${activeValue === index ? 'active' : ''}`}
-                  onMouseEnter={() => setActiveValue(index)}
-                  style={{ borderTopColor: value.color }}
-                >
-                  <div className="value-icon" style={{ color: value.color }}>
-                    {value.icon}
-                  </div>
-                  <h4>{value.title}</h4>
-                  <p className="value-description">{value.description}</p>
-                  <div className="value-details">
-                    <p>{value.details}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="values-display">
-              <div className="active-value-display">
-                <div className="active-icon" style={{ color: values[activeValue].color }}>
-                  {values[activeValue].icon}
-                </div>
-                <h3>{values[activeValue].title}</h3>
-                <p className="active-description">{values[activeValue].description}</p>
-                <p className="active-details">{values[activeValue].details}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+     
     
       
         <footer className="footer-new">

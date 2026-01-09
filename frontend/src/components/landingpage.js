@@ -598,8 +598,9 @@ const weeklyBarOptions = {
 
   </div>
  {/* CARDS HEADING */}
-<h3 className="cards-only-heading">Our Approach</h3>
-
+<div className="container how-works-cards">
+  <h3 className="cards-only-heading">Our Approach</h3>
+</div>
   {/* BOTTOM CARDS - WITH HOVER EFFECTS */}
 <div className="container how-works-cards">
 
