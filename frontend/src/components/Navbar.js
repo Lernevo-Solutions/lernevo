@@ -46,8 +46,7 @@ export default function Navbar() {
           {/* SERVICES Dropdown */}
           <div className="nav-item dropdown nav-services">
             <span className="dropdown-trigger">
-              SERVICES <ChevronDown size={14} className="chevron" />
-            </span>
+              SERVICES </span> 
             <div className="dropdown-menu">
               <div className="dropdown-link">
                 <strong>FITNESS</strong>
