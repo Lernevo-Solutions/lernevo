@@ -797,6 +797,42 @@ body {
   padding: 3rem 0;
 }
 
+.services-section {
+  position: relative;
+  background: #f8fbff;
+  overflow: hidden;
+}
+
+.services-section::before,
+.services-section::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  width: 40%;
+  height: 140%;
+  background: linear-gradient(
+    180deg,
+    rgba(37,99,235,0.18),
+    rgba(147,197,253,0.12),
+    transparent
+  );
+  border-radius: 50%;
+  filter: blur(90px);
+}
+
+.services-section::before {
+  left: -20%;
+}
+
+.services-section::after {
+  right: -20%;
+}
+
+.services-section .container {
+  position: relative;
+  z-index: 1;
+}
+
 .section-header {
   text-align: center;
   margin-bottom: 3rem;
@@ -3104,9 +3140,53 @@ transform-section {
 /* ================= HOW LERNEVO WORKS ================= */
 
 .how-lernevo-works {
+  position: relative;
   padding: 6rem 0;
-  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  background: #ffffff;
+  overflow: hidden;
 }
+/* LEFT & RIGHT SIDE SOFT EFFECT */
+.how-lernevo-works::before,
+.how-lernevo-works::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 35vw;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* LEFT SIDE */
+.how-lernevo-works::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(99, 102, 241, 0.35),
+    rgba(99, 102, 241, 0.18),
+    transparent
+  );
+}
+
+/* RIGHT SIDE */
+.how-lernevo-works::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(147, 197, 253, 0.3),
+    rgba(147, 197, 253, 0.15),
+    transparent
+  );
+}
+.how-lernevo-works .container {
+  position: relative;
+  z-index: 1;
+}
+.how-lernevo-works::before,
+.how-lernevo-works::after {
+  filter: blur(40px);
+}
+
 
 .how-works-wrapper {
   display: grid;
@@ -3452,7 +3532,7 @@ transform-section {
 
 .transform-section {
   position: relative;
-  padding: 2rem 0;
+  padding: 0rem ;
   background:
     linear-gradient(120deg, #f1f5f9 0%, #ffffff 45%, #eef2ff 100%);
   overflow: hidden;
