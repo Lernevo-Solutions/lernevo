@@ -202,17 +202,88 @@
 }
 
 /* ========== Mission & Vision Section ========== */
-.mission-vision-section {
-  padding: 100px 0;
-  background: white;
+/* ===== Compact Mission & Vision Cards ===== */
+.mission-vision-grid {
+  display: flex;                /* Flex for uniform alignment */
+  gap: 24px;                    /* Space between cards */
+  flex-wrap: wrap;              /* Stack on smaller screens */
+  justify-content: center;
 }
 
-.mission-vision-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  margin-top: 40px;
+.mission-card,
+.vision-card {
+  flex: 1 1 300px;              /* Minimum width 300px, expand to fill */
+  max-width: 400px;             /* Limit maximum width */
+  padding: 20px 18px;           /* Compact padding */
+  border-radius: 16px;          /* Slightly smaller corners */
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.mission-card:hover,
+.vision-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+}
+
+.card-icon {
+  font-size: 2.2rem;            /* Slightly smaller icon */
+  margin-bottom: 16px;
+}
+
+.mission-card h3,
+.vision-card h3 {
+  font-size: 1.45rem;           /* Slightly smaller heading */
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #111827;
+}
+
+.mission-card p,
+.vision-card p {
+  font-size: 1rem;              /* Smaller paragraph */
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+/* Color bar on the left */
+.mission-card:before,
+.vision-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  border-radius: 8px 0 0 8px;
+}
+
+.mission-card:before { background: linear-gradient(180deg, #3b82f6, #60a5fa); }
+.vision-card:before { background: linear-gradient(180deg, #8b5cf6, #a78bfa); }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .mission-vision-grid {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .mission-card,
+  .vision-card {
+    max-width: 100%;
+    padding: 18px 14px;
+  }
+
+  .card-icon { font-size: 2rem; }
+  .mission-card h3,
+  .vision-card h3 { font-size: 1.35rem; }
+  .mission-card p,
+  .vision-card p { font-size: 0.95rem; }
+}
+
 
 .mission-card, .vision-card {
   padding: 40px;
@@ -402,7 +473,7 @@
 
 /* ========== Values Section ========== */
 .values-section {
-  padding: 100px 0;
+  padding: 70px 0;
   background: white;
 }
 
@@ -419,9 +490,9 @@
 }
 
 .value-card {
-  padding: 24px;
+  padding: 16px;
   background: white;
-  border-radius: 16px;
+  border-radius: 14px;
   border: 1px solid #e5e7eb;
   border-top: 4px solid;
   transition: all 0.3s ease;
@@ -441,7 +512,7 @@
 
 .value-icon {
   font-size: 2.5rem;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .value-card h4 {
@@ -458,15 +529,16 @@
   margin-bottom: 16px;
 }
 
-.value-details {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
+.values-display {
+  display: flex;
+  align-items: flex-start;
 }
 
-.value-card.active .value-details {
-  max-height: 200px;
+.active-value-display {
+  margin-top: -60px;   /* 🔥 innum mela */
 }
+
+
 
 .values-display {
   display: flex;
