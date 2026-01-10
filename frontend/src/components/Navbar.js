@@ -20,7 +20,7 @@ export default function Navbar() {
   return (
     <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-bg-overlay"></div>
-      <div className="navbar-container">
+      <div className="nav-container">
 
         {/* Logo */}
         <div className="logo-section">
@@ -30,22 +30,22 @@ export default function Navbar() {
         {/* Center Navigation */}
         <nav className="nav-menu">
           {/* UI-only links for now */}
-         <Link
-  to="/"
-  className={`nav-item nav-home ${location.pathname === "/" ? "active" : ""}`}
->
-  HOME
-</Link>
+          <Link
+            to="/"
+            className={`nav-item nav-home ${location.pathname === "/" ? "active" : ""}`}
+          >
+            HOME
+          </Link>
 
           <div className="nav-item nav-how">
             HOW IT WORKS
           </div>
-<Link
-  to="/about"
-  className={`nav-item nav-about ${location.pathname === "/about" ? "active" : ""}`}
->
-  ABOUT US
-</Link>
+          <Link
+            to="/about"
+            className={`nav-item nav-about ${location.pathname === "/about" ? "active" : ""}`}
+          >
+            ABOUT US
+          </Link>
 
 
           <div className="nav-item nav-why">
@@ -55,7 +55,7 @@ export default function Navbar() {
           {/* SERVICES Dropdown */}
           <div className="nav-item dropdown nav-services">
             <span className="dropdown-trigger">
-              SERVICES </span> 
+              SERVICES </span>
             <div className="dropdown-menu">
               <div className="dropdown-link">
                 <strong>FITNESS</strong>
