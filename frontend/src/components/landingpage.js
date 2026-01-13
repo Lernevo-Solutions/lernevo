@@ -399,7 +399,8 @@ const LandingPage = () => {
 
 
       {/* ========== Services Section ========== */}
-      <section id="services" className="services-section services-banner">
+      <section id="services" className="services-section">
+
 
         <div className="container">
           <div className="section-header">
