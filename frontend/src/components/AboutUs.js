@@ -6,6 +6,12 @@ import { GiGrowth, GiBrain } from 'react-icons/gi';
 import Navbar from './Navbar';
 import './AboutUs.css';
 import worksImage from "./works.png";
+import innovationImage from "./innovation.png";
+import holisticimage from "./holistic.png";
+import communityimage from "./community.png";
+import integrityimage from "./integrity.png";
+import growthimage from "./growth.png";
+import empathyimage from "./empathy.png";
 // Import images (you'll need to add these to your project)
 // You can use these placeholders or add your own images
 
@@ -13,59 +19,101 @@ import worksImage from "./works.png";
 const AboutUs = () => {
   const [activeValue, setActiveValue] = useState(0);
 
-  // Our values data
-  const values = [
-    {
-      id: 0,
-      icon: <FaLightbulb />,
-      title: "Innovation",
-      description: "We constantly push boundaries to develop cutting-edge wellness solutions that leverage AI and technology.",
-      details: "Our team of engineers and wellness experts work together to create tools that adapt and learn with you.",
-      color: "#3b82f6"
-    },
-    {
-      id: 1,
-      icon: <MdHealthAndSafety />,
-      title: "Holistic Wellness",
-      description: "We believe in addressing mind, body, and spirit together for sustainable health transformation.",
-      details: "From mental health tracking to physical fitness and nutritional guidance, we cover all aspects of wellness.",
-      color: "#10b981"
-    },
-    {
-      id: 2,
-      icon: <FaUsers />,
-      title: "Community",
-      description: "Building supportive communities where users can share journeys and motivate each other.",
-      details: "Our platform fosters connections through shared goals, group challenges, and social features.",
-      color: "#8b5cf6"
-    },
-    {
-      id: 3,
-      icon: <FaShieldAlt />,
-      title: "Integrity",
-      description: "We operate with transparency, honesty, and ethical practices in all we do.",
-      details: "Your data privacy and security are our top priorities. We're transparent about how we use your information.",
-      color: "#f59e0b"
-    },
-    {
-      id: 4,
-      icon: <GiGrowth />,
-      title: "Growth",
-      description: "We're committed to helping you grow and evolve on your wellness journey.",
-      details: "Our adaptive learning algorithms ensure your experience evolves as you make progress.",
-      color: "#ef4444"
-    },
-    {
-      id: 5,
-      icon: <FaHeart />,
-      title: "Empathy",
-      description: "We design with the user at the center, understanding diverse needs and challenges.",
-      details: "Every feature is created with real user feedback and tested for accessibility and usability.",
-      color: "#ec4899"
-    }
-  ];
-
   
+const values = [
+  {
+    id: 0,
+    image: innovationImage,
+    title: "Innovation",
+    description:
+      "We constantly push boundaries to create intelligent, future-ready wellness solutions powered by AI and emerging technologies.",
+    details:
+      "By blending data science, behavioral psychology, and human-centered design, we build systems that continuously learn and improve with every interaction.",
+    points: [
+      "AI-driven personalization for every user",
+      "Continuous improvement through real-time insights",
+      "Future-ready architecture built for scalability",
+    ],
+    color: "#3b82f6",
+  },
+  {
+    id: 1,
+    image: holisticimage,
+    title: "Holistic Wellness",
+    description:
+      "True wellness goes beyond fitness — we nurture the mind, body, and lifestyle together for lasting transformation.",
+    details:
+      "Our holistic approach integrates mental wellbeing, physical activity, nutrition, sleep, and habit formation into one seamless experience designed for long-term balance.",
+    points: [
+      "Mind, body, and lifestyle integration",
+      "Focus on long-term sustainable habits",
+      "Personalized plans for complete wellness",
+    ],
+    color: "#10b981",
+  },
+  {
+    id: 2,
+    image: communityimage,
+    title: "Community",
+    description:
+      "Wellness thrives in connection, not isolation — we build communities that inspire, support, and uplift.",
+    details:
+      "Through shared challenges, group goals, and social accountability, our platform empowers users to grow together and celebrate progress collectively.",
+    points: [
+      "Group challenges to faster engagement",
+      "Social accountability for consistent progress",
+      "Celebrating achievements together",
+    ],
+    color: "#8b5cf6",
+  },
+  {
+    id: 3,
+    image: integrityimage,
+    title: "Integrity",
+    description:
+      "Trust is the foundation of everything we build — we act with transparency, responsibility, and honesty.",
+    details:
+      "We follow strict ethical standards, ensure data privacy by design, and maintain clear communication so users always feel safe, informed, and respected.",
+    points: [
+      "Transparent practices in all operations",
+      "Data privacy and security by design",
+      "Ethical decision-making in every feature",
+    ],
+    color: "#f59e0b",
+  },
+  {
+    id: 4,
+    image: growthimage,
+    title: "Growth",
+    description:
+      "Wellness is a journey of continuous progress — not a destination.",
+    details:
+      "Using adaptive AI models and personalized insights, we help users track improvements, overcome plateaus, and evolve their routines as their goals change.",
+    points: [
+      "Adaptive AI to guide personal growth",
+      "Insights to overcome plateaus",
+      "Evolving routines as goals change",
+    ],
+    color: "#ef4444",
+  },
+  {
+    id: 5,
+    image: empathyimage,
+    title: "Empathy",
+    description:
+      "We design with compassion, deeply understanding the diverse challenges people face in their wellness journey.",
+    details:
+      "Every feature is shaped by real user stories, inclusive design principles, and continuous feedback to ensure accessibility, comfort, and emotional safety.",
+    points: [
+      "Design inspired by real user experiences",
+      "Inclusive and accessible features",
+      "Focus on emotional safety and comfort",
+    ],
+    color: "#ec4899",
+  },
+];
+
+
 
   return (
     <div className="lernevo-about">
@@ -73,8 +121,6 @@ const AboutUs = () => {
       <Navbar />
       
       {/* ========== Hero Section ========== */}
-     {/* ========== Simple About Section ========== */}
-{/* ========== Simple About Section ========== */}
 <section className="simple-about">
   <div className="container simple-about-wrapper">
 
@@ -117,11 +163,10 @@ const AboutUs = () => {
 </section>
 
 
-
-    {/* ========== Mission & Vision Section ========== */}
 {/* ========== Mission & Vision Section ========== */}
 <section className="mission-vision-section">
   <div className="container">
+
     <div className="section-header">
       <h2 className="section-title">Our Mission & Vision</h2>
       <p className="section-subtitle">
@@ -133,103 +178,114 @@ const AboutUs = () => {
 
       {/* Mission */}
       <div className="mission-card">
-        <div className="card-icon mission-icon">
-          <MdHealthAndSafety />
-        </div>
 
-        <h3>Our Mission</h3>
+        <div className="card-header">
+          <div className="card-icon mission-icon">
+            <MdHealthAndSafety />
+          </div>
+          <h3>Our Mission</h3>
+        </div>
 
         <p>
           To simplify wellness using intelligent, AI-powered guidance that
           helps people improve their physical health, mental clarity, and
           daily lifestyle — consistently and sustainably.
         </p>
+
       </div>
 
       {/* Vision */}
       <div className="vision-card">
-        <div className="card-icon vision-icon">
-          <FaLightbulb />
-        </div>
 
-        <h3>Our Vision</h3>
+        <div className="card-header">
+          <div className="card-icon vision-icon">
+            <FaLightbulb />
+          </div>
+          <h3>Our Vision</h3>
+        </div>
 
         <p>
           To create a future where technology understands people deeply
           and supports healthier, more balanced lives through personalized
           wellness experiences.
         </p>
+
       </div>
 
     </div>
   </div>
 </section>
+
 
 
 
 {/* ========== Our Values Section ========== */}
-<section className="values-section">
-  <div className="container">
-    <div className="section-header">
-      <h2 className="section-title">Our Values</h2>
-      <p className="section-subtitle">
-        The principles that guide everything we build at Lernevo
-      </p>
-    </div>
+ <section className="values-section">
+      <div className="container">
 
-    <div className="values-container">
-
-      {/* LEFT SIDE – VALUES LIST */}
-      <div className="values-grid">
-        {values.map((value, index) => (
-          <div
-            key={value.id}
-            className={`value-card ${activeValue === index ? 'active' : ''}`}
-            style={{ borderTopColor: value.color }}
-            onClick={() => setActiveValue(index)}
-          >
-            <div
-              className="value-icon"
-              style={{ color: value.color }}
-            >
-              {value.icon}
-            </div>
-
-            <h4>{value.title}</h4>
-
-            <p className="value-description">
-              {value.description}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* RIGHT SIDE – ACTIVE VALUE CONTENT */}
-      <div className="values-display">
-        <div className="active-value-display">
-          <div
-            className="active-icon"
-            style={{ color: values[activeValue].color }}
-          >
-            {values[activeValue].icon}
-          </div>
-
-          <h3>{values[activeValue].title}</h3>
-
-          <p className="active-description">
-            {values[activeValue].description}
-          </p>
-
-          <p className="active-details">
-            {values[activeValue].details}
+        <div className="section-header">
+          <h2 className="section-title">Our Values</h2>
+          <p className="section-subtitle">
+            The principles that guide everything we build at Lernevo
           </p>
         </div>
-      </div>
 
-    </div>
+        <div className="values-container">
+
+          {/* LEFT SIDE – IMAGE CARDS */}
+          <div className="values-grid">
+            {values.map((value, index) => (
+              <div
+                key={value.id}
+                className={`value-card ${activeValue === index ? "active" : ""}`}
+                onClick={() => setActiveValue(index)}
+              >
+               <div className="value-card">
+  <div className="value-img-wrapper full">
+    <img
+      src={value.image}
+      alt={value.title}
+      className="value-img"
+    />
   </div>
-</section>
+</div>
 
+
+                <h4>{value.title}</h4>
+              </div>
+            ))}
+          </div>
+
+          {/* RIGHT SIDE – CONTENT */}
+   <div className="values-display">
+  <div className="active-value-display">
+
+    <span className="value-badge">Our Value</span>
+
+    <h3>{values[activeValue].title}</h3>
+
+    <p className="active-description">
+      {values[activeValue].description}
+    </p>
+
+    <p className="active-details">
+      {values[activeValue].details}
+    </p>
+
+    {/* 🔥 POINTS SECTION */}
+    <ul className="value-points">
+      {values[activeValue].points.map((point, i) => (
+        <li key={i}>{point}</li>
+      ))}
+    </ul>
+
+  </div>
+</div>
+
+
+        </div>
+      </div>
+    </section>
      
     
       
