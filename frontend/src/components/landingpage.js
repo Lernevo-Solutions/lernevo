@@ -170,7 +170,7 @@ const LandingPage = () => {
             </div>
 
             <h1 className="hero-headline">
-              Transform Your Life,<br />
+              Transform Your Life<br />
               <span>One Step at a Time</span>
             </h1>
 
@@ -184,10 +184,7 @@ const LandingPage = () => {
 
             <div className="hero-actions">
               <button className="primary-btn">
-                Start Your Journey
-              </button>
-              <button className="secondary-btn">
-                See How It Works
+                Get Started
               </button>
             </div>
 

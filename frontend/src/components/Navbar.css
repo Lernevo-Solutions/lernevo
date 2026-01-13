@@ -21,6 +21,13 @@
     margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 
+  .navbar {
+  height: 64px;
+  margin: 0;
+  padding: 0;
+}
+
+
   /* High-end Blue Glassmorphism - Extreme Blur & Softness */
   background: rgba(255, 255, 255, 0.2);
   background: linear-gradient(135deg,

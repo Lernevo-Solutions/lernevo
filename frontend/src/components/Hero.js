@@ -68,4 +68,33 @@ function Hero() {
   );
 }
 
-export default Hero;
+const Hero = () => {
+  const [heroImage, setHeroImage] = useState(null);
+
+  useEffect(() => {
+    const random = images[Math.floor(Math.random() * images.length)];
+    setHeroImage(random);
+  }, []);
+
+  return (
+    <section className="hero-section" id="home">
+      <div className="hero-container">
+
+        <div className="hero-left">
+          ...
+        </div>
+
+        <div className="hero-right">
+          {heroImage && (
+            <img
+              src={heroImage}
+              alt="Wellness Lifestyle"
+              className="hero-image"
+            />
+          )}
+        </div>
+
+      </div>
+    </section>
+  );
+};
