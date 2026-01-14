@@ -75,10 +75,12 @@ export default function Navbar() {
               </div>
             </div>
           </div>
-
-          <div className="nav-item nav-why">
+        <Link
+            to="/faq"
+            className={`nav-item nav-about ${location.pathname === "/faq" ? "active" : ""}`}
+          >
             FAQ
-          </div>
+          </Link>
         </nav>
 
         {/* Right CTA */}
