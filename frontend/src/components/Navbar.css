@@ -10,15 +10,16 @@
   --primary-blue: #2563eb;
 }
 
-/* Navbar Base */
-/* Navbar Base - Sticky Pill Design with Enhanced Glassmorphism */
+/* Navbar Base - Premium Blue-White Glassmorphism */
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
   max-width: 100%;
   height: var(--nav-height);
-    margin-bottom: 0 !important;
+  margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 
   .navbar {
@@ -28,26 +29,16 @@
 }
 
 
-  /* High-end Blue Glassmorphism - Extreme Blur & Softness */
-  background: rgba(255, 255, 255, 0.2);
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.4) 0%,
-      rgba(219, 234, 254, 0.2) 100%),
-    linear-gradient(to bottom,
-      rgba(255, 255, 255, 0.5) 0%,
-      transparent 1.5px,
-      transparent 100%);
-  /* Pronounced light reflection at the top edge */
+  /* Glassmorphism defaults (blue-white) */
+  --nav-blur: 18px;
+  --nav-opacity: 0.75;
+  background: rgba(225, 235, 255, var(--nav-opacity));
+  backdrop-filter: blur(var(--nav-blur));
+  -webkit-backdrop-filter: blur(var(--nav-blur));
 
-  backdrop-filter: blur(60px) saturate(210%);
-  -webkit-backdrop-filter: blur(60px) saturate(210%);
+  border-bottom: 1px solid rgba(37, 99, 235, 0.25);
 
-  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
-
-  box-shadow:
-    0 10px 50px rgba(31, 38, 135, 0.08),
-    0 4px 15px rgba(37, 99, 235, 0.04);
+  box-shadow: 0 10px 35px rgba(37, 99, 235, 0.18);
 
   margin: 0;
   z-index: 1000;
@@ -55,10 +46,10 @@
   align-items: center;
   justify-content: center;
 
-  border-bottom-left-radius: 40px;
-  border-bottom-right-radius: 40px;
+  /* keep rectangular for modern SaaS look */
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   overflow: visible;
+  will-change: backdrop-filter, opacity;
 }
 
 .navbar-bg-overlay {
@@ -74,9 +65,10 @@
 
 /* Scrolled state for even tighter glass look */
 .navbar.scrolled {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(50px) saturate(220%);
-  box-shadow: 0 12px 50px rgba(31, 38, 135, 0.12);
+  background: rgba(225, 235, 255, 0.78);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.18);
 }
 
 .nav-container {
@@ -112,8 +104,8 @@
   /* Heavier for neon readability */
   letter-spacing: 0.8px;
   text-transform: uppercase;
-  color: #3B82F6 !important;
-  /* Exact requested blue */
+  color: #2563eb !important;
+  /* Brand blue */
 
   /* Shade variations removed as requested */
   text-shadow: none !important;
@@ -126,7 +118,7 @@
 }
 
 .logo-text:hover {
-  color: #3B82F6;
+  color: #2563eb;
   text-shadow: none;
   letter-spacing: 1.2px;
 }
@@ -147,7 +139,7 @@
 
 .nav-item,
 .dropdown-trigger {
-  color: #1e293b;
+  color: #0f172a;
   /* Darker slate for better readability on glass */
   font-size: 0.85rem;
   /* Slightly smaller for premium feel */
@@ -181,13 +173,12 @@
 }
 
 .nav-item:hover,
-.nav-item.active,
 .dropdown-trigger:hover {
-  color: var(--primary-blue);
+  color: #0f172a; /* no color shift */
+  opacity: 0.95; /* subtle indicator */
 }
 
 .nav-item:hover::after,
-.nav-item.active::after,
 .dropdown-trigger:hover::after {
   transform: scaleX(1);
   transform-origin: left;
@@ -195,7 +186,7 @@
 
 /* Specific adjustment for active item if needed */
 .nav-item.active {
-  color: var(--primary-blue);
+  color: #0f172a;
 }
 
 .nav-services .dropdown-menu {
@@ -203,20 +194,23 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%) translateY(10px);
-  background: #ffffff;
+  background: rgba(225, 235, 255, 0.6);
   border-radius: 16px;
-  padding: 8px;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.20);
   min-width: 260px;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.25s ease, transform 0.25s ease;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   z-index: 1100;
   pointer-events: none;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  will-change: opacity, transform;
 }
 
 .nav-services:hover .dropdown-menu {
@@ -289,7 +283,7 @@
   border: none;
 
   /* 🔑 KEY SIZE FIX */
-  padding: 0 14px;
+  padding: 0 12px;
   min-width: unset;
   /* smaller height & width */
   font-size: 0.875rem;
@@ -309,7 +303,7 @@
   justify-content: center;
   border-radius: 999px;
 
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
   transition: all 0.25s ease;
 }
 

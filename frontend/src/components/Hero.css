@@ -38,10 +38,17 @@
 
 
 .hero-subtitle {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: #006494;
   margin-bottom: 30px;
   line-height: 1.6;
+}
+.hero-subtitle {
+  font-size: 20px;
+  line-height: 1.9;        /* extra calm */
+  letter-spacing: 0.4px;  /* optional polish */
+  margin-top: 20px;
+  margin-bottom: 28px;
 }
 
 .hero-buttons {

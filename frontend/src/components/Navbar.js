@@ -9,11 +9,20 @@ export default function Navbar() {
   const location = useLocation();
 
   useEffect(() => {
+    const headerEl = document.querySelector('.navbar');
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      const y = window.scrollY || 0;
+      const blur = Math.min(22, 18 + (y / 300) * 4);
+      const opacity = Math.min(0.75, 0.65 + (y / 300) * 0.1);
+      if (headerEl) {
+        headerEl.style.setProperty('--nav-blur', `${blur}px`);
+        headerEl.style.setProperty('--nav-opacity', `${opacity}`);
+      }
+      setScrolled(y > 0);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 

@@ -180,6 +180,10 @@ const LandingPage = () => {
 
             <p className="hero-description">
               Lernevo personalizes your wellness journey with smart insights, human support, and simple daily actions—so progress feels natural, not overwhelming.
+
+             Effortless progress, guided with care.
+
+             Wellness that grows with you.
             </p>
 
             <div className="hero-actions">

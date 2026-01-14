@@ -9,7 +9,18 @@
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
   --gray-800: #1f2937;
-  --hero-desc-color: #334155;
+  --hero-desc-color: rgb(5, 102, 237);
+  /* Hero spacing tuned to feel premium + breathable under fixed navbar */
+  --hero-top-gap: clamp(40px, 3.2vh, 56px);
+  --hero-bottom-gap: clamp(12px, 1.6vh, 20px);
+  /* Approx inch-like gaps that won't overflow the viewport */
+  --gap-3in: clamp(56px, 9.5vh, 150px);
+  --gap-2in: clamp(48px, 8.5vh, 160px);
+  --gap-1in: clamp(12px, 2.2vh, 24px);
+  --gap-desc: clamp(14px, 2.2vh, 26px);
+  --cta-trust-gap: clamp(24px, 3.2vh, 40px);
+  --cta-top-gap: clamp(48px, 6vh, 96px);
+  --desc-top-gap: clamp(48px, 6vh, 96px);
 }
 
 /* Reset & Base Styles */
@@ -161,17 +172,20 @@ body {
 
 .hero-section {
   position: relative;
-  height: calc(100vh - var(--nav-height));
-  max-height: calc(100vh - var(--nav-height));
-  /* Removed min-height to ensure strict lock */
+  /* Keep hero strictly within a single viewport (accounts for fixed navbar) */
+  height: 100svh;
+  max-height: 100svh;
+  min-height: 100svh;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   background: #ffffff;
   overflow: hidden; /* Prevent ANY overflow */
   
   /* Reset - STRICT SPACE ELIMINATION */
   margin-top: 0 !important;
-  padding-top: 16px !important;
+  /* breathing room below the fixed navbar */
+  padding-top: calc(var(--nav-height) + var(--hero-top-gap)) !important;
+  padding-bottom: var(--hero-bottom-gap);
   box-sizing: border-box;
 }
 
@@ -201,13 +215,13 @@ section#home {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto !important; /* STRICT: No top margin allowed */
-  padding-left: 16px;
-  padding-right: 0;
+  padding-left: 0;
+  padding-right: 16px;
   padding-top: 0;
-  padding-bottom: 20px;
+  padding-bottom: 0;
 
   display: flex;
-  align-items: flex-start;
+  align-items: center; /* vertically balanced */
   gap: 64px;
   height: 100%; /* Fill hero height */
 }
@@ -220,10 +234,10 @@ section#home {
   display: flex;
   flex-direction: column;
   align-items: flex-start; /* STRICT LEFT ALIGNMENT */
-  justify-content: flex-start; /* Start from top */
+  justify-content: flex-start; /* align to top to move content upward */
   text-align: left; /* Ensure text is left aligned */
   padding-top: 0; /* Reset specific padding */
-  margin-top: 16px;
+  margin-top: 0; /* Start exactly at hero breathing space below navbar */
   height: 100%;
 }
 
@@ -236,8 +250,8 @@ section#home {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  margin-bottom: 8px; /* Tighter gap to navbar proximity */
-  margin-top: 0; /* Reset margin since we use padding */
+  margin-bottom: 6px; /* Tighter connection to headline */
+  margin-top: 0;
   display: inline-block;
 }
 
@@ -246,7 +260,8 @@ section#home {
   line-height: 1.1;
   font-weight: 800;
   color: #0f172a;
-  margin-bottom: 16px;
+  margin-bottom: var(--gap-1in);
+  margin-top: 0;
   letter-spacing: -0.02em;
   text-transform: none; /* Title Case */
   white-space: nowrap; /* Prevent word breaking */
@@ -254,51 +269,63 @@ section#home {
 
 .hero-headline span {
   color: #2563eb;
-  display: block; /* Force new line if needed, or rely on <br> */
+  display: block;
+  margin-top: var(--gap-1in);
 }
 
 .hero-subheadline {
   font-size: 20px;
   font-weight: 500;
   color: #64748b; /* Muted text color */
-  margin-bottom: 16px;
-  line-height: 1.4;
+  margin-bottom: var(--gap-1in);
+  margin-top: 0;
+  line-height: 1.8;
   max-width: 90%; /* prevent too wide */
 }
 
 .hero-description {
-  font-size: 17px;
-  line-height: 1.6;
-  color: #475569;
-  margin-bottom: 32px; /* Space before button */
+  font-size: 20px;
+  line-height: 1.80;
+  letter-spacing: 0.04em;
+  color: #0f172a;
+  margin-bottom: var(--gap-desc);
+  margin-top: var(--desc-top-gap);
   max-width: 480px; /* meaningful width */
   opacity: 1; /* Ensure no fade */
 }
 
+.hero-left .hero-description {
+  color: #0f172a !important;
+}
+
 .hero-actions {
   display: flex;
-  gap: 16px;
-  margin-bottom: 32px; /* Reduced space before trust line */
-  justify-content: flex-start; /* Strict left align */
+  gap: 12px;
+  margin-bottom: var(--cta-trust-gap);
+  margin-top: var(--cta-top-gap);
+  justify-content: flex-start;
+  align-self: flex-start;
   width: 100%;
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+  background: #1e3a8a; /* Stronger, deeper blue for better contrast */
   color: white;
-  padding: 16px 36px; /* Larger button */
-  border-radius: 14px;
-  font-weight: 600;
+  padding: 10px 14px; /* Slightly reduced horizontal padding */
+  border-radius: 999px;
+  font-weight: 700; /* Bolder weight for action-oriented feel */
   border: none;
-  font-size: 16px;
+  font-size: 15px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
-  margin-top: 12px; /* Slightly lower the button */
+  margin-top: 0;
+  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
 }
 
 .primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.25);
+  background: #1e3a8a;
+  box-shadow: 0 12px 24px rgba(30, 58, 138, 0.4);
 }
 
 .secondary-btn {
@@ -312,8 +339,8 @@ section#home {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: auto;
-  margin-bottom: 96px; /* 1 inch breathing space from bottom */
+  margin-top: auto; /* push trust line to bottom of left column */
+  margin-bottom: 0;
   align-self: flex-start;
 }
 
@@ -322,24 +349,71 @@ section#home {
 .hero-right {
   flex: 1 1 auto;
   display: flex;
-  align-items: flex-start; /* Top align image */
+  align-items: center; /* match left column vertical balance */
   justify-content: flex-end;
   margin-right: 0;
   padding-right: 0;
   padding-top: 0; /* Reset specific padding */
+  height: 100%;
 }
 
 .hero-image {
   width: 100%;
   max-width: none;
-  height: calc(100vh - var(--nav-height) - 16px - 20px);
-  max-height: calc(100vh - var(--nav-height) - 16px - 20px);
+  /* Fill available hero space without causing overflow */
+  height: 100%;
+  max-height: 100%;
   margin-top: 0;
   margin-right: 0; /* honor container right padding as breathing */
   object-fit: cover;
   border-radius: 32px;
 }
 
+/* =========================
+   HERO – STRICT FIT (Overrides)
+========================= */
+.lernevo-landing .hero-section {
+  /* Final override: lock hero to one viewport and give breathing space under navbar */
+  height: 100svh;
+  max-height: 100svh;
+  min-height: 100svh;
+  padding-bottom: var(--hero-bottom-gap) !important;
+  padding-top: calc(var(--nav-height) + var(--hero-top-gap)) !important;
+  margin-top: 0 !important;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.lernevo-landing .hero-container {
+  padding-left: 0 !important;
+  padding-right: 16px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  gap: 64px !important;
+  height: 100%;
+  margin: 0 auto !important;
+  align-items: center !important;
+}
+
+.lernevo-landing .hero-left {
+  margin-top: 0 !important; /* Start exactly at hero breathing space below navbar */
+  padding-top: 0 !important;
+}
+
+.lernevo-landing .hero-right {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.lernevo-landing .hero-image {
+  margin: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover;
+  border-radius: 32px;
+}
 
 
 /* ---------------- ANIMATION ---------------- */
@@ -358,9 +432,18 @@ section#home {
 /* ---------------- MOBILE ---------------- */
 
 @media (max-width: 1024px) {
+  .hero-headline {
+    margin-bottom: clamp(28px, 5vh, 48px);
+  }
+  .hero-subheadline {
+    margin-bottom: clamp(24px, 4.5vh, 40px);
+  }
+  .hero-description {
+    margin-bottom: clamp(18px, 3.8vh, 32px);
+  }
   .hero-container {
     flex-direction: column;
-    text-align: center;
+    text-align: left;
     gap: 40px;
     padding-top: 0;
   }
@@ -368,8 +451,8 @@ section#home {
   .hero-left {
     flex: unset;
     max-width: 100%;
-    align-items: center;
-    text-align: center; /* Restore center text on mobile */
+    align-items: flex-start;
+    text-align: left;
   }
 
   .hero-right {
@@ -385,23 +468,31 @@ section#home {
   }
 
   .hero-actions {
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
 
 @media (max-width: 640px) {
   .hero-headline {
     font-size: 34px;
+    margin-bottom: clamp(20px, 4vh, 32px);
   }
 
   .hero-image {
     height: 340px;
     border-radius: 24px;
   }
+  .hero-subheadline {
+    margin-bottom: clamp(16px, 3.2vh, 28px);
+  }
+  .hero-description {
+    margin-bottom: clamp(14px, 2.8vh, 24px);
+  }
 
   .hero-actions {
     flex-direction: column;
     width: 100%;
+    align-items: flex-start;
   }
 
   .primary-btn,
@@ -2288,19 +2379,19 @@ transform-section {
 }
 
 /* =========================
-   HERO SECTION
+   HERO SECTION (legacy overlay variant)
+   NOTE: Not used by current LandingPage markup. Kept to avoid breaking other pages.
 ========================= */
-.hero-section {
-  height: calc(100vh - var(--nav-height)) !important;
-  max-height: calc(100vh - var(--nav-height));
+.hero-section.legacy-hero {
+  height: 100vh !important;
+  max-height: 100vh;
   position: relative;
   display: flex;
   align-items: flex-start;
   background-size: cover;
   background-position: center;
-  padding-top: 16px !important;
+  padding-top: 0 !important;
   z-index: 1;
-  /* below navbar */
 }
 
 /* DARK GRADIENT OVERLAY */
@@ -2352,7 +2443,7 @@ transform-section {
 
 .hero-description {
   margin: 20px 0;
-  font-size: 1.15rem;
+  font-size: 1.18rem;
   max-width: 520px;
   color: #f1f5f9;
   /* brighter text */
