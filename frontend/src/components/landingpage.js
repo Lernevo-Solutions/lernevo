@@ -160,41 +160,39 @@ const LandingPage = () => {
 
 
 
-      {/* ========== Hero Section (Your AI Wellness Companion) ========== */}
-      {/* ========== Hero Section ========== */}
       <section className="hero-section" id="home">
-        <div className="container hero-container">
+        <div className="hero-container">
 
-          {/* LEFT TEXT CONTENT */}
+          {/* LEFT CONTENT */}
           <div className="hero-left">
+            <div className="hero-pill">
+              AI-POWERED HOLISTIC WELLNESS
+            </div>
 
+            <h1 className="hero-headline">
+              Transform Your Life<br />
+              <span>One Step at a Time</span>
+            </h1>
 
-            <h1 className="hero-main-title">LERNEVO</h1>
-
-            <h2 className="hero-sub-title">
-              Transform Your Life, One Step at a Time
+            <h2 className="hero-subheadline">
+              Your all-in-one AI companion for fitness, learning, nutrition, and mental well-being.
             </h2>
 
             <p className="hero-description">
-              Experience holistic wellness with personalized programs that nurture your body, mind, and spirit.
+              Lernevo personalizes your wellness journey with smart insights, human support, and simple daily actions—so progress feels natural, not overwhelming.
             </p>
 
-            <div className="hero-buttons">
-              <button className="cta-btn primary-btn">
-                Start Your Journey
-              </button>
-              <button className="cta-btn secondary-btn">
-                Learn More
+            <div className="hero-actions">
+              <button className="primary-btn">
+                Get Started
               </button>
             </div>
 
-            <div className="hero-pill">
-              Your Journey to Wellness Starts Here
+            <div className="hero-trust-line">
+              Secure • Personalized • Human-guided AI
             </div>
-
 
           </div>
-
           {/* RIGHT IMAGE CONTENT */}
           <div className="hero-right">
             {heroImage && (
