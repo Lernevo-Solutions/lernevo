@@ -206,13 +206,13 @@
 /* ===== Compact Mission & Vision Cards ===== */
 /* ===== Section ===== */
 .mission-vision-section {
-  padding: 80px 0;
+  padding: 40px 0 80px; 
   background: #f9fafb;
 }
 
 .section-header {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
 }
 
 .section-title {
@@ -1167,7 +1167,7 @@ footer {
 }
 /* ========== Simple About Section ========== */
 .simple-about {
-  padding: 120px 0 80px;
+  padding: 90px 0 40px;
   background: #f8fafc;
 }
 
