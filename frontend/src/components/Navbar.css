@@ -102,9 +102,9 @@
   /* Slightly larger for impact */
   font-weight: 900;
   /* Heavier for neon readability */
-  letter-spacing: 0.8px;
+  letter-spacing: 0.9px;
   text-transform: uppercase;
-  color: #2563eb !important;
+  color: #033ab1 !important;
   /* Brand blue */
 
   /* Shade variations removed as requested */
@@ -118,7 +118,7 @@
 }
 
 .logo-text:hover {
-  color: #2563eb;
+  color: #6a92e8;
   text-shadow: none;
   letter-spacing: 1.2px;
 }
@@ -287,8 +287,8 @@
   min-width: unset;
   /* smaller height & width */
   font-size: 0.875rem;
-  height: 36px;
-  min-height: 36px;
+  height: 30px;
+  min-height: 30px;
   line-height: 1;
   /* compact text */
   font-weight: 700;

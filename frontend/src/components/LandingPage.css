@@ -285,9 +285,9 @@ section#home {
 
 .hero-description {
   font-size: 20px;
-  line-height: 1.80;
-  letter-spacing: 0.04em;
-  color: #0f172a;
+  line-height: 1.100;
+  letter-spacing: 0.08em;
+  color: #9acf6e;
   margin-bottom: var(--gap-desc);
   margin-top: var(--desc-top-gap);
   max-width: 480px; /* meaningful width */
@@ -308,6 +308,10 @@ section#home {
   width: 100%;
 }
 
+.hero-left .hero-actions {
+  margin-top: 3in !important;
+  margin-bottom: clamp(8px, 1vh, 16px);
+}
 .primary-btn {
   background: #1e3a8a; /* Stronger, deeper blue for better contrast */
   color: white;
@@ -342,6 +346,11 @@ section#home {
   margin-top: auto; /* push trust line to bottom of left column */
   margin-bottom: 0;
   align-self: flex-start;
+}
+
+.hero-left .hero-trust-line {
+  margin-top: clamp(8px, 1vh, 14px) !important;
+  color: #334155;
 }
 
 /* ---------------- RIGHT IMAGE ---------------- */
@@ -1389,7 +1398,7 @@ transform-section {
 .logo-text {
   font-size: 1.4rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #00eaff;
   letter-spacing: 0.02em;
 }
 
@@ -2960,12 +2969,12 @@ transform-section {
 }
 
 .cta-container {
-  margin-top: 40px;
+  margin-top: 30px;
 }
 
 .cta-btn {
   background: #2563eb;
-  color: white;
+  color: rgb(11, 11, 11);
   font-size: 1.2rem;
   padding: 18px 35px;
   border-radius: 50px;
