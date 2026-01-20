@@ -8,6 +8,7 @@
 :root {
   --nav-height: 64px;
   --primary-blue: #2563eb;
+  --light-blue: #93c5fd; /* Lighter shade for hover */
 }
 
 /* Navbar Base - Premium Blue-White Glassmorphism */
@@ -22,23 +23,15 @@
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 
-  .navbar {
-  height: 64px;
-  margin: 0;
-  padding: 0;
-}
-
-
   /* Glassmorphism defaults (blue-white) */
-  --nav-blur: 18px;
-  --nav-opacity: 0.75;
-  background: rgba(225, 235, 255, var(--nav-opacity));
+  --nav-blur: 12px;
+  background: transparent;
   backdrop-filter: blur(var(--nav-blur));
   -webkit-backdrop-filter: blur(var(--nav-blur));
 
-  border-bottom: 1px solid rgba(37, 99, 235, 0.25);
+  border-bottom: 1px solid rgba(37, 99, 235, 0.1);
 
-  box-shadow: 0 10px 35px rgba(37, 99, 235, 0.18);
+  box-shadow: none;
 
   margin: 0;
   z-index: 1000;
@@ -49,7 +42,7 @@
   /* keep rectangular for modern SaaS look */
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   overflow: visible;
-  will-change: backdrop-filter, opacity;
+  will-change: backdrop-filter, background-color;
 }
 
 .navbar-bg-overlay {
@@ -65,10 +58,11 @@
 
 /* Scrolled state for even tighter glass look */
 .navbar.scrolled {
-  background: rgba(225, 235, 255, 0.78);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.18);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(37, 99, 235, 0.1);
 }
 
 .nav-container {
@@ -82,7 +76,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-   margin-bottom: 0 !important;
 }
 
 
@@ -149,44 +142,25 @@
   position: relative;
   display: flex;
   align-items: center;
-  height: 100%;
-  transition: color 0.3s ease, transform 0.3s ease;
+  /* height: 100%; removed to allow border-bottom to fit text */
+  padding-bottom: 4px; /* Padding adjustment for bottom underline */
+  transition: all 0.3s ease; /* Smooth Transition 0.3s ease */
   letter-spacing: 0.02em;
+  border-bottom: 3px solid transparent; /* Bottom Underline placeholder */
 }
 
-/* Premium Animated Underline - Brew.in style */
-.nav-item::after,
-.dropdown-trigger::after {
-  content: '';
-  position: absolute;
-  bottom: 12px;
-  /* Lifted from the edge for a cleaner floating look */
-  left: 0;
-  width: 100%;
-  height: 2px;
-  /* Super thin and elegant */
-  background: var(--primary-blue);
-  border-radius: 4px;
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.nav-item:hover,
-.dropdown-trigger:hover {
-  color: #0f172a; /* no color shift */
-  opacity: 0.95; /* subtle indicator */
-}
-
-.nav-item:hover::after,
-.dropdown-trigger:hover::after {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-
-/* Specific adjustment for active item if needed */
+/* Active State (Bottom Underline) */
 .nav-item.active {
   color: #0f172a;
+  border-bottom-color: var(--primary-blue); /* 3px solid blue brand blue */
+}
+
+/* Hover Effect */
+.nav-item:hover,
+.dropdown-trigger:hover {
+  color: #0f172a;
+  opacity: 0.95;
+  border-bottom-color: var(--light-blue); /* Subtle hover indicator */
 }
 
 .nav-services .dropdown-menu {
@@ -270,10 +244,6 @@
   align-items: center;
   gap: 16px;
   height: 100%;
-}
-
-.navbar.scrolled .nav-actions {
-  right: 140px;
 }
 
 /* GET STARTED – Compact & Clean */

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Dumbbell, Apple, Moon, Award } from "lucide-react";
 import './LandingPage.css';
 import Navbar from './Navbar';
+import Hero from './Hero';
 import logo from './logo.png';
 import aiImg from "./ai powerd.png";
 import mentalImg from "./health.png";
@@ -53,8 +54,6 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, BarElement, LineEleme
 
 
 const LandingPage = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
   const [email, setEmail] = useState('');
   const [activeTab, setActiveTab] = useState("daily");
 
@@ -71,13 +70,24 @@ const LandingPage = () => {
     // Randomly select one image on mount
     const randomImg = heroImages[Math.floor(Math.random() * heroImages.length)];
     setHeroImage(randomImg);
+
+    // Handle hash scrolling on mount
+    if (window.location.hash) {
+      const id = window.location.hash.substring(1);
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
   }, []);
 
 
   // Scroll tracking
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['home', 'performance', 'services', 'about'];
+      const sections = ['home', 'performance', 'services', 'how-it-works'];
       const scrollPosition = window.scrollY + 100;
 
       for (const section of sections) {
@@ -85,7 +95,7 @@ const LandingPage = () => {
         if (element) {
           const { offsetTop, offsetHeight } = element;
           if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveSection(section);
+            // Section active in viewport
             break;
           }
         }
@@ -95,14 +105,6 @@ const LandingPage = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsMenuOpen(false);
-    }
-  };
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -158,58 +160,7 @@ const LandingPage = () => {
       {/* ========== Navigation ========== */}
       <Navbar />
 
-
-
-      <section className="hero-section" id="home">
-        <div className="hero-container">
-
-          {/* LEFT CONTENT */}
-          <div className="hero-left">
-            <div className="hero-pill">
-              AI-POWERED HOLISTIC WELLNESS
-            </div>
-
-            <h1 className="hero-headline">
-              Transform Your Life<br />
-              <span>One Step at a Time</span>
-            </h1>
-
-            <h2 className="hero-subheadline">
-              Your all-in-one AI companion for fitness, learning, nutrition, and mental well-being.
-            </h2>
-
-            <p className="hero-description">
-              Lernevo personalizes your wellness journey with smart insights, human support, and simple daily actions—so progress feels natural, not overwhelming.
-
-             Effortless progress, guided with care.
-
-             Wellness that grows with you.
-            </p>
-
-            <div className="hero-actions">
-              <button className="primary-btn">
-                Get Started
-              </button>
-            </div>
-
-            <div className="hero-trust-line">
-              Secure • Personalized • Human-guided AI
-            </div>
-
-          </div>
-          {/* RIGHT IMAGE CONTENT */}
-          <div className="hero-right">
-            {heroImage && (
-              <img
-                src={heroImage}
-                alt="Wellness Lifestyle"
-                className="hero-image fade-in"
-              />
-            )}
-          </div>
-
-        </div>
-      </section>
+      <Hero heroImage={heroImage} />
 
       {/* ========== Performance Dashboard Section (Moved Here) ========== */}
       <section id="performance" className="performance-dashboard-section">
@@ -583,7 +534,7 @@ const LandingPage = () => {
       </section>
 
       {/* ========== How Lernevo Works (Image Style Layout) ========== */}
-      <section id="about" className="how-lernevo-works">
+      <section id="how-it-works" className="how-lernevo-works">
         <div className="container how-works-wrapper">
 
           {/* LEFT CONTENT */}

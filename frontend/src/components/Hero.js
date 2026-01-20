@@ -1,100 +1,53 @@
 import React from 'react';
 import './Hero.css';
 
-function Hero() {
-  return (
-    <section className="hero-section" id="home">
-      <div className="container hero-container">
-        <div className="hero-content">
-          <h1 className="hero-title">
-            Welcome to <span className="highlight">Light Blue</span> Paradise
-          </h1>
-          <p className="hero-subtitle">
-            Create stunning landing pages with beautiful light blue themes that 
-            captivate your audience and boost conversions.
-          </p>
-          <div className="hero-buttons">
-            <button className="btn-primary hero-btn">
-              Start Free Trial
-            </button>
-            <button className="btn-secondary hero-btn">
-              <span className="play-icon">▶</span> Watch Demo
-            </button>
-          </div>
-          
-          <div className="hero-stats">
-            <div className="stat-item">
-              <h3>10K+</h3>
-              <p>Happy Customers</p>
-            </div>
-            <div className="stat-item">
-              <h3>99%</h3>
-              <p>Satisfaction Rate</p>
-            </div>
-            <div className="stat-item">
-              <h3>24/7</h3>
-              <p>Support Available</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="hero-image float-animation">
-          <div className="image-placeholder">
-            <div className="mockup-screen">
-              <div className="screen-header">
-                <div className="dots">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              </div>
-              <div className="screen-content">
-                <div className="content-line"></div>
-                <div className="content-line short"></div>
-                <div className="content-line"></div>
-                <div className="content-line short"></div>
-                <div className="content-line"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Floating Elements */}
-      <div className="floating-circle circle-1"></div>
-      <div className="floating-circle circle-2"></div>
-      <div className="floating-circle circle-3"></div>
-    </section>
-  );
-}
-
-const Hero = () => {
-  const [heroImage, setHeroImage] = useState(null);
-
-  useEffect(() => {
-    const random = images[Math.floor(Math.random() * images.length)];
-    setHeroImage(random);
-  }, []);
-
+const Hero = ({ heroImage }) => {
   return (
     <section className="hero-section" id="home">
       <div className="hero-container">
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Transform Your Life <br />
+            <span className="hero-title-highlight">The Smarter Way</span>
+          </h1>
+          
+          <div className="hero-pill-container">
+            <span className="hero-pill-text">
+              Your all-in-one AI companion for fitness, learning, nutrition, and mental well-being.
+            </span>
+          </div>
 
-        <div className="hero-left">
-          ...
+          <p className="hero-description">
+            Lernevo personalizes your wellness journey with smart insights, human support, 
+            and simple daily actions—so progress feels natural, not overwhelming. 
+            Effortless progress, guided with care. Wellness that grows with you.
+          </p>
+
+          <button className="hero-pill-button">
+            Start Your Journey
+          </button>
+
+          <div className="hero-trust-line">
+            <span className="trust-item">Secure</span>
+            <span className="trust-divider">•</span>
+            <span className="trust-item">Personalized</span>
+            <span className="trust-divider">•</span>
+            <span className="trust-item">Human-guided AI</span>
+          </div>
         </div>
-
-        <div className="hero-right">
-          {heroImage && (
-            <img
-              src={heroImage}
-              alt="Wellness Lifestyle"
-              className="hero-image"
+        
+        <div className="hero-image-container">
+          <div className="hero-image-wrapper">
+            <img 
+              src={heroImage || "https://images.unsplash.com/photo-1543332164-6e82f355badc?q=80&w=2070&auto=format&fit=crop"} 
+              alt="Healthy Lifestyle" 
+              className="hero-main-image"
             />
-          )}
+          </div>
         </div>
-
       </div>
     </section>
   );
 };
+
+export default Hero;
