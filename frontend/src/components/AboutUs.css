@@ -524,12 +524,12 @@
 
 /* ========== Values Section ========== */
 .values-section {
-  padding-top: 24px;   /* 🔥 only top space reduce */
+  padding-top: 10px;
   padding-bottom: 8px;
-  
 }
+
 .values-section .container {
-  max-width: 2000px;   /* 🔥 MORE SPACE */
+  max-width: 2000px;
 }
 
 .values-container {
@@ -574,7 +574,7 @@ footer {
   position: relative;
   padding-left: 26px;
   margin-bottom: 14px;
-  font-size: 14px;
+  font-size: 15px;
   color: #374151;
   line-height: 1.6;
 }
@@ -612,7 +612,7 @@ footer {
 
 .values-container {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;   /* left cards + right content */
+  grid-template-columns: 1.2fr 1fr; /* left cards + right content */
   gap: 32px;
 
   background: #ffffff;               /* 🔥 single frame */
@@ -651,13 +651,13 @@ footer {
 .values-display {
   background: #f9fafb;
   border-radius: 24px;
-  padding: 40px;
+  padding: 30px;
 }
 /* ===== Center the Values Section Heading ===== */
 .values-section .section-header {
   text-align: center; 
-   margin-top: 40px;       /* center all text inside header */
-  margin-bottom: 50px;      /* optional: add space below heading */
+   margin-top: 20px;       /* center all text inside header */
+  margin-bottom: 24px;      /* optional: add space below heading */
 }
 
 .values-section .section-header h2 {
@@ -721,22 +721,77 @@ footer {
 }
 .active-value-display h3 {
   font-size: 26px;
-  font-weight: 700;
+  font-weight: 1000;
   color: #1f2937;
   margin-bottom: 14px;
 }
-
 .active-description {
-  font-size: 16px;
-  color: #374151;
-  margin-bottom: 12px;
+  text-align: left;        /* 🔥 IMPORTANT */
+  max-width: 520px;
+  margin: 0 auto 20px;
+  line-height: 1.8;
+   min-height: 120px;  
 }
+
 
 .active-details {
   font-size: 14px;
   color: #6b7280;
   line-height: 1.7;
 }
+/* ===== CENTER OUR VALUE BADGE ONLY ===== */
+/* 1. Define the Fade-In + Slide-Up Animation */
+@keyframes valueFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* 2. Apply it to the container */
+/* Because we added key={activeValue} in JS, this triggers every time the value changes */
+.active-value-display {
+  animation: valueFadeIn 0.5s ease-out forwards;
+}
+
+/* 3. Ensure the list checkmarks use the dynamic color */
+.value-points li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  color: var(--bullet-color, #4f46e5); /* Uses the color passed from React */
+  font-weight: 800;
+}
+
+/* 4. Smooth out the transitions for the display box */
+.values-display {
+  position: relative;
+  overflow: hidden;
+  /* We remove the hardcoded background: linear-gradient from before to let the JS color show */
+}
+/* OUR VALUE BADGE – CENTER ONLY */
+.value-badge {
+  display: inline-block;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  color: #4f46e5;
+  background: #e0e7ff;
+  padding: 10px 20px;
+  border-radius: 999px;
+
+  margin: 0 auto 22px;   /* 🔥 badge center */
+  text-align: center;
+}
+
 
 
 .values-display .badge {
@@ -750,23 +805,20 @@ footer {
   margin-bottom: 16px;
 }
 
+/* TITLE */
 .active-value-display h3 {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 14px;
+  text-align: center;      /* title center */
 }
 
-.active-description {
-  font-size: 16px;
-  color: #444;
-  margin-bottom: 12px;
-}
-
+/* DESCRIPTION & DETAILS – neat reading */
+.active-description,
 .active-details {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.7;
+  text-align: center;      /* 👌 neat block center */
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
 }
+
 
 
 
@@ -1167,9 +1219,40 @@ footer {
 }
 /* ========== Simple About Section ========== */
 .simple-about {
-  padding: 90px 0 40px;
-  background: #f8fafc;
+   height: 100vh;
+   padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding-bottom: 0;          
+
+  background: linear-gradient(
+    90deg,
+    #eef4ff 0%,      /* light blue left */
+    #f5f9ff 35%,
+    #ffffff 70%,
+    #ffffff 100%
+  );
 }
+
+.simple-about::before {
+  content: "";
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%);
+  z-index: 0;
+}
+
+.simple-about-wrapper {
+  width: 100%;
+  padding: 60px 0;   /* controlled inner spacing */
+}
+
+
 
 .simple-about-wrapper {
   display: grid;
@@ -1179,9 +1262,9 @@ footer {
 }
 
 .simple-about-content h1 {
-  font-size: 3rem;
-  font-weight: 800;
-  margin-bottom: 12px;
+  font-size: 4rem;
+  font-weight: 900;
+  margin-bottom: 16px;
 }
 
 .simple-about-content h1 span {
@@ -1189,16 +1272,16 @@ footer {
 }
 
 .about-tagline {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #64748b;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .simple-about-content p {
-  font-size: 1rem;
+  font-size: 1.1rem;
   line-height: 1.7;
   color: #334155;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .about-points {
@@ -1208,16 +1291,19 @@ footer {
 }
 
 .about-points li {
-  font-size: 0.95rem;
-  margin-bottom: 10px;
+  font-size: 1.05rem;
+  margin-bottom: 12px;
   color: #1e293b;
 }
 
 .simple-about-image img {
-  width: 100%;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  width: 150%;
+  max-width: 800px;
+  height: auto;
+  border-radius: 50px;
+  box-shadow: 0 70px 140px rgba(0, 0, 0, 0.2);
 }
+
 
 /* Responsive */
 @media (max-width: 900px) {

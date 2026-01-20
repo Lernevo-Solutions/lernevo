@@ -19,95 +19,100 @@ import empathyimage from "./empathy.png";
 const AboutUs = () => {
   const [activeValue, setActiveValue] = useState(0);
 
-  
 const values = [
   {
     id: 0,
     image: innovationImage,
     title: "Innovation",
-    description:
-      "We constantly push boundaries to create intelligent, future-ready wellness solutions powered by AI and emerging technologies.",
-    details:
-      "By blending data science, behavioral psychology, and human-centered design, we build systems that continuously learn and improve with every interaction.",
+   description:
+    "We build intelligent wellness solutions by pushing boundaries. Our technology adapts and evolves continuously. Innovation drives every AI-powered feature we create.",
+
     points: [
       "AI-driven personalization for every user",
-      "Continuous improvement through real-time insights",
-      "Future-ready architecture built for scalability",
+      "Smart insights powered by real data",
+      "Continuous learning systems",
+      "Future-ready scalable architecture",
+      "Innovation focused on real impact",
     ],
     color: "#3b82f6",
   },
+
   {
     id: 1,
     image: holisticimage,
     title: "Holistic Wellness",
     description:
-      "True wellness goes beyond fitness — we nurture the mind, body, and lifestyle together for lasting transformation.",
-    details:
-      "Our holistic approach integrates mental wellbeing, physical activity, nutrition, sleep, and habit formation into one seamless experience designed for long-term balance.",
+      "True wellness goes beyond physical fitness alone. We focus on balancing the mind, body, and lifestyle together. This integrated approach supports long-term and sustainable wellbeing.",
     points: [
-      "Mind, body, and lifestyle integration",
-      "Focus on long-term sustainable habits",
-      "Personalized plans for complete wellness",
+      "Mind and body balance",
+      "Lifestyle-focused wellness planning",
+      "Mental wellbeing integration",
+      "Healthy habit formation",
+      "Long-term sustainable transformation",
     ],
     color: "#10b981",
   },
+
   {
     id: 2,
     image: communityimage,
     title: "Community",
     description:
-      "Wellness thrives in connection, not isolation — we build communities that inspire, support, and uplift.",
-    details:
-      "Through shared challenges, group goals, and social accountability, our platform empowers users to grow together and celebrate progress collectively.",
+      "Wellness grows stronger when people connect. Progress becomes easier through shared motivation and support. We build communities that inspire, uplift, and empower.",
     points: [
-      "Group challenges to faster engagement",
-      "Social accountability for consistent progress",
-      "Celebrating achievements together",
+      "Group challenges for motivation",
+      "Shared goals and milestones",
+      "Social accountability support",
+      "Positive peer encouragement",
+      "Celebrating success together",
     ],
     color: "#8b5cf6",
   },
+
   {
     id: 3,
     image: integrityimage,
     title: "Integrity",
     description:
-      "Trust is the foundation of everything we build — we act with transparency, responsibility, and honesty.",
-    details:
-      "We follow strict ethical standards, ensure data privacy by design, and maintain clear communication so users always feel safe, informed, and respected.",
+      "Trust is the foundation of everything we build. We act with honesty, transparency, and responsibility. User confidence always comes first in our decisions.",
     points: [
-      "Transparent practices in all operations",
-      "Data privacy and security by design",
-      "Ethical decision-making in every feature",
+      "Transparent and honest practices",
+      "Strong data privacy protection",
+      "Ethical product decisions",
+      "User-first responsibility",
+      "Clear and open communication",
     ],
     color: "#f59e0b",
   },
+
   {
     id: 4,
     image: growthimage,
     title: "Growth",
     description:
-      "Wellness is a journey of continuous progress — not a destination.",
-    details:
-      "Using adaptive AI models and personalized insights, we help users track improvements, overcome plateaus, and evolve their routines as their goals change.",
+      "Wellness is a continuous journey, not a destination. Growth happens through consistent progress over time. We focus on improvement rather than perfection.",
     points: [
-      "Adaptive AI to guide personal growth",
-      "Insights to overcome plateaus",
-      "Evolving routines as goals change",
+      "Continuous personal improvement",
+      "Progress tracking and insights",
+      "Adaptive AI guidance",
+      "Overcoming wellness plateaus",
+      "Evolving goals and routines",
     ],
     color: "#ef4444",
   },
+
   {
     id: 5,
     image: empathyimage,
     title: "Empathy",
     description:
-      "We design with compassion, deeply understanding the diverse challenges people face in their wellness journey.",
-    details:
-      "Every feature is shaped by real user stories, inclusive design principles, and continuous feedback to ensure accessibility, comfort, and emotional safety.",
+      "Every wellness journey is unique and personal. We design with compassion and deep understanding. Empathy guides every experience we create.",
     points: [
-      "Design inspired by real user experiences",
-      "Inclusive and accessible features",
-      "Focus on emotional safety and comfort",
+      "Human-centered design approach",
+      "Inclusive and accessible experiences",
+      "Real user-driven improvements",
+      "Emotional wellbeing focus",
+      "Compassion in every interaction",
     ],
     color: "#ec4899",
   },
@@ -146,12 +151,15 @@ const values = [
         habits and delivers guidance that fits naturally into your daily life.
       </p>
 
-      <ul className="about-points">
-        <li>✔ AI-powered personalized wellness plans</li>
-        <li>✔ One platform for body, mind & lifestyle</li>
-        <li>✔ Simple, secure & designed for real people</li>
-        <li>✔ Progress tracking that adapts as you grow</li>
-      </ul>
+     <ul className="about-points">
+  <li>✔ AI-powered personalized wellness plans</li>
+  <li>✔ One platform for body, mind & lifestyle</li>
+  <li>✔ Simple, secure & designed for real people</li>
+  <li>✔ Progress tracking that adapts as you grow</li>
+  <li>✔ Smart insights driven by real-time data & behavior</li>
+
+</ul>
+
     </div>
 
     {/* RIGHT IMAGE */}
@@ -256,29 +264,44 @@ const values = [
             ))}
           </div>
 
-          {/* RIGHT SIDE – CONTENT */}
-   <div className="values-display">
-  <div className="active-value-display">
+{/* RIGHT SIDE – CONTENT */}
+<div 
+  className="values-display"
+  style={{ 
+    // Uses the color from your values array with a very light opacity (15 in hex)
+    backgroundColor: `${values[activeValue].color}15`, 
+    borderLeft: `6px solid ${values[activeValue].color}`,
+    transition: "background-color 0.5s ease, border-color 0.5s ease" 
+  }}
+>
+  {/* The key={activeValue} is the "secret sauce" that restarts the animation on every click */}
+  <div className="active-value-display" key={activeValue}>
 
-    <span className="value-badge">Our Value</span>
+    <span 
+      className="value-badge"
+      style={{ 
+        backgroundColor: values[activeValue].color, 
+        color: "#fff" 
+      }}
+    >
+      Our Value
+    </span>
 
-    <h3>{values[activeValue].title}</h3>
+    <h3 style={{ color: values[activeValue].color }}>
+      {values[activeValue].title}
+    </h3>
 
     <p className="active-description">
       {values[activeValue].description}
     </p>
 
-    <p className="active-details">
-      {values[activeValue].details}
-    </p>
-
-    {/* 🔥 POINTS SECTION */}
     <ul className="value-points">
       {values[activeValue].points.map((point, i) => (
-        <li key={i}>{point}</li>
+        <li key={i} style={{ "--bullet-color": values[activeValue].color }}>
+          {point}
+        </li>
       ))}
     </ul>
-
   </div>
 </div>
 
