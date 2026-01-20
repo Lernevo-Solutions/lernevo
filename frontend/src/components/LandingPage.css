@@ -284,9 +284,9 @@ section#home {
 }
 
 .hero-description {
-  font-size: 20px;
-  line-height: 1.100;
-  letter-spacing: 0.08em;
+  font-size: 22px;
+  line-height: 1.20;
+  letter-spacing: 0.12em;
   color: #9acf6e;
   margin-bottom: var(--gap-desc);
   margin-top: var(--desc-top-gap);
@@ -297,7 +297,23 @@ section#home {
 .hero-left .hero-description {
   color: #0f172a !important;
 }
+.hero-btn {
+  display: inline-block;
+  padding: 14px 34px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
 
+.hero-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
 .hero-actions {
   display: flex;
   gap: 12px;
