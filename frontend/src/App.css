@@ -37,13 +37,14 @@ body {
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
   color: var(--gray-900);
-  background: var(--white);
+  background: linear-gradient(to bottom right, #D1E5F7, #F0F7FF);
+  background-attachment: fixed;
   overflow-x: hidden;
 }
 
 .app {
   min-height: 100vh;
-  background: var(--white);
+  background: transparent;
 }
 
 /* Navigation styles moved to Navbar.css */
