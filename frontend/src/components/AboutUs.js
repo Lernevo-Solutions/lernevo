@@ -194,11 +194,11 @@ const values = [
           <h3>Our Mission</h3>
         </div>
 
-        <p>
-          To simplify wellness using intelligent, AI-powered guidance that
-          helps people improve their physical health, mental clarity, and
-          daily lifestyle — consistently and sustainably.
-        </p>
+       <p>
+    To simplify wellness using intelligent, AI-powered guidance that
+    helps people improve their physical health, mental clarity, and
+    daily lifestyle.
+  </p>
 
       </div>
 
@@ -284,7 +284,7 @@ const values = [
         color: "#fff" 
       }}
     >
-      Our Value
+      Our Values
     </span>
 
     <h3 style={{ color: values[activeValue].color }}>
