@@ -6,15 +6,17 @@ const Hero = ({ heroImage }) => {
     <section className="hero-section" id="home">
       <div className="hero-container">
         <div className="hero-content">
-          <h1 className="hero-title">
-            Transform Your Life <br />
-            <span className="hero-title-highlight">The Smarter Way</span>
-          </h1>
-          
-          <div className="hero-pill-container">
-            <span className="hero-pill-text">
-              Your all-in-one AI companion for fitness, learning, nutrition, and mental well-being.
-            </span>
+          <div className="hero-header-group">
+            <h1 className="hero-title">
+              Transform Your Life <br />
+              <span className="hero-title-highlight">The Smarter Way</span>
+            </h1>
+            
+            <div className="hero-pill-container">
+              <span className="hero-pill-text">
+                Your all-in-one AI companion for fitness, learning, nutrition, and mental well-being.
+              </span>
+            </div>
           </div>
 
           <p className="hero-description">
