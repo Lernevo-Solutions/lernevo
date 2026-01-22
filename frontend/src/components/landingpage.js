@@ -156,7 +156,7 @@ const LandingPage = () => {
 
 
   return (
-    <div className="lernevo-landing">
+    <div className="lernevo-landing brand-background">
       {/* ========== Navigation ========== */}
       <Navbar />
 

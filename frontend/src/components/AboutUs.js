@@ -121,7 +121,7 @@ const values = [
 
 
   return (
-    <div className="lernevo-about">
+    <div className="lernevo-about brand-background">
       {/* Navigation */}
       <Navbar />
       

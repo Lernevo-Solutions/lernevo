@@ -53,7 +53,7 @@
 /* ========== Hero Section ========== */
 .about-hero-section {
   padding: 100px 0 80px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: transparent;
   position: relative;
   overflow: hidden;
 }
@@ -207,7 +207,7 @@
 /* ===== Section ===== */
 .mission-vision-section {
   padding: 60px 0;
-  background: #ffffff; /* Clean white background for contrast */
+  background: transparent; /* Clean white background for contrast */
 }
 
 .section-header {
@@ -504,7 +504,7 @@
 /* ========== Story Section ========== */
 .story-section {
   padding: 100px 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  background: transparent;
 }
 
 .story-content {
@@ -695,7 +695,7 @@ footer {
   grid-template-columns: 1.2fr 1fr; /* left cards + right content */
   gap: 32px;
 
-  background: #ffffff;               /* 🔥 single frame */
+  background: transparent;               /* 🔥 single frame */
   border-radius: 32px;
   padding: 40px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
@@ -923,7 +923,7 @@ footer {
 /* ========== Team Section ========== */
 .team-section {
   padding: 100px 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: transparent;
 }
 
 .team-grid {
@@ -1033,7 +1033,7 @@ footer {
 /* ========== CTA Section ========== */
 .about-cta-section {
   padding: 100px 0;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: transparent;
   color: white;
   text-align: center;
 }
@@ -1307,13 +1307,7 @@ footer {
   overflow: hidden;
   padding-bottom: 0;          
 
-  background: linear-gradient(
-    90deg,
-    #eef4ff 0%,      /* light blue left */
-    #f5f9ff 35%,
-    #ffffff 70%,
-    #ffffff 100%
-  );
+  background: transparent;
 }
 
 .simple-about::before {

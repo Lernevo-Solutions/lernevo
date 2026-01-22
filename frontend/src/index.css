@@ -2,8 +2,12 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #D1E5F7 0%, #F0F7FF 100%) !important;
-  background-attachment: fixed;
+  background-color: #E1EEFF !important;
+}
+
+.brand-background {
+  background-color: #E1EEFF !important;
+  min-height: 100vh;
 }
 
 body {

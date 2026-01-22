@@ -40,11 +40,6 @@ One platform, one companion, supporting every part of your well-being.One compan
               alt="Healthy Lifestyle" 
               className="hero-main-image"
             />
-            <div className="hero-pill-container">
-              <span className="hero-pill-text">
-                Your all-in-one AI companion for fitness, nutrition, mental health, and learning
-              </span>
-            </div>
           </div>
         </div>
       </div>
