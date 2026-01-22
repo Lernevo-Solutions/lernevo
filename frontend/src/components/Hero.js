@@ -11,18 +11,13 @@ const Hero = ({ heroImage }) => {
               Transform Your Life <br />
               <span className="hero-title-highlight">The Smarter Way</span>
             </h1>
-            
-            <div className="hero-pill-container">
-              <span className="hero-pill-text">
-                Your all-in-one AI companion for fitness, learning, nutrition, and mental well-being.
-              </span>
-            </div>
           </div>
 
           <p className="hero-description">
             Lernevo personalizes your wellness journey with smart insights, human support, 
             and simple daily actions—so progress feels natural, not overwhelming. 
-            Effortless progress, guided with care. Wellness that grows with you.
+            Effortless progress, guided with care. Wellness that grows with you.Build lasting habits with clarity, balance, and confidence—at your own pace.
+One platform, one companion, supporting every part of your well-being.One companion for complete wellness
           </p>
 
           <button className="hero-pill-button">
@@ -41,10 +36,15 @@ const Hero = ({ heroImage }) => {
         <div className="hero-image-container">
           <div className="hero-image-wrapper">
             <img 
-              src={heroImage || "https://images.unsplash.com/photo-1543332164-6e82f355badc?q=80&w=2070&auto=format&fit=crop"} 
+              src={heroImage || '/assets/hero-image.png'} 
               alt="Healthy Lifestyle" 
               className="hero-main-image"
             />
+            <div className="hero-pill-container">
+              <span className="hero-pill-text">
+                Your all-in-one AI companion for fitness, nutrition, mental health, and learning
+              </span>
+            </div>
           </div>
         </div>
       </div>
