@@ -14,14 +14,14 @@ const FAQ = () => {
   const [activeCategory, setActiveCategory] = useState('Getting Started');
   
 const categories = [
-    { name: "Getting Started", icon: <FaRocket />, color: "#6366f1" },
-    { name: "Personalised Intake", icon: <FaMagic />, color: "#ec4899" },
-    { name: "Goal & Progress", icon: <FaBullseye />, color: "#f59e0b" },
+    { name: "Getting Started", icon: <FaRocket />, color: "#8d8ffc" },
+    { name: "Personalised Intake", icon: <FaMagic />, color: "#fbb4e8" },
+    { name: "Goal & Progress", icon: <FaBullseye />, color: "#f4cf91" },
     { name: "Nutrition & Diet", icon: <FaUtensils />, color: "#8b5cf6" },
-    { name: "Fitness & Training", icon: <FaDumbbell />, color: "#ef4444" },
-    { name: "Mental Wellbeing", icon: <FaBrain />, color: "#06b6d4" },
-    { name: "Admin & Trainers", icon: <FaUserFriends />, color: "#10b981" },
-    { name: "Message Centre", icon: <FaComments />, color: "#a855f7" },
+    { name: "Fitness & Training", icon: <FaDumbbell />, color: "#f7b1b1" },
+    { name: "Mental Wellbeing", icon: <FaBrain />, color: "#66c9da" },
+    { name: "Admin & Trainers", icon: <FaUserFriends />, color: "#5de2b5" },
+    { name: "Message Centre", icon: <FaComments />, color: "#c4a8dd" },
     { name: "Daily Tracking", icon: <FaSearchPlus />, color: "#64748b" },
     { name: "Privacy & Security", icon: <FaLock />, color: "#3b82f6" }
   ];
@@ -179,17 +179,17 @@ const activeCatColor = activeCat?.color || "#6366f1";
           {/* Left Sidebar */}
           <aside className="faq-sidebar-left">
             <div className="sidebar-sticky-box">
-              <div className="content-search-area">
-              <div className="modern-search-box">
-                <FaSearch className="s-icon" />
-                <input 
-                  type="text" 
-                  placeholder={`Search in ${activeCategory}...`} 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
+            <div className="content-search-area">
+    <div className="modern-search-box">
+      <FaSearch className="s-icon" />
+      <input 
+        type="text" 
+        placeholder={`Search in ${activeCategory}...`} 
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+    </div>
+  </div>
 
               <h3 className="sidebar-label">Categories</h3>
               <div className="categories-list">
