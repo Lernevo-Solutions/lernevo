@@ -17,7 +17,7 @@ import b2 from "./b2.png";
 import b3 from "./b3.png";
 import b4 from "./b4.png";
 import b7 from "./b7.png";
-import Footer from './Footer'; // path correct-ah check pannikonga
+
 import learImg from "./sign.png";
 import aiiImg from "./analyse.png";
 import fitnesImg from "./guidance.png";
