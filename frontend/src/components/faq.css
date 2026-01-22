@@ -13,26 +13,31 @@
 }
 
 .faq-page-wrapper {
-  min-height: 100vh;
   background: #fdfdff;
   background-image: 
     radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.08) 0px, transparent 50%);
   overflow-x: hidden;
+  padding-bottom: 0px;   /* ✅ small clean gap before footer */
 }
+
 
 .faq-main-container {
   display: flex;
-  max-width: 1250px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 140px 24px 60px;
-  gap: 40px;
+  padding: 70px 20px 50px;
+  gap: 32px;
+  align-items:flex-start;
+  padding-bottom: 1%;
+  
 }
 
 /* SIDEBAR - GLASSMORPHISM */
 .faq-sidebar-left {
-  width: 300px;
+  width: 260px;
   flex-shrink: 0;
+  height:fit-content;
 }
 
 .sidebar-sticky-box {
@@ -41,7 +46,7 @@
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  padding: 25px;
+  padding: 20px;
   border-radius: 28px;
   border: 1px solid var(--glass-border);
   box-shadow: var(--card-shadow);
@@ -105,12 +110,17 @@
 /* SEARCH BAR */
 .faq-content-right {
   flex-grow: 1;
+  height:auto;
 }
 
 .content-search-area {
   margin-bottom: 40px;
   display: flex;
   justify-content: flex-start;
+}
+.questions-grid {
+  margin-bottom: 0;     
+  padding-bottom: 0;   
 }
 
 .modern-search-box {
@@ -138,23 +148,30 @@
 .s-icon { color: #94a3b8; font-size: 1.1rem; }
 
 /* FAQ CARDS */
+
 .premium-faq-card {
   background: white;
-  border-radius: 22px;
-  margin-bottom: 16px;
-  border: 1px solid #f1f5f9;
+  border-radius: 18px;
+  margin-bottom: 12px;
   cursor: pointer;
-  transition: all 0.4s ease;
+  /* Transitions smoothen the color change */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  position: relative;
 }
 
 .premium-faq-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--card-shadow);
+  transform: translateY(-4px) scale(1.01);
+}
+
+/* Question text-um active color-la mara */
+.premium-faq-card.active .card-q-header h3 {
+  color: var(--text-dark); /* Alladhu activeCatColor kooda use pannalam */
+  font-weight: 700;
 }
 
 .card-q-header {
-  padding: 22px 28px;
+  padding: 14px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -168,16 +185,18 @@
 
 .card-a-body {
   max-height: 0;
-  padding: 0 28px;
-  transition: all 0.5s cubic-bezier(0, 1, 0, 1);
+  padding: 0 24px;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  opacity: 0;
   color: var(--text-muted);
   overflow: hidden;
 }
 
 .card-a-body.show {
-  max-height: 1000px;
-  padding-bottom: 28px;
+  max-height: 300px;
+  padding-bottom: 16px;
   transition: all 0.5s ease-in;
+  opacity:1;
 }
 
 .highlight-mark {
@@ -188,12 +207,7 @@
 }
 
 /* FOOTER */
-.faq-footer-section {
-  background: #0f172a;
-  color: #cbd5f5;
-  padding: 4rem 0 2rem;
-  margin-top: 4rem;
-}
+
 /* ========== UNIQUE FAQ FOOTER (FULL WIDTH & ALIGNMENT) ========== */
 
 /* ✅ FAQ FOOTER — SAME AS HOME FOOTER */
@@ -333,3 +347,12 @@
 }
 
 
+.faq-results-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.faq-results-header h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+}

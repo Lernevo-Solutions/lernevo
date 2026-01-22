@@ -12,7 +12,7 @@ const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Getting Started');
-
+  
 const categories = [
     { name: "Getting Started", icon: <FaRocket />, color: "#6366f1" },
     { name: "Personalised Intake", icon: <FaMagic />, color: "#ec4899" },
@@ -25,6 +25,8 @@ const categories = [
     { name: "Daily Tracking", icon: <FaSearchPlus />, color: "#64748b" },
     { name: "Privacy & Security", icon: <FaLock />, color: "#3b82f6" }
   ];
+const activeCat = categories.find(cat => cat.name === activeCategory);
+const activeCatColor = activeCat?.color || "#6366f1";
 
   const getHighlightedText = (text, highlight) => {
     if (!highlight.trim()) return text;
@@ -42,15 +44,15 @@ const categories = [
   const faqItems = [
     // 1. Getting Started
     { category: "Getting Started", question: "What is Lernevo Wellness?", answer: "Lernevo is an all-in-one AI companion for holistic well-being, integrating learning, fitness, nutrition, and mental health." },
-    //{ category: "Getting Started", question: "How does the B2B2C model work?", answer: "Organizations partner with Lernevo to provide personalized wellness portals for their employees and trainers." },
+    { category: "Getting Started", question: "How does the B2B2C model work?", answer: "Organizations partner with Lernevo to provide personalized wellness portals for their employees and trainers." },
     { category: "Getting Started", question: "What is the mission of Lernevo?", answer: "To transform well-being through innovative AI solutions, focusing on mind, body, and personal growth." },
     { category: "Getting Started", question: "Who are the three key users?", answer: "The platform flow is designed for Administrators, Trainers, and End Users (Employees)." },
     { category: "Getting Started", question: "What is 'Mission Control'?", answer: "It is our unified dashboard that acts as the single source of truth for your daily wellness journey." },
     { category: "Getting Started", question: "How do I start my journey?", answer: "Sign up through your company portal and complete the mandatory digital intake form." },
-    //{ category: "Getting Started", question: "Is Lernevo free for employees?", answer: "Yes, access is provided as a benefit by your organization." },
+    { category: "Getting Started", question: "Is Lernevo free for employees?", answer: "Yes, access is provided as a benefit by your organization." },
     { category: "Getting Started", question: "Can I use Lernevo on my phone?", answer: "Absolutely. Lernevo is a mobile-responsive web platform designed for daily use anywhere." },
     { category: "Getting Started", question: "Does it help with work-life balance?", answer: "Yes, our modules are designed for remote-first environments to improve productivity and health." },
-    //{ category: "Getting Started", question: "What makes Lernevo different?", answer: "We solve 'data fragmentation' by unifying all health data into one AI-driven ecosystem." },
+    { category: "Getting Started", question: "What makes Lernevo different?", answer: "We solve 'data fragmentation' by unifying all health data into one AI-driven ecosystem." },
 
     // 2. Personalised Intake
     { category: "Personalised Intake", question: "What info is needed for the intake?", answer: "We collect personal details, lifestyle habits, food preferences, and medical history to ensure a safe plan." },
@@ -60,9 +62,9 @@ const categories = [
     { category: "Personalised Intake", question: "What is a 'Life Structure' approach?", answer: "It determines how the AI schedules your tasks—whether you prefer a high-discipline or flexible routine." },
     { category: "Personalised Intake", question: "Do you ask about my goals?", answer: "Yes, you specify what you want to achieve, how you want to do it, and in how many days." },
     { category: "Personalised Intake", question: "Is the intake info kept private?", answer: "Yes, individual records are stored separately for each user and organization." },
-    //{ category: "Personalised Intake", question: "What if my health status changes?", answer: "You can re-submit the intake form to recalibrate your entire wellness package." },
-    //{ category: "Personalised Intake", question: "Does the AI consider my equipment?", answer: "Yes, you can mention if you have gym access or prefer home-based bodyweight exercises." },
-    //{ category: "Personalised Intake", question: "How fast is the plan generated?", answer: "Instantly. Once the form is submitted, the AI streamlines and structures your plan in seconds." },
+    { category: "Personalised Intake", question: "What if my health status changes?", answer: "You can re-submit the intake form to recalibrate your entire wellness package." },
+    { category: "Personalised Intake", question: "Does the AI consider my equipment?", answer: "Yes, you can mention if you have gym access or prefer home-based bodyweight exercises." },
+    { category: "Personalised Intake", question: "How fast is the plan generated?", answer: "Instantly. Once the form is submitted, the AI streamlines and structures your plan in seconds." },
 
     // 3. Goal & Progress
     { category: "Goal & Progress", question: "How do I track my progress?", answer: "Use the 'Whole Week Activity' view to see your consistency and task completion rates." },
@@ -72,15 +74,15 @@ const categories = [
     { category: "Goal & Progress", question: "Is there a weight tracker?", answer: "Yes, you can log your weight and measurements to see a visual progress chart." },
     { category: "Goal & Progress", question: "Does the trainer see my progress?", answer: "Yes, your assigned trainer monitors your progress to provide real-time coaching." },
     { category: "Goal & Progress", question: "What is the 'Daily Score'?", answer: "A metric from 1-100 reflecting how well you followed your personalized plan each day." },
-    //{ category: "Goal & Progress", question: "Can I set a 'Days to Achieve' target?", answer: "Yes, you define the duration, and the AI structures the workload specifically for that period." },
-    //{ category: "Goal & Progress", question: "Are there badges for progress?", answer: "Yes, you unlock digital badges for completing streaks and hitting major milestones." },
+    { category: "Goal & Progress", question: "Can I set a 'Days to Achieve' target?", answer: "Yes, you define the duration, and the AI structures the workload specifically for that period." },
+    { category: "Goal & Progress", question: "Are there badges for progress?", answer: "Yes, you unlock digital badges for completing streaks and hitting major milestones." },
     { category: "Goal & Progress", question: "Can I export my progress report?", answer: "Yes, Admins and Users can generate a summary of their activity history." },
 
     // 4. Nutrition & Diet
     { category: "Nutrition & Diet", question: "How are meal plans generated?", answer: "Part of the plan comes from our expert database, and specific daily meals are generated by Gemini AI." },
     { category: "Nutrition & Diet", question: "Can I specify food preferences?", answer: "Yes, the AI creates meal plans based on your preferred foods and excludes dislikes." },
-    //{ category: "Nutrition & Diet", question: "Does the plan change daily?", answer: "Yes, Lernevo provides different food options for each day to keep your diet interesting." },
-    //{ category: "Nutrition & Diet", question: "What if I have allergies?", answer: "Allergies mentioned in the intake form are strictly used as filters in the AI prompt generation." },
+    { category: "Nutrition & Diet", question: "Does the plan change daily?", answer: "Yes, Lernevo provides different food options for each day to keep your diet interesting." },
+    { category: "Nutrition & Diet", question: "What if I have allergies?", answer: "Allergies mentioned in the intake form are strictly used as filters in the AI prompt generation." },
     { category: "Nutrition & Diet", question: "Are recipes included?", answer: "Yes, each meal suggestion comes with structured details on how to prepare it." },
     { category: "Nutrition & Diet", question: "Can I track my water intake?", answer: "Yes, hydration tracking is built into the daily dashboard." },
     { category: "Nutrition & Diet", question: "Does it support Keto or Vegan diets?", answer: "Yes, the AI is capable of structuring plans for any specific dietary lifestyle." },
@@ -177,6 +179,18 @@ const categories = [
           {/* Left Sidebar */}
           <aside className="faq-sidebar-left">
             <div className="sidebar-sticky-box">
+              <div className="content-search-area">
+              <div className="modern-search-box">
+                <FaSearch className="s-icon" />
+                <input 
+                  type="text" 
+                  placeholder={`Search in ${activeCategory}...`} 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
               <h3 className="sidebar-label">Categories</h3>
               <div className="categories-list">
                 {categories.map((cat, idx) => (
@@ -196,41 +210,44 @@ const categories = [
 
           {/* Right Content */}
           <main className="faq-content-right">
-            <div className="content-search-area">
-              <div className="modern-search-box">
-                <FaSearch className="s-icon" />
-                <input 
-                  type="text" 
-                  placeholder={`Search in ${activeCategory}...`} 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
+            
 
-            <div className="faq-results-header">
-               <h2>{activeCategory}</h2>
-            </div>
+           <div className="faq-results-header">
+  <h2 style={{ color: activeCatColor }}>
+    {activeCategory}
+  </h2>
+</div>
 
-            <div className="questions-grid">
-              {filteredFAQs.map((item, index) => (
-                <div 
-                  key={index} 
-                  className={`premium-faq-card ${openIndex === index ? 'active' : ''}`}
-                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                >
-                  <div className="card-q-header">
-                    <h3>{getHighlightedText(item.question, searchTerm)}</h3>
-                    <div className="arrow-circle">
-                      {openIndex === index ? <FaChevronUp /> : <FaChevronDown />}
-                    </div>
-                  </div>
-                  <div className={`card-a-body ${openIndex === index ? 'show' : ''}`}>
-                     <p>{getHighlightedText(item.answer, searchTerm)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+
+           <div className="questions-grid">
+  {filteredFAQs.map((item, index) => (
+   <div
+  key={index}
+  className={`premium-faq-card ${openIndex === index ? 'active' : ''}`}
+  onClick={() => setOpenIndex(openIndex === index ? null : index)}
+  style={{
+    border: `2px solid ${activeCatColor}`,
+    // Active-ah irukumbothu mattum oru light glow varum
+    boxShadow: openIndex === index 
+      ? `0 0 15px ${activeCatColor}44` 
+      : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    background: openIndex === index ? `${activeCatColor}05` : '#fff'
+  }}
+>
+      <div className="card-q-header">
+        <h3>{getHighlightedText(item.question, searchTerm)}</h3>
+        <div className="arrow-circle">
+          {openIndex === index ? <FaChevronUp /> : <FaChevronDown />}
+        </div>
+      </div>
+
+      <div className={`card-a-body ${openIndex === index ? 'show' : ''}`}>
+        <p>{getHighlightedText(item.answer, searchTerm)}</p>
+      </div>
+    </div>
+  ))}
+</div>
+
           </main>
         </div>
       </div>
@@ -275,24 +292,23 @@ const categories = [
               <a>Contact</a>
             </div>
 
-            {/* SUPPORT */}
-             <div className="link-col">
-                <h4>Support</h4>
-                <a>Help Center</a>
-                <a>Privacy Policy</a>
-                <a>Terms of Service</a>
-                <a>Trust & Safety</a>
-              </div>
+           {/* SUPPORT */}
+<div className="faq-footer-col"> 
+    <h4>Support</h4>
+    <a>Help Center</a>
+    <a>Privacy Policy</a>
+    <a>Terms of Service</a>
+    <a>Trust & Safety</a>
+</div>
 
-            {/* BUSINESS */}
-            <div className="link-col">
-                <h4>Business</h4>
-                <a>Business Dashboard</a>
-                <a>Partnerships</a>
-                <a>Book a demo</a>
-                <a>Enquire</a>
-
-              </div>
+{/* BUSINESS */}
+<div className="faq-footer-col"> 
+    <h4>Business</h4>
+    <a>Business Dashboard</a>
+    <a>Partnerships</a>
+    <a>Book a demo</a>
+    <a>Enquire</a>
+</div>
 
           </div>
 
