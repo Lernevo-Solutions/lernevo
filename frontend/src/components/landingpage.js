@@ -29,7 +29,11 @@ import { FaRobot } from "react-icons/fa"; // classic AI / robot icon
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { FaChartLine } from "react-icons/fa";
 import { MdHealthAndSafety } from "react-icons/md";
-
+import gymImg from "./gym.png";
+import g1 from "./gym1.png";
+import g2 from "./gym2.png";
+import g3 from "./gym3.png"; 
+import g4 from "./gym4.png";
 import { FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
 import insightimg from "./in.png";
 import guidanceimg from "./del.png";
@@ -353,6 +357,15 @@ const LandingPage = () => {
 
       {/* ========== Services Section ========== */}
       <section id="services" className="services-section">
+            <div className="services-inner">
+
+  <div className="side-ad left-ad">
+  <div className="ad-track">
+    <img src={gymImg} alt="Offer Ad" />
+    <img src={g3} alt="Offer Ad" />
+    <img src={g4} alt="Offer Ad" />
+  </div>
+</div>
 
 
         <div className="container">
@@ -525,11 +538,22 @@ const LandingPage = () => {
                   <span>Track your training progress</span>
                   <span>Receive actionable feedback</span>
                 </div>
+              
+    
               </div>
-
             </div>
 
           </div>
+                    
+     <div className="side-ad right-ad">
+  <div className="ad-track">
+    <img src={g2} />
+    <img src={g3} />
+    <img src={g1} />
+  </div>
+</div>
+
+     </div>
         </div>
       </section>
 

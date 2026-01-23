@@ -572,7 +572,7 @@ body {
 
 /* TOP IMAGE */
 .service-card-top {
-  height: 75%;
+  height: 360px;
   /* 🔥 image occupies top */
   overflow: hidden;
 }
@@ -591,8 +591,8 @@ body {
 
 /* BOTTOM CONTENT */
 .service-card-bottom {
-  height: 25%;
-  padding: 1.4rem;
+  height: auto;
+  padding: 1rem 1.2rem;
   text-align: center;
   background: #ffffff;
 }
@@ -601,6 +601,7 @@ body {
   font-size: 1.2rem;
   font-weight: 600;
   color: #1f2937;
+  margin:0;
 }
 
 /* FULL HOVER OVERLAY */
@@ -851,12 +852,14 @@ body {
 /* Transform CTA Section */
 .transform-section {
   padding: 5rem 0 6rem;
-  min-height: 600px;
+  min-height: 200px;
   /* ensures the section always looks big enough */
   background: transparent;
   color: var(--white);
   position: relative;
   overflow: hidden;
+  padding-top:3rem;
+  padding-bottom:1.2rem;
 }
 
 
@@ -3350,7 +3353,7 @@ body {
   bottom: -1px;
   left: 0;
   width: 100%;
-  height: 120px;
+  height: 10px;
   background: radial-gradient(circle at center,
       #dbeafe 0%,
       transparent 70%);
@@ -3384,6 +3387,7 @@ body {
 /* SPACE FIX FROM PREVIOUS SECTION */
 .services-section {
   margin-bottom: 3rem;
+  padding:3rem 0;
 }
 
 .transform-section {
@@ -4105,3 +4109,139 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 6px 1 8px rgba(59, 130, 246, 0.35);
 }
+
+
+
+
+/* ===== SERVICES SECTION BASE ===== */
+.services-section {
+  position: relative;
+  padding: 4rem 0;
+  overflow: hidden; 
+  padding-top: 1rem;/* important */
+}
+
+/* ===== SIDE AD COMMON ===== */
+.side-ad {
+  position: absolute;
+  top: 0;
+  width: 220px;
+  height: 120%;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.left-ad {
+  left: 0px;   /* 🔥 same as width */
+}
+
+.right-ad {
+  right: -40px;  /* 🔥 same as width */
+}
+
+/* TRACK */
+.ad-track {
+  display: flex;
+  flex-direction: column;
+  animation: moveUp 12s linear infinite;
+}
+
+/* EACH IMAGE */
+.ad-track img {
+  width: 100%;
+  height: 240%;
+}
+
+/* 🔥 ONE-BY-ONE SCROLL */
+@keyframes moveUp {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+/* IMAGE STYLE */
+/* ===== SIDE AD COMMON ===== */
+.side-ad {
+  position: absolute;
+  top: 0;
+  width: 240px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.left-ad {
+  left: 0;
+  width:230px;
+}
+
+.right-ad {
+  right: -220px;
+}
+
+/* 🔥 TRACK */
+.ad-track {
+  display: flex;
+  flex-direction: column;
+  animation: moveUp 15s linear infinite;
+}
+
+/* EACH IMAGE */
+.ad-track img {
+  width: 100%;
+  height: auto;
+}
+
+/* 🔥 3 IMAGES → ONE BY ONE */
+@keyframes moveUp {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-66.666%);
+  }
+}
+
+
+/* RUNNING EFFECT */
+
+/* ===== KEEP MAIN CONTENT CENTER ===== */
+.services-section .container {
+  max-width: 1100px;
+  margin: auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* RESPONSIVE – hide ads on mobile */
+@media (max-width: 1024px) {
+  .side-ad {
+    display: none;
+  }
+}
+.services-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+.left-ad img {
+  animation: scrollDown 12s linear infinite;
+}
+
+
+.left-ad .ad-track {
+  animation-name: moveDown;
+}
+@keyframes moveDown {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+.right-ad .ad-track {
+  animation-name: moveUp;
+}
+
