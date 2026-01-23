@@ -14,19 +14,19 @@ const FAQ = () => {
   const [activeCategory, setActiveCategory] = useState('Getting Started');
   
 const categories = [
-    { name: "Getting Started", icon: <FaRocket />, color: "#8d8ffc" },
-    { name: "Personalised Intake", icon: <FaMagic />, color: "#fbb4e8" },
-    { name: "Goal & Progress", icon: <FaBullseye />, color: "#f4cf91" },
-    { name: "Nutrition & Diet", icon: <FaUtensils />, color: "#8b5cf6" },
-    { name: "Fitness & Training", icon: <FaDumbbell />, color: "#f7b1b1" },
-    { name: "Mental Wellbeing", icon: <FaBrain />, color: "#66c9da" },
-    { name: "Admin & Trainers", icon: <FaUserFriends />, color: "#5de2b5" },
-    { name: "Message Centre", icon: <FaComments />, color: "#c4a8dd" },
-    { name: "Daily Tracking", icon: <FaSearchPlus />, color: "#64748b" },
-    { name: "Privacy & Security", icon: <FaLock />, color: "#3b82f6" }
+    { name: "Getting Started", icon: <FaRocket />, color: "#A5B4FC" },
+    { name: "Personalised Intake", icon: <FaMagic />, color: "#F9A8D4" },
+    { name: "Goal & Progress", icon: <FaBullseye />, color: "#FDBA74" },
+    { name: "Nutrition & Diet", icon: <FaUtensils />, color: "#C4B5FD" },
+    { name: "Fitness & Training", icon: <FaDumbbell />, color: "#FCA5A5" },
+    { name: "Mental Wellbeing", icon: <FaBrain />, color: "#67E8F9" },
+    { name: "Admin & Trainers", icon: <FaUserFriends />, color: "#6EE7B7" },
+    { name: "Message Centre", icon: <FaComments />, color: "#D8B4FE" },
+    { name: "Daily Tracking", icon: <FaSearchPlus />, color: "#CBD5E1" },
+    { name: "Privacy & Security", icon: <FaLock />, color: "#93C5FD" }
   ];
 const activeCat = categories.find(cat => cat.name === activeCategory);
-const activeCatColor = activeCat?.color || "#6366f1";
+const activeCatColor = activeCat?.color || "#A5B4FC";
 
   const getHighlightedText = (text, highlight) => {
     if (!highlight.trim()) return text;
@@ -180,7 +180,7 @@ const activeCatColor = activeCat?.color || "#6366f1";
           <aside className="faq-sidebar-left">
             <div className="sidebar-sticky-box">
             <div className="content-search-area">
-    <div className="modern-search-box">
+    <div className="modern-search-box" style={{ "--accent": activeCatColor }}>
       <FaSearch className="s-icon" />
       <input 
         type="text" 

@@ -63,11 +63,11 @@ export default function Navbar() {
           </Link>
 
           <Link
-            to="/#how-it-works"
-            onClick={(e) => handleNavClick(e, 'how-it-works', true)}
-            className={`nav-item nav-how ${location.hash === "#how-it-works" ? "active" : ""}`}
+            to="/#our approach"
+            onClick={(e) => handleNavClick(e, 'our approach', true)}
+            className={`nav-item nav-how ${location.hash === "#Our approach" ? "active" : ""}`}
           >
-            HOW IT WORKS
+            OUR APPROACH
           </Link>
           <Link
             to="/about"

@@ -13,10 +13,7 @@
 }
 
 .faq-page-wrapper {
-  background: #fdfdff;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.08) 0px, transparent 50%);
+  background: #E1EEFF;
   overflow-x: hidden;
   padding-bottom: 0px;   /* ✅ small clean gap before footer */
 }
@@ -86,8 +83,8 @@
 
 .cat-btn-modern.active {
   background: var(--accent);
-  color: white;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  color: var(--text-dark);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
 }
 
 .icon-box {
@@ -104,8 +101,8 @@
 }
 
 .cat-btn-modern.active .icon-box {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--text-dark);
 }
 
 /* SEARCH BAR */
