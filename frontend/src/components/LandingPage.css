@@ -4167,14 +4167,15 @@ body {
 .side-ad {
   position: absolute;
   top: 0;
-  width: 240px;
+  width: 220px;
   height: 100%;
   overflow: hidden;
 }
 
 .left-ad {
   left: 0;
-  width:230px;
+  width:210px;
+  
 }
 
 .right-ad {
