@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-export default function Navbar() {
+export default function Navbar({ onGetStarted }) {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -63,9 +63,8 @@ export default function Navbar() {
           </Link>
 
           <Link
-            to="/#our approach"
-            onClick={(e) => handleNavClick(e, 'our approach', true)}
-            className={`nav-item nav-how ${location.hash === "#Our approach" ? "active" : ""}`}
+            to="/our-approach"
+            className={`nav-item nav-how ${location.pathname === "/our-approach" ? "active" : ""}`}
           >
             OUR APPROACH
           </Link>
@@ -117,7 +116,7 @@ export default function Navbar() {
 
         {/* Right CTA */}
         <div className="nav-actions">
-          <button className="cta-btn">
+          <button className="cta-btn" onClick={onGetStarted}>
             GET STARTED
           </button>
         </div>

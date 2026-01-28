@@ -1,7 +1,7 @@
 import React from 'react';
 import './Hero.css';
 
-const Hero = ({ heroImage }) => {
+const Hero = ({ heroImage, onGetStarted }) => {
   return (
     <section className="hero-section" id="home">
       <div className="hero-container">
@@ -20,7 +20,7 @@ const Hero = ({ heroImage }) => {
 One platform, one companion, supporting every part of your well-being.One companion for complete wellness
           </p>
 
-          <button className="hero-pill-button">
+          <button className="hero-pill-button" onClick={onGetStarted}>
             Start Your Journey
           </button>
 

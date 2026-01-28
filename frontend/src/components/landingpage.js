@@ -4,6 +4,7 @@ import { Dumbbell, Apple, Moon, Award } from "lucide-react";
 import './LandingPage.css';
 import Navbar from './Navbar';
 import Hero from './Hero';
+import GetStartedFlow from './GetStartedFlow';
 import logo from './logo.png';
 import aiImg from "./ai powerd.png";
 import mentalImg from "./health.png";
@@ -60,6 +61,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, BarElement, LineEleme
 const LandingPage = () => {
   const [email, setEmail] = useState('');
   const [activeTab, setActiveTab] = useState("daily");
+  const [isGetStartedOpen, setIsGetStartedOpen] = useState(false);
 
   // Hero Image Logic
   const heroImages = [
@@ -162,9 +164,11 @@ const LandingPage = () => {
   return (
     <div className="lernevo-landing brand-background">
       {/* ========== Navigation ========== */}
-      <Navbar />
+      <Navbar onGetStarted={() => setIsGetStartedOpen(true)} />
 
-      <Hero heroImage={heroImage} />
+      <Hero heroImage={heroImage} onGetStarted={() => setIsGetStartedOpen(true)} />
+
+      <GetStartedFlow isOpen={isGetStartedOpen} onClose={() => setIsGetStartedOpen(false)} />
 
       {/* ========== Performance Dashboard Section (Moved Here) ========== */}
       <section id="performance" className="performance-dashboard-section">
@@ -591,8 +595,6 @@ const LandingPage = () => {
                 alt="Lernevo Team"
                 className="main-image"
               />
-
-
             </div>
           </div>
 
@@ -700,7 +702,7 @@ const LandingPage = () => {
           </div>
 
           <div className="transform-actions">
-            <button className="trial-btn">
+            <button className="trial-btn" onClick={() => setIsGetStartedOpen(true)}>
               Start Your Free Trial
             </button>
           </div>
