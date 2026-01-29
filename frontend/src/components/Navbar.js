@@ -116,7 +116,7 @@ export default function Navbar({ onGetStarted }) {
 
         {/* Right CTA */}
         <div className="nav-actions">
-          <button className="cta-btn" onClick={onGetStarted}>
+          <button className="cta-btn" onClick={() => navigate('/get-started')}>
             GET STARTED
           </button>
         </div>

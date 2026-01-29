@@ -1,6 +1,7 @@
 // src/components/LandingPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Dumbbell, Apple, Moon, Award } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import './LandingPage.css';
 import Navbar from './Navbar';
 import Hero from './Hero';
@@ -59,6 +60,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, BarElement, LineEleme
 
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [activeTab, setActiveTab] = useState("daily");
   const [isGetStartedOpen, setIsGetStartedOpen] = useState(false);
@@ -164,9 +166,9 @@ const LandingPage = () => {
   return (
     <div className="lernevo-landing brand-background">
       {/* ========== Navigation ========== */}
-      <Navbar onGetStarted={() => setIsGetStartedOpen(true)} />
+      <Navbar onGetStarted={() => navigate('/get-started')} />
 
-      <Hero heroImage={heroImage} onGetStarted={() => setIsGetStartedOpen(true)} />
+      <Hero heroImage={heroImage} onGetStarted={() => navigate('/get-started')} />
 
       <GetStartedFlow isOpen={isGetStartedOpen} onClose={() => setIsGetStartedOpen(false)} />
 
