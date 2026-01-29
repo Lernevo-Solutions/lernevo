@@ -114,7 +114,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'saranyapandiyarajan30@gmail.com'       # 🔴 change
-EMAIL_HOST_PASSWORD = 'vocq vgeo lkjv hahm'    # 🔴 change
+EMAIL_HOST_USER = ''       # 🔴 change
+EMAIL_HOST_PASSWORD = ''    # 🔴 change
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
