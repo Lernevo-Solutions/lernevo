@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Eye, EyeOff, ArrowRight, Check } from 'lucide-react';
+import { CheckCircle, Eye, EyeOff, ArrowRight, Check, X, Loader2 } from 'lucide-react';
 import './AuthPage.css';
 import wellnessImg from './holistic.png';
 
@@ -15,22 +15,53 @@ const AuthPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     emailOtp: '',
-    phoneOtp: '',
     username: '',
     password: '',
     confirmPassword: ''
   });
 
-  // Verification States
+  // Verification & Validation States
   const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(null); // null, true, or false
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+
+  // Password Rules States
+  const passwordRules = {
+    length: formData.password.length >= 8,
+    alphabet: /[a-zA-Z]/.test(formData.password),
+    number: /[0-9]/.test(formData.password),
+    special: /[!@#$%^&*]/.test(formData.password),
+    noSpace: !/\s/.test(formData.password)
+  };
+
+  const isPasswordStrong = Object.values(passwordRules).every(Boolean);
+  const passwordsMatch = formData.password === formData.confirmPassword && formData.password !== '';
 
   // Validation
-  const isStep1Valid = formData.name && formData.email && formData.phone;
-  const isStep2Valid = isEmailVerified && isPhoneVerified;
-  const isStep3Valid = formData.username && formData.password && formData.password === formData.confirmPassword && formData.password.length >= 8;
+  const isStep1Valid = formData.name && formData.email;
+  const isStep2Valid = isEmailVerified;
+  const isStep3Valid = isUsernameAvailable === true && isPasswordStrong && passwordsMatch;
+
+  // Username Availability Simulation
+  useEffect(() => {
+    if (!formData.username) {
+      setIsUsernameAvailable(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setIsCheckingUsername(true);
+      // Simulate API call
+      setTimeout(() => {
+        const takenUsernames = ['admin', 'user', 'lernevo', 'test'];
+        setIsUsernameAvailable(!takenUsernames.includes(formData.username.toLowerCase()));
+        setIsCheckingUsername(false);
+      }, 800);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [formData.username]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -45,28 +76,22 @@ const AuthPage = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const getPasswordStrength = (password) => {
-    if (!password) return { label: 'None', color: '#eee', width: '0%' };
-    if (password.length < 6) return { label: 'Weak', color: '#ff4d4d', width: '33%' };
-    if (password.length < 10) return { label: 'Medium', color: '#ffa64d', width: '66%' };
+  const getPasswordStrength = () => {
+    if (!formData.password) return { label: 'None', color: '#eee', width: '0%' };
+    const score = Object.values(passwordRules).filter(Boolean).length;
+    
+    if (score <= 2) return { label: 'Weak', color: '#ff4d4d', width: '33%' };
+    if (score <= 4) return { label: 'Medium', color: '#ffa64d', width: '66%' };
     return { label: 'Strong', color: '#2eb82e', width: '100%' };
   };
 
-  const strength = getPasswordStrength(formData.password);
+  const strength = getPasswordStrength();
 
   const handleVerifyEmail = () => {
     if (formData.emailOtp === '1234') {
       setIsEmailVerified(true);
     } else {
       alert('Invalid Email OTP (Try 1234)');
-    }
-  };
-
-  const handleVerifyPhone = () => {
-    if (formData.phoneOtp === '1234') {
-      setIsPhoneVerified(true);
-    } else {
-      alert('Invalid Phone OTP (Try 1234)');
     }
   };
 
@@ -173,16 +198,6 @@ const AuthPage = () => {
                           onChange={handleInputChange}
                         />
                       </div>
-                      <div className="input-group">
-                        <label>Phone Number</label>
-                        <input 
-                          type="tel" 
-                          name="phone" 
-                          placeholder="+1 234 567 890"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                        />
-                      </div>
                     </div>
                     <div className="step-footer">
                       <button 
@@ -199,6 +214,14 @@ const AuthPage = () => {
                 {step === 2 && (
                   <div className="step-fade-in">
                     <div className="verification-container">
+                      <div className="verified-email-display">
+                        <label>Verifying Email</label>
+                        <div className="email-status-row">
+                          <span className="user-email">{formData.email}</span>
+                          {isEmailVerified && <CheckCircle size={20} className="success-tick" />}
+                        </div>
+                      </div>
+
                       <div className="input-group">
                         <label>Email OTP (Try 1234)</label>
                         <div className="otp-row">
@@ -210,29 +233,8 @@ const AuthPage = () => {
                             onChange={handleInputChange}
                             disabled={isEmailVerified}
                           />
-                          {isEmailVerified ? (
-                            <div className="verified-badge"><CheckCircle size={18} /> Verified</div>
-                          ) : (
+                          {!isEmailVerified && (
                             <button className="verify-action" onClick={handleVerifyEmail}>Verify</button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="input-group">
-                        <label>Phone OTP (Try 1234)</label>
-                        <div className="otp-row">
-                          <input 
-                            type="text" 
-                            name="phoneOtp" 
-                            placeholder="OTP"
-                            value={formData.phoneOtp}
-                            onChange={handleInputChange}
-                            disabled={isPhoneVerified}
-                          />
-                          {isPhoneVerified ? (
-                            <div className="verified-badge"><CheckCircle size={18} /> Verified</div>
-                          ) : (
-                            <button className="verify-action" onClick={handleVerifyPhone}>Verify</button>
                           )}
                         </div>
                       </div>
@@ -252,54 +254,89 @@ const AuthPage = () => {
 
                 {step === 3 && (
                   <div className="step-fade-in">
-                    <div className="input-grid">
+                    <div className="input-grid credentials-grid">
                       <div className="input-group">
                         <label>Username</label>
-                        <input 
-                          type="text" 
-                          name="username" 
-                          placeholder="Choose username"
-                          value={formData.username}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      <div className="input-group">
-                        <label>Password</label>
-                        <div className="pw-wrapper">
+                        <div className="username-wrapper">
                           <input 
-                            type={showPassword ? "text" : "password"} 
-                            name="password" 
-                            placeholder="Min 8 characters"
-                            value={formData.password}
+                            type="text" 
+                            name="username" 
+                            placeholder="Choose username"
+                            value={formData.username}
                             onChange={handleInputChange}
                           />
-                          <button className="pw-toggle" onClick={() => setShowPassword(!showPassword)}>
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
+                          {isCheckingUsername && <Loader2 size={16} className="username-loader" />}
                         </div>
-                        <div className="strength-container">
-                          <div className="strength-bar-bg">
-                            <div className="strength-bar-fill" style={{ width: strength.width, backgroundColor: strength.color }}></div>
+                        {formData.username && !isCheckingUsername && (
+                          <div className={`availability-status ${isUsernameAvailable ? 'available' : 'taken'}`}>
+                            {isUsernameAvailable ? (
+                              <><Check size={14} /> Username available</>
+                            ) : (
+                              <><X size={14} /> Username already taken</>
+                            )}
                           </div>
-                          <span className="strength-text">Strength: {strength.label}</span>
+                        )}
+                      </div>
+
+                      <div className="input-row">
+                        <div className="input-group">
+                          <label>Password</label>
+                          <div className="pw-wrapper">
+                            <input 
+                              type={showPassword ? "text" : "password"} 
+                              name="password" 
+                              placeholder="Min 8 characters"
+                              value={formData.password}
+                              onChange={handleInputChange}
+                            />
+                            <button className="pw-toggle" onClick={() => setShowPassword(!showPassword)}>
+                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                          <div className="strength-container">
+                            <div className="strength-bar-bg">
+                              <div className="strength-bar-fill" style={{ width: strength.width, backgroundColor: strength.color }}></div>
+                            </div>
+                            <span className="strength-text">Strength: {strength.label}</span>
+                          </div>
+                        </div>
+
+                        <div className="input-group">
+                          <label>Confirm Password</label>
+                          <div className="pw-wrapper">
+                            <input 
+                              type={showConfirmPassword ? "text" : "password"} 
+                              name="confirmPassword" 
+                              placeholder="Repeat password"
+                              value={formData.confirmPassword}
+                              onChange={handleInputChange}
+                            />
+                            <button className="pw-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                          {formData.confirmPassword && !passwordsMatch && (
+                            <span className="error-text">Passwords do not match</span>
+                          )}
                         </div>
                       </div>
-                      <div className="input-group">
-                        <label>Confirm Password</label>
-                        <div className="pw-wrapper">
-                          <input 
-                            type={showConfirmPassword ? "text" : "password"} 
-                            name="confirmPassword" 
-                            placeholder="Repeat password"
-                            value={formData.confirmPassword}
-                            onChange={handleInputChange}
-                          />
-                          <button className="pw-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
+
+                      <div className="password-checklist">
+                        <div className={`check-item ${passwordRules.length ? 'valid' : ''}`}>
+                          <CheckCircle size={14} /> 8 characters minimum
+                        </div>
+                        <div className={`check-item ${passwordRules.alphabet ? 'valid' : ''}`}>
+                          <CheckCircle size={14} /> Contains letter (A-Z)
+                        </div>
+                        <div className={`check-item ${passwordRules.number ? 'valid' : ''}`}>
+                          <CheckCircle size={14} /> Contains number (0-9)
+                        </div>
+                        <div className={`check-item ${passwordRules.special ? 'valid' : ''}`}>
+                          <CheckCircle size={14} /> Special character (!@#$%^&*)
                         </div>
                       </div>
                     </div>
+
                     <div className="step-footer">
                       <button className="back-btn" onClick={prevStep}>Back</button>
                       <button 
