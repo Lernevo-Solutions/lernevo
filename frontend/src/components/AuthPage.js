@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Eye, EyeOff, ArrowRight, Check, X, Loader2 } from 'lucide-react';
 import './AuthPage.css';
 import wellnessImg from './holistic.png';
+import api from '../api';
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -10,16 +11,22 @@ const AuthPage = () => {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailAvailable, setEmailAvailable] = useState(true);
+const [phoneAvailable, setPhoneAvailable] = useState(true);
+const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+
 
   // Form States
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    emailOtp: '',
-    username: '',
-    password: '',
-    confirmPassword: ''
-  });
+  name: '',
+  email: '',
+  phone: '',
+  emailOtp: '',
+  username: '',
+  password: '',
+  confirmPassword: ''
+});
+
 
   // Verification & Validation States
   const [isEmailVerified, setIsEmailVerified] = useState(false);
@@ -39,7 +46,13 @@ const AuthPage = () => {
   const passwordsMatch = formData.password === formData.confirmPassword && formData.password !== '';
 
   // Validation
-  const isStep1Valid = formData.name && formData.email;
+  const isStep1Valid =
+  formData.name &&
+  formData.email &&
+  formData.phone &&
+  emailAvailable &&
+  phoneAvailable;
+
   const isStep2Valid = isEmailVerified;
   const isStep3Valid = isUsernameAvailable === true && isPasswordStrong && passwordsMatch;
 
@@ -62,15 +75,41 @@ const AuthPage = () => {
 
     return () => clearTimeout(timer);
   }, [formData.username]);
+useEffect(() => {
+  if (!formData.email && !formData.phone) return;
+
+  const timer = setTimeout(async () => {
+    setIsCheckingAvailability(true);
+    try {
+      const res = await api.post('/check-availability/', {
+        email: formData.email,
+        phone: formData.phone
+      });
+
+      setEmailAvailable(res.data.email_available);
+      setPhoneAvailable(res.data.phone_available);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsCheckingAvailability(false);
+    }
+  }, 500);
+
+  return () => clearTimeout(timer);
+}, [formData.email, formData.phone]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const nextStep = () => {
-    if (step < 3) setStep(step + 1);
-  };
+const nextStep = () => {
+  if (step < 3) {
+    setStep(step + 1);
+  }
+};
+
 
   const prevStep = () => {
     if (step > 1) setStep(step - 1);
@@ -87,24 +126,72 @@ const AuthPage = () => {
 
   const strength = getPasswordStrength();
 
-  const handleVerifyEmail = () => {
-    if (formData.emailOtp === '1234') {
-      setIsEmailVerified(true);
-    } else {
-      alert('Invalid Email OTP (Try 1234)');
-    }
-  };
+  const handleVerifyEmail = async () => {
+  try {
+    await api.post('/otp/', {
+      email: formData.email,
+      otp: formData.emailOtp, // backend will verify
+    });
 
-  const handleCreateAccount = () => {
-    alert('Account Created Successfully!');
-    navigate('/');
-  };
+    setIsEmailVerified(true);
+  } catch (err) {
+    alert('Invalid OTP');
+  }
+};
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    alert('Logged in successfully!');
+
+ const handleCreateAccount = async () => {
+  try {
+    const res = await api.post('/register/', {
+      name: formData.name,
+      email: formData.email,
+      username: formData.username,
+      password: formData.password,
+      mobile: formData.phone,
+    });
+
+    // 🔥 Get user_code from backend
+    const { token, user_code } = res.data;
+
+    // store if needed
+    localStorage.setItem('token', token);
+    localStorage.setItem('user_code', user_code);
+
+    alert(`Account created successfully 🎉\nYour User ID: ${user_code}`);
+
     navigate('/');
-  };
+
+  } catch (err) {
+    alert(err.response?.data?.message || 'Registration failed');
+  }
+};
+
+
+const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await api.post('/login/', {
+      username: e.target[0].value,
+      password: e.target[1].value,
+    });
+    localStorage.setItem('token', res.data.token);
+    alert('Login successful');
+    navigate('/');
+  } catch (err) {
+    alert(err.response?.data?.detail || 'Invalid login credentials');
+  }
+};
+const handleSendOtp = async () => {
+  try {
+    await api.post('/otp/', {
+      email: formData.email
+    });
+    alert('OTP sent to email');
+  } catch (err) {
+    alert('Failed to send OTP');
+  }
+};
+
 
   return (
     <div className="auth-page-container">
@@ -198,12 +285,31 @@ const AuthPage = () => {
                           onChange={handleInputChange}
                         />
                       </div>
+                      {formData.email && !emailAvailable && (
+  <span className="error-text">Email already registered</span>
+)}
+
+                       <div className="input-group">
+        <label>Phone Number</label>
+        <input
+          type="tel"
+          name="phone"
+          placeholder="Enter phone number"
+          value={formData.phone}
+          onChange={handleInputChange}
+        />
+      </div>
+      {formData.phone && !phoneAvailable && (
+  <span className="error-text">Phone number already registered</span>
+)}
+
+    
                     </div>
                     <div className="step-footer">
                       <button 
-                        className="next-btn primary" 
-                        disabled={!isStep1Valid}
-                        onClick={nextStep}
+                       className="next-btn primary" 
+  disabled={!isStep1Valid || isCheckingAvailability}
+  onClick={nextStep}
                       >
                         Next Step <ArrowRight size={18} />
                       </button>
@@ -221,9 +327,14 @@ const AuthPage = () => {
                           {isEmailVerified && <CheckCircle size={20} className="success-tick" />}
                         </div>
                       </div>
-
+                       {/* GET OTP BUTTON */}
+      {!isEmailVerified && (
+        <button className="get-otp-btn" onClick={handleSendOtp}>
+          Get OTP
+        </button>
+      )}
                       <div className="input-group">
-                        <label>Email OTP (Try 1234)</label>
+                        <label>Email OTP</label>
                         <div className="otp-row">
                           <input 
                             type="text" 
@@ -378,4 +489,4 @@ const AuthPage = () => {
   );
 };
 
-export default AuthPage;
+export default AuthPage;  
