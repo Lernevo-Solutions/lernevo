@@ -1,6 +1,8 @@
+
 import uuid
 from django.db import models
 from django.contrib.auth.models import User as AuthUser
+import random
 
 
 class Role(models.Model):
@@ -75,23 +77,27 @@ class User(models.Model):
         related_name="lernevo_user"
     )
 
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
-    organization = models.ForeignKey(
-        Organization,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="users"
-    )
+    #role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    #organization = models.ForeignKey(Organization,on_delete=models.SET_NULL,null=True,blank=True,related_name="users")
 
-    wellness_types = models.ManyToManyField(
-        WellnessType,
-        related_name="users",
-        blank=True
-    )
+    #wellness_types = models.ManyToManyField(WellnessType,related_name="users",blank=True)
 
-    mobile = models.CharField(max_length=15)
+    
     country_code = models.CharField(max_length=5, default="+91")
+    mobile = models.CharField(
+    max_length=15,
+    null=True,
+    blank=True
+)
+    user_code = models.CharField(
+    max_length=6,
+    unique=True,
+    null=True,        
+    blank=True,
+    editable=False
+)
+
+
     #fcm_token = models.CharField(max_length=255, null=True, blank=True) # The "Phone Address"
     is_frozen = models.BooleanField(default=False)
     frozen_at = models.DateTimeField(null=True, blank=True)
@@ -107,9 +113,20 @@ class User(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.auth_user.username} ({self.role.name})"
+    def save(self, *args, **kwargs):
+        if not self.user_code:
+            self.user_code = self.generate_unique_code()
+        super().save(*args, **kwargs)
 
+    def generate_unique_code(self):
+        while True:
+            code = str(random.randint(100000, 999999))
+            if not User.objects.filter(user_code=code).exists():
+                return code
+
+    def __str__(self):
+        return f"{self.auth_user.username} - {self.user_code}"
+ 
 
 # =========================
 # USER PROFILE (WELLNESS)
@@ -206,23 +223,27 @@ class WorkoutGroup(models.Model):
 
 class UserOTP(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    
+    email = models.EmailField(null=True, blank=True)
+
     user = models.ForeignKey(
         AuthUser,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="otps"
     )
 
     otp_code = models.CharField(max_length=6)
     is_used = models.BooleanField(default=False)
-    
 
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     used_at = models.DateTimeField(null=True, blank=True)
 
-    updated_at = models.DateTimeField(auto_now=True)
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"OTP for {self.user.username} - {'Used' if self.is_used else 'Unused'}"
+        return f"OTP - {self.email or self.user.username}"
