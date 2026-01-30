@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Eye, EyeOff, ArrowRight, Check, X, Loader2 } from 'lucide-react';
 import './AuthPage.css';
@@ -24,7 +24,8 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   emailOtp: '',
   username: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  userId: ''
 });
 
 
@@ -32,6 +33,9 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(null); // null, true, or false
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const userIdSectionRef = useRef(null);
 
   // Password Rules States
   const passwordRules = {
@@ -54,7 +58,7 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   phoneAvailable;
 
   const isStep2Valid = isEmailVerified;
-  const isStep3Valid = isUsernameAvailable === true && isPasswordStrong && passwordsMatch;
+  const isStep3Valid = isUsernameAvailable === true && isPasswordStrong && passwordsMatch && formData.userId;
 
   // Username Availability Simulation
   useEffect(() => {
@@ -75,7 +79,47 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
 
     return () => clearTimeout(timer);
   }, [formData.username]);
-useEffect(() => {
+
+  const handleGenerateUserId = async () => {
+    const generatedId = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    try {
+      // 1. Register user with the generated ID
+      const res = await api.post('/register/', {
+        name: formData.name,
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+        mobile: formData.phone,
+        user_code: generatedId,
+      });
+
+      const { token } = res.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user_code', generatedId);
+
+      // 2. Set ID in state to trigger UI update
+      setFormData(prev => ({ ...prev, userId: generatedId }));
+
+      // 3. Smooth scroll to the ID section
+      setTimeout(() => {
+        userIdSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+
+      // 4. Handle redirect logic
+      setTimeout(() => {
+        setIsRedirecting(true);
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
+      }, 1000);
+
+    } catch (err) {
+      alert(err.response?.data?.message || 'Registration failed. Please try again.');
+    }
+  };
+  
+  useEffect(() => {
   if (!formData.email && !formData.phone) return;
 
   const timer = setTimeout(async () => {
@@ -136,33 +180,6 @@ const nextStep = () => {
     setIsEmailVerified(true);
   } catch (err) {
     alert('Invalid OTP');
-  }
-};
-
-
- const handleCreateAccount = async () => {
-  try {
-    const res = await api.post('/register/', {
-      name: formData.name,
-      email: formData.email,
-      username: formData.username,
-      password: formData.password,
-      mobile: formData.phone,
-    });
-
-    // 🔥 Get user_code from backend
-    const { token, user_code } = res.data;
-
-    // store if needed
-    localStorage.setItem('token', token);
-    localStorage.setItem('user_code', user_code);
-
-    alert(`Account created successfully 🎉\nYour User ID: ${user_code}`);
-
-    navigate('/');
-
-  } catch (err) {
-    alert(err.response?.data?.message || 'Registration failed');
   }
 };
 
@@ -277,13 +294,16 @@ const handleSendOtp = async () => {
                       </div>
                       <div className="input-group">
                         <label>Email ID</label>
-                        <input 
-                          type="email" 
-                          name="email" 
-                          placeholder="example@mail.com"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                        />
+                        <div className="email-input-wrapper">
+                          <input 
+                            type="email" 
+                            name="email" 
+                            placeholder="example@mail.com"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                          />
+                          {isEmailVerified && <CheckCircle size={18} className="success-tick" />}
+                        </div>
                       </div>
                       {formData.email && !emailAvailable && (
   <span className="error-text">Email already registered</span>
@@ -320,32 +340,44 @@ const handleSendOtp = async () => {
                 {step === 2 && (
                   <div className="step-fade-in">
                     <div className="verification-container">
-                      <div className="verified-email-display">
-                        <label>Verifying Email</label>
+                      <div className="input-group">
+                        <label>Email ID</label>
                         <div className="email-status-row">
-                          <span className="user-email">{formData.email}</span>
-                          {isEmailVerified && <CheckCircle size={20} className="success-tick" />}
+                          <input 
+                            type="email" 
+                            value={formData.email} 
+                            readOnly 
+                            className="email-read-only"
+                          />
+                          {!isEmailVerified ? (
+                            <button className="get-otp-btn" onClick={handleSendOtp}>
+                              Get OTP
+                            </button>
+                          ) : (
+                            <CheckCircle size={18} className="success-tick" />
+                          )}
                         </div>
                       </div>
-                       {/* GET OTP BUTTON */}
-      {!isEmailVerified && (
-        <button className="get-otp-btn" onClick={handleSendOtp}>
-          Get OTP
-        </button>
-      )}
+
                       <div className="input-group">
                         <label>Email OTP</label>
                         <div className="otp-row">
                           <input 
                             type="text" 
                             name="emailOtp" 
-                            placeholder="OTP"
+                            placeholder="Enter OTP"
                             value={formData.emailOtp}
                             onChange={handleInputChange}
                             disabled={isEmailVerified}
                           />
                           {!isEmailVerified && (
-                            <button className="verify-action" onClick={handleVerifyEmail}>Verify</button>
+                            <button 
+                              className={`verify-action ${formData.emailOtp.length >= 4 ? 'active' : ''}`} 
+                              onClick={handleVerifyEmail}
+                              disabled={formData.emailOtp.length < 4}
+                            >
+                              Verify
+                            </button>
                           )}
                         </div>
                       </div>
@@ -446,17 +478,42 @@ const handleSendOtp = async () => {
                           <CheckCircle size={14} /> Special character (!@#$%^&*)
                         </div>
                       </div>
+
+                      <div className="user-id-section" ref={userIdSectionRef}>
+                        <div className="divider-line"></div>
+                        <p className="welcome-line">Welcome to Lernevo 👋</p>
+                        
+                        {!formData.userId ? (
+                          <button 
+                            className="generate-id-btn"
+                            onClick={handleGenerateUserId}
+                            disabled={!(isUsernameAvailable === true && isPasswordStrong && passwordsMatch)}
+                          >
+                            Generate User ID
+                          </button>
+                        ) : (
+                          <div className="step-fade-in">
+                            <div className="input-group">
+                              <label>Your User ID</label>
+                              <input 
+                                type="text" 
+                                className="user-id-display" 
+                                value={formData.userId} 
+                                readOnly 
+                                disabled
+                              />
+                            </div>
+                            {isRedirecting && (
+                              <p className="redirect-text">Redirecting you to Home...</p>
+                            )}
+                          </div>
+                        )}
+                        <div className="divider-line"></div>
+                      </div>
                     </div>
 
                     <div className="step-footer">
                       <button className="back-btn" onClick={prevStep}>Back</button>
-                      <button 
-                        className="create-btn primary" 
-                        disabled={!isStep3Valid}
-                        onClick={handleCreateAccount}
-                      >
-                        Create Account
-                      </button>
                     </div>
                   </div>
                 )}
