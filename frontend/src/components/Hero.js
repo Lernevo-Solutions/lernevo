@@ -2,6 +2,8 @@ import React from 'react';
 import './Hero.css';
 
 const Hero = ({ heroImage, onGetStarted }) => {
+  const isLoggedIn = !!localStorage.getItem('token');
+
   return (
     <section className="hero-section" id="home">
       <div className="hero-container">
@@ -20,9 +22,11 @@ const Hero = ({ heroImage, onGetStarted }) => {
 One platform, one companion, supporting every part of your well-being.One companion for complete wellness
           </p>
 
-          <button className="hero-pill-button" onClick={onGetStarted}>
-            Start Your Journey
-          </button>
+          {!isLoggedIn && (
+            <button className="hero-pill-button" onClick={onGetStarted}>
+              Start Your Journey
+            </button>
+          )}
 
           <div className="hero-trust-line">
             <span className="trust-item">Secure</span>

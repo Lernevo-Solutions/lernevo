@@ -1,0 +1,106 @@
+.profile-layout-container {
+  min-height: 100vh;
+  height: 100vh;
+  background-color: #eff6ff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent body scrolling */
+}
+
+.profile-layout-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center vertically for premium feel */
+  padding-top: 80px; /* Generous breathing space below navbar */
+  padding-bottom: 80px; /* Generous breathing space at bottom */
+  margin-top: 64px; /* Navbar height */
+  overflow-y: auto;
+  width: 100%;
+}
+
+.profile-layout-card-wrapper {
+  width: 100%;
+  max-width: 640px; /* Redesigned width */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.profile-layout-back-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+  width: fit-content;
+  padding: 0;
+}
+
+.profile-layout-back-link:hover {
+  color: #3b82f6;
+}
+
+.profile-layout-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  width: 100%;
+  border: 1px solid rgba(241, 245, 249, 0.8);
+}
+
+.profile-layout-header {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.profile-layout-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.profile-layout-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Scrollbar styling for the content area if needed */
+.profile-layout-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-layout-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.profile-layout-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.profile-layout-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media (max-width: 480px) {
+  .profile-layout-content {
+    padding-top: 32px;
+    padding-bottom: 32px;
+  }
+  
+  .profile-layout-card {
+    padding: 1.5rem;
+  }
+}

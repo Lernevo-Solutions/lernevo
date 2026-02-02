@@ -1,13 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import "./Navbar.css";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, User, LogOut, Key } from "lucide-react";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Navbar({ onGetStarted }) {
   const [scrolled, setScrolled] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const checkAuth = () => {
+    const token = localStorage.getItem('token');
+    const name = localStorage.getItem('user_name');
+    const image = localStorage.getItem('profile_image');
+    
+    if (token && token !== 'undefined' && token !== 'null' && token.trim() !== "") {
+      setIsAuthenticated(true);
+      setUser(name || "User");
+      setProfileImage(image);
+    } else {
+      setIsAuthenticated(false);
+      setUser(null);
+      setProfileImage(null);
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+    
+    // Listen for storage changes (handles logout in other tabs/windows)
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const headerEl = document.querySelector('.navbar');
@@ -27,6 +66,19 @@ export default function Navbar({ onGetStarted }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsAuthenticated(false);
+    setUser(null);
+    setShowProfileDropdown(false);
+    navigate('/');
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name[0].toUpperCase();
+  };
+
   const handleNavClick = (e, target, isSection = false) => {
     if (isSection) {
       if (location.pathname === '/') {
@@ -35,9 +87,6 @@ export default function Navbar({ onGetStarted }) {
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
-      } else {
-        // Navigate to home with hash is handled by native browser if we use <a> or Link with hash,
-        // but for smooth scroll we might need a useEffect on the home page.
       }
     }
   };
@@ -114,11 +163,52 @@ export default function Navbar({ onGetStarted }) {
           </Link>
         </nav>
 
-        {/* Right CTA */}
+        {/* Right Actions */}
         <div className="nav-actions">
-          <button className="cta-btn" onClick={() => navigate('/get-started')}>
-            GET STARTED
-          </button>
+          {!isAuthenticated && (
+            <button className="cta-btn" onClick={() => navigate('/get-started')}>
+              GET STARTED
+            </button>
+          )}
+
+          {isAuthenticated && (
+            <div className="profile-container" ref={dropdownRef}>
+              <div 
+                className="profile-avatar" 
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                title={user}
+              >
+                {profileImage ? (
+                  <img src={profileImage} alt="Avatar" className="navbar-avatar-image" />
+                ) : (
+                  getInitials(user)
+                )}
+              </div>
+              
+              {showProfileDropdown && (
+                <div className="profile-dropdown">
+                  <div className="dropdown-header">
+                    <p className="user-name">{user}</p>
+                    <p className="user-status">Online</p>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item" onClick={() => {navigate('/profile'); setShowProfileDropdown(false);}}>
+                    <User size={16} />
+                    <span>View Profile</span>
+                  </button>
+                  <button className="dropdown-item" onClick={() => {navigate('/profile/change-password'); setShowProfileDropdown(false);}}>
+                    <Key size={16} />
+                    <span>Change Password</span>
+                  </button>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item logout" onClick={handleLogout}>
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
       </div>
