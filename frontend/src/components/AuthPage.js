@@ -7,6 +7,8 @@ import api from '../api';
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
   const [isLogin, setIsLogin] = useState(false);
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -36,6 +38,14 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const userIdSectionRef = useRef(null);
+
+  useEffect(() => {
+    // Force logged-out state on AuthPage load
+    localStorage.clear();
+    sessionStorage.clear();
+    setIsAuthenticated(false);
+    setUser(null);
+  }, []);
 
   // Password Rules States
   const passwordRules = {
@@ -95,8 +105,18 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
       });
 
       const { token } = res.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user_code', generatedId);
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user_code', generatedId);
+        localStorage.setItem('user_name', formData.name);
+        
+        // onSignupSuccess
+        setIsAuthenticated(true);
+        setUser(formData.name);
+      } else {
+        localStorage.clear();
+        throw new Error('No token received from server');
+      }
 
       // 2. Set ID in state to trigger UI update
       setFormData(prev => ({ ...prev, userId: generatedId }));
@@ -186,15 +206,28 @@ const nextStep = () => {
 
 const handleLogin = async (e) => {
   e.preventDefault();
+  const username = e.target[0].value;
   try {
     const res = await api.post('/login/', {
-      username: e.target[0].value,
+      username: username,
       password: e.target[1].value,
     });
-    localStorage.setItem('token', res.data.token);
-    alert('Login successful');
-    navigate('/');
+    if (res.data.token) {
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user_name', res.data.name || username);
+      
+      // onLoginSuccess
+      setIsAuthenticated(true);
+      setUser(res.data.name || username);
+      
+      alert('Login successful');
+      navigate('/');
+    } else {
+      localStorage.clear();
+      alert('Login failed: No token received');
+    }
   } catch (err) {
+    localStorage.clear();
     alert(err.response?.data?.detail || 'Invalid login credentials');
   }
 };
