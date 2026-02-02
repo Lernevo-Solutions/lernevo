@@ -7,7 +7,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 export default function Navbar({ onGetStarted }) {
   const [scrolled, setScrolled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [username, setUser] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -176,19 +176,19 @@ export default function Navbar({ onGetStarted }) {
               <div 
                 className="profile-avatar" 
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                title={user}
+                title={username}
               >
                 {profileImage ? (
                   <img src={profileImage} alt="Avatar" className="navbar-avatar-image" />
                 ) : (
-                  getInitials(user)
+                  getInitials(username)
                 )}
               </div>
               
               {showProfileDropdown && (
                 <div className="profile-dropdown">
                   <div className="dropdown-header">
-                    <p className="user-name">{user}</p>
+                    <p className="user-name">{username}</p>
                     <p className="user-status">Online</p>
                   </div>
                   <div className="dropdown-divider"></div>

@@ -108,7 +108,7 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
       if (token) {
         localStorage.setItem('token', token);
         localStorage.setItem('user_code', generatedId);
-        localStorage.setItem('user_name', formData.name);
+        localStorage.setItem('user_name', formData.username);
         
         // onSignupSuccess
         setIsAuthenticated(true);

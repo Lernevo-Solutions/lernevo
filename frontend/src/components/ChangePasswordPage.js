@@ -71,7 +71,7 @@ const ChangePasswordPage = () => {
           old_password: formData.currentPassword,
           new_password: formData.newPassword 
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Token ${token}` } }
       );
       
       setStatus({ type: 'success', message: 'Password updated successfully!' });

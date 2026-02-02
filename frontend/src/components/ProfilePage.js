@@ -11,7 +11,7 @@ const ProfilePage = () => {
     username: localStorage.getItem('user_name') || 'User',
     email: 'loading...',
     phone: 'loading...',
-    role: 'Member',
+    role: '',
     profileImage: localStorage.getItem('profile_image') || null
   });
 
@@ -25,10 +25,10 @@ const ProfilePage = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await api.get('/profile/', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Token ${token}` }
         });
         setUserData({
-          username: response.data.username || response.data.name,
+          username: response.data.username || localStorage.getItem('user_name'),
           email: response.data.email,
           phone: response.data.mobile || response.data.phone,
           role: response.data.role || 'Member'
@@ -68,7 +68,7 @@ const ProfilePage = () => {
       if (editingField === 'phone') payload.mobile = editValue;
 
       const response = await api.put('/profile/', payload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Token ${token}` }
       });
 
       setUserData(prev => ({
@@ -93,29 +93,52 @@ const ProfilePage = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setMessage({ type: 'error', text: 'Image size should be less than 2MB' });
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-        return;
-      }
+ const handleImageChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        setUserData(prev => ({ ...prev, profileImage: base64String }));
-        localStorage.setItem('profile_image', base64String);
-        setMessage({ type: 'success', text: 'Profile picture updated!' });
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-        
-        // Trigger storage event for other components (like Navbar)
-        window.dispatchEvent(new Event('storage'));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  if (file.size > 2 * 1024 * 1024) {
+    setMessage({ type: 'error', text: 'Image size should be less than 2MB' });
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const formData = new FormData();
+    formData.append("profile_image", file);
+
+    const response = await api.put(
+      "/profile/upload-image/",
+      formData,
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    // ✅ backend returns image URL
+    const imageUrl = response.data.profile_image;
+
+    setUserData(prev => ({
+      ...prev,
+      profileImage: imageUrl
+    }));
+
+    localStorage.setItem("profile_image", imageUrl);
+
+    // Navbar update
+    window.dispatchEvent(new Event("storage"));
+
+    setMessage({ type: 'success', text: 'Profile picture updated successfully!' });
+
+  } catch (error) {
+    console.error("Image upload failed:", error);
+    setMessage({ type: 'error', text: 'Failed to upload image' });
+  }
+};
 
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : 'U';

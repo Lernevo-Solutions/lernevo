@@ -40,6 +40,7 @@ function App() {
             <ChangePasswordPage />
           </ProtectedRoute>
         } />
+        
       </Routes>
     </Router>
   );
