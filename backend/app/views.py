@@ -11,10 +11,10 @@ from django.utils.timezone import now
 
 from datetime import timedelta
 import uuid
-
+from .models import UserProfile
 from .models import User, UserOTP
 from .serializers import RegisterSerializer, LoginSerializer
-
+from .serializers import ProfileSerializer, ProfileImageSerializer
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -154,3 +154,167 @@ class CheckAvailabilityView(APIView):
             "email_available": not email_exists,
             "phone_available": not phone_exists
         }, status=status.HTTP_200_OK)
+    
+
+
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import User as LernevoUser
+from .serializers import ProfileSerializer
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            lernevo_user = LernevoUser.objects.get(auth_user=request.user)
+        except LernevoUser.DoesNotExist:
+            return Response(
+                {"detail": "Profile not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = ProfileSerializer(lernevo_user)
+        return Response({
+            "username": lernevo_user.auth_user.username,
+            "email": lernevo_user.auth_user.email,
+            "mobile": lernevo_user.mobile,
+            "role": "Member"
+        })
+
+    def put(self, request):
+        try:
+            lernevo_user = LernevoUser.objects.get(auth_user=request.user)
+        except LernevoUser.DoesNotExist:
+            return Response(
+                {"detail": "Profile not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = ProfileSerializer(
+            lernevo_user,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "username": lernevo_user.auth_user.username,
+                "email": lernevo_user.auth_user.email,
+                "mobile": lernevo_user.mobile,
+                "role": ""
+            })
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, permissions
+from django.contrib.auth import authenticate
+
+from .serializers import ChangePasswordSerializer
+
+class ChangePasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = request.user
+        old_password = serializer.validated_data["old_password"]
+        new_password = serializer.validated_data["new_password"]
+
+        # ✅ check old password
+        if not user.check_password(old_password):
+            return Response(
+                {"message": "Current password is incorrect"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ✅ set new password
+        user.set_password(new_password)
+        user.save()
+
+        return Response(
+            {"message": "Password updated successfully"},
+            status=status.HTTP_200_OK
+        )
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # ✅ Get or create LernevoUser
+        lernevo_user, _ = LernevoUser.objects.get_or_create(auth_user=request.user)
+        # ✅ Get or create UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=lernevo_user)
+
+        serializer = ProfileSerializer(lernevo_user)
+        return Response({
+            "username": lernevo_user.auth_user.username,
+            "email": lernevo_user.auth_user.email,
+            "mobile": lernevo_user.mobile,
+            "role": "Member"
+        })
+
+    def put(self, request):
+        # ✅ Get or create LernevoUser
+        lernevo_user, _ = LernevoUser.objects.get_or_create(auth_user=request.user)
+        # ✅ Get or create UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=lernevo_user)
+
+        serializer = ProfileSerializer(
+            lernevo_user,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "username": lernevo_user.auth_user.username,
+                "email": lernevo_user.auth_user.email,
+                "mobile": lernevo_user.mobile,
+                "role": "Member"
+            })
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ---------------- Profile Image Upload ----------------
+class ProfileImageUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        # ✅ Get or create LernevoUser
+        lernevo_user, _ = LernevoUser.objects.get_or_create(auth_user=request.user)
+        # ✅ Get or create UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=lernevo_user)
+
+        serializer = ProfileImageSerializer(
+            profile,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message": "Profile image updated successfully",
+                    "profile_image": request.build_absolute_uri(
+                        profile.profile_image.url
+                    )
+                },
+                status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

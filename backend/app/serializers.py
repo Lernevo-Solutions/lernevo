@@ -66,3 +66,47 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid username or password")
         attrs['user'] = user
         return attrs
+from rest_framework import serializers
+from django.contrib.auth.models import User as AuthUser
+from .models import User as LernevoUser
+
+class ProfileSerializer(serializers.Serializer):
+    username = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+    mobile = serializers.CharField(required=False)
+    role = serializers.SerializerMethodField()
+
+    def get_role(self, obj):
+        # If you add role later, update this
+        return "Member"
+
+    def update(self, instance, validated_data):
+        auth_user = instance.auth_user
+
+        if "username" in validated_data:
+            auth_user.username = validated_data["username"]
+
+        if "email" in validated_data:
+            auth_user.email = validated_data["email"]
+
+        auth_user.save()
+
+        if "mobile" in validated_data:
+            instance.mobile = validated_data["mobile"]
+            instance.save()
+
+        return instance
+from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+class ProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["profile_image"]

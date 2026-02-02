@@ -81,8 +81,6 @@ class User(models.Model):
     #organization = models.ForeignKey(Organization,on_delete=models.SET_NULL,null=True,blank=True,related_name="users")
 
     #wellness_types = models.ManyToManyField(WellnessType,related_name="users",blank=True)
-
-    
     country_code = models.CharField(max_length=5, default="+91")
     mobile = models.CharField(
     max_length=15,
@@ -136,6 +134,12 @@ class UserProfile(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name="profile"
+    )
+    
+    profile_image = models.ImageField(
+        upload_to="profile_images/",
+        null=True,
+        blank=True
     )
 
     height_cm = models.FloatField(null=True, blank=True)

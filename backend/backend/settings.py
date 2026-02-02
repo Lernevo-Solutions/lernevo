@@ -1,11 +1,13 @@
 from pathlib import Path
 from corsheaders.defaults import default_headers
+import os
 
 # ---------------- BASE ----------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-dev-key'
-DEBUG = True
+SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = os.environ.get('DEBUG') == 'True'
+
 ALLOWED_HOSTS = ['*']
 
 # ---------------- APPS ----------------
@@ -58,12 +60,38 @@ TEMPLATES = [
 ]
 
 # ---------------- DATABASE ----------------
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+
+
+import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+ENV = os.environ.get("ENV", "DEV")
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "local-secret-key")
+DEBUG = os.environ.get("DEBUG", "True") == "True"
+
+if ENV == "PROD":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+            'HOST': os.environ.get('DB_HOST'),
+            'PORT': '5432',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+
 
 # ---------------- PASSWORD ----------------
 AUTH_PASSWORD_VALIDATORS = [
@@ -116,4 +144,11 @@ EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = 'saranyapandiyarajan30@gmail.com'       
 EMAIL_HOST_PASSWORD = 'vocq vgeo lkjv hahm' 
+
+
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
