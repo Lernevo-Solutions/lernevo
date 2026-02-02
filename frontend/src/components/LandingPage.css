@@ -171,7 +171,7 @@ body {
 .dashboard-container {
   position: relative;
   width: 100%;
-  max-width: 500px;
+  max-width: 300px;
   margin: 0 auto;
 }
 
@@ -2238,35 +2238,51 @@ body {
   margin-top: 3rem;
 }
 
+/* "Our Approach" Heading - Space koraithu size adjust seiyya */
 .cards-only-heading {
-  text-align: left;
-  font-size: 39px;
-  /* similar size hierarchy to main heading */
+  font-size: 2.8rem !important;
   font-weight: 900;
-  /* same boldness as "How Lernevo Works" */
   color: #111;
-  /* dark color, same as main heading */
-  margin-top: 40px;
-  /* space from above content */
-  margin-bottom: 30px;
-  /* space below heading */
-  margin-left: 0;
-  /* aligns with cards container */
+
+  white-space: nowrap;   /* 🔥 KEY LINE */
+  display: inline-block;
+
+  margin: 0 0 20px 20px !important;
 }
 
+
+/* "Our Approach" cards-ai orey line-la align panna */
 .how-works-cards {
-  padding-left: 20px;
-  /* makes heading & cards align */
-  padding-right: 20px;
-  padding-top: 20px;
-  /* extra top space to separate from previous section */
-  display: flex;
-  gap: 20px;
-  /* spacing between cards */
-  flex-wrap: wrap;
-  /* keeps cards responsive */
+  display: grid !important;
+  /* 4 cards-um orey row-la varum */
+  grid-template-columns: repeat(4, 1fr) !important; 
+  gap: 1.5rem !important; /* Cards-kku naduvula irukura gap */
+  width: 100% !important;
+  max-width: 1200px;
+  margin: 4rem auto 0;
+  padding: 0 20px;
 }
 
+/* Screen size chinathana (Tablet) 2 row-va mathikalam */
+@media (max-width: 1024px) {
+  .how-works-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Mobile-la 1 row-va stack aagum */
+@media (max-width: 600px) {
+  .how-works-cards {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Boxes correct-ah row kulla fit aaga */
+.how-works-cards .hover-full-card {
+  flex: 1 !important; 
+  min-width: 0 !important; /* Box size shrink aaga ithu help pannum */
+  height: 400px !important;
+}
 
 
 /* Individual Step */
@@ -4246,3 +4262,69 @@ body {
   animation-name: moveUp;
 }
 
+/* The wrapper that holds everything from Performance to Transform */
+.wellness-layout-wrapper {
+  position: relative;
+  overflow: hidden;
+  padding: 0 240px; /* Leaves space for the 220px ads on both sides */
+}
+
+/* Base Side Ad Style */
+.side-ad {
+  position: absolute;
+  top: 0;
+  bottom: 0; /* Stretches the full height of the wrapper */
+  width: 200px;
+  background: #f8f9fa; /* Light background for the ad strip */
+  overflow: hidden;
+  z-index: 5;
+}
+
+.left-ad {
+  left: 10px;
+}
+
+.right-ad {
+  right: 10px;
+}
+
+/* The moving track */
+.ad-track {
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-track img {
+  width: 100%;
+  height: auto;
+  border-bottom: 4px solid #fff; /* Space between ad images */
+}
+
+/* Animations */
+.move-up {
+  animation: moveUp 20s linear infinite;
+}
+
+.move-down {
+  animation: moveDown 20s linear infinite;
+}
+
+@keyframes moveUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+@keyframes moveDown {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+
+/* Responsive: Hide ads on smaller screens to prevent overlapping text */
+@media (max-width: 1200px) {
+  .wellness-layout-wrapper {
+    padding: 0 20px;
+  }
+  .side-ad {
+    display: none;
+  }
+}

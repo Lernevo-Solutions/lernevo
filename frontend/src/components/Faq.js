@@ -7,11 +7,19 @@ import {
   FaDumbbell, FaBullseye, FaComments, FaSearchPlus,
   FaTwitter, FaInstagram, FaLinkedin, FaYoutube 
 } from 'react-icons/fa';
-
+import f1 from "./f1.png";
+import f2 from "./f2.png";
+import f3 from "./f3.png";
+import f4 from "./f4.png";
+import f5 from "./f5.png";
+import f6 from "./f6.png";
+import f7 from "./f7.png";    
+import f8 from "./f8.png";
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Getting Started');
+  
   
 const categories = [
     { name: "Getting Started", icon: <FaRocket />, color: "#A5B4FC" },
@@ -172,7 +180,29 @@ const activeCatColor = activeCat?.color || "#A5B4FC";
   return (
     <div className="faq-page-wrapper">
       <Navbar />
-      
+      <div className="wellness-layout-wrapper">
+        
+        {/* Left Sidebar Ad */}
+        <div className="side-ad left-ad">
+          <div className="ad-track move-down">
+             {/* Use your gym/ad images here as you did in LandingPage */}
+            <img src={f1} alt="Ad" />
+            <img src={f2} alt="Ad" />
+            <img src={f3} alt="Ad" />
+            <img src={f4} alt="Ad" />
+            <img src={f5} alt="Ad" /> 
+          </div>
+        </div>
+
+        {/* Right Sidebar Ad */}
+        <div className="side-ad right-ad">
+          <div className="ad-track move-up">
+            <img src={f6} alt="Ad" />
+            <img src={f7} alt="Ad" />
+            <img src={f8} alt="Ad" />
+            <img src={f1} alt="Ad" />
+          </div>
+        </div>
       {/* Wrapper for main content to push footer down */}
       <div className="faq-content-wrapper">
         <div className="faq-main-container">
@@ -251,6 +281,7 @@ const activeCatColor = activeCat?.color || "#A5B4FC";
           </main>
         </div>
       </div>
+      </div>  
 
       {/* FOOTER SECTION */}
       {/* ========== FAQ PAGE FOOTER (UNIQUE FIX) ========== */}

@@ -36,6 +36,14 @@ import g1 from "./gym1.png";
 import g2 from "./gym2.png";
 import g3 from "./gym3.png"; 
 import g4 from "./gym4.png";
+import g5 from "./gym5.png";
+import g6 from "./gym6.png";
+import g7 from "./gym7.png";
+import g8 from "./gym8.png";
+import g9 from "./gym9.png";
+import g10 from "./gym10.png";
+import g11 from "./gym11.png";
+
 import { FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
 import insightimg from "./in.png";
 import guidanceimg from "./del.png";
@@ -171,7 +179,44 @@ const LandingPage = () => {
       <Hero heroImage={heroImage} onGetStarted={() => navigate('/get-started')} />
 
       <GetStartedFlow isOpen={isGetStartedOpen} onClose={() => setIsGetStartedOpen(false)} />
+     <div className="wellness-layout-wrapper">
+  
+  {/* Left Sidebar Ad */}
+  <div className="side-ad left-ad">
+    <div className="ad-track move-down">
+      <img src={gymImg} alt="Ad" />
+      <img src={g3} alt="Ad" />
+      <img src={g4} alt="Ad" />
+      <img src={g5} alt="Ad" />
+      <img src={g6} alt="Ad" />
+      <img src={g7} alt="Ad" />
+      <img src={g8} alt="Ad" />
+      <img src={g9} alt="Ad" />   
+      <img src={g10} alt="Ad" />
+      <img src={g11} alt="Ad" />
+      {/* Duplicate for seamless loop */}
+      <img src={gymImg} alt="Ad" />
+    </div>
+  </div>
 
+  {/* Right Sidebar Ad */}
+  <div className="side-ad right-ad">
+    <div className="ad-track move-up">
+      <img src={g2} alt="Ad" />
+      <img src={g3} alt="Ad" />
+      <img src={g1} alt="Ad" />
+       <img src={g4} alt="Ad" />
+      <img src={g5} alt="Ad" />
+      <img src={g6} alt="Ad" />
+      <img src={g7} alt="Ad" />
+      <img src={g8} alt="Ad" />
+      <img src={g9} alt="Ad" />   
+      <img src={g10} alt="Ad" />
+      <img src={g11} alt="Ad" />
+      {/* Duplicate for seamless loop */}
+      <img src={g2} alt="Ad" />
+    </div>
+  </div>
       {/* ========== Performance Dashboard Section (Moved Here) ========== */}
       <section id="performance" className="performance-dashboard-section">
         <div className="container">
@@ -365,13 +410,7 @@ const LandingPage = () => {
       <section id="services" className="services-section">
             <div className="services-inner">
 
-  <div className="side-ad left-ad">
-  <div className="ad-track">
-    <img src={gymImg} alt="Offer Ad" />
-    <img src={g3} alt="Offer Ad" />
-    <img src={g4} alt="Offer Ad" />
-  </div>
-</div>
+  
 
 
         <div className="container">
@@ -551,13 +590,7 @@ const LandingPage = () => {
 
           </div>
                     
-     <div className="side-ad right-ad">
-  <div className="ad-track">
-    <img src={g2} />
-    <img src={g3} />
-    <img src={g1} />
-  </div>
-</div>
+ 
 
      </div>
         </div>
@@ -711,7 +744,7 @@ const LandingPage = () => {
 
         </div>
       </section>
-
+</div>
 
       {/* ========== Footer Section (Redesigned) ========== */}
 

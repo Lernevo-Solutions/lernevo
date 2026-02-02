@@ -358,3 +358,58 @@
   font-weight: 800;
   margin-bottom: 0;
 }
+
+
+
+/* ✅ Fix for FAQ layout to accommodate side banners */
+.faq-page-wrapper .wellness-layout-wrapper {
+  position: relative;
+  overflow: hidden;
+  /* Adjust this padding to match your side-ad width (e.g., 200px each side) */
+  padding: 0 220px !important; 
+  background: #E1EEFF; /* Match your page background */
+  min-height: 100vh;
+}
+
+/* Ensure Side Ads span the full height of the FAQ content */
+.faq-page-wrapper .side-ad {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  z-index: 5;
+  background: #f8f9fa;
+  overflow: hidden;
+}
+
+.faq-page-wrapper .left-ad {
+  left: 10px;
+}
+
+.faq-page-wrapper .right-ad {
+  right: 10px;
+}
+
+/* Re-use your existing animations from LandingPage.css */
+.move-up { animation: moveUp 20s linear infinite; }
+.move-down { animation: moveDown 20s linear infinite; }
+
+@keyframes moveUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+@keyframes moveDown {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+
+/* Mobile: Hide ads to prevent content squishing */
+@media (max-width: 1200px) {
+  .faq-page-wrapper .wellness-layout-wrapper {
+    padding: 0 20px !important;
+  }
+  .faq-page-wrapper .side-ad {
+    display: none;
+  }
+}
