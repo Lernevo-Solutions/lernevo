@@ -1,0 +1,404 @@
+.dashboard-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding-top: 80px;
+}
+
+.dashboard-main {
+  width: 100%;
+  padding: 40px 32px; /* 32-40px container padding */
+}
+
+.dashboard-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* Coming Soon Hero Banner */
+.coming-soon-banner {
+  width: 100%;
+  min-height: 380px;
+  background: linear-gradient(135deg, #4361ee, #3a0ca3);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  padding: 60px;
+  color: #fff;
+  box-shadow: 0 20px 40px rgba(67, 97, 238, 0.2);
+  gap: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-left {
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 1;
+}
+
+.rocket-icon {
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 16px;
+  border-radius: 20px;
+  display: inline-flex;
+}
+
+.banner-heading {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 16px 0;
+}
+
+.banner-subheading {
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0 0 24px 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.banner-description {
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 540px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+.banner-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  z-index: 1;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.preview-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  padding: 24px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-icon {
+  background: #fff;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.card-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Dashboard Section */
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.time-filter {
+  display: flex;
+  background: #fff;
+  padding: 4px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn.active {
+  background-color: #4361ee;
+  color: #fff;
+}
+
+/* Metrics Grid - 3 Column Layout */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px; /* 28-32px gap */
+}
+
+/* Premium Card Container */
+.metric-card {
+  background: #FFFFFF;
+  border-radius: 20px; /* 16-20px radius */
+  padding: 32px; /* 28-32px padding */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* Soft subtle shadow */
+  display: flex;
+  flex-direction: column;
+  height: 480px; /* Ensure equal height */
+  transition: transform 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600; /* Medium-bold */
+  color: #1f2937;
+  margin: 0;
+}
+
+.muted-icon {
+  color: #9ca3af; /* Muted icon */
+}
+
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Balanced spacing */
+  align-items: stretch;
+}
+
+/* Shared Typography */
+.bold-value {
+  font-weight: 700;
+  color: #111827;
+}
+
+.muted-label {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Nutrition Card Specifics */
+.nutrition-card .card-body {
+  align-items: center;
+  text-align: center;
+}
+
+.circular-container {
+  width: 140px;
+  height: 140px;
+  margin-bottom: 24px;
+}
+
+.calories-centered {
+  margin-bottom: 32px;
+  font-size: 18px;
+}
+
+.macros-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-top: 24px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.macro-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.macro-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.macro-lbl {
+  font-size: 12px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.macro-divider {
+  width: 1px;
+  height: 24px;
+  background-color: #f3f4f6;
+}
+
+/* Fitness Card Specifics */
+.fitness-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px; /* Balanced vertical gaps */
+  margin-bottom: auto;
+}
+
+.fitness-row {
+  display: flex;
+  align-items: baseline; /* Same baseline alignment */
+  gap: 16px;
+}
+
+.fit-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.fit-icon.steps { color: #4361ee; }
+.fit-icon.heart { color: #f72585; }
+.fit-icon.flame { color: #fb923c; }
+
+.fit-text {
+  font-size: 18px;
+}
+
+.card-footer-text {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.green-subtle {
+  font-size: 13px;
+  color: #10b981;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Learning Card Specifics */
+.course-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+  text-align: left;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.thin-progress-bg {
+  flex: 1;
+  height: 6px; /* Thin progress bar */
+  background-color: #f3f4f6;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.thin-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9d50bb, #6e48aa);
+  border-radius: 10px;
+}
+
+.progress-percent {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6e48aa;
+}
+
+.goal-box {
+  background-color: #f8fafc; /* Lighter box */
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid #f1f5f9;
+}
+
+.goal-text {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.study-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.study-text {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Responsiveness */
+@media (max-width: 1024px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .metric-card {
+    height: auto;
+    min-height: 400px;
+  }
+  
+  .coming-soon-banner {
+    padding: 40px;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .banner-left {
+    align-items: center;
+  }
+}
