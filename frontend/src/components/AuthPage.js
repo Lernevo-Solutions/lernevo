@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { CheckCircle, Eye, EyeOff, ArrowRight, Check, X, Loader2 } from 'lucide-react';
 import './AuthPage.css';
 import wellnessImg from './holistic.png';
@@ -7,9 +7,10 @@ import api from '../api';
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(location.search.includes('mode=login'));
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -40,12 +41,15 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const userIdSectionRef = useRef(null);
 
   useEffect(() => {
+    if (location.search.includes('mode=login')) {
+      setIsLogin(true);
+    }
     // Force logged-out state on AuthPage load
     localStorage.clear();
     sessionStorage.clear();
     setIsAuthenticated(false);
     setUser(null);
-  }, []);
+  }, [location.search]);
 
   // Password Rules States
   const passwordRules = {
@@ -568,7 +572,9 @@ const handleSendOtp = async () => {
                 </div>
                 <div className="login-actions">
                   <button type="submit" className="login-btn primary">Login to Account</button>
-                  <p className="forgot-pw">Forgot Password?</p>
+                  <Link to="/reset-password" style={{ textDecoration: 'none' }}>
+                    <p className="forgot-pw">Forgot Password?</p>
+                  </Link>
                 </div>
               </form>
             )}
