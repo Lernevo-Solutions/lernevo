@@ -8,11 +8,8 @@ import AuthPage from "./components/AuthPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import ProfilePage from "./components/ProfilePage";
 import ChangePasswordPage from "./components/ChangePasswordPage";
-import DashboardPage from "./components/DashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Nutrition from "./components/Nutrition";
-import Fitness from "./components/Fitness";
-
+import ResetPasswordConfirmPage from "./components/ResetPasswordConfirmPage";
 function App() {
   useEffect(() => {
     // Only clear on the very first load of the session if needed, 
@@ -33,9 +30,6 @@ function App() {
         <Route path="/our-approach" element={<OurApproachPage />} />
         <Route path="/get-started" element={<AuthPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/services/nutrition" element={<Nutrition />} />
-        <Route path="/services/fitness" element={<Fitness />} />
         
         {/* Protected Routes */}
         <Route path="/profile" element={
@@ -48,7 +42,11 @@ function App() {
             <ChangePasswordPage />
           </ProtectedRoute>
         } />
-        
+        <Route
+      path="/reset-password-confirm"
+      element={<ResetPasswordConfirmPage />}
+    />
+  
       </Routes>
     </Router>
   );
