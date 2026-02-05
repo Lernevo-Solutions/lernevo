@@ -4275,7 +4275,7 @@ body {
   top: 0;
   bottom: 0; /* Stretches the full height of the wrapper */
   width: 200px;
-  background: #f8f9fa; /* Light background for the ad strip */
+  background: #cae1fa; /* Light background for the ad strip */
   overflow: hidden;
   z-index: 5;
 }
@@ -4297,7 +4297,8 @@ body {
 .ad-track img {
   width: 100%;
   height: auto;
-  border-bottom: 4px solid #fff; /* Space between ad images */
+  margin-bottom: 96px;
+  border-bottom: none;
 }
 
 /* Animations */
