@@ -318,3 +318,105 @@ class ProfileImageUploadView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+
+        if not email:
+            return Response(
+                {"detail": "Email is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = AuthUser.objects.filter(email=email).first()
+        if not user:
+            return Response(
+                {"detail": "Email not registered"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # invalidate old OTPs
+        UserOTP.objects.filter(
+            email=email,
+            is_used=False
+        ).update(is_used=True)
+
+        otp = uuid.uuid4().hex[:6].upper()
+
+        UserOTP.objects.create(
+            email=email,
+            user=user,
+            otp_code=otp,
+            expires_at=now() + timedelta(minutes=15)
+        )
+
+        reset_link = f"{settings.FRONTEND_URL}/reset-password-confirm?email={email}&otp={otp}"
+
+        self.send_reset_email(email, reset_link)
+
+        return Response(
+            {"message": "Password reset link sent"},
+            status=status.HTTP_200_OK
+        )
+
+    def send_reset_email(self, email, link):
+        subject = "Reset Your Password"
+        text = f"Click the link to reset your password: {link}"
+        html = f"""
+        <p>Click the button below to reset your password:</p>
+        <a href="{link}" style="padding:10px 16px;background:#4f46e5;color:white;text-decoration:none;border-radius:6px;">
+            Reset Password
+        </a>
+        <p>This link expires in 15 minutes.</p>
+        """
+
+        mail = EmailMultiAlternatives(
+            subject,
+            text,
+            settings.DEFAULT_FROM_EMAIL,
+            [email]
+        )
+        mail.attach_alternative(html, "text/html")
+        mail.send()
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+        new_password = request.data.get("new_password")
+
+        if not all([email, otp, new_password]):
+            return Response(
+                {"detail": "Email, OTP and new password required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        otp_obj = UserOTP.objects.filter(
+            email=email,
+            otp_code=otp.upper(),
+            is_used=False,
+            expires_at__gte=now()
+        ).first()
+
+        if not otp_obj:
+            return Response(
+                {"detail": "Invalid or expired reset link"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = otp_obj.user
+        user.set_password(new_password)
+        user.save()
+
+        otp_obj.is_used = True
+        otp_obj.used_at = now()
+        otp_obj.save()
+
+        return Response(
+            {"message": "Password reset successful"},
+            status=status.HTTP_200_OK
+        )
