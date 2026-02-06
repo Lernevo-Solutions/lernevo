@@ -116,28 +116,52 @@ class OTPView(APIView):
         mail.attach_alternative(html, "text/html")
         mail.send()
 
+from django.db.models import Q
 
 
-# ---------------- Login without OTP ----------------
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        username = request.data.get("username")
+        # input-ai eduthu trim seithu lower case-ku maathuvom
+        identifier = request.data.get("username", "").strip().lower() 
         password = request.data.get("password")
 
-        if not username or not password:
-            return Response({"detail": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not identifier or not password:
+            return Response(
+                {"detail": "Username/email and password are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        user = AuthUser.objects.filter(username=username).first()
+        # Inga dhaan logic: identifier-ai username matrum email rendu koodavum match panni paarkurom
+        user = AuthUser.objects.filter(
+            Q(username__iexact=identifier) | Q(email__iexact=identifier)
+        ).first()
+
         if not user:
-            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
+        # Password correct-aa nu check pannuvom
         if not user.check_password(password):
-            return Response({"detail": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invalid password"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        # Token generate panni anupuvom
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({"message": "Login successful", "token": token.key}, status=status.HTTP_200_OK)
+
+        return Response(
+            {
+                "message": "Login successful", 
+                "token": token.key,
+                "user_name": user.username # Frontend-ku real username-aiye anupuvom
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class CheckAvailabilityView(APIView):
