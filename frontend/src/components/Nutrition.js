@@ -15,6 +15,7 @@ import {
   CalendarCheck
 } from 'lucide-react';
 import Navbar from './Navbar';
+import Footer from './Footer';
 import './Nutrition.css';
 
 // Sub-components
@@ -239,6 +240,7 @@ export default function Nutrition() {
   return (
     <div className="nutrition-page-wrapper">
       <Navbar onGetStarted={() => navigate('/get-started')} />
+      
       <div className="nutrition-container">
         <NutritionHero />
         <div className="nutrition-content-card">
@@ -248,6 +250,9 @@ export default function Nutrition() {
         </div>
         <NutritionCTA />
       </div>
+
+      {/* Footer is placed outside the container for full-width styling */}
+      <Footer />
     </div>
   );
 }

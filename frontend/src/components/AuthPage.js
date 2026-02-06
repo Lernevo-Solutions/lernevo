@@ -39,6 +39,10 @@ const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const userIdSectionRef = useRef(null);
+const [loginData, setLoginData] = useState({
+  username: '',
+  password: ''
+});
 
   useEffect(() => {
     if (location.search.includes('mode=login')) {
@@ -210,31 +214,29 @@ const nextStep = () => {
 
 const handleLogin = async (e) => {
   e.preventDefault();
-  const username = e.target[0].value;
+
+  const payload = {
+    // Ingayum identifier-ai 'username' field-la anupura maari vachukkonga
+    username: loginData.username.trim().toLowerCase(), 
+    password: loginData.password
+  };
+
   try {
-    const res = await api.post('/login/', {
-      username: username,
-      password: e.target[1].value,
-    });
+    const res = await api.post('/login/', payload);
+
     if (res.data.token) {
       localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user_name', res.data.name || username);
-      
-      // onLoginSuccess
-      setIsAuthenticated(true);
-      setUser(res.data.name || username);
-      
+      // Backend real username anupum, adhai store pannikkonga
+      localStorage.setItem('user_name', res.data.user_name || payload.username);
+
       alert('Login successful');
       navigate('/');
-    } else {
-      localStorage.clear();
-      alert('Login failed: No token received');
     }
   } catch (err) {
-    localStorage.clear();
     alert(err.response?.data?.detail || 'Invalid login credentials');
   }
 };
+
 const handleSendOtp = async () => {
   try {
     await api.post('/otp/', {
@@ -557,26 +559,51 @@ const handleSendOtp = async () => {
               </div>
             ) : (
               <form className="login-form step-fade-in" onSubmit={handleLogin}>
-                <div className="input-group">
-                  <label>Username or Email</label>
-                  <input type="text" placeholder="Enter your credentials" required />
-                </div>
-                <div className="input-group">
-                  <label>Password</label>
-                  <div className="pw-wrapper">
-                    <input type={showPassword ? "text" : "password"} placeholder="Enter password" required />
-                    <button type="button" className="pw-toggle" onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-                <div className="login-actions">
-                  <button type="submit" className="login-btn primary">Login to Account</button>
-                  <Link to="/reset-password" style={{ textDecoration: 'none' }}>
-                    <p className="forgot-pw">Forgot Password?</p>
-                  </Link>
-                </div>
-              </form>
+  <div className="input-group">
+    <label>Username or Email</label>
+    <input
+      type="text"
+      placeholder="Enter your credentials"
+      value={loginData.username}
+      onChange={(e) =>
+        setLoginData({ ...loginData, username: e.target.value })
+      }
+      required
+    />
+  </div>
+
+  <div className="input-group">
+    <label>Password</label>
+    <div className="pw-wrapper">
+      <input
+        type={showPassword ? "text" : "password"}
+        placeholder="Enter password"
+        value={loginData.password}
+        onChange={(e) =>
+          setLoginData({ ...loginData, password: e.target.value })
+        }
+        required
+      />
+      <button
+        type="button"
+        className="pw-toggle"
+        onClick={() => setShowPassword(!showPassword)}
+      >
+        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
+  </div>
+
+  <div className="login-actions">
+    <button type="submit" className="login-btn primary">
+      Login to Account
+    </button>
+    <Link to="/reset-password" style={{ textDecoration: 'none' }}>
+      <p className="forgot-pw">Forgot Password?</p>
+    </Link>
+  </div>
+</form>
+
             )}
           </div>
         </div>

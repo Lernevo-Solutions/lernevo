@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Navbar from './Navbar';
 import './Fitness.css';
+import Footer from './Footer';
 
 // Sub-components
 const FitnessHero = () => (
@@ -262,6 +263,7 @@ export default function Fitness() {
         </div>
         <FitnessCTA />
       </div>
+      <Footer />
     </div>
   );
 }
