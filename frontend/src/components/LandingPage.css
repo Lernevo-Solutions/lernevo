@@ -1303,108 +1303,55 @@ body {
 
 /* ========== Performance Dashboard Section ========== */
 .performance-dashboard-section {
-  padding: 100px 0;
-  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-  position: relative;
-}
-
-.performance-dashboard-section .section-header {
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.performance-dashboard-section .section-title {
-  font-size: 3.2rem;
-  font-weight: 800;
-  color: #001d3d;
-  margin-bottom: 1.5rem;
-  position: relative;
-  display: inline-block;
-  padding-bottom: 15px;
-}
-
-.performance-dashboard-section .section-title::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(90deg, #4f8cff, #1a56db);
-  border-radius: 2px;
-}
-
-.performance-dashboard-section .section-subtitle {
-  font-size: 1.25rem;
-  color: #4a5568;
-  max-width: 650px;
-  margin: 0 auto;
-}
-
-/* Tabs */
-.performance-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin: 0 0 50px 0;
-  flex-wrap: wrap;
+  padding: 5rem 0;
+  background: transparent;
 }
 
 .performance-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
   margin-top: 2rem;
-  justify-content: center;
 }
 
 .metric-box {
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 2rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-  border: 1px solid rgba(230, 230, 230, 0.5);
-  display: flex;
-  flex-direction: column;
+  background: var(--white);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .metric-box:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 50px rgba(26, 86, 219, 0.12);
-  border-color: rgba(79, 140, 255, 0.3);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(26, 86, 219, 0.15);
 }
 
 .metric-header {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.1);
 }
 
 .metric-icon-big {
-  width: 64px;
-  height: 64px;
-  background: #f0f7ff;
-  border-radius: 16px;
+  width: 60px;
+  height: 60px;
+  background: var(--light-blue);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  color: #1a56db;
 }
 
 .metric-title-section h3 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #001d3d;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-800);
   margin-bottom: 0.25rem;
 }
 
@@ -1953,7 +1900,19 @@ body {
   object-position: center;
 }
 
+.performance-dashboard-section {
+  padding: 80px 0;
+  background: transparent;
+}
+
 /* Tabs */
+.performance-tabs {
+  display: flex;
+  gap: 12px;
+  margin: 30px 0;
+  flex-wrap: wrap;
+}
+
 .tab-btn {
   padding: 10px 20px;
   border-radius: 999px;
@@ -1967,6 +1926,41 @@ body {
   background: #4f8cff;
   color: #fff;
   border-color: #4f8cff;
+}
+
+/* Daily grid */
+.performance-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+/* Cards */
+.metric-box {
+  background: #fff;
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 8px;
+  background: #e6ecf7;
+  border-radius: 10px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f8cff, #6aa8ff);
 }
 
 /* Weekly & Monthly */
@@ -4272,19 +4266,18 @@ body {
 .wellness-layout-wrapper {
   position: relative;
   overflow: hidden;
-  padding: 0 180px; /* Reduced padding for more content space */
+  padding: 0 240px; /* Leaves space for the 220px ads on both sides */
 }
 
 /* Base Side Ad Style */
 .side-ad {
   position: absolute;
   top: 0;
-  bottom: 0; 
-  width: 160px; /* Thinner sidebars */
-  background: #f8f9fa;
+  bottom: 0; /* Stretches the full height of the wrapper */
+  width: 200px;
+  background: #cae1fa; /* Light background for the ad strip */
   overflow: hidden;
   z-index: 5;
-  box-shadow: 0 0 20px rgba(0,0,0,0.05);
 }
 
 .left-ad {
@@ -4304,7 +4297,8 @@ body {
 .ad-track img {
   width: 100%;
   height: auto;
-  border-bottom: 4px solid #fff; /* Space between ad images */
+  margin-bottom: 96px;
+  border-bottom: none;
 }
 
 /* Animations */
@@ -4334,4 +4328,13 @@ body {
   .side-ad {
     display: none;
   }
+}
+/* Inidha block-ai unga CSS-la update pannunga */
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  display: flex;           /* Flexbox enable pannunga */
+  flex-direction: column;  /* Items-ai onnu mela onnu (vertical) stack pannum */
+  align-items: center;     /* Horizontal-ah center pannum */
+  gap: 10px;               /* Heading-kum sub-heading-kum naduvula chinna gap */
 }
