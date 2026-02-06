@@ -11,7 +11,6 @@ import ChangePasswordPage from "./components/ChangePasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ResetPasswordConfirmPage from "./components/ResetPasswordConfirmPage";
 import DashboardPage from "./components/DashboardPage";
-import ProtectedRoute from "./components/ProtectedRoute";
 import Nutrition from "./components/Nutrition";
 import Fitness from "./components/Fitness";
 function App() {
