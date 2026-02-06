@@ -14,6 +14,7 @@ import DashboardPage from "./components/DashboardPage";
 import Nutrition from "./components/Nutrition";
 import Fitness from "./components/Fitness";
 import MentalHealth from "./components/MentalHealth";
+
 function App() {
   useEffect(() => {
     // Only clear on the very first load of the session if needed, 
@@ -54,6 +55,7 @@ function App() {
         <Route path="/services/nutrition" element={<Nutrition />} />
         <Route path="/services/fitness" element={<Fitness />} />
         <Route path="/services/mental-health" element={<MentalHealth />} />
+       
       </Routes>
     </Router>
   );
