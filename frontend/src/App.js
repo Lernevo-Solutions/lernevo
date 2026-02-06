@@ -10,6 +10,10 @@ import ProfilePage from "./components/ProfilePage";
 import ChangePasswordPage from "./components/ChangePasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ResetPasswordConfirmPage from "./components/ResetPasswordConfirmPage";
+import DashboardPage from "./components/DashboardPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Nutrition from "./components/Nutrition";
+import Fitness from "./components/Fitness";
 function App() {
   useEffect(() => {
     // Only clear on the very first load of the session if needed, 
@@ -46,7 +50,9 @@ function App() {
       path="/reset-password-confirm"
       element={<ResetPasswordConfirmPage />}
     />
-  
+      <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/services/nutrition" element={<Nutrition />} />
+        <Route path="/services/fitness" element={<Fitness />} />
       </Routes>
     </Router>
   );
