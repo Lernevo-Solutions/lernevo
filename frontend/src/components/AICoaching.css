@@ -1,0 +1,255 @@
+/* src/pages/AiCoaching.css */
+
+:root {
+  --ai-primary: #2563EB;
+  --ai-primary-hover: #1D4ED8;
+  --ai-bg: #F6F7F9;
+  --ai-card-bg: #FFFFFF;
+  --ai-text-dark: #1E293B;
+  --ai-text-gray: #64748B;
+  --ai-soft-blue: #EFF6FF;
+  --ai-gradient: linear-gradient(135deg, #2563EB, #1D4ED8);
+  --ai-shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
+}
+
+.ai-coaching-page-wrapper {
+  background-color: var(--ai-bg);
+  min-height: 100vh;
+}
+
+.ai-coaching-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 120px 20px 60px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--ai-text-dark);
+}
+
+/* HERO SECTION - Fitness Inspired */
+.ai-hero-card {
+  background: var(--ai-gradient);
+  color: white;
+  padding: 60px 40px;
+  border-radius: 24px;
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-hero-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ai-primary);
+  margin: 0 auto 24px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.ai-hero-card h1 {
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: -1px;
+}
+
+.ai-underline {
+  width: 80px;
+  height: 4px;
+  background: white;
+  margin: 0 auto 20px;
+  border-radius: 2px;
+}
+
+.ai-tagline {
+  font-size: 20px;
+  opacity: 0.9;
+  margin-bottom: 24px;
+}
+
+.ai-quote-box {
+  font-size: 22px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.15);
+  display: inline-block;
+  padding: 12px 30px;
+  border-radius: 50px;
+  backdrop-filter: blur(5px);
+}
+
+/* MAIN CONTENT CARD */
+.ai-main-content-card {
+  background: var(--ai-card-bg);
+  border-radius: 24px;
+  padding: 60px 40px;
+  box-shadow: var(--ai-shadow);
+  margin-bottom: 40px;
+}
+
+/* SECTION HEADERS */
+.ai-section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.ai-section-header h2 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.ai-section-underline {
+  width: 60px;
+  height: 4px;
+  background-color: var(--ai-primary);
+  margin: 16px auto;
+  border-radius: 2px;
+}
+
+.ai-section-subtitle {
+  text-align: center;
+  color: var(--ai-text-gray);
+  font-size: 18px;
+  max-width: 800px;
+  margin: 0 auto 40px;
+  line-height: 1.6;
+}
+
+/* FEATURES GRID */
+.ai-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-bottom: 60px;
+}
+
+.ai-feature-card {
+  background: var(--ai-soft-blue);
+  padding: 40px 30px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(37, 99, 235, 0.05);
+}
+
+.ai-feature-card:hover {
+  transform: translateY(-10px);
+  background: white;
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.ai-feature-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--ai-gradient);
+  color: white;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  font-size: 24px;
+}
+
+.ai-feature-card h3 { font-size: 22px; margin-bottom: 16px; }
+.ai-feature-card p { color: var(--ai-text-gray); margin-bottom: 20px; line-height: 1.5; }
+
+.ai-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ai-feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--ai-text-dark);
+}
+
+.ai-feature-list svg { color: var(--ai-primary); }
+
+/* ROADMAP BOX */
+.ai-roadmap-box {
+  background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
+  border-radius: 24px;
+  padding: 48px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-roadmap-badge {
+  position: absolute;
+  top: 20px;
+  right: -35px;
+  background: #64748B;
+  color: white;
+  padding: 8px 40px;
+  transform: rotate(45deg);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.ai-roadmap-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.ai-roadmap-icon {
+  width: 64px;
+  height: 64px;
+  background: white;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ai-primary);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+}
+
+.ai-roadmap-intro { font-size: 18px; line-height: 1.6; }
+
+/* CTA BANNER */
+.ai-cta-banner {
+  background: var(--ai-gradient);
+  color: white;
+  padding: 80px 40px;
+  border-radius: 32px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2);
+}
+
+.ai-cta-banner h2 { font-size: 36px; margin-bottom: 16px; }
+.ai-cta-banner p { font-size: 20px; margin-bottom: 40px; opacity: 0.9; }
+
+.ai-cta-btn {
+  background: white;
+  color: var(--ai-primary);
+  border: none;
+  padding: 18px 36px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: 0.3s ease;
+}
+
+.ai-cta-btn:hover { transform: scale(1.05); }
+
+@media (max-width: 992px) {
+  .ai-features-grid { grid-template-columns: 1fr; }
+}

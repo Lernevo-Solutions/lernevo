@@ -15,7 +15,7 @@ import {
   CalendarCheck
 } from 'lucide-react';
 import Navbar from './Navbar';
-import Footer from './Footer';
+
 import './Nutrition.css';
 
 // Sub-components
@@ -252,7 +252,7 @@ export default function Nutrition() {
       </div>
 
       {/* Footer is placed outside the container for full-width styling */}
-      <Footer />
+     
     </div>
   );
 }

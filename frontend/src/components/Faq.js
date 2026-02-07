@@ -283,71 +283,7 @@ const activeCatColor = activeCat?.color || "#A5B4FC";
       </div>
       </div>  
 
-      {/* FOOTER SECTION */}
-      {/* ========== FAQ PAGE FOOTER (UNIQUE FIX) ========== */}
-      <footer className="faq-footer-section">
-        <div className="faq-footer-container">
-          <div className="faq-footer-top">
-
-            {/* BRAND */}
-            <div className="faq-footer-brand">
-
-              <p className="faq-footer-desc">
-                Your AI-powered wellness companion helping you build
-                healthier habits across body, mind, and lifestyle.
-              </p>
-
-              <div className="faq-footer-social">
-                <a className="faq-social-twitter" href="https://twitter.com" target="_blank" rel="noopener noreferrer"><FaTwitter /></a>
-                <a className="faq-social-instagram" href="https://instagram.com" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
-                <a className="faq-social-linkedin" href="https://linkedin.com" target="_blank" rel="noopener noreferrer"><FaLinkedin /></a>
-                <a className="faq-social-youtube" href="https://youtube.com" target="_blank" rel="noopener noreferrer"><FaYoutube /></a>
-              </div>
-            </div>
-
-            {/* PRODUCT */}
-            <div className="faq-footer-col">
-              <h4>Product</h4>
-              <a>AI Coaching</a>
-              <a>Fitness</a>
-              <a>Mental Wellness</a>
-              <a>Nutrition</a>
-            </div>
-
-            {/* COMPANY */}
-            <div className="faq-footer-col">
-              <h4>Company</h4>
-              <a>About</a>
-              <a>Careers</a>
-              <a>Blog</a>
-              <a>Contact</a>
-            </div>
-
-           {/* SUPPORT */}
-<div className="faq-footer-col"> 
-    <h4>Support</h4>
-    <a>Help Center</a>
-    <a>Privacy Policy</a>
-    <a>Terms of Service</a>
-    <a>Trust & Safety</a>
-</div>
-
-{/* BUSINESS */}
-<div className="faq-footer-col"> 
-    <h4>Business</h4>
-    <a>Business Dashboard</a>
-    <a>Partnerships</a>
-    <a>Book a demo</a>
-    <a>Enquire</a>
-</div>
-
-          </div>
-
-          <div className="faq-footer-bottom">
-            <p>© {new Date().getFullYear()} Lernevo Solutions. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+     
     </div>
   );
 };

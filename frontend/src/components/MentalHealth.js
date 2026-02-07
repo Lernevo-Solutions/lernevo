@@ -19,8 +19,7 @@ import {
   Smile 
 } from 'lucide-react';
 
-import Navbar from './Navbar';
-import Footer from './Footer'; // Footer component-ai inge call seiyavum
+import Navbar from './Navbar'; // Footer component-ai inge call seiyavum
 import './MentalHealth.css';
 
 // Sub-components
@@ -273,7 +272,7 @@ export default function MentalHealth() {
       </div>
 
       
-      <Footer />
+  
     </div>
   );
 }

@@ -1,6 +1,7 @@
 // src/components/Footer.js
 import React from 'react';
 import { FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -33,40 +34,43 @@ const Footer = () => {
 
           <div className="footer-top">
             {/* PRODUCT */}
-            <div className="link-col">
-              <h4>Product</h4>
-              <a>AI Coaching</a>
-              <a>Fitness</a>
-              <a>Mental Wellness</a>
-              <a>Nutrition</a>
-            </div>
+           <div className="link-col">
+  <h4>Product</h4>
+  <Link to="/ai-coaching">AI Coaching</Link>
+  <Link to="/services/fitness">Fitness</Link>
+  <Link to="/services/mental-health">Mental Wellness</Link>
+  <Link to="/services/nutrition">Nutrition</Link>
+</div>
 
             {/* COMPANY */}
-            <div className="link-col">
-              <h4>Company</h4>
-              <a>About</a>
-              <a>Careers</a>
-              <a>Blog</a>
-              <a>Contact</a>
-            </div>
+           <div className="link-col">
+  <h4>Company</h4>
+  <Link to="/about">About</Link>
+  <Link to="/careers">Careers</Link>
+  <Link to="/blog">Blog</Link>
+  <Link to="/contact">Contact</Link>
+</div>
+
 
             {/* SUPPORT */}
-            <div className="link-col">
-              <h4>Support</h4>
-              <a>Help Center</a>
-              <a>Privacy Policy</a>
-              <a>Terms of Service</a>
-              <a>Trust & Safety</a>
-            </div>
+           <div className="link-col">
+  <h4>Support</h4>
+  <Link to="/help-center">Help Center</Link>
+  <Link to="/privacy-policy">Privacy Policy</Link>
+  <Link to="/terms-of-service">Terms of Service</Link>
+  <Link to="/trust-safety">Trust & Safety</Link>
+</div>
+
 
             {/* BUSINESS ENQUIRY */}
             <div className="link-col">
-              <h4>Business</h4>
-              <a>Business Dashboard</a>
-              <a>Partnerships</a>
-              <a>Book a demo</a>
-              <a>Enquire</a>
-            </div>
+  <h4>Business</h4>
+  <Link to="/dashboard">Business Dashboard</Link>
+  <Link to="/partnerships">Partnerships</Link>
+  <Link to="/book-demo">Book a demo</Link>
+  <Link to="/enquire">Enquire</Link>
+</div>
+
           </div>
         </div>
 
