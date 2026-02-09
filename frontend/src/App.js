@@ -19,6 +19,7 @@ import DashboardPage from "./components/DashboardPage";
 
 import Nutrition from "./components/Nutrition";
 import Fitness from "./components/Fitness";
+import Learning from "./components/Learning";
 import MentalHealth from "./components/MentalHealth";
 import AiCoaching from "./components/AICoachingPage";
 import Careers from "./components/Careers";
@@ -78,6 +79,7 @@ const AppLayout = () => {
         {/* Services */}
         <Route path="/services/nutrition" element={<Nutrition />} />
         <Route path="/services/fitness" element={<Fitness />} />
+        <Route path="/services/learning" element={<Learning />} />
         <Route path="/services/mental-health" element={<MentalHealth />} />
         <Route path="/ai-coaching" element={<AiCoaching />} />
         <Route path='/careers' element={<Careers />} />
