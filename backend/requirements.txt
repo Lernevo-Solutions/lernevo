@@ -1,5 +1,7 @@
-Django
+Django>=4.2,<5.0
 djangorestframework
-psycopg2-binary
 gunicorn
+psycopg2-binary
 django-cors-headers
+cloud-sql-python-connector[pg8000]  # Recommended for secure Cloud SQL connections
+python-dotenv                       # To manage environment variables safely

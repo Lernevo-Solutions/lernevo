@@ -1,12 +1,19 @@
+import os
 from pathlib import Path
 from corsheaders.defaults import default_headers
-import os
+from dotenv import load_dotenv
+
+# 1. Load env at the very beginning
+load_dotenv() 
 
 # ---------------- BASE ----------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = os.environ.get('DEBUG') == 'True'
+# 2. Environment Toggle (Cloud Run provides ENV or you can set it)
+ENV = os.environ.get("ENV", "DEV")
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "local-secret-key-change-this-in-prod")
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ['*']
 
@@ -18,11 +25,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-
     'app',
 ]
 
@@ -38,11 +43,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# ---------------- URL / WSGI ----------------
 ROOT_URLCONF = 'backend.urls'
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# ---------------- TEMPLATES (ADMIN FIX) ✅ ----------------
+# ---------------- TEMPLATES ----------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -60,18 +64,6 @@ TEMPLATES = [
 ]
 
 # ---------------- DATABASE ----------------
-
-
-import os
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-ENV = os.environ.get("ENV", "DEV")
-
-SECRET_KEY = os.environ.get("SECRET_KEY", "local-secret-key")
-DEBUG = os.environ.get("DEBUG", "True") == "True"
-
 if ENV == "PROD":
     DATABASES = {
         'default': {
@@ -91,41 +83,26 @@ else:
         }
     }
 
-
-
-# ---------------- PASSWORD ----------------
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-# ---------------- LANGUAGE / TIME ----------------
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-# ---------------- STATIC (MANDATORY FIX) ✅ ----------------
+# ---------------- STATIC / MEDIA ----------------
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles' # Needed for production
 
-# ❌ STATICFILES_DIRS remove pannrom (API project)
-# STATICFILES_DIRS = []
-
-# ---------------- MEDIA ----------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ---------------- CORS ----------------
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    'Authorization',
-    'Content-Type',
-]
+# ---------------- EMAIL ----------------
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'    
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# ---------------- REST FRAMEWORK ----------------
+# ---------------- CORS & REST ----------------
+CORS_ALLOW_ALL_ORIGINS = True 
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
@@ -134,22 +111,3 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
-
-# ---------------- EMAIL (OTP EMAIL WORKS) ----------------
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-EMAIL_HOST = 'smtp.gmail.com'    
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
-EMAIL_HOST_USER = 'saranyapandiyarajan30@gmail.com'       
-EMAIL_HOST_PASSWORD = 'vocq vgeo lkjv hahm' 
-
-
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-FRONTEND_URL = "http://localhost:3000"

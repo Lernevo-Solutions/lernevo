@@ -251,3 +251,152 @@ class UserOTP(models.Model):
 
     def __str__(self):
         return f"OTP - {self.email or self.user.username}"
+
+
+##############################################################
+class Resume(models.Model):
+
+    TEMPLATE_CHOICES = [
+        ('MODERN', 'Modern'),
+        ('PROFESSIONAL', 'Professional'),
+        ('MINIMAL', 'Minimal'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="resumes"
+    )
+
+    title = models.CharField(max_length=150)
+    template = models.CharField(max_length=20, choices=TEMPLATE_CHOICES)
+
+    ai_summary = models.TextField(null=True, blank=True)
+
+    is_delete = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.template}"
+
+
+class ResumePersonalInfo(models.Model):
+    resume = models.OneToOneField(
+        Resume,
+        on_delete=models.CASCADE,
+        related_name="personal_info"
+    )
+
+    full_name = models.CharField(max_length=150)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    location = models.CharField(max_length=100)
+
+    linkedin = models.URLField(null=True, blank=True)
+    github = models.URLField(null=True, blank=True)
+    portfolio = models.URLField(null=True, blank=True)
+
+    def __str__(self):
+        return self.full_name
+
+
+class ResumeExperience(models.Model):
+    resume = models.ForeignKey(
+        Resume,
+        on_delete=models.CASCADE,
+        related_name="experiences"
+    )
+
+    job_title = models.CharField(max_length=100)
+    company = models.CharField(max_length=150)
+
+    start_date = models.CharField(max_length=20)
+    end_date = models.CharField(max_length=20, null=True, blank=True)
+
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.job_title} - {self.company}"
+
+class ResumeEducation(models.Model):
+    resume = models.ForeignKey(
+        Resume,
+        on_delete=models.CASCADE,
+        related_name="educations"
+    )
+
+    degree = models.CharField(max_length=150)
+    institution = models.CharField(max_length=150)
+    year = models.CharField(max_length=10)
+
+    def __str__(self):
+        return self.degree
+
+class ResumeSkill(models.Model):
+    resume = models.ForeignKey(
+        Resume,
+        on_delete=models.CASCADE,
+        related_name="skills"
+    )
+
+    skill_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.skill_name
+
+
+class SkillGapAnalysis(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="skill_gap_analyses"
+    )
+
+    resume_text = models.TextField()
+    job_description = models.TextField()
+
+    ats_score = models.IntegerField()
+    match_score = models.IntegerField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Skill Gap - {self.user}"
+
+class SkillGapStrength(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="strengths"
+    )
+
+    strength = models.CharField(max_length=255)
+
+class SkillGapMissingSkill(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="missing_skills"
+    )
+
+    skill = models.CharField(max_length=255)
+
+class SkillGapSuggestion(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="suggestions"
+    )
+
+    suggestion = models.TextField()
+
+class SkillGapInterviewHighlight(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="interview_highlights"
+    )
+
+    highlight = models.TextField()
