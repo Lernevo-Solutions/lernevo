@@ -1,0 +1,124 @@
+.my-resumes {
+  padding: 60px 0;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.my-resumes h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 30px;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 40px;
+  font-size: 1rem;
+  margin-bottom: 40px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.resumes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.resumes-grid .resume-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -2px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+  transition: 0.2s;
+}
+
+.resumes-grid .resume-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  border-color: #bfdbfe;
+}
+
+.resumes-grid .resume-card h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.resumes-grid .resume-card .resume-title {
+  color: #2563eb;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+}
+
+.template-badge {
+  background: #e2e8f0;
+  padding: 4px 12px;
+  border-radius: 30px;
+  text-transform: capitalize;
+  color: #334155;
+}
+
+.date {
+  color: #64748b;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-edit, .btn-delete {
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  flex: 1;
+}
+
+.btn-edit {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #1d4ed8;
+}
+
+.btn-delete {
+  background: white;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background: #fee2e2;
+}
+
+.no-resumes {
+  text-align: center;
+  color: #64748b;
+  font-size: 1.1rem;
+  padding: 60px 0;
+}

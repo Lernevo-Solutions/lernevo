@@ -23,10 +23,12 @@ import Learning from "./components/Learning";
 import MentalHealth from "./components/MentalHealth";
 import AiCoaching from "./components/AICoachingPage";
 import Careers from "./components/Careers";
-
+import ResumeBuilder from './components/ResumeBuilder';
+import MyResumes from './components/MyResumes';
+import SkillGapAnalyzer from './components/SkillGapAnalyzer';
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
-
+import Home from "./components/HomePage";
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
@@ -83,6 +85,10 @@ const AppLayout = () => {
         <Route path="/services/mental-health" element={<MentalHealth />} />
         <Route path="/ai-coaching" element={<AiCoaching />} />
         <Route path='/careers' element={<Careers />} />
+         <Route path="/home" element={<Home />} />
+         <Route path="/builder" element={<ResumeBuilder />} />
+        <Route path="/my-resumes" element={<MyResumes />} />
+        <Route path="/analyzer" element={<SkillGapAnalyzer />} />
       </Routes>
 
       {/* ✅ Footer conditionally */}
