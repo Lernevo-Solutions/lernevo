@@ -1,113 +1,209 @@
-import os
 from pathlib import Path
-from corsheaders.defaults import default_headers
-from dotenv import load_dotenv
+import os
 
-# 1. Load env at the very beginning
-load_dotenv() 
-
-# ---------------- BASE ----------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 2. Environment Toggle (Cloud Run provides ENV or you can set it)
 ENV = os.environ.get("ENV", "DEV")
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "local-secret-key-change-this-in-prod")
-DEBUG = os.environ.get("DEBUG", "True") == "True"
+SECRET_KEY = os.environ.get("SECRET_KEY", "local-secret-key")
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
-# ---------------- APPS ----------------
+
+# ================= INSTALLED APPS =================
+
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
     'rest_framework.authtoken',
-    'corsheaders',
-    'app',
+    "corsheaders",
+    # Replace 'api' with your actual Django app name
+    "app",
 ]
 
-# ---------------- MIDDLEWARE ----------------
+
+# ================= MIDDLEWARE =================
+
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    'backend.middleware.CorsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'backend.urls'
-WSGI_APPLICATION = 'backend.wsgi.application'
 
-# ---------------- TEMPLATES ----------------
+# ================= URL / WSGI =================
+
+ROOT_URLCONF = "backend.urls"
+WSGI_APPLICATION = "backend.wsgi.application"
+
+
+# ================= TEMPLATES =================
+
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-# ---------------- DATABASE ----------------
-if ENV == "PROD":
+
+# ================= DATABASE =================
+
+import os
+
+ENV = os.environ.get("ENV", "DEV")
+print("========== ENV value from os.environ ==========")
+print("Raw ENV:", repr(ENV))  # repr() shows exact string with quotes
+print("Length:", len(ENV))
+print("Uppercase comparison:", ENV.strip().upper() == "PROD")
+print("================================================")
+
+if ENV.strip().upper() == "PROD":
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME'),
-            'USER': os.environ.get('DB_USER'),
-            'PASSWORD': os.environ.get('DB_PASSWORD'),
-            'HOST': os.environ.get('DB_HOST'),
-            'PORT': '5432',
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME"),
+            "USER": os.environ.get("DB_USER"),
+            "PASSWORD": os.environ.get("DB_PASSWORD"),
+            "HOST": f"/cloudsql/{os.environ.get('INSTANCE_CONNECTION_NAME')}",
+            "PORT": "5432",
         }
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
-# ---------------- STATIC / MEDIA ----------------
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles' # Needed for production
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# ================= PASSWORD VALIDATION =================
 
-# ---------------- EMAIL ----------------
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'    
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
-# ---------------- CORS & REST ----------------
-CORS_ALLOW_ALL_ORIGINS = True 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+# ================= LANGUAGE / TIME =================
+
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
+
+USE_I18N = True
+USE_TZ = True
+
+
+# ================= STATIC =================
+
+STATIC_URL = "/static/"
+
+
+# ================= MEDIA =================
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+
+# ================= CORS =================
+
+CORS_ALLOWED_ORIGINS = [
+    "https://lernevo-frontend-771297649928.us-central1.run.app",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+
+# ================= REST FRAMEWORK =================
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
     ),
 }
+
+FRONTEND_URL = os.environ.get(
+    "FRONTEND_URL",
+    "https://lernevo-frontend-771297649928.us-central1.run.app"
+)
+
+
+# ================= EMAIL =================
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+
+
+import psycopg2
+import os
+
+try:
+    conn = psycopg2.connect(
+        dbname=os.environ.get("DB_NAME"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
+        host=f"/cloudsql/{os.environ.get('INSTANCE_CONNECTION_NAME')}",
+        port=5432
+    )
+    print("Database connection OK")
+    conn.close()
+except Exception as e:
+    print("Database connection failed:", e)
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]

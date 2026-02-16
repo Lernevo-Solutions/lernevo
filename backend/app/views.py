@@ -1,3 +1,4 @@
+import token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,43 +16,50 @@ from .models import UserProfile
 from .models import User, UserOTP
 from .serializers import RegisterSerializer, LoginSerializer
 from .serializers import ProfileSerializer, ProfileImageSerializer
+from .models import User as LernevoUser   
+import logging
+logger = logging.getLogger(__name__)
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        email = request.data.get("email")
+        try:
+            email = request.data.get("email")
 
-        # check OTP verified
-        otp_verified = UserOTP.objects.filter(
-            email=email,
-            is_used=True
-        ).exists()
+            otp_verified = UserOTP.objects.filter(email=email, is_used=True).exists()
+            if not otp_verified:
+                return Response({"detail": "Email not verified via OTP"}, status=400)
 
-        if not otp_verified:
+            serializer = RegisterSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            auth_user = serializer.save()
+
+            # Get custom user
+            from .models import User as LernevoUser
+            custom_user = LernevoUser.objects.get(auth_user=auth_user)
+
+            token = None
+            try:
+                token = Token.objects.get(user=auth_user)  # first try to get
+            except Token.DoesNotExist:
+                token = Token.objects.create(user=auth_user)  # if not, create
+
+            if not token:
+                return Response({"detail": "Token creation failed"}, status=500)
+
             return Response(
-                {"detail": "Email not verified via OTP"},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "message": "User registered successfully",
+                    "token": token.key,
+                    "user_code": custom_user.user_code
+                },
+                status=201
             )
-
-        serializer = RegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        auth_user = serializer.save()   # AuthUser
-
-        # 🔥 Get custom User (where user_code is stored)
-        custom_user = auth_user.lernevo_user
-
-        token, _ = Token.objects.get_or_create(user=auth_user)
-
-        return Response(
-            {
-                "message": "User registered successfully",
-                "token": token.key,
-                "user_code": custom_user.user_code  
-            },
-            status=status.HTTP_201_CREATED
-        )
-
-
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"RegisterView error: {str(e)}", exc_info=True)
+            return Response({"detail": "Internal server error"}, status=500)
 # ---------------- OTP for registration only ----------------
 class OTPView(APIView):
     permission_classes = [AllowAny]
