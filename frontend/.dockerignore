@@ -1,0 +1,15 @@
+# Ignore forms folder
+src/components/forms/
+
+# Ignore templates folder
+src/components/templates/
+
+# Ignore specific files
+src/components/HomePage.js
+src/components/HomePage.css
+src/components/MyResumes.js
+src/components/MyResumes.css
+src/components/ResumeBuilder.js
+src/components/ResumeBuilder.css
+src/components/SkillGapAnalyzer.js
+src/components/SkillGapAnalyzer.css
