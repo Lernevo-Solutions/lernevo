@@ -23,7 +23,7 @@ import Learning from "./components/Learning";
 import MentalHealth from "./components/MentalHealth";
 import AiCoaching from "./components/AICoachingPage";
 import Careers from "./components/Careers";
-
+import Features from './components/features';
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
 
@@ -83,6 +83,7 @@ const AppLayout = () => {
         <Route path="/services/mental-health" element={<MentalHealth />} />
         <Route path="/ai-coaching" element={<AiCoaching />} />
         <Route path='/careers' element={<Careers />} />
+        <Route path='/features' element={<Features />} />
       </Routes>
 
       {/* ✅ Footer conditionally */}
