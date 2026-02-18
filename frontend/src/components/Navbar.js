@@ -155,6 +155,13 @@ export default function Navbar({ onGetStarted }) {
               </Link>
             </div>
           </div>
+          <Link
+            to="/features"
+            className={`nav-item nav-features ${location.pathname === "/features" ? "active" : ""}`}
+          >
+            FEATURES
+          </Link>
+
         <Link
             to="/faq"
             className={`nav-item nav-faq ${location.pathname === "/faq" ? "active" : ""}`}
