@@ -6,7 +6,7 @@ import './LandingPage.css';
 import Navbar from './Navbar';
 import Hero from './Hero';
 import GetStartedFlow from './GetStartedFlow';
-import logo from './logo.png';
+
 import aiImg from "./ai powerd.png";
 import mentalImg from "./health.png";
 import fitnessImg from "./fit.png";
