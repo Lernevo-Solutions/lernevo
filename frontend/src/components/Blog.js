@@ -1,101 +1,134 @@
-import React, { useState } from "react";
-import {
-  Heart,
-  Brain,
-  Apple,
-  Activity,
-  Clock,
-  User,
-  BookOpen,
-  ChevronRight,
-  Sparkles,
-  TrendingUp,
-  Eye
-} from "lucide-react";
+import React from "react";
 import "./Blog.css";
 
 const Blog = () => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const categories = [
-    { id: "all", name: "All Posts", icon: BookOpen },
-    { id: "ai", name: "AI Coaching", icon: Sparkles },
-    { id: "fitness", name: "Fitness", icon: Activity },
-    { id: "nutrition", name: "Nutrition", icon: Apple },
-    { id: "mental", name: "Mental Wellness", icon: Brain }
-  ];
-
-  const blogPosts = [
-    {
-      id: 1,
-      title: "The Future of Holistic Health",
-      excerpt: "How AI is transforming body & mind wellness.",
-      category: "ai",
-      author: "Dr. Sarah Chen",
-      readTime: "5 min read",
-      date: "Feb 24, 2026",
-      views: "2.5K"
-    },
-    {
-      id: 2,
-      title: "5 Morning Rituals for Mental Clarity",
-      excerpt: "Science-backed practices for focus.",
-      category: "mental",
-      author: "Maya Patel",
-      readTime: "4 min read",
-      date: "Feb 22, 2026",
-      views: "1.8K"
-    }
-  ];
-
-  const filteredPosts =
-    selectedCategory === "all"
-      ? blogPosts
-      : blogPosts.filter((post) => post.category === selectedCategory);
+  const handleClick = () => {
+    alert("Full blog coming soon 🚀");
+  };
 
   return (
-    <div className="blog-page">
-      <div className="blog-container">
+    <div className="blog-wrapper">
+      <div className="blog-single">
 
+        {/* Header */}
         <div className="blog-header">
-          <Heart className="blog-logo" />
-          <h1>LERNEVO Blog</h1>
-        </div>
-
-        <div className="blog-categories">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              className={
-                selectedCategory === category.id
-                  ? "category active"
-                  : "category"
-              }
-              onClick={() => setSelectedCategory(category.id)}
-            >
-              <category.icon size={14} />
-              {category.name}
-            </button>
-          ))}
-        </div>
-
-        <div className="blog-grid">
-          {filteredPosts.map((post) => (
-            <div key={post.id} className="blog-card">
-              <div className="blog-card-top">
-                <span className="blog-category">{post.category}</span>
-                <span className="blog-date">{post.date}</span>
-              </div>
-              <h3>{post.title}</h3>
-              <p>{post.excerpt}</p>
-
-              <div className="blog-meta">
-                <span><User size={12} /> {post.author}</span>
-                <span><Clock size={12} /> {post.readTime}</span>
-                <span><Eye size={12} /> {post.views}</span>
-              </div>
+          <div className="brand-icon">
+            <i className="fas fa-brain"></i>
+          </div>
+          <div className="title-section">
+            <h1>Lernevo · Compass</h1>
+            <div className="tagline">
+              <i className="fas fa-venus"></i> female-first AI companion · holistic health
             </div>
-          ))}
+          </div>
+        </div>
+
+        {/* Insight Banner */}
+        <div className="insight-banner">
+          <div className="insight-item">
+            <i className="fas fa-rocket"></i>
+            <span>mission control <small>single source of truth</small></span>
+          </div>
+
+          <div className="insight-item">
+            <i className="fas fa-heart-pulse"></i>
+            <span>body · mind · growth <small>holistic AI</small></span>
+          </div>
+
+          <div className="insight-item">
+            <i className="fas fa-shield"></i>
+            <span>human-in-the-loop <small>certified trainers</small></span>
+          </div>
+        </div>
+
+        {/* Blog Grid */}
+        <div className="blog-grid">
+
+          <div className="post-card">
+            <span className="card-category">AI COMPANION</span>
+            <h3>
+              <i className="fas fa-robot"></i> One AI, whole health
+            </h3>
+            <p>
+              Integrates learning, fitness, nutrition & mental health
+              with real-time personalization.
+            </p>
+            <div className="post-meta">
+              <span><i className="fas fa-database"></i> 360° view</span>
+              <button onClick={handleClick} className="read-link">
+                insight <i className="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <div className="post-card">
+            <span className="card-category">TRAINER COACHING</span>
+            <h3>
+              <i className="fas fa-user-check"></i> Expert guidance
+            </h3>
+            <p>
+              Certified coaches use real-time wearable data
+              to personalize your plans securely.
+            </p>
+            <div className="post-meta">
+              <span><i className="fas fa-lock"></i> secure</span>
+              <button onClick={handleClick} className="read-link">
+                realtime <i className="fas fa-chart-line"></i>
+              </button>
+            </div>
+          </div>
+
+          <div className="post-card">
+            <span className="card-category">HEALTH DASHBOARD</span>
+            <h3>
+              <i className="fas fa-chart-pie"></i> Unified wellbeing
+            </h3>
+            <p>
+              Nutrition, sleep, mood & workouts —
+              all in one powerful dashboard.
+            </p>
+            <div className="post-meta">
+              <span><i className="fas fa-clock"></i> daily insights</span>
+              <button onClick={handleClick} className="read-link">
+                overview <i className="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div className="post-card">
+            <span className="card-category">ACCOUNTABILITY</span>
+            <h3>
+              <i className="fas fa-trophy"></i> Groups & challenges
+            </h3>
+            <p>
+              Community challenges with certified experts
+              guiding every milestone.
+            </p>
+            <div className="post-meta">
+              <span><i className="fas fa-gem"></i> female-first</span>
+              <button onClick={handleClick} className="read-link">
+                copilot <i className="fas fa-hand-holding-heart"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Bottom Pillars */}
+        <div className="pillar-row">
+          <div className="pillar">
+            <i className="fas fa-circle-check"></i> <strong>Holistic</strong>
+          </div>
+          <div className="pillar">
+            <i className="fas fa-message"></i> <strong>Direct Coach</strong>
+          </div>
+          <div className="pillar">
+            <i className="fas fa-chart-simple"></i> <strong>Metrics</strong>
+          </div>
+          <div className="pillar">
+            <i className="fas fa-hand"></i> <strong>Human-in-loop</strong>
+          </div>
         </div>
 
       </div>
