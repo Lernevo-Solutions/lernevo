@@ -1303,7 +1303,7 @@ body {
 
 /* ========== Performance Dashboard Section ========== */
 .performance-dashboard-section {
-  padding: 5rem 0;
+  padding: 3rem 0;
   background: transparent;
 }
 
@@ -4337,4 +4337,23 @@ body {
   flex-direction: column;  /* Items-ai onnu mela onnu (vertical) stack pannum */
   align-items: center;     /* Horizontal-ah center pannum */
   gap: 10px;               /* Heading-kum sub-heading-kum naduvula chinna gap */
+}
+
+/* ===== Remove extra space before Our Wellness Services ===== */
+.performance-dashboard-section {
+  padding-bottom: 5px !important;   /* was probably 80px or 3rem */
+}
+
+.services-section {
+  padding-top: 5px !important;      /* was 4rem (64px) – reduce to 5px */
+}
+
+/* If a horizontal line (<hr>) adds margin, remove it */
+.performance-dashboard-section hr {
+  margin: 5px 0 !important;
+}
+
+/* Remove any bottom margin from the last element inside performance section */
+.performance-dashboard-section .container > :last-child {
+  margin-bottom: 0 !important;
 }

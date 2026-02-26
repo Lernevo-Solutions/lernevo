@@ -374,7 +374,7 @@
 /* Ensure Side Ads span the full height of the FAQ content */
 .faq-page-wrapper .side-ad {
   position: absolute;
-  top: 0;
+  top: 100px;
   bottom: 0;
   width: 200px;
   z-index: 5;
