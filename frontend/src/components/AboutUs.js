@@ -1,8 +1,7 @@
 // src/components/AboutUs.jsx
 import React, { useState } from 'react';
-import { FaTwitter, FaInstagram, FaLinkedin, FaYoutube, FaHeart, FaUsers, FaLightbulb, FaShieldAlt, FaRocket } from 'react-icons/fa';
-import { MdHealthAndSafety, MdEmojiEvents, MdAccessibility } from 'react-icons/md';
-import { GiGrowth, GiBrain } from 'react-icons/gi';
+import { FaLightbulb } from 'react-icons/fa';
+import { MdHealthAndSafety } from 'react-icons/md';
 import Navbar from './Navbar';
 import './AboutUs.css';
 import worksImage from "./works.png";

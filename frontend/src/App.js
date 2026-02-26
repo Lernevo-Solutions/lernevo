@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
+import Navbar from "./components/Navbar";
 import LandingPage from "./components/landingpage";
 import AboutUs from "./components/AboutUs";
 import Faq from "./components/Faq";
@@ -26,6 +27,19 @@ import Careers from "./components/Careers";
 import Features from './components/features';
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
+import ScrollToTop from "./components/ScrollToTop";
+import HelpCenter from "./components/HelpCenter";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import TermsOfService from './components/TermsOfService';
+import TrustandSafety from "./components/TrustandSafety";
+import Partnerships from "./components/Partnerships";
+import BookaDemo from "./components/BookaDemo";
+import Enquire from "./components/Enquire";
+import Blog from "./components/Blog";
+import Contact from "./components/Contact";
+
+
+
 
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
@@ -42,6 +56,8 @@ const AppLayout = () => {
 
   return (
     <>
+      <Navbar />
+      <ScrollToTop />
       <Routes>
         {/* Public Pages */}
         <Route path="/" element={<LandingPage />} />
@@ -49,11 +65,22 @@ const AppLayout = () => {
         <Route path="/faq" element={<Faq />} />
         <Route path="/our-approach" element={<OurApproachPage />} />
         <Route path="/get-started" element={<AuthPage />} />
+        <Route path="/help-center" element={<HelpCenter />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/book-demo" element={<BookaDemo />} />
+        <Route path="/trust-safety" element={<TrustandSafety />} />
+        <Route path="/partnerships" element={<Partnerships />} />
+        <Route path="/enquire" element={<Enquire />} />
+        <Route path="/Blog" element={<Blog />} />
+        <Route path="/Contact" element={<Contact />} />
+        
+        
+          <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/reset-password-confirm"
-          element={<ResetPasswordConfirmPage />}
-        />
+          element={<ResetPasswordConfirmPage />} />
+        
 
         {/* Protected Pages */}
         <Route
@@ -95,7 +122,18 @@ const AppLayout = () => {
 /* ---------------- APP ---------------- */
 function App() {
   useEffect(() => {
-    // initial app logic if needed
+    // Set title immediately
+    document.title = "Lernevo - Transform Your Life The Smarter Way";
+    
+    // Force it again after a tiny delay (overrides anything that runs after)
+    setTimeout(() => {
+      document.title = "Lernevo - Transform Your Life The Smarter Way";
+    }, 100);
+    
+    // And one more time to be sure
+    setTimeout(() => {
+      document.title = "Lernevo - Transform Your Life The Smarter Way";
+    }, 500);
   }, []);
 
   return (
@@ -104,5 +142,9 @@ function App() {
     </Router>
   );
 }
-
 export default App;
+
+
+
+
+

@@ -49,15 +49,8 @@ export default function Navbar({ onGetStarted }) {
   }, []);
 
   useEffect(() => {
-    const headerEl = document.querySelector('.navbar');
     const handleScroll = () => {
       const y = window.scrollY || 0;
-      const blur = y > 0 ? Math.min(22, 12 + (y / 300) * 10) : 5;
-      const opacity = y > 0 ? Math.min(0.8, 0.5 + (y / 300) * 0.3) : 0;
-      if (headerEl) {
-        headerEl.style.setProperty('--nav-blur', `${blur}px`);
-        headerEl.style.setProperty('--nav-opacity', `${opacity}`);
-      }
       setScrolled(y > 0);
     };
 

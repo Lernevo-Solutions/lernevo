@@ -6,7 +6,6 @@ import {
   Sparkles,
   Target,
   Zap,
-  CheckCircle,
 } from 'lucide-react';
 import './ApproachPillars.css';
 
@@ -15,13 +14,14 @@ const ApproachPillars = () => {
   const cardsRef = useRef([]);
 
   useEffect(() => {
+    const currentSection = sectionRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('visible');
 
-            if (entry.target === sectionRef.current) {
+            if (entry.target === currentSection) {
               cardsRef.current.forEach((card, index) => {
                 if (card) {
                   setTimeout(() => {
@@ -36,10 +36,10 @@ const ApproachPillars = () => {
       { threshold: 0.1 }
     );
 
-    if (sectionRef.current) observer.observe(sectionRef.current);
+    if (currentSection) observer.observe(currentSection);
 
     return () => {
-      if (sectionRef.current) observer.unobserve(sectionRef.current);
+      if (currentSection) observer.unobserve(currentSection);
     };
   }, []);
 

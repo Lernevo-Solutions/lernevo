@@ -1,12 +1,20 @@
+:root {
+  /* universal palette for page/card backgrounds */
+  --page-bg: #eff6ff; /* light blue base for pages */
+  --card-bg: #ffffff; /* premium white panels */
+}
+
 html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #E1EEFF !important;
+  /* use page background variable so whole site is blue tone */
+  background-color: var(--page-bg) !important;
 }
 
 .brand-background {
-  background-color: #E1EEFF !important;
+  /* keep consistent page-blue background for branded wrappers too */
+  background-color: var(--page-bg) !important;
   min-height: 100vh;
 }
 

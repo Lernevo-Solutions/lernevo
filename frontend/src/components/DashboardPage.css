@@ -1,6 +1,6 @@
 .dashboard-page {
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: var(--page-bg); /* page blue tone */
   padding-top: 80px;
 }
 

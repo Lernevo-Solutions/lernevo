@@ -1,7 +1,7 @@
 /* src/pages/Careers.css */
 
 .careers-page {
-  background-color: #F6F7F9;
+  background-color: var(--page-bg); /* page blue tone */
   min-height: 100vh;
 }
 

@@ -5,7 +5,7 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden; /* CRITICAL: No scroll */
-  background-color: #f8fafc;
+  background-color: var(--page-bg); /* page blue tone */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -72,14 +72,14 @@
   align-items: center;
   justify-content: center;
   padding: 40px;
-  background-color: #EAF2FF; /* Matches Home page background */
+  background-color: var(--page-bg); /* page blue tone */
 }
 
 .auth-card {
   width: 100%;
   max-width: 580px;
   height: 650px; /* Fixed height to prevent layout shifts */
-  background: #EAF2FF; /* Blend with background */
+  background: var(--card-bg); /* premium white card */
   border-radius: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   display: flex;
@@ -91,7 +91,7 @@
 /* Header & Toggle */
 .auth-header {
   padding: 30px 40px 10px 40px;
-  background: #EAF2FF;
+  background: var(--card-bg);
   z-index: 10;
 }
 

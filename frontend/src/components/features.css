@@ -12,11 +12,10 @@
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
   color: #1a202c;
-  padding: 100px 20px;
+  padding: 164px 20px 100px 20px;
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
-  overflow: hidden;
 }
 
 @keyframes gradientBG {

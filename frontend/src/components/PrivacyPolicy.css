@@ -1,0 +1,325 @@
+/* ============================= */
+/* RESET */
+/* ============================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #eef3f9;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  color: #1a2639;
+  min-height: 100vh;
+}
+
+/* ============================= */
+/* MAIN WRAPPER */
+/* ============================= */
+
+.policy-wrapper {
+  max-width: 1300px;
+  margin: 120px auto 140px auto; /* below navbar + footer spacing */
+  padding: 0 40px;
+}
+
+/* ============================= */
+/* HEADER */
+/* ============================= */
+
+.policy-header {
+  margin-bottom: 3rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+}
+
+.title-section h1 {
+  font-size: 2.6rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  background: linear-gradient(145deg, #0b2b40, #1d4a6b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.badge {
+  margin-top: 0.8rem;
+  background: rgba(25, 118, 210, 0.08);
+  color: #0a4b78;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.4rem 1.2rem;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(25, 118, 210, 0.15);
+}
+
+.last-updated {
+  background: #ffffff;
+  padding: 0.6rem 1.4rem;
+  border-radius: 60px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e7edf4;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ============================= */
+/* GRID LAYOUT */
+/* ============================= */
+
+.policy-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 55px;
+  align-items: start;
+}
+
+/* ============================= */
+/* SIDEBAR */
+/* ============================= */
+
+.toc-sidebar {
+  position: sticky;
+  top: 130px;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 32px 28px;
+  box-shadow: 0 25px 50px rgba(20, 50, 80, 0.08);
+  border: 1px solid #e8eef6;
+  height: fit-content;
+}
+
+.toc-title {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: #597a9f;
+  margin-bottom: 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.toc-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.toc-links a {
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: #2a405c;
+  padding: 0.6rem 0.9rem;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+}
+
+.toc-links a:hover {
+  background: #e9f1fa;
+  color: #0c314e;
+  transform: translateX(4px);
+}
+
+/* ============================= */
+/* MAIN CARD */
+/* ============================= */
+
+.policy-card {
+  background: #ffffff;
+  border-radius: 36px;
+  padding: 65px 75px;
+  box-shadow: 0 35px 80px rgba(15, 40, 70, 0.12);
+  border: 1px solid #f1f4f8;
+}
+
+/* ============================= */
+/* SECTIONS */
+/* ============================= */
+
+.policy-section {
+  margin-bottom: 80px;
+  scroll-margin-top: 120px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid #eef4fc;
+}
+
+.section-icon {
+  background: #e4eefa;
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1d5b91;
+}
+
+.section-head h2 {
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: #122b44;
+}
+
+.section-content p {
+  margin-bottom: 1.4rem;
+  font-size: 1.08rem;
+  color: #2a3e58;
+}
+
+.section-content ul {
+  margin-left: 1.5rem;
+  margin-bottom: 1.6rem;
+}
+
+.section-content li {
+  margin-bottom: 0.7rem;
+  font-size: 1.05rem;
+}
+
+/* ============================= */
+/* BADGES */
+/* ============================= */
+
+.data-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin: 1.6rem 0;
+}
+
+.data-badge {
+  background: #f0f6fe;
+  border-radius: 50px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1a4b74;
+  border: 1px solid #caddf0;
+}
+
+/* ============================= */
+/* HIGHLIGHT BOX */
+/* ============================= */
+
+.highlight-box {
+  background: #f6faff;
+  border-radius: 24px;
+  padding: 1.6rem 2rem;
+  margin-top: 1.8rem;
+  border-left: 6px solid #2f73b0;
+  font-weight: 500;
+}
+
+/* ============================= */
+/* COOKIES GRID */
+/* ============================= */
+
+.two-col-cookies {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.cookie-col {
+  background: #fafcff;
+  border-radius: 22px;
+  padding: 1.5rem;
+  border: 1px solid #e4ecf7;
+}
+
+/* ============================= */
+/* CONTACT */
+/* ============================= */
+
+.contact-chip {
+  background: #eaf2fb;
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 500;
+  margin-right: 1rem;
+  margin-top: 1rem;
+}
+
+/* ============================= */
+/* FOOTER NOTE */
+/* ============================= */
+
+hr {
+  border: none;
+  border-top: 2px dashed #cfdff0;
+  margin: 3rem 0 1.5rem;
+}
+
+.footer-note {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 60px;
+  padding-top: 30px;
+  border-top: 1px solid #d9e6f2;
+  font-size: 0.95rem;
+  color: #3a5470;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 1024px) {
+  .policy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .toc-sidebar {
+    position: relative;
+    top: 0;
+    margin-bottom: 30px;
+  }
+
+  .policy-card {
+    padding: 40px 30px;
+  }
+
+  .policy-wrapper {
+    margin: 100px auto;
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .two-col-cookies {
+    grid-template-columns: 1fr;
+  }
+
+  .title-section h1 {
+    font-size: 2rem;
+  }
+}

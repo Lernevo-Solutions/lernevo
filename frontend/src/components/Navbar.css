@@ -8,61 +8,23 @@
 :root {
   --nav-height: 64px;
   --primary-blue: #2563eb;
-  --light-blue: #93c5fd; /* Lighter shade for hover */
+  --light-blue: #93c5fd;
 }
 
-/* Navbar Base - Premium Blue-White Glassmorphism */
+/* Navbar Base */
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   width: 100%;
-  max-width: 100%;
   height: var(--nav-height);
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-
-  /* Glassmorphism defaults (blue-white) */
-  --nav-blur: 12px;
-  background: transparent;
-  backdrop-filter: blur(var(--nav-blur));
-  -webkit-backdrop-filter: blur(var(--nav-blur));
-
-  border-bottom: 1px solid rgba(37, 99, 235, 0.1);
-
-  box-shadow: none;
-
-  margin: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* keep rectangular for modern SaaS look */
-  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-  overflow: visible;
-  will-change: backdrop-filter, background-color;
-}
-
-.navbar-bg-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: transparent;
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* Scrolled state for even tighter glass look */
-.navbar.scrolled {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgba(37, 99, 235, 0.1);
 }
 
 .nav-container {
@@ -71,96 +33,82 @@
   height: 100%;
   margin: 0 auto;
   padding: 0 40px;
-  position: relative;
-  /* Context for absolute centering */
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
 }
 
-
-/* LOGO - Extreme Left */
+/* LOGO */
 .logo-section {
   display: flex;
   align-items: center;
-  height: 100%;
-  position: relative;
   z-index: 10;
-  min-width: max-content;
 }
 
 .logo-text {
   font-family: 'Inter', sans-serif;
   font-size: 1.6rem;
-  /* Slightly larger for impact */
   font-weight: 900;
-  /* Heavier for neon readability */
   letter-spacing: 0.9px;
   text-transform: uppercase;
   color: #033ab1 !important;
-  /* Brand blue */
-
-  /* Shade variations removed as requested */
-  text-shadow: none !important;
-
   margin: 0;
   padding: 0;
   cursor: pointer;
-  display: inline-block;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .logo-text:hover {
   color: #6a92e8;
-  text-shadow: none;
   letter-spacing: 1.2px;
 }
 
-/* NAV LINKS - Centered */
-/* NAV LINKS - Centered via Flexbox */
-/* NAV LINKS - Absolute Center for dead-center alignment */
+/* NAV LINKS - Fixed Centering */
 .nav-menu {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 32px;
   height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.nav-item,
-.dropdown-trigger {
+.nav-item {
   color: #0f172a;
-  /* Darker slate for better readability on glass */
   font-size: 0.85rem;
-  /* Slightly smaller for premium feel */
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  position: relative;
   display: flex;
   align-items: center;
-  /* height: 100%; removed to allow border-bottom to fit text */
-  padding-bottom: 4px; /* Padding adjustment for bottom underline */
-  transition: all 0.3s ease; /* Smooth Transition 0.3s ease */
+  padding: 0 0 4px 0;
+  transition: all 0.3s ease;
   letter-spacing: 0.02em;
-  border-bottom: 3px solid transparent; /* Bottom Underline placeholder */
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
 }
 
-/* Active State (Bottom Underline) */
+/* Active State */
 .nav-item.active {
   color: #0f172a;
-  border-bottom-color: var(--primary-blue); /* 3px solid blue brand blue */
+  border-bottom-color: var(--primary-blue);
 }
 
 /* Hover Effect */
-.nav-item:hover,
-.dropdown-trigger:hover {
+.nav-item:hover {
   color: #0f172a;
-  opacity: 0.95;
-  border-bottom-color: var(--light-blue); /* Subtle hover indicator */
+  border-bottom-color: var(--light-blue);
+}
+
+/* Services Dropdown */
+.nav-services {
+  position: relative;
 }
 
 .nav-services .dropdown-menu {
@@ -183,8 +131,6 @@
   z-index: 1100;
   pointer-events: none;
   backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  will-change: opacity, transform;
 }
 
 .nav-services:hover .dropdown-menu {
@@ -200,11 +146,9 @@
   flex-direction: column;
   align-items: center;
   padding: 12px 16px;
-  width: 100%;
-  box-sizing: border-box;
   text-align: center;
   text-decoration: none;
-  transition: all 0.3s var(--ease-premium);
+  transition: all 0.3s ease;
   border-radius: 12px;
   background: transparent;
 }
@@ -217,7 +161,7 @@
 .dropdown-link strong {
   display: block;
   font-size: 0.85rem;
-  color: var(--text-dark);
+  color: #0f172a;
   margin-bottom: 2px;
   font-weight: 800;
   text-transform: uppercase;
@@ -227,14 +171,12 @@
 .dropdown-link span {
   display: block;
   font-size: 0.7rem;
-  color: var(--text-gray);
+  color: #64748b;
   line-height: 1.2;
   font-weight: 500;
-  opacity: 0.8;
 }
 
-/* SEARCH/ACTIONS - Right Side */
-/* ACTIONS - Right Side */
+/* Right Actions */
 .nav-actions {
   position: absolute;
   right: 40px;
@@ -246,49 +188,34 @@
   height: 100%;
 }
 
-/* GET STARTED – Compact & Clean */
+/* CTA Button */
 .cta-btn {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
   border: none;
-
-  /* 🔑 KEY SIZE FIX */
   padding: 0 12px;
-  min-width: unset;
-  /* smaller height & width */
   font-size: 0.875rem;
   height: 30px;
-  min-height: 30px;
-  line-height: 1;
-  /* compact text */
   font-weight: 700;
   letter-spacing: 0.04em;
-
   border-radius: 999px;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   gap: 4px;
-  justify-content: center;
-  border-radius: 999px;
-
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
   transition: all 0.25s ease;
 }
 
-/* Hover – subtle, not bulky */
 .cta-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
 
-/* Active */
 .cta-btn:active {
   transform: scale(0.97);
 }
 
-/* Arrow */
 .cta-arrow {
   font-size: 0.8rem;
   transition: transform 0.25s ease;
@@ -297,9 +224,6 @@
 .cta-btn:hover .cta-arrow {
   transform: translateX(2px);
 }
-
-
-
 
 /* Profile Avatar */
 .profile-container {
@@ -321,10 +245,8 @@
   font-size: 0.85rem;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: all 0.3s ease;
   border: 2px solid rgba(255, 255, 255, 0.8);
-  user-select: none;
-  overflow: hidden; /* Ensure image stays circular */
 }
 
 .navbar-avatar-image {
@@ -339,10 +261,6 @@
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
 }
 
-.profile-avatar:active {
-  transform: scale(0.95);
-}
-
 /* Profile Dropdown */
 .profile-dropdown {
   position: absolute;
@@ -351,13 +269,12 @@
   width: 220px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(37, 99, 235, 0.15);
   border-radius: 16px;
   padding: 8px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  animation: dropdownSlide 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  animation: dropdownSlide 0.3s ease;
   transform-origin: top right;
 }
 
@@ -381,9 +298,6 @@
   font-weight: 700;
   color: #0f172a;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .user-status {
@@ -433,15 +347,6 @@
   color: #2563eb;
 }
 
-.dropdown-item svg {
-  color: #64748b;
-  transition: color 0.2s ease;
-}
-
-.dropdown-item:hover svg {
-  color: #2563eb;
-}
-
 .dropdown-item.logout {
   color: #ef4444;
 }
@@ -451,17 +356,17 @@
   color: #ef4444;
 }
 
-.dropdown-item.logout svg {
-  color: #f87171;
-}
-
-.dropdown-item.logout:hover svg {
-  color: #ef4444;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .nav-menu {
     display: none;
+  }
+  
+  .nav-container {
+    padding: 0 20px;
+  }
+  
+  .nav-actions {
+    right: 20px;
   }
 }
