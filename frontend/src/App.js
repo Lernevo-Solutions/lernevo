@@ -28,7 +28,7 @@ import Features from './components/features';
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
-import HelpCenter from "./components/HelpCenter";
+
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsOfService from './components/TermsOfService';
 import TrustandSafety from "./components/TrustandSafety";
@@ -65,7 +65,7 @@ const AppLayout = () => {
         <Route path="/faq" element={<Faq />} />
         <Route path="/our-approach" element={<OurApproachPage />} />
         <Route path="/get-started" element={<AuthPage />} />
-        <Route path="/help-center" element={<HelpCenter />} />
+       
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/book-demo" element={<BookaDemo />} />
         <Route path="/trust-safety" element={<TrustandSafety />} />

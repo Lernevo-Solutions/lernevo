@@ -7,7 +7,6 @@ const ApproachPhilosophy = () => {
   const imageRef = useRef(null);
 
   useEffect(() => {
-    const currentSection = sectionRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -19,13 +18,13 @@ const ApproachPhilosophy = () => {
       { threshold: 0.1 }
     );
 
-    if (currentSection) {
-      observer.observe(currentSection);
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
     }
 
     return () => {
-      if (currentSection) {
-        observer.unobserve(currentSection);
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
       }
     };
   }, []);
