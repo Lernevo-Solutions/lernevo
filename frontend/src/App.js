@@ -37,6 +37,7 @@ import BookaDemo from "./components/BookaDemo";
 import Enquire from "./components/Enquire";
 import Blog from "./components/Blog";
 import Contact from "./components/Contact";
+import HelpCenter from "./components/HelpCenter";
 
 
 
@@ -73,6 +74,7 @@ const AppLayout = () => {
         <Route path="/enquire" element={<Enquire />} />
         <Route path="/Blog" element={<Blog />} />
         <Route path="/Contact" element={<Contact />} />
+        <Route path="/help-center" element={<HelpCenter />} />
         
         
           <Route path="/terms-of-service" element={<TermsOfService />} />
