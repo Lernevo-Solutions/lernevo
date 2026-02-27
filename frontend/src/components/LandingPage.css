@@ -4338,3 +4338,66 @@ body {
   align-items: center;     /* Horizontal-ah center pannum */
   gap: 10px;               /* Heading-kum sub-heading-kum naduvula chinna gap */
 }
+
+
+/* Add/Update this in LandingPage.css */
+@media (max-width: 768px) {
+  .wellness-layout-wrapper {
+    padding: 0 15px; /* Remove the 240px side space */
+  }
+
+  .side-ad {
+    display: none; /* Hide scrolling ads on mobile */
+  }
+}
+@media (max-width: 768px) {
+  .performance-metrics-grid {
+    grid-template-columns: 1fr !important; /* Stack cards vertically */
+    gap: 15px;
+  }
+
+  .metric-value {
+    font-size: 1.5rem; /* Make text slightly smaller for small screens */
+  }
+  
+  .weekly-dashboard {
+    grid-template-columns: 1fr; /* Stack the graph and side cards */
+  }
+}@media (max-width: 768px) {
+  /* Services Grid */
+  .services-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+  }
+
+  /* Our Approach Section */
+  .how-works-cards {
+    grid-template-columns: 1fr !important;
+    padding: 0 10px;
+  }
+
+  .hover-full-card {
+    height: 350px !important; /* Adjust height for mobile */
+  }
+
+  /* Section Titles */
+  .section-title, .cards-only-heading {
+    font-size: 2rem !important;
+    text-align: center;
+    margin-left: 0 !important;
+  }
+}@media (max-width: 768px) {
+  .how-works-wrapper {
+    grid-template-columns: 1fr; /* Stack text and image */
+    text-align: center;
+  }
+
+  .how-works-right {
+    margin-top: 20px;
+  }
+
+  .main-image {
+    border-radius: 30px; /* Slightly smaller radius for mobile */
+    height: 250px;
+  }
+}
