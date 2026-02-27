@@ -666,3 +666,119 @@
     align-self: flex-end;
   }
 }
+/* ========== Mobile & Tablet Optimization ========== */
+
+@media (max-width: 992px) {
+  .auth-page-container {
+    flex-direction: column;
+    overflow-y: auto; /* Mobile-la content perusa irundha scroll aaganum */
+    height: auto;
+    min-height: 100vh;
+  }
+
+  /* Left Panel: Top section on mobile */
+  .auth-left-panel {
+    width: 100%;
+    height: auto;
+    min-height: 30vh;
+    padding: 30px 20px;
+  }
+
+  .auth-image-content {
+    gap: 15px;
+  }
+
+  .wellness-diagram {
+    max-height: 150px;
+  }
+
+  .trust-points {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .trust-point {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* Right Panel: Bottom section on mobile */
+  .auth-right-panel {
+    width: 100%;
+    height: auto;
+    padding: 20px 10px;
+    background-color: transparent;
+  }
+
+  .auth-card {
+    height: auto; /* Fixed height-ai mobile-la remove panniduvom */
+    min-height: 550px;
+    max-width: 100%;
+    border-radius: 24px;
+    box-shadow: none;
+    border: none;
+  }
+
+  .auth-header {
+    padding: 20px;
+  }
+
+  .auth-content-area {
+    padding: 10px 20px 30px 20px;
+    overflow-y: visible; /* Internal scroll-ai mobile-la off panniduvom */
+  }
+
+  .input-row {
+    flex-direction: column; /* First Name & Last Name onnu mela onnu varum */
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-header {
+    padding: 15px;
+  }
+
+  .auth-toggle {
+    margin-bottom: 15px;
+  }
+
+  .step-indicator span {
+    font-size: 0.65rem; /* Chinna screen-kku thagundhapadi */
+  }
+
+  .email-input-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .email-status-row, .otp-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .get-otp-btn, .verify-action {
+    width: 100%; /* Full width buttons for easy clicking */
+    height: 42px;
+  }
+
+  .password-checklist {
+    grid-template-columns: 1fr; /* Single column on mobile */
+  }
+
+  .step-footer {
+    flex-direction: column-reverse; /* Back button-ai kela kondu varuvom */
+  }
+
+  .back-btn {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .user-id-display {
+    font-size: 0.95rem !important;
+    letter-spacing: 1px;
+  }
+}

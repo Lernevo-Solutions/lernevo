@@ -1611,3 +1611,107 @@ footer {
   }
 }
 
+/* ========== About Us Mobile Responsive ========== */
+
+@media (max-width: 768px) {
+  /* 1. Hero Section (Simple About) */
+  .simple-about {
+    height: auto;
+    padding: 100px 0 40px;
+  }
+
+  .simple-about-wrapper {
+    grid-template-columns: 1fr !important; /* Stack vertically */
+    text-align: center;
+    gap: 30px;
+  }
+
+  .simple-about-content h1 {
+    font-size: 2.8rem; /* Font size decrease */
+  }
+
+  .about-tagline {
+    font-size: 1.1rem;
+  }
+
+  .simple-about-image img {
+    width: 100%; /* Image fits screen */
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .about-points {
+    text-align: left; /* Keep points readable */
+    display: inline-block;
+  }
+
+  /* 2. Mission & Vision */
+  .mission-vision-grid {
+    flex-direction: column !important;
+    gap: 20px;
+  }
+
+  .mission-card, .vision-card {
+    max-width: 100% !important;
+    padding: 25px !important;
+  }
+
+  /* 3. Our Values Section */
+  .values-container {
+    grid-template-columns: 1fr !important; /* Content and Cards stack */
+    padding: 20px;
+  }
+
+  .values-grid {
+    grid-template-columns: repeat(2, 1fr) !important; /* 2 cards per row on mobile */
+    gap: 15px;
+  }
+
+  .value-card {
+    min-height: 200px !important;
+  }
+
+  .value-img-wrapper.full {
+    height: 140px !important;
+  }
+
+  .value-card h4 {
+    margin-top: -30px !important;
+    font-size: 15px !important;
+  }
+
+  .values-display {
+    padding: 25px 15px !important;
+  }
+
+  .active-value-display h3 {
+    font-size: 22px;
+  }
+
+  .value-badge {
+    font-size: 14px;
+    padding: 6px 15px;
+  }
+
+  /* 4. Footer Adjustment */
+  .footer-top {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+    gap: 30px;
+  }
+
+  .footer-social {
+    justify-content: center;
+  }
+}
+
+/* Extra small screens (Phones) */
+@media (max-width: 480px) {
+  .values-grid {
+    grid-template-columns: 1fr !important; /* 1 card per row */
+  }
+
+  .simple-about-content h1 {
+    font-size: 2.2rem;
+  }
+}
