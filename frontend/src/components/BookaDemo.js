@@ -36,7 +36,7 @@ const BookaDemo = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/book-demo/", {
+      const response = await fetch("https://lernevo-backend-staging-771297649928.us-central1.run.app/api/book-demo/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
