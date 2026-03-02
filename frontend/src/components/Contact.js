@@ -35,19 +35,45 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 3000);
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-      inquiryType: "general"
-    });
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/contact/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        inquiry_type: formData.inquiryType, // IMPORTANT: match Django field name
+      }),
+    });
+
+    if (response.ok) {
+      setIsSubmitted(true);
+      setTimeout(() => setIsSubmitted(false), 3000);
+
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+        inquiryType: "general",
+      });
+    } else {
+      const errorData = await response.json();
+      console.error("Error:", errorData);
+      alert("Something went wrong!");
+    }
+  } catch (error) {
+    console.error("Network error:", error);
+    alert("Server not reachable!");
+  }
+};
   const inquiryTypes = [
     { value: "general", label: "General Inquiry", icon: HelpCircle },
     { value: "support", label: "Customer Support", icon: MessageCircle },

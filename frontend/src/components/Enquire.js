@@ -35,11 +35,34 @@ const Enquire = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 3000);
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/enquiry/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        interest_area: formData.interestArea,
+        message: formData.message,
+        is_trainer: formData.isTrainer,
+        agree_to_terms: formData.agreeToTerms,
+      }),
+    });
+
+    if (response.ok) {
+      setIsSubmitted(true);
+      setTimeout(() => setIsSubmitted(false), 3000);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 
   const interestAreas = [
     { value: "holistic", label: "Holistic Wellness Journey", icon: Heart },

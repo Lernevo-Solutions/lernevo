@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Calendar,
   Clock,
@@ -13,9 +13,58 @@ import {
 import "./BookaDemo.css";
 
 const BookaDemo = () => {
-  const handleSubmit = (e) => {
+
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    preferred_date: "",
+    preferred_time: "",
+    questions: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Demo request submitted! (Demo simulation)");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/book-demo/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Demo booked successfully ✅");
+        setFormData({
+          full_name: "",
+          email: "",
+          preferred_date: "",
+          preferred_time: "",
+          questions: "",
+        });
+      } else {
+        alert("Error submitting form ❌");
+        console.log(data);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Server error ❌");
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -29,7 +78,7 @@ const BookaDemo = () => {
 
       <main className="demo-main">
         <div className="demo-container">
-          
+
           {/* LEFT */}
           <div className="demo-left">
             <h1>
@@ -75,46 +124,79 @@ const BookaDemo = () => {
             </p>
 
             <form onSubmit={handleSubmit} className="demo-form">
+
               <div className="input-group">
                 <User size={18} />
-                <input type="text" placeholder="Full name" required />
+                <input
+                  type="text"
+                  name="full_name"
+                  placeholder="Full name"
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="input-group">
                 <Mail size={18} />
-                <input type="email" placeholder="Email address" required />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="input-group">
                 <Calendar size={18} />
-                <input type="date" required />
+                <input
+                  type="date"
+                  name="preferred_date"
+                  value={formData.preferred_date}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
               <div className="input-group">
                 <Clock size={18} />
-                <select required>
+                <select
+                  name="preferred_time"
+                  value={formData.preferred_time}
+                  onChange={handleChange}
+                  required
+                >
                   <option value="">Select a time</option>
-                  <option>9:00 AM</option>
-                  <option>10:00 AM</option>
-                  <option>11:00 AM</option>
-                  <option>2:00 PM</option>
-                  <option>3:00 PM</option>
-                  <option>4:00 PM</option>
+                  <option value="9:00 AM">9:00 AM</option>
+                  <option value="10:00 AM">10:00 AM</option>
+                  <option value="11:00 AM">11:00 AM</option>
+                  <option value="2:00 PM">2:00 PM</option>
+                  <option value="3:00 PM">3:00 PM</option>
+                  <option value="4:00 PM">4:00 PM</option>
                 </select>
               </div>
 
               <div className="textarea-group">
                 <MessageSquare size={18} />
-                <textarea rows="2" placeholder="Questions?" />
+                <textarea
+                  rows="2"
+                  name="questions"
+                  placeholder="Questions?"
+                  value={formData.questions}
+                  onChange={handleChange}
+                />
               </div>
 
-              <button type="submit" className="submit-btn">
-                Book your demo <ArrowRight size={18} />
+              <button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? "Submitting..." : "Book your demo"} <ArrowRight size={18} />
               </button>
 
               <p className="trust-note">
                 ✦ Secure communication. Your data is protected. ✦
               </p>
+
             </form>
           </div>
         </div>
