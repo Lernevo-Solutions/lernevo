@@ -400,3 +400,74 @@ class SkillGapInterviewHighlight(models.Model):
     )
 
     highlight = models.TextField()
+
+class ContactMessage(models.Model):
+
+    INQUIRY_CHOICES = [
+        ('general', 'General Inquiry'),
+        ('support', 'Customer Support'),
+        ('partnership', 'Partnership'),
+        ('demo', 'Book a Demo'),
+    ]
+
+    name = models.CharField(max_length=150)
+    email = models.EmailField()
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    inquiry_type = models.CharField(
+        max_length=20,
+        choices=INQUIRY_CHOICES,
+        default='general'
+    )
+
+    is_resolved = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.subject}"
+
+
+class Enquiry(models.Model):
+
+    INTEREST_CHOICES = [
+        ('holistic', 'Holistic Wellness Journey'),
+        ('fitness', 'Fitness & Training'),
+        ('nutrition', 'Nutrition Guidance'),
+        ('mental', 'Mental Wellness'),
+        ('sleep', 'Sleep Optimization'),
+        ('trainer', 'Become a Trainer'),
+    ]
+
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+
+    interest_area = models.CharField(
+        max_length=20,
+        choices=INTEREST_CHOICES,
+        default='holistic'
+    )
+
+    message = models.TextField(blank=True)
+
+    is_trainer = models.BooleanField(default=False)
+    agree_to_terms = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.first_name} - {self.interest_area}"
+
+class DemoBooking(models.Model):
+
+    full_name = models.CharField(max_length=150)
+    email = models.EmailField()
+    preferred_date = models.DateField()
+    preferred_time = models.CharField(max_length=20)
+    questions = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.preferred_date}"

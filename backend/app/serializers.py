@@ -110,3 +110,31 @@ class ProfileImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["profile_image"]
+
+
+from rest_framework import serializers
+from .models import ContactMessage
+
+
+class ContactMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactMessage
+        fields = "__all__"
+        read_only_fields = ["id", "created_at", "is_resolved"]
+
+from .models import Enquiry
+from rest_framework import serializers
+
+class EnquirySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enquiry
+        fields = "__all__"
+
+
+from .models import DemoBooking
+from rest_framework import serializers
+
+class DemoBookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DemoBooking
+        fields = "__all__"

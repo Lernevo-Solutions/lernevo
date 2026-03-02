@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import OTPView, PasswordResetRequestView, RegisterView, LoginView,CheckAvailabilityView,ProfileView, ChangePasswordView,ProfileImageUploadView,  PasswordResetRequestView, PasswordResetConfirmView
-    
+from .views import EnquiryCreateAPIView, OTPView, PasswordResetRequestView, RegisterView, LoginView,CheckAvailabilityView,ProfileView, ChangePasswordView,ProfileImageUploadView,  PasswordResetRequestView, PasswordResetConfirmView
+from .views import ContactMessageCreateAPIView,DemoBookingCreateAPIView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -13,4 +13,7 @@ urlpatterns = [
     path("profile/upload-image/", ProfileImageUploadView.as_view()),
      path("password-reset/", PasswordResetRequestView.as_view()),
     path("password-reset-confirm/", PasswordResetConfirmView.as_view()),
+     path("contact/", ContactMessageCreateAPIView.as_view(), name="contact"),
+     path("enquiry/", EnquiryCreateAPIView.as_view()),
+      path("book-demo/", DemoBookingCreateAPIView.as_view()),
 ]

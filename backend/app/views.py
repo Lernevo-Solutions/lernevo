@@ -14,7 +14,7 @@ from datetime import timedelta
 import uuid
 from .models import UserProfile
 from .models import User, UserOTP
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import DemoBookingSerializer, RegisterSerializer, LoginSerializer
 from .serializers import ProfileSerializer, ProfileImageSerializer
 from .models import User as LernevoUser   
 import logging
@@ -452,3 +452,120 @@ class PasswordResetConfirmView(APIView):
             {"message": "Password reset successful"},
             status=status.HTTP_200_OK
         )
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from django.core.mail import send_mail
+from django.conf import settings
+
+from .models import ContactMessage
+from .serializers import ContactMessageSerializer
+
+
+class ContactMessageCreateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ContactMessageSerializer(data=request.data)
+
+        if serializer.is_valid():
+            contact = serializer.save()
+
+            try:
+                send_mail(
+                    subject=f"New Contact: {contact.subject}",
+                    message=f"""
+Name: {contact.name}
+Email: {contact.email}
+Inquiry Type: {contact.inquiry_type}
+
+Message:
+{contact.message}
+""",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=["lernevosolution@gmail.com"],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                print("Email error:", e)
+
+            return Response(
+                {"message": "Message sent successfully"},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+from .models import Enquiry
+from .serializers import EnquirySerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+
+class EnquiryCreateAPIView(APIView):
+
+    permission_classes = []  # public access
+
+    def post(self, request):
+        serializer = EnquirySerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Enquiry submitted successfully"},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+from django.core.mail import send_mail
+from django.conf import settings
+
+class DemoBookingCreateAPIView(APIView):
+
+    permission_classes = []
+
+    def post(self, request):
+        serializer = DemoBookingSerializer(data=request.data)
+
+        if serializer.is_valid():
+            booking = serializer.save()
+
+            # 📧 Email Content
+            subject = "New Demo Booking - Lernevo"
+
+            message = f"""
+New Demo Request Received
+
+Full Name: {booking.full_name}
+Email: {booking.email}
+Preferred Date: {booking.preferred_date}
+Preferred Time: {booking.preferred_time}
+
+Questions:
+{booking.questions}
+"""
+
+            # Send email to company
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                ["lernevosolution@gmail.com"],  # Company email
+                fail_silently=False,
+            )
+
+            return Response(
+                {"message": "Demo booked successfully"},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
