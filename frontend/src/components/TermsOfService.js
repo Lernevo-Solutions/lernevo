@@ -3,249 +3,405 @@ import { useState } from "react";
 const sections = [
   {
     id: "acceptance",
+    number: "01",
+    title: "Acceptance of Terms",
     icon: "✦",
-    title: "1. Acceptance of Terms",
-    content: `By creating an account or accessing Lernevo Wellness ("the Platform"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Platform. These Terms constitute a legally binding agreement between you and Lernevo Wellness ("Lernevo," "we," "us," or "our").
-
-These Terms apply to all users of the Platform, including end users, certified trainers, and administrators. Your continued use of the Platform constitutes ongoing acceptance of any updates to these Terms.`,
+    content:
+      "By accessing or using Lernevo Wellness, you confirm that you are at least 18 years of age and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our platform. Your continued use of Lernevo constitutes acceptance of any updates to these terms.",
   },
   {
-    id: "platform",
+    id: "services",
+    number: "02",
+    title: "Our Services",
     icon: "◈",
-    title: "2. Platform Description",
-    content: `Lernevo Wellness is an AI-powered holistic well-being companion that integrates learning, fitness, nutrition, and mental health support into your daily routine. The Platform operates on a three-tier access model:
-
-**Users** receive personalized AI-driven recommendations, goal tracking, holistic health monitoring, and direct communication with assigned trainers via our secure Message Centre.
-
-**Trainers** are certified professionals who access client health data, provide real-time coaching, manage workout programs, and create community workout groups.
-
-**Administrators** have aggregate platform access for business analytics, engagement management, and overall system oversight.
-
-The Platform is powered by an AI engine that analyzes lifestyle habits, health records, and behavioral patterns to provide hyper-personalized wellness strategies.`,
+    content:
+      "Lernevo Wellness provides an AI-powered holistic well-being platform that integrates fitness, nutrition, mental health, and learning. The platform operates under a three-tier role system: Administrator, Trainer, and User. Each role carries specific access permissions and responsibilities as defined within the platform.",
   },
   {
-    id: "eligibility",
-    icon: "◇",
-    title: "3. Eligibility & Account",
-    content: `You must be at least 18 years of age to use the Platform. By registering, you represent that all information provided is accurate and complete. You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account.
-
-You agree to notify us immediately of any unauthorized use of your account. Lernevo reserves the right to suspend or terminate accounts that violate these Terms, provide false information, or engage in conduct harmful to other users or the Platform.`,
+    id: "accounts",
+    number: "03",
+    title: "User Accounts & Roles",
+    icon: "◉",
+    content:
+      "Users are responsible for maintaining the confidentiality of their account credentials. Trainers must hold valid certifications as required by Lernevo. Administrators are granted elevated access for platform oversight. Any misuse of role-based privileges may result in immediate account suspension without prior notice.",
   },
   {
     id: "data",
+    number: "04",
+    title: "Data & Privacy",
     icon: "⬡",
-    title: "4. Health Data & Privacy",
-    content: `Lernevo collects and processes sensitive health and wellness data, including fitness metrics, nutrition logs, sleep data, mood tracking, and data from connected wearable devices. By using the Platform, you consent to the collection, processing, and storage of this data as described in our Privacy Policy.
-
-All communications between users and trainers are conducted through an encrypted, HIPAA-compliant secure Message Centre. We maintain strict access controls — trainers may only access data of their assigned clients, and administrators access only aggregate, anonymized platform metrics.
-
-You retain ownership of your personal health data. You may request data export or deletion at any time, subject to applicable legal retention requirements.`,
+    content:
+      "We collect health, fitness, and behavioral data to power personalized AI recommendations. All communications between users and trainers are encrypted end-to-end. Your data is never sold to third parties. We comply with applicable data protection laws. Wearable device data synced to Lernevo is governed by our separate Privacy Policy.",
   },
   {
     id: "ai",
-    icon: "⟡",
-    title: "5. AI Recommendations",
-    content: `The AI-powered recommendations provided by Lernevo are for informational and wellness purposes only and do not constitute medical advice, diagnosis, or treatment. The Platform operates on a "human-in-the-loop" model — all AI suggestions are intended to complement, not replace, the professional judgment of your assigned certified trainer.
-
-You acknowledge that AI recommendations are generated based on data you provide and may not account for individual medical conditions or contraindications. Always consult a qualified healthcare professional before making significant changes to your health or fitness regimen. Lernevo is not liable for outcomes resulting from following AI-generated recommendations without appropriate professional guidance.`,
+    number: "05",
+    title: "AI Recommendations",
+    icon: "◎",
+    content:
+      "Lernevo's AI suggestions are for informational and motivational purposes only and do not constitute medical advice. Always consult a qualified healthcare professional before making significant health decisions. Our human-in-the-loop model ensures trainer oversight of all AI-generated wellness plans.",
   },
   {
     id: "conduct",
-    icon: "△",
-    title: "6. User Conduct",
-    content: `You agree to use the Platform only for its intended wellness purposes and in compliance with all applicable laws. You must not: share your account with others; upload false, misleading, or harmful content; attempt to access data belonging to other users; reverse-engineer or tamper with the Platform's AI systems; use the secure messaging system for purposes unrelated to wellness guidance; or engage in harassing, abusive, or discriminatory conduct toward trainers, administrators, or other users.
-
-Violations may result in immediate account suspension, termination, and potential legal action.`,
+    number: "06",
+    title: "Acceptable Use",
+    icon: "⬟",
+    content:
+      "You agree not to misuse the platform by uploading harmful content, attempting to breach security systems, impersonating other users, or using the messaging center for any unlawful purpose. Lernevo reserves the right to remove any content or suspend any account that violates these guidelines.",
   },
   {
     id: "ip",
-    icon: "◉",
-    title: "7. Intellectual Property",
-    content: `All content, technology, AI models, algorithms, branding, and materials on the Platform are the exclusive intellectual property of Lernevo Wellness and its licensors, protected by applicable copyright, trademark, and intellectual property laws.
-
-You are granted a limited, non-exclusive, non-transferable license to access and use the Platform for personal wellness purposes. You may not reproduce, distribute, modify, create derivative works from, or commercially exploit any Platform content without our express written consent.
-
-Content you upload to the Platform (such as progress photos or journal entries) remains your property, but you grant Lernevo a license to use such content to provide and improve the Platform services.`,
-  },
-  {
-    id: "liability",
-    icon: "⊕",
-    title: "8. Limitation of Liability",
-    content: `To the maximum extent permitted by law, Lernevo Wellness, its officers, directors, employees, and agents shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of data, personal injury, or health outcomes arising from use of the Platform.
-
-Lernevo's total cumulative liability for any claims arising under these Terms shall not exceed the amount you paid for the Platform in the twelve (12) months preceding the claim. Some jurisdictions do not allow limitation of liability for personal injury — in such jurisdictions, the above limitations may not apply.`,
-  },
-  {
-    id: "governing",
-    icon: "⊞",
-    title: "9. Governing Law & Disputes",
-    content: `These Terms shall be governed by and construed in accordance with the laws of India. Any disputes arising from or relating to these Terms or your use of the Platform shall be subject to the exclusive jurisdiction of the courts in Bengaluru, Karnataka, India.
-
-Prior to initiating any formal legal proceedings, you agree to contact us to attempt to resolve the dispute informally. Lernevo will use reasonable efforts to resolve disputes within 30 days of receiving written notice.`,
-  },
-  {
-    id: "changes",
-    icon: "◐",
-    title: "10. Changes to Terms",
-    content: `Lernevo reserves the right to modify these Terms at any time. We will provide reasonable notice of material changes via email or prominent Platform notification. Your continued use of the Platform after the effective date of changes constitutes acceptance of the revised Terms.
-
-If you do not agree to the revised Terms, you must discontinue use of the Platform and may request account deletion by contacting our support team.`,
+    number: "07",
+    title: "Intellectual Property",
+    icon: "◆",
+    content:
+      "All platform content, design, AI models, branding, and technology are the exclusive intellectual property of Lernevo Wellness. Users retain ownership of personal data they input. Workout programs created by trainers on the platform are co-owned by the trainer and Lernevo under the terms of the Trainer Agreement.",
   },
 ];
 
-const B = {
-  50:  "#eff6ff",
-  100: "#dbeafe",
-  200: "#bfdbfe",
-  300: "#93c5fd",
-  400: "#60a5fa",
-  500: "#3b82f6",
-  600: "#2563eb",
-  700: "#1d4ed8",
-  800: "#1e40af",
-  900: "#1e3a8a",
-};
+export default function TermsOfService() {
+  const [activeSection, setActiveSection] = useState("acceptance");
+  const [accepted, setAccepted] = useState(false);
 
-function renderContent(text) {
-  return text.split("\n\n").map((para, i) => {
-    const parts = para.split(/(\*\*[^*]+\*\*)/g).map((part, j) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={j} style={{ color: B[800], fontWeight: 700 }}>{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
-    return (
-      <p key={i} style={{ marginBottom: "14px", lineHeight: "1.8", color: "#374151" }}>{parts}</p>
-    );
-  });
-}
+  const current = sections.find((s) => s.id === activeSection);
+  const currentIdx = sections.findIndex((s) => s.id === activeSection);
 
-export default function LernevoToS() {
-  const [active, setActive] = useState("acceptance");
-  const [agreed, setAgreed] = useState(false);
-  const [modal, setModal] = useState(false);
+  const goNext = () => { if (currentIdx < sections.length - 1) setActiveSection(sections[currentIdx + 1].id); };
+  const goPrev = () => { if (currentIdx > 0) setActiveSection(sections[currentIdx - 1].id); };
 
-  const data = sections.find(s => s.id === active);
-  const idx  = sections.findIndex(s => s.id === active);
+  const progress = Math.round(((currentIdx + 1) / sections.length) * 100);
 
   return (
-    <div style={{ height:"100vh", display:"flex", flexDirection:"column", fontFamily:"'Georgia','Times New Roman',serif", background:"#f0f7ff", overflow:"hidden" }}>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900;1000&display=swap');
 
-      {/* ── Modal ── */}
-      {modal && (
-        <div onClick={() => setModal(false)} style={{ position:"fixed", inset:0, background:"rgba(30,58,138,0.3)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1000, backdropFilter:"blur(4px)" }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:"white", borderRadius:"20px", padding:"48px", maxWidth:"400px", width:"90%", textAlign:"center", boxShadow:`0 24px 60px ${B[200]}`, border:`1px solid ${B[100]}` }}>
-            <div style={{ fontSize:"3rem", marginBottom:"14px" }}>🎉</div>
-            <div style={{ fontSize:"1.45rem", fontWeight:700, color:B[900], marginBottom:"10px" }}>Terms Accepted!</div>
-            <p style={{ color:"#6b7280", fontSize:"0.88rem", fontFamily:"sans-serif", lineHeight:"1.65", marginBottom:"28px" }}>
-              Welcome to Lernevo Wellness. You've successfully accepted our Terms of Service. Your wellness journey begins now.
-            </p>
-            <button onClick={() => setModal(false)} style={{ padding:"11px 36px", background:`linear-gradient(135deg,${B[600]},${B[800]})`, color:"white", border:"none", borderRadius:"10px", fontSize:"0.88rem", fontWeight:700, cursor:"pointer", fontFamily:"sans-serif", boxShadow:`0 4px 14px ${B[300]}` }}>
-              Get Started →
-            </button>
-          </div>
-        </div>
-      )}
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { font-family: 'Nunito', sans-serif !important; background: #f0f6ff; }
 
-      {/* ── Header ── */}
-      <div style={{ background:`linear-gradient(135deg,${B[700]} 0%,${B[600]} 55%,${B[500]} 100%)`, color:"white", padding:"16px 40px", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, boxShadow:`0 4px 18px ${B[300]}` }}>
-        <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
-          <div style={{ width:"40px", height:"40px", background:"rgba(255,255,255,0.18)", border:"1.5px solid rgba(255,255,255,0.4)", borderRadius:"11px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"18px", fontWeight:900, fontFamily:"sans-serif" }}>L</div>
+        .tos * { font-family: 'Nunito', sans-serif !important; }
+
+        /* Scrollbar */
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: #c7d8f0; border-radius: 999px; }
+
+        /* Sidebar nav buttons */
+        .snav {
+          display: flex; align-items: center; gap: 14px;
+          padding: 13px 16px; border-radius: 12px;
+          border: none; background: transparent;
+          cursor: pointer; text-align: left; width: 100%;
+          transition: all 0.2s ease;
+        }
+        .snav:hover { background: #eff6ff; }
+        .snav.on {
+          background: linear-gradient(135deg, #eff6ff, #dbeafe);
+          box-shadow: inset 4px 0 0 #1D4ED8;
+        }
+
+        /* Primary button */
+        .bp {
+          padding: 14px 32px; border-radius: 12px; border: none;
+          background: linear-gradient(135deg, #1D4ED8, #2563EB);
+          color: white; font-size: 17px; font-weight: 800;
+          cursor: pointer; letter-spacing: 0.3px;
+          box-shadow: 0 6px 20px rgba(29,78,216,0.3);
+          transition: all 0.2s;
+        }
+        .bp:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(29,78,216,0.38); }
+        .bp.done { background: linear-gradient(135deg, #059669, #10B981); box-shadow: 0 6px 20px rgba(5,150,105,0.3); }
+
+        /* Secondary button */
+        .bs {
+          padding: 14px 28px; border-radius: 12px;
+          border: 2px solid #dde6f5; background: white;
+          color: #1e293b; font-size: 17px; font-weight: 700;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .bs:hover:not(:disabled) { background: #f8faff; border-color: #bfcfe8; }
+        .bs:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Section tab (top) */
+        .stab {
+          padding: 9px 20px; border-radius: 999px;
+          border: 2px solid transparent;
+          background: white; cursor: pointer;
+          font-size: 15px; font-weight: 700;
+          color: #64748b;
+          transition: all 0.2s; white-space: nowrap;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .stab:hover { color: #1D4ED8; border-color: #bfdbfe; }
+        .stab.on {
+          background: #1D4ED8; color: white;
+          border-color: #1D4ED8;
+          box-shadow: 0 4px 14px rgba(29,78,216,0.28);
+        }
+
+        .progress-bar { transition: width 0.45s cubic-bezier(0.4,0,0.2,1); }
+        .card-anim { animation: fadeUp 0.3s ease; }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .icard {
+          flex: 1; display: flex; align-items: center; gap: 14px;
+          background: white; border-radius: 16px;
+          padding: 18px 20px;
+          border: 1.5px solid #e2ecf9;
+          box-shadow: 0 2px 10px rgba(29,78,216,0.05);
+          transition: all 0.2s;
+        }
+        .icard:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(29,78,216,0.1); }
+      `}</style>
+
+      <div className="tos" style={{
+        minHeight: "100vh",
+        background: "linear-gradient(150deg, #dbeafe 0%, #eff6ff 35%, #f8faff 70%, #ffffff 100%)",
+        display: "flex",
+        flexDirection: "column",
+        padding: "36px 52px 28px",
+        gap: "28px",
+      }}>
+
+        {/* ── TOP HEADER ── */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          {/* Left: Branding + title */}
           <div>
-            <div style={{ fontSize:"1.15rem", fontWeight:700, letterSpacing:"-0.3px" }}>Lernevo Wellness</div>
-            <div style={{ fontSize:"0.67rem", opacity:0.75, letterSpacing:"2px", textTransform:"uppercase", fontFamily:"sans-serif" }}>AI Wellness Platform</div>
-          </div>
-        </div>
-        <div style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", padding:"6px 18px", borderRadius:"20px", fontSize:"0.68rem", letterSpacing:"1.5px", textTransform:"uppercase", fontFamily:"sans-serif" }}>
-          Terms of Service
-        </div>
-      </div>
-
-      {/* ── Body ── */}
-      <div style={{ flex:1, display:"flex", overflow:"hidden" }}>
-
-        {/* Sidebar */}
-        <div style={{ width:"252px", background:"white", borderRight:`1px solid ${B[100]}`, overflowY:"auto", flexShrink:0, padding:"18px 0" }}>
-          <div style={{ fontSize:"0.6rem", letterSpacing:"2px", textTransform:"uppercase", color:B[400], padding:"0 18px 12px", fontFamily:"sans-serif", borderBottom:`1px solid ${B[50]}`, marginBottom:"6px" }}>
-            Sections
-          </div>
-          {sections.map(s => {
-            const on = active === s.id;
-            return (
-              <div key={s.id} onClick={() => setActive(s.id)} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"9px 18px 9px 15px", cursor:"pointer", background: on ? B[50] : "transparent", color: on ? B[700] : "#4b5563", borderLeft:`3px solid ${on ? B[500] : "transparent"}`, transition:"all 0.17s", fontSize:"0.79rem", fontFamily:"sans-serif", fontWeight: on ? 600 : 400, borderRadius:"0 8px 8px 0", marginRight:"8px" }}>
-                <span style={{ fontSize:"0.82rem", opacity: on ? 1 : 0.4, color: on ? B[500] : "inherit", width:"15px", textAlign:"center" }}>{s.icon}</span>
-                <span style={{ flex:1, lineHeight:"1.35" }}>{s.title}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Main */}
-        <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
-          <div style={{ flex:1, overflowY:"auto", padding:"36px 48px" }}>
-
-            {/* Section heading */}
-            <div style={{ display:"flex", alignItems:"flex-start", gap:"18px", marginBottom:"26px", paddingBottom:"20px", borderBottom:`2px solid ${B[100]}` }}>
-              <div style={{ width:"50px", height:"50px", background:`linear-gradient(135deg,${B[600]},${B[800]})`, borderRadius:"13px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.3rem", color:"white", flexShrink:0, boxShadow:`0 4px 14px ${B[200]}` }}>
-                {data.icon}
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
+              <div style={{
+                width: "44px", height: "44px", borderRadius: "12px",
+                background: "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 4px 14px rgba(29,78,216,0.35)",
+                fontSize: "22px", fontWeight: "900", color: "white",
+              }}></div>
               <div>
-                <div style={{ fontSize:"1.5rem", fontWeight:700, color:B[900], letterSpacing:"-0.4px", lineHeight:1.2, marginBottom:"5px" }}>{data.title}</div>
-                <div style={{ fontSize:"0.68rem", color:B[400], letterSpacing:"1px", textTransform:"uppercase", fontFamily:"sans-serif" }}>
-                  Section {idx + 1} of {sections.length} · Lernevo Wellness · Effective Feb 24, 2026
-                </div>
+               
               </div>
             </div>
+            <h1 style={{ fontSize: "52px", fontWeight: "900", color: "#0f172a", lineHeight: "1.05", letterSpacing: "-2px" }}>
+              Terms of <span style={{ color: "#1D4ED8" }}>Service</span>
+            </h1>
+            <p style={{ fontSize: "18px", fontWeight: "500", color: "#64748b", marginTop: "10px", lineHeight: "1.5" }}>
+              Please read all sections before using Lernevo Wellness.
+            </p>
+          </div>
 
-            {/* Content */}
-            <div style={{ maxWidth:"680px", fontSize:"0.95rem" }}>{renderContent(data.content)}</div>
+          {/* Right: Meta */}
+          <div style={{ textAlign: "right", paddingTop: "8px" }}>
+            <div style={{
+              display: "inline-block",
+              background: "#eff6ff", borderRadius: "999px",
+              padding: "8px 20px", marginBottom: "10px",
+              border: "1.5px solid #bfdbfe",
+            }}>
+             
+            </div>
+           
+          </div>
+        </div>
 
-            {/* Prev / Next */}
-            <div style={{ display:"flex", gap:"12px", marginTop:"36px", paddingTop:"22px", borderTop:`1px solid ${B[100]}` }}>
-              {idx > 0 && (
-                <button onClick={() => setActive(sections[idx - 1].id)} style={{ padding:"10px 22px", background:"white", border:`1.5px solid ${B[200]}`, borderRadius:"8px", cursor:"pointer", fontSize:"0.8rem", fontFamily:"sans-serif", color:B[600], fontWeight:500 }}>
+        {/* ── SECTION TABS (scrollable row) ── */}
+        <div style={{
+          display: "flex", gap: "10px", overflowX: "auto",
+          paddingBottom: "4px",
+        }}>
+          {sections.map((s) => (
+            <button
+              key={s.id}
+              className={`stab ${activeSection === s.id ? "on" : ""}`}
+              onClick={() => setActiveSection(s.id)}
+            >
+              {s.number}. {s.title}
+            </button>
+          ))}
+        </div>
+
+        {/* ── MAIN LAYOUT ── */}
+        <div style={{ display: "flex", gap: "24px", flex: 1, minHeight: 0 }}>
+
+          {/* LEFT SIDEBAR */}
+          <div className="sidebar" style={{
+            width: "280px", flexShrink: 0,
+            background: "white", borderRadius: "20px",
+            border: "1.5px solid #dde6f5",
+            boxShadow: "0 4px 20px rgba(29,78,216,0.06)",
+            padding: "20px 12px",
+            overflowY: "auto",
+            display: "flex", flexDirection: "column", gap: "4px",
+          }}>
+            <p style={{
+              fontSize: "12px", fontWeight: "800", color: "#94a3b8",
+              letterSpacing: "2px", textTransform: "uppercase",
+              padding: "0 8px 12px",
+            }}>Contents</p>
+
+            {sections.map((s, i) => (
+              <button
+                key={s.id}
+                className={`snav ${activeSection === s.id ? "on" : ""}`}
+                onClick={() => setActiveSection(s.id)}
+              >
+                <span style={{
+                  fontSize: "13px", fontWeight: "800",
+                  color: activeSection === s.id ? "#1D4ED8" : "#c4d0e0",
+                  minWidth: "26px",
+                }}>{s.number}</span>
+                <span style={{
+                  fontSize: "16px",
+                  fontWeight: activeSection === s.id ? "800" : "600",
+                  color: activeSection === s.id ? "#0f172a" : "#475569",
+                  flex: 1, lineHeight: "1.3",
+                }}>{s.title}</span>
+                {activeSection === s.id && (
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#1D4ED8", flexShrink: 0 }} />
+                )}
+              </button>
+            ))}
+
+            {/* Progress inside sidebar */}
+            <div style={{ marginTop: "auto", padding: "16px 8px 4px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                <span style={{ fontSize: "13px", fontWeight: "700", color: "#64748b" }}>Progress</span>
+                <span style={{ fontSize: "13px", fontWeight: "800", color: "#1D4ED8" }}>{progress}%</span>
+              </div>
+              <div style={{ height: "6px", background: "#e2ecf9", borderRadius: "999px", overflow: "hidden" }}>
+                <div className="progress-bar" style={{
+                  height: "100%", width: `${progress}%`,
+                  background: "linear-gradient(90deg, #1D4ED8, #60a5fa)",
+                  borderRadius: "999px",
+                }} />
+              </div>
+              <p style={{ fontSize: "12px", fontWeight: "600", color: "#94a3b8", marginTop: "8px" }}>
+                {currentIdx + 1} of {sections.length} sections
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT: CONTENT */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "18px", minHeight: 0 }}>
+
+            {/* Main content card */}
+            <div
+              key={activeSection}
+              className="card-anim"
+              style={{
+                background: "white",
+                borderRadius: "20px",
+                padding: "44px 52px",
+                border: "1.5px solid #dde6f5",
+                boxShadow: "0 6px 30px rgba(29,78,216,0.07)",
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Section badge row */}
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "28px" }}>
+                <div style={{
+                  width: "52px", height: "52px", borderRadius: "14px",
+                  background: "linear-gradient(135deg, #eff6ff, #dbeafe)",
+                  border: "1.5px solid #bfdbfe",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "22px", color: "#1D4ED8", fontWeight: "900",
+                }}>{current.icon}</div>
+                <div>
+                  <p style={{ fontSize: "13px", fontWeight: "800", color: "#1D4ED8", letterSpacing: "1px", textTransform: "uppercase" }}>
+                    Section {current.number}
+                  </p>
+                  <h2 style={{ fontSize: "36px", fontWeight: "900", color: "#0f172a", letterSpacing: "-1px", lineHeight: "1.1" }}>
+                    {current.title}
+                  </h2>
+                </div>
+              </div>
+
+              {/* Decorative line */}
+              <div style={{
+                height: "3px", marginBottom: "28px",
+                background: "linear-gradient(90deg, #1D4ED8 0%, #60a5fa 50%, transparent 100%)",
+                borderRadius: "999px",
+              }} />
+
+              {/* Body */}
+              <p style={{
+                fontSize: "19px", fontWeight: "500",
+                color: "#334155", lineHeight: "2",
+                flex: 1,
+              }}>{current.content}</p>
+
+              {/* Nav buttons */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "36px" }}>
+                <button className="bs" disabled={currentIdx === 0} onClick={goPrev}>
                   ← Previous
                 </button>
-              )}
-              {idx < sections.length - 1 && (
-                <button onClick={() => setActive(sections[idx + 1].id)} style={{ padding:"10px 22px", background:`linear-gradient(135deg,${B[600]},${B[700]})`, border:"none", borderRadius:"8px", cursor:"pointer", fontSize:"0.8rem", fontFamily:"sans-serif", color:"white", fontWeight:600, boxShadow:`0 3px 12px ${B[200]}` }}>
-                  Next Section →
-                </button>
-              )}
-            </div>
-          </div>
 
-          {/* Footer */}
-          <div style={{ background:"white", borderTop:`1px solid ${B[100]}`, padding:"13px 48px", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:"8px", fontSize:"0.72rem", color:B[400], fontFamily:"sans-serif" }}>
-              <span>{idx + 1} / {sections.length}</span>
-              <div style={{ width:"110px", height:"4px", background:B[100], borderRadius:"2px", overflow:"hidden" }}>
-                <div style={{ height:"100%", background:`linear-gradient(90deg,${B[400]},${B[600]})`, width:`${((idx + 1) / sections.length) * 100}%`, transition:"width 0.4s ease", borderRadius:"2px" }} />
-              </div>
-              <span>sections read</span>
-            </div>
-
-            <div style={{ display:"flex", alignItems:"center", gap:"18px" }}>
-              <div onClick={() => setAgreed(!agreed)} style={{ display:"flex", alignItems:"center", gap:"9px", cursor:"pointer" }}>
-                <div style={{ width:"18px", height:"18px", borderRadius:"4px", border:`2px solid ${agreed ? B[500] : "#d1d5db"}`, background: agreed ? B[500] : "white", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s", flexShrink:0 }}>
-                  {agreed && <span style={{ color:"white", fontSize:"11px", fontWeight:"bold", lineHeight:1 }}>✓</span>}
+                <div style={{ display: "flex", gap: "6px" }}>
+                  {sections.map((s, i) => (
+                    <div
+                      key={s.id}
+                      onClick={() => setActiveSection(s.id)}
+                      style={{
+                        width: activeSection === s.id ? "28px" : "10px",
+                        height: "10px",
+                        borderRadius: "999px",
+                        background: activeSection === s.id ? "#1D4ED8" : "#dde6f5",
+                        cursor: "pointer",
+                        transition: "all 0.25s ease",
+                      }}
+                    />
+                  ))}
                 </div>
-                <span style={{ fontSize:"0.79rem", color:"#4b5563", fontFamily:"sans-serif" }}>
-                  I have read and agree to all Terms of Service
-                </span>
-              </div>
 
-              <button
-                disabled={!agreed}
-                onClick={() => agreed && setModal(true)}
-                style={{ padding:"11px 26px", background: agreed ? `linear-gradient(135deg,${B[500]},${B[700]})` : "#e5e7eb", color: agreed ? "white" : "#9ca3af", border:"none", borderRadius:"9px", fontSize:"0.82rem", fontWeight:700, cursor: agreed ? "pointer" : "not-allowed", fontFamily:"sans-serif", transition:"all 0.3s", boxShadow: agreed ? `0 4px 14px ${B[300]}` : "none" }}
-              >
-                Accept & Continue
-              </button>
+                {currentIdx < sections.length - 1 ? (
+                  <button className="bp" onClick={goNext}>Next →</button>
+                ) : (
+                  <button className={`bp ${accepted ? "done" : ""}`} onClick={() => setAccepted(true)}>
+                    {accepted ? "✓ Terms Accepted" : "Accept Terms"}
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Info cards row */}
+            <div style={{ display: "flex", gap: "16px" }}>
+              {[
+                { icon: "🔐", title: "End-to-End Encrypted", desc: "All trainer messages are fully secure" },
+                { icon: "🤝", title: "Human-in-the-Loop", desc: "AI supervised by certified trainers" },
+                { icon: "🛡️", title: "Your Data is Safe", desc: "Never sold to third parties" },
+                { icon: "📋", title: "Last Updated", desc: "March 2026" },
+              ].map((c) => (
+                <div key={c.title} className="icard">
+                  <span style={{ fontSize: "26px" }}>{c.icon}</span>
+                  <div>
+                    <p style={{ fontSize: "15px", fontWeight: "800", color: "#0f172a", marginBottom: "3px" }}>{c.title}</p>
+                    <p style={{ fontSize: "13px", fontWeight: "500", color: "#94a3b8" }}>{c.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
+
+        {/* ── FOOTER ── */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          paddingTop: "16px", borderTop: "1.5px solid #dde6f5",
+        }}>
+          <p style={{ fontSize: "15px", fontWeight: "600", color: "#94a3b8" }}>
+            © 2026 Lernevo Wellness. All rights reserved.
+          </p>
+          <div style={{ display: "flex", gap: "28px" }}>
+            {["Privacy Policy", "Contact Support", "About Us"].map((l) => (
+              <span key={l} style={{ fontSize: "15px", fontWeight: "700", color: "#2563eb", cursor: "pointer" }}>{l}</span>
+            ))}
+          </div>
+        </div>
+
       </div>
-    </div>
+    </>
   );
 }

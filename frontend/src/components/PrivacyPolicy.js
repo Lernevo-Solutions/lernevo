@@ -1,241 +1,482 @@
-import React from 'react';
-import './PrivacyPolicy.css'; // We'll create this CSS file next
+import { useState } from "react";
 
-const PrivacyPolicy = () => {
+const sections = [
+  {
+    id: "collection",
+    icon: "🗂️",
+    tag: "01",
+    title: "Data We Collect",
+    short: "What we gather from you",
+    content:
+      "We collect information you provide directly — such as your name, email, fitness goals, health metrics, and wearable device data. Our AI engine also learns from your behavioral patterns, workout logs, nutrition entries, sleep data, and mood tracking to deliver hyper-personalized wellness plans tailored to you.",
+    color: "#2563eb",
+    light: "#eff6ff",
+  },
+  {
+    id: "usage",
+    icon: "⚙️",
+    tag: "02",
+    title: "How We Use It",
+    short: "Powering your experience",
+    content:
+      "Your data powers your personalized AI companion experience — generating real-time fitness, nutrition, and mental health recommendations. It also enables your assigned trainer to monitor your progress and provide professional, data-driven guidance. We never use your data for advertising purposes.",
+    color: "#0369a1",
+    light: "#f0f9ff",
+  },
+  {
+    id: "sharing",
+    icon: "🔗",
+    tag: "03",
+    title: "Data Sharing",
+    short: "Who can see your info",
+    content:
+      "Your personal health data is shared only with your assigned certified trainer on the platform, within our role-based access system (Admin → Trainer → User). We do not sell, trade, or rent your information to third parties. Aggregate, anonymized data may be used internally for product improvement.",
+    color: "#1d4ed8",
+    light: "#eef2ff",
+  },
+  {
+    id: "security",
+    icon: "🔐",
+    tag: "04",
+    title: "Security & Encryption",
+    short: "How we protect you",
+    content:
+      "All communications between users and trainers are end-to-end encrypted through our secure Message Centre. We employ enterprise-grade encryption, audit trails, and strict access controls — built to meet stringent digital health compliance standards, far beyond consumer-grade messaging applications.",
+    color: "#1e40af",
+    light: "#e8f0fe",
+  },
+  {
+    id: "rights",
+    icon: "⚖️",
+    tag: "05",
+    title: "Your Rights",
+    short: "Control over your data",
+    content:
+      "You have the right to access, correct, or delete your personal data at any time. You may request a full export of your health data or withdraw consent for specific data processing activities. Requests are processed within 30 days. Contact our support team to exercise these rights.",
+    color: "#3b82f6",
+    light: "#f0f6ff",
+  },
+];
+
+const tickerItems = [
+  "🌿 Lernevo Wellness", "◆", "🔒 Privacy First", "◆",
+  "🌿 Lernevo Wellness", "◆", "💙 Your Data, Protected", "◆",
+  "🌿 Lernevo Wellness", "◆", "⚡ AI-Powered Wellness", "◆",
+  "🌿 Lernevo Wellness", "◆", "🛡️ Enterprise Encryption", "◆",
+  "🌿 Lernevo Wellness", "◆", "🤝 Human + AI Care", "◆",
+  "🌿 Lernevo Wellness", "◆", "🔒 Privacy First", "◆",
+  "🌿 Lernevo Wellness", "◆", "💙 Your Data, Protected", "◆",
+  "🌿 Lernevo Wellness", "◆", "⚡ AI-Powered Wellness", "◆",
+];
+
+export default function PrivacyPolicy() {
+  const [active, setActive] = useState(null);
+
   return (
-    <div className="policy-wrapper">
-      <PolicyHeader />
-      <div className="policy-grid">
-        <TableOfContents />
-        <MainContent />
+    <div style={{
+      fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+      background: "#ffffff",
+      width: "100vw",
+      height: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+    }}>
+      <style>{`
+        @keyframes ticker {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .ticker-wrap { animation: ticker 30s linear infinite; }
+        .ticker-wrap:hover { animation-play-state: paused; }
+
+        @keyframes slideIn {
+          from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+          to { opacity: 1; max-height: 200px; transform: translateY(0); }
+        }
+        .answer-open {
+          animation: slideIn 0.35s ease forwards;
+          overflow: hidden;
+        }
+
+        .row-item {
+          transition: background 0.2s ease;
+        }
+        .row-item:hover {
+          background: #f8faff !important;
+        }
+        .row-item.open {
+          background: #f0f6ff !important;
+        }
+      `}</style>
+
+      {/* TOP TICKER */}
+      <div style={{
+        background: "#1e3a8a",
+        height: 150,
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        position: "relative",
+        flexShrink: 0,
+      }}>
+        <div style={{
+          position: "absolute", left: 0, top: 0, bottom: 0, width: 60,
+          background: "linear-gradient(90deg, #1e3a8a, transparent)",
+          zIndex: 2, pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", right: 0, top: 0, bottom: 0, width: 60,
+          background: "linear-gradient(-90deg, #1e3a8a, transparent)",
+          zIndex: 2, pointerEvents: "none",
+        }} />
+        <div className="ticker-wrap" style={{ display: "flex", width: "max-content" }}>
+          {tickerItems.map((item, i) => (
+            <span key={i} style={{
+              padding: "0 18px",
+              fontSize: "0.75rem",
+              fontWeight: item === "◆" ? 400 : (item.includes("Lernevo") ? 800 : 600),
+              color: item === "◆" ? "rgba(147,197,253,0.5)" :
+                     item.includes("Lernevo") ? "#93c5fd" : "rgba(255,255,255,0.85)",
+              letterSpacing: item.includes("Lernevo") ? "-0.2px" : "0.5px",
+              whiteSpace: "nowrap",
+            }}>
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* MAIN AREA — split layout */}
+      <div style={{
+        flex: 1,
+        display: "flex",
+        overflow: "hidden",
+      }}>
+
+        {/* LEFT — Bold brand panel */}
+        <div style={{
+          width: 340,
+          flexShrink: 0,
+          background: "linear-gradient(160deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%)",
+          display: "flex",
+          flexDirection: "column",
+          padding: "44px 36px",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          {/* Decorative circles */}
+          <div style={{
+            position: "absolute", bottom: -60, right: -60,
+            width: 260, height: 260, borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.08)",
+            pointerEvents: "none",
+          }} />
+          <div style={{
+            position: "absolute", bottom: -20, right: -20,
+            width: 160, height: 160, borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.05)",
+            pointerEvents: "none",
+          }} />
+          <div style={{
+            position: "absolute", top: 120, left: -80,
+            width: 200, height: 200, borderRadius: "50%",
+            background: "rgba(255,255,255,0.03)",
+            pointerEvents: "none",
+          }} />
+
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 48 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: "rgba(255,255,255,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 18,
+            }}>🌿</div>
+            <span style={{
+              color: "white", fontWeight: 800, fontSize: "1rem",
+              letterSpacing: "-0.3px",
+            }}>Lernevo Wellness</span>
+          </div>
+
+          {/* Headline */}
+          <div style={{ flex: 1 }}>
+            <div style={{
+              display: "inline-block",
+              background: "rgba(255,255,255,0.12)",
+              borderRadius: 6, padding: "4px 12px",
+              marginBottom: 20,
+            }}>
+              <span style={{ fontSize: "0.7rem", color: "#93c5fd", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase" }}>
+                Legal
+              </span>
+            </div>
+
+            <h1 style={{
+              fontSize: "2.6rem",
+              fontWeight: 900,
+              color: "white",
+              lineHeight: 1.15,
+              letterSpacing: "-1.5px",
+              marginBottom: 20,
+            }}>
+              Privacy<br />Policy
+            </h1>
+
+            <div style={{
+              width: 40, height: 3,
+              background: "rgba(255,255,255,0.3)",
+              borderRadius: 2, marginBottom: 24,
+            }} />
+
+            <p style={{
+              color: "rgba(255,255,255,0.7)",
+              fontSize: "0.88rem",
+              lineHeight: 1.7,
+              maxWidth: 230,
+            }}>
+              We believe transparency is the foundation of trust. Here's exactly how we handle your data.
+            </p>
+          </div>
+
+          {/* Bottom meta */}
+          <div style={{
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            paddingTop: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8,
+                background: "rgba(255,255,255,0.1)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13,
+              }}>📧</div>
+              <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.78rem" }}>
+               Lernevo123@gmail.com
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8,
+                background: "rgba(255,255,255,0.1)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13,
+              }}>🕐</div>
+              
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — Accordion list */}
+        <div style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          background: "#ffffff",
+        }}>
+          {/* Column headers */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            padding: "0 36px",
+            height: 48,
+            borderBottom: "2px solid #1e3a8a",
+            background: "#f8faff",
+            flexShrink: 0,
+          }}>
+            <span style={{
+              width: 48, fontSize: "0.65rem", fontWeight: 800,
+              color: "#93c5fd", letterSpacing: "2px", textTransform: "uppercase",
+            }}>#</span>
+            <span style={{
+              flex: 1, fontSize: "0.65rem", fontWeight: 800,
+              color: "#93c5fd", letterSpacing: "2px", textTransform: "uppercase",
+            }}>Section</span>
+            <span style={{
+              width: 200, fontSize: "0.65rem", fontWeight: 800,
+              color: "#93c5fd", letterSpacing: "2px", textTransform: "uppercase",
+            }}>Summary</span>
+            <span style={{
+              width: 32, fontSize: "0.65rem", fontWeight: 800,
+              color: "#93c5fd", letterSpacing: "2px", textTransform: "uppercase",
+            }}></span>
+          </div>
+
+          {/* Accordion rows */}
+          <div style={{ flex: 1, overflowY: "auto" }}>
+            {sections.map((sec, idx) => {
+              const isOpen = active === sec.id;
+              return (
+                <div key={sec.id}>
+                  {/* Row */}
+                  <div
+                    className={`row-item ${isOpen ? "open" : ""}`}
+                    onClick={() => setActive(isOpen ? null : sec.id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "0 36px",
+                      height: 72,
+                      borderBottom: "1px solid #e8f0fe",
+                      cursor: "pointer",
+                      background: isOpen ? "#f0f6ff" : "white",
+                    }}
+                  >
+                    {/* Number */}
+                    <div style={{
+                      width: 48,
+                      display: "flex", alignItems: "center",
+                    }}>
+                      <span style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 800,
+                        color: isOpen ? sec.color : "#cbd5e1",
+                        letterSpacing: "0.5px",
+                      }}>{sec.tag}</span>
+                    </div>
+
+                    {/* Icon + Title */}
+                    <div style={{
+                      flex: 1,
+                      display: "flex", alignItems: "center", gap: 14,
+                    }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 10,
+                        background: isOpen ? sec.light : "#f8faff",
+                        border: `1px solid ${isOpen ? sec.color + "33" : "#e8f0fe"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 18,
+                        transition: "all 0.2s",
+                      }}>
+                        {sec.icon}
+                      </div>
+                      <span style={{
+                        fontSize: "1rem",
+                        fontWeight: isOpen ? 800 : 600,
+                        color: isOpen ? "#1e3a8a" : "#374151",
+                        letterSpacing: "-0.3px",
+                        transition: "all 0.2s",
+                      }}>
+                        {sec.title}
+                      </span>
+                    </div>
+
+                    {/* Short desc */}
+                    <div style={{ width: 200 }}>
+                      <span style={{
+                        fontSize: "0.82rem",
+                        color: "#94a3b8",
+                        fontStyle: "italic",
+                      }}>{sec.short}</span>
+                    </div>
+
+                    {/* Chevron */}
+                    <div style={{
+                      width: 32, height: 32,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      borderRadius: 8,
+                      background: isOpen ? sec.color : "transparent",
+                      transition: "all 0.25s ease",
+                    }}>
+                      <svg
+                        width="14" height="14" viewBox="0 0 14 14"
+                        style={{
+                          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 0.25s ease",
+                        }}
+                      >
+                        <path
+                          d="M2 4.5L7 9.5L12 4.5"
+                          stroke={isOpen ? "white" : "#94a3b8"}
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          fill="none"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Expanded content */}
+                  {isOpen && (
+                    <div
+                      className="answer-open"
+                      style={{
+                        borderBottom: `2px solid ${sec.color}22`,
+                        background: sec.light,
+                        padding: "0 36px 28px 36px",
+                      }}
+                    >
+                      <div style={{
+                        display: "flex",
+                        gap: 24,
+                        paddingTop: 20,
+                      }}>
+                        {/* Left accent bar */}
+                        <div style={{
+                          width: 3,
+                          borderRadius: 2,
+                          background: `linear-gradient(180deg, ${sec.color}, ${sec.color}44)`,
+                          flexShrink: 0,
+                          marginLeft: 60,
+                        }} />
+                        <p style={{
+                          fontSize: "0.95rem",
+                          color: "#374151",
+                          lineHeight: 1.8,
+                          maxWidth: 580,
+                        }}>
+                          {sec.content}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Bottom bar */}
+          <div style={{
+            height: 52,
+            borderTop: "1px solid #dbeafe",
+            background: "#f8faff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 36px",
+            flexShrink: 0,
+          }}>
+            <span style={{
+              fontSize: "0.75rem", color: "#94a3b8", fontWeight: 500,
+            }}>
+              {active
+                ? `Viewing: ${sections.find(s => s.id === active)?.title}`
+                : "Select a section to read more"}
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {sections.map((sec) => (
+                <div
+                  key={sec.id}
+                  onClick={() => setActive(active === sec.id ? null : sec.id)}
+                  style={{
+                    width: active === sec.id ? 24 : 8,
+                    height: 8,
+                    borderRadius: 4,
+                    background: active === sec.id ? "#2563eb" : "#bfdbfe",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
-};
-
-// Header Component
-const PolicyHeader = () => (
-  <div className="policy-header">
-    <div className="title-section">
-      <h1>Privacy & data policy</h1>
-      <span className="badge">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-        GDPR compliant
-      </span>
-    </div>
-    
-    </div>
- 
-);
-
-// Table of Contents Component
-const TableOfContents = () => (
-  <aside className="toc-sidebar" aria-label="table of contents">
-    <div className="toc-title">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <line x1="8" y1="6" x2="21" y2="6" />
-        <line x1="8" y1="12" x2="21" y2="12" />
-        <line x1="8" y1="18" x2="21" y2="18" />
-        <line x1="3" y1="6" x2="3.01" y2="6" />
-        <line x1="3" y1="12" x2="3.01" y2="12" />
-        <line x1="3" y1="18" x2="3.01" y2="18" />
-      </svg>
-      contents
-    </div>
-    <ul className="toc-links">
-      <li><a href="#collection">📘 1. Data collection</a></li>
-      <li><a href="#usage">🔧 2. How we use it</a></li>
-      <li><a href="#cookies">🍪 3. Cookies & tracking</a></li>
-      <li><a href="#sharing">🤝 4. Information sharing</a></li>
-      <li><a href="#rights">🛡️ 5. Your rights</a></li>
-      <li><a href="#retention">⏳ 6. Data retention</a></li>
-      <li><a href="#contact">📬 7. Contact</a></li>
-    </ul>
-    <div style={{ marginTop: '2rem', fontSize: '0.85rem', color: '#6385aa', borderLeft: '2px solid #c9ddec', paddingLeft: '0.8rem' }}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2a6291" style={{ display: 'inline', marginRight: '6px' }}>
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 16v-4M12 8h.01" />
-      </svg>
-      we respect your privacy
-    </div>
-  </aside>
-);
-
-// Main Content Component
-const MainContent = () => (
-  <main className="policy-card">
-    <Section
-      id="collection"
-      icon={<CollectionIcon />}
-      title="1. What we collect"
-    >
-      <p>We collect information to provide better services to all our users. You can browse without telling us who you are, but for certain features we need data.</p>
-      <div className="data-types">
-        <span className="data-badge">📇 name & email</span>
-        <span className="data-badge">📞 phone (optional)</span>
-        <span className="data-badge">🏢 company / role</span>
-        <span className="data-badge">📄 messages & support</span>
-      </div>
-      <p><strong>Usage data:</strong> pages visited, clicks, time spent, and referral links (always anonymized after 26 months).</p>
-    </Section>
-
-    <Section
-      id="usage"
-      icon={<UsageIcon />}
-      title="2. How we use it"
-    >
-      <ul>
-        <li>✅ provide, operate & maintain the website</li>
-        <li>✅ improve, personalize your experience</li>
-        <li>✅ communicate updates, security alerts</li>
-        <li>📊 analyze usage with aggregated statistics</li>
-      </ul>
-      <div className="highlight-box">
-        ⚖️ Legal basis: performance of contract, legitimate interest, or your consent (you can withdraw anytime).
-      </div>
-    </Section>
-
-    <Section
-      id="cookies"
-      icon={<CookiesIcon />}
-      title="3. Cookies & similar tech"
-    >
-      <p>We use cookies to keep you logged in, remember preferences, and track site usage. You can control them via browser settings.</p>
-      <div className="two-col-cookies">
-        <div className="cookie-col">
-          <p>🍪 Essential (always on)</p>
-          <p style={{ fontSize: '0.9rem', color: '#3e5f7e' }}>session, security, load balancing – no personal info</p>
-        </div>
-        <div className="cookie-col">
-          <p>📈 Analytics & performance</p>
-          <p style={{ fontSize: '0.9rem', color: '#3e5f7e' }}>privacy-friendly, aggregated (opt-out available)</p>
-        </div>
-      </div>
-      <p>Third‑party embeds (videos, maps) may set their own cookies – please refer to their policies.</p>
-    </Section>
-
-    <Section
-      id="sharing"
-      icon={<SharingIcon />}
-      title="4. Information sharing"
-    >
-      <p>We <strong>do not sell</strong> your personal data. We may share with trusted service providers (hosting, analytics) who adhere to strict data protection terms. If required by law, we may disclose information to authorities.</p>
-    </Section>
-
-    <Section
-      id="rights"
-      icon={<RightsIcon />}
-      title="5. Your privacy rights"
-    >
-      <ul>
-        <li>🔍 Right to access / rectification</li>
-        <li>🧹 Right to erasure (“right to be forgotten”)</li>
-        <li>⏸️ Right to restriction / objection</li>
-        <li>📤 Data portability</li>
-      </ul>
-      <p>To exercise rights, just <a href="#contact" style={{ color: '#1a5e9c', textDecoration: 'underline', textUnderlineOffset: '3px' }}>contact us</a> – we’ll respond within 30 days.</p>
-    </Section>
-
-    <Section
-      id="retention"
-      icon={<RetentionIcon />}
-      title="6. Data retention"
-    >
-      <p>We store personal data only as long as necessary: account information until closure, usage logs up to 12 months, and cookie identifiers max 13 months. Anonymized aggregates may be kept longer.</p>
-    </Section>
-
-    <Section
-      id="contact"
-      icon={<ContactIcon />}
-      title="7. Contact & DPO"
-    >
-      <p>Have questions? Our Data Protection Officer is happy to help:</p>
-      <div className="contact-chip" style={{ margin: '1.2rem 0 0.5rem' }}>
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-          <polyline points="22,6 12,13 2,6" />
-        </svg>
-        privacy@yourdomain.com
-      </div>
-      <div className="contact-chip">
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
-          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-          <line x1="12" y1="18" x2="12.01" y2="18" />
-        </svg>
-        +1 (800) 555‑0199
-      </div>
-      <p style={{ marginTop: '1.5rem' }}>or write to: <span style={{ background: '#edf4fd', padding: '0.2rem 1rem', borderRadius: '40px' }}>Legal Dept., 123 Data Street, SV 98765</span></p>
-    </Section>
-
-    <hr />
-    <div className="footer-note">
-      <span>🔒 This document is a binding part of our Terms of Service.</span>
-      <span style={{ display: 'flex', gap: '1rem' }}>
-        <span>📄 v2.3</span>
-        <span>🌐 available in 6 languages</span>
-      </span>
-    </div>
-  </main>
-);
-
-// Section wrapper component
-const Section = ({ id, icon, title, children }) => (
-  <section id={id} className="policy-section">
-    <div className="section-head">
-      <span className="section-icon">{icon}</span>
-      <h2>{title}</h2>
-    </div>
-    <div className="section-content">{children}</div>
-  </section>
-);
-
-// Icon components (simplified SVG wrappers)
-const CollectionIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" strokeWidth="2">
-    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
-);
-
-const UsageIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" strokeWidth="2">
-    <path d="M2 12h4l3-9 4 18 3-9h4" />
-  </svg>
-);
-
-const CookiesIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" strokeWidth="2">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 8v4l2 2" />
-  </svg>
-);
-
-const SharingIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" strokeWidth="2">
-    <path d="M20 12H4M12 4v16" />
-  </svg>
-);
-
-const RightsIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" strokeWidth="2">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-  </svg>
-);
-
-const RetentionIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" strokeWidth="2">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-);
-
-const ContactIcon = () => (
-  <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" strokeWidth="2">
-    <path d="M22 16.92v3a1.999 1.999 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8 10a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z" />
-  </svg>
-);
-
-export default PrivacyPolicy;
+}
