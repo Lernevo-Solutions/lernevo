@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './HomePage.css'; // Make sure the CSS file has the new class names
-
+import { Link } from 'react-router-dom';
 const HomePage = () => {
   const [skillScore, setSkillScore] = useState(0);
   const canvasRef = useRef(null);
-
+  const [counts, setCounts] = useState({ resumes: 0, satisfaction: 0, ats: 0 });
+const statsRef = useRef(null);
+const mockupRef = useRef(null);
   // Animated background particles
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -59,144 +61,77 @@ const HomePage = () => {
     }, 10);
   };
 const [currentTemplate, setCurrentTemplate] = useState(0);
-const templates = [
+const allTemplates = [
   {
     name: 'Classic',
     nameText: 'DIYA AGARWAL',
-    title: 'Customer‑Owned Retail Sales Professional with solid understanding of retail dynamics, marketing and customer service.',
-    summary: 'Customer‑focused Retail Sales professional with solid understanding of retail dynamics, marketing and customer service. Offering 5 years of experience providing quality product recommendations and solutions to meet customer needs and exceed expectations. Demonstrated record of exceeding revenue targets by leveraging communication skills and sales expertise.',
-    skills: [
-      'Cash register operations',
-      'POS system operation',
-      'Sales expertise',
-      'Teamwork',
-      'Inventory management',
-      'Accounts receivable',
-      'Financial management'
-    ],
-    experience: [
-      {
-        company: 'ZARA - New Delhi, India',
-        role: 'Retail Sales Associate',
-        bullets: [
-          'Increased monthly sales 10% by effectively upselling and cross-selling products to maximize profitability.',
-          'Implemented store layouts by leveraging awareness, attention to detail, and insightfully interacting with customers.',
-          'Processed payments and maintained accurate change drawers to meet financial targets.'
-        ]
-      },
-      {
-        company: 'Durban Outlets - New Delhi, India',
-        role: 'Bistrita',
-        bullets: [
-          'Upward seasonal drifts and positives, boosting average store sales by +1500 units.',
-          'Managed inventory levels to ensure optimal cash flow and increased customer satisfaction.',
-          'Trained new staff on 15 business in new accounts program offerings and procedures.'
-        ]
-      }
-    ],
-    education: 'Diploma in Financial Accounting – Oxford Software Institute & Oxford School of English, New Delhi',
-    languages: [
-      { name: 'Hindi', level: 'Native speaker' },
-      { name: 'English', level: 'Proficiency: 12, Fluency: 82' }
-    ],
-    badge: '⚡ Classic Template'
+    title: 'Customer‑Owned Retail Sales Professional',
+    summary: 'Customer‑focused Retail Sales professional with solid understanding of retail dynamics...',
+    skills: ['Cash register', 'POS', 'Sales', 'Teamwork', 'Inventory'],
+    experience: ['2 years at XYZ Retail as Sales Associate', '3 years at ABC Store as Cashier'],
+    education: 'Diploma in Financial Accounting',
+    languages: [/* ... */],
+    badge: '⚡ Classic Template',
+    profileImage: 'https://randomuser.me/api/portraits/women/44.jpg'
   },
   {
     name: 'Modern',
     nameText: 'DIYA AGARWAL',
     title: 'Customer‑Owned Retail Sales Professional',
-    summary: 'Retail Sales professional with 5+ years of experience in customer service, sales, and inventory management. Proven track record of exceeding revenue targets and enhancing customer satisfaction.',
-    skills: [
-      'Cash register operation',
-      'POS system',
-      'Sales expertise',
-      'Teamwork',
-      'Inventory management',
-      'Financial management'
-    ],
-    experience: [
-      {
-        company: 'ZARA, New Delhi',
-        role: 'RETAIL SALES ASSOCIATE (02/2017 - Current)',
-        bullets: [
-          'Increased monthly sales 10% by upselling and cross-selling.',
-          'Designed store layouts to improve customer flow and product visibility.',
-          'Processed payments accurately and managed cash drawers.'
-        ]
-      },
-      {
-        company: 'Durban Outlets, New Delhi',
-        role: 'BISTRITA (01/2017 - Current)',
-        bullets: [
-          'Boosted average store sales by 1500+ units through seasonal promotions.',
-          'Maintained optimal inventory levels to ensure cash flow.',
-          'Trained new staff on sales programs and procedures.'
-        ]
-      }
-    ],
-    education: 'Diploma in Financial Accounting – Oxford Software Institute, New Delhi',
-    languages: [
-      { name: 'Hindi', level: 'Native' },
-      { name: 'English', level: 'Professional working proficiency' }
-    ],
-    badge: '✨ Modern Template'
+    summary: 'Retail Sales professional with 5+ years of experience...',
+    skills: ['Cash register', 'POS', 'Sales', 'Teamwork', 'Inventory'],
+    experience: [/* ... */],
+    education: 'Diploma in Financial Accounting',
+    languages: [/* ... */],
+    badge: '✨ Modern Template',
+    profileImage: 'https://randomuser.me/api/portraits/women/45.jpg'
   },
   {
     name: 'Professional',
     nameText: 'DIY AGARWAL',
     title: 'Retail Sales Professional',
-    summary: 'Results‑driven Retail Sales Associate with 5 years of experience in fast‑paced environments. Expert in customer engagement, inventory control, and sales strategy.',
-    skills: [
-      'Cash handling',
-      'POS systems',
-      'Upselling',
-      'Team leadership',
-      'Inventory control',
-      'Accounts receivable'
-    ],
+    summary: 'Results‑driven Retail Sales Associate with 5 years of experience...',
+    skills: ['Cash handling', 'POS', 'Upselling', 'Team leadership'],
+    experience: [/* ... */],
+    education: 'Diploma in Financial Accounting',
+    languages: [/* ... */],
+    badge: '📊 Professional Template',
+    profileImage: 'https://randomuser.me/api/portraits/women/46.jpg'
+  },
+  {
+    name: 'Executive',
+    nameText: 'ALEX JOHNSON',
+    title: 'Senior Business Executive',
+    summary: 'Strategic leader with 15+ years of experience in operations and business development.',
+    skills: ['Leadership', 'Strategy', 'P&L Management', 'Team Building'],
     experience: [
       {
-        company: 'ZARA, New Delhi',
-        role: 'Senior Sales Associate (2017–Present)',
-        bullets: [
-          'Achieved 10% monthly sales growth through strategic cross‑selling.',
-          'Led store layout redesign, increasing foot traffic by 15%.',
-          'Trained 5 new hires on sales techniques and company policies.'
-        ]
-      },
-      {
-        company: 'Durban Outlets, New Delhi',
-        role: 'Sales Associate (2017–2019)',
-        bullets: [
-          'Recognized as top salesperson for 3 consecutive quarters.',
-          'Reduced inventory shrinkage by 8% through diligent tracking.',
-          'Assisted in launching new loyalty program.'
-        ]
+        company: 'Global Corp',
+        role: 'VP of Operations',
+        bullets: ['Increased revenue by 30%', 'Led team of 50+']
       }
     ],
-    education: 'Diploma in Financial Accounting – Oxford Software Institute',
-    languages: [
-      { name: 'Hindi', level: 'Native' },
-      { name: 'English', level: 'Fluent' }
-    ],
-    badge: '📊 Professional Template'
+    education: 'MBA, Harvard Business School',
+    languages: [],
+    badge: '🌟 Executive Template',
+    profileImage: 'https://randomuser.me/api/portraits/men/32.jpg'
   }
 ];
 
 const nextTemplate = () => {
-  setCurrentTemplate((prev) => (prev + 1) % templates.length);
+  setCurrentTemplate((prev) => (prev + 1) % allTemplates.length);
 };
 
 const prevTemplate = () => {
-  setCurrentTemplate((prev) => (prev - 1 + templates.length) % templates.length);
+  setCurrentTemplate((prev) => (prev - 1 + allTemplates.length) % allTemplates.length);
 };
 useEffect(() => {
   const interval = setInterval(() => {
-    setCurrentTemplate((prev) => (prev + 1) % templates.length);
+    setCurrentTemplate((prev) => (prev + 1) % allTemplates.length);
   }, 4000); // change every 4 seconds
 
   return () => clearInterval(interval);
-}, [templates.length]);
+}, [allTemplates.length]);
   return (
     <>
       {/* Particle Canvas */}
@@ -230,6 +165,7 @@ useEffect(() => {
 </nav>
 
 {/* Hero Section */}
+{/* Hero Section */}
 <section className="rb-hero">
   <div className="rb-hero-backdrop">
     <div className="rb-orb rb-orb-1"></div>
@@ -240,191 +176,147 @@ useEffect(() => {
   <div className="rb-container rb-hero-container">
     {/* Left Column – Text */}
     <div className="rb-hero-content">
-      <div className="rb-hero-badge">
-        <span className="rb-badge">✨ AI-Powered Resume Builder</span>
-      </div>
+    
+
       <h1 className="rb-gradient-text">
-        Build Your <br />
-        <span className="rb-typing-wrapper">
-          <span className="rb-typing" id="typing"></span>
-        </span>
+        Build a free resume <br />in a few clicks
       </h1>
+
       <p className="rb-hero-description">
-        Create professional, ATS-friendly resumes with our intuitive builder.
-        Choose from stunning templates, get AI assistance, and land your dream job.
+        The first step to a better job? A better resume. Only 2% of resumes win, and yours will be one of them. Create it now with our free resume builder!
       </p>
+
       <div className="rb-hero-buttons">
         <a href="/builder" className="rb-btn rb-btn-primary rb-btn-3d">
-          Create Your Resume <span className="rb-btn-arrow">→</span>
+          Create a New Resume <span className="rb-btn-arrow">→</span>
         </a>
-        <a href="/analyzer" className="rb-btn rb-btn-outline rb-btn-3d-outline">
-          Analyze Skills
+        <a href="/improve" className="rb-btn rb-btn-outline rb-btn-3d-outline">
+          Improve My Resume
         </a>
       </div>
+
+    
     </div>
 
-    {/* Right Column – 3D Mockup with Profile Image & Auto‑rotate */}
-<div className="rb-hero-mockup">
-  <div className="rb-mockup-3d">
-    <div className="rb-mockup-screen">
-      <div className="rb-mockup-reflection"></div>
-
-      {/* Resume Content with Profile Image */}
-      <div className="rb-mockup-resume">
-        {/* Header with image */}
-        <div className="rb-resume-header with-image">
-          <div className="rb-profile-image">
-            <img
-              src="https://randomuser.me/api/portraits/women/44.jpg"
-              alt="Diya Agarwal"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.style.display = 'none';
-                e.target.parentElement.classList.add('fallback');
-              }}
-            />
-            <div className="rb-profile-fallback">DA</div>
-          </div>
-          <div className="rb-profile-info">
-            <h3 className="rb-resume-name">{templates[currentTemplate].nameText}</h3>
-            <p className="rb-resume-title">{templates[currentTemplate].title}</p>
-          </div>
-        </div>
-
-        {/* Summary */}
-        <div className="rb-resume-section">
-          <h4>Summary</h4>
-          <p className="rb-resume-summary">{templates[currentTemplate].summary}</p>
-        </div>
-
-        {/* Skills */}
-        <div className="rb-resume-section">
-          <h4>Skills</h4>
-          <div className="rb-skill-tags">
-            {templates[currentTemplate].skills.map((skill, idx) => (
-              <span key={idx}>{skill}</span>
-            ))}
-          </div>
-        </div>
-
-        {/* Experience */}
-        <div className="rb-resume-section">
-          <h4>Experience</h4>
-          {templates[currentTemplate].experience.map((job, idx) => (
-            <div key={idx} className="rb-resume-job">
-              <p className="rb-job-role">{job.role}</p>
-              <p className="rb-job-company">{job.company}</p>
-              <ul>
-                {job.bullets.map((bullet, i) => (
-                  <li key={i}>{bullet}</li>
-                ))}
-              </ul>
+    {/* Right Column – Resume Mockup (Samantha Williams) */}
+    <div className="rb-hero-mockup">
+      <div className="rb-mockup-3d" ref={mockupRef}>
+        <div className="rb-mockup-screen">
+          <div className="rb-mockup-reflection"></div>
+          <div className="rb-mockup-resume">
+            {/* Header – no image, just text */}
+            <div className="rb-resume-header">
+              <h3 className="rb-resume-name">Samantha Williams</h3>
+              <p className="rb-resume-title">Senior Analyst</p>
+              <p className="rb-resume-location">New York, NY, 10001</p>
+              <p className="rb-resume-email">samantha.william@example.com</p>
+              <p className="rb-resume-phone">(212) 789-1234</p>
             </div>
-          ))}
+
+            {/* Summary */}
+            <div className="rb-resume-section">
+              <h4>SUMMARY</h4>
+              <p className="rb-resume-summary">
+                Senior Analyst with a 2+ year of experience in data analytics, business intelligence, and process improvement. Skilled in driving operational efficiency, forecasting, and leading data-driven strategies to improve business results and efficiencies.
+              </p>
+            </div>
+
+            {/* Experience */}
+            <div className="rb-resume-section">
+              <h4>EXPERIENCE</h4>
+              <div className="rb-resume-job">
+                <p className="rb-job-role">Senior Analyst</p>
+                <p className="rb-job-company">Los Angeles, CA - New York, NY</p>
+                <p className="rb-job-description">
+                  Lead Data Analyst for a global financial services firm. Led the development and implementation of a new data analysis platform that increased productivity by 50%. Achieved a 20% reduction in processing time.
+                </p>
+                <p className="rb-job-duties-label">Duties:</p>
+                <ul>
+                  <li>Develop and maintain data models and reports</li>
+                  <li>Analyze data to identify trends and patterns</li>
+                  <li>Work with stakeholders to understand business needs</li>
+                  <li>Collaborate with cross-functional teams to implement solutions</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Education */}
-        <div className="rb-resume-section">
-          <h4>Education</h4>
-          <p className="rb-resume-edu">{templates[currentTemplate].education}</p>
-        </div>
-
-        {/* Languages */}
-        <div className="rb-resume-section">
-          <h4>Languages</h4>
-          {templates[currentTemplate].languages.map((lang, idx) => (
-            <p key={idx} className="rb-resume-lang">
-              <strong>{lang.name}:</strong> {lang.level}
-            </p>
-          ))}
-        </div>
-      </div> {/* rb-mockup-resume */}
-    </div> {/* rb-mockup-screen */}
-
-    <div className="rb-mockup-glow"></div>
-    <div className="rb-mockup-shadow"></div>
-  </div> {/* rb-mockup-3d */}
-
-  {/* Floating Badges */}
-  <div className="rb-floating-badge">{templates[currentTemplate].badge}</div>
-  <div className="rb-floating-badge second">🤖 ATS Score 98%</div>
+        <div className="rb-mockup-glow"></div>
+        <div className="rb-mockup-shadow"></div>
+      </div>
+    </div>
   </div>
+
+  {/* Wave Divider */}
+  <div className="rb-hero-wave">
+    <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+      <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="#ffffff" fillOpacity="0.8"></path>
+    </svg>
   </div>
 </section>
+{/* Templates Section – Real Resume Previews with Photos */}
+<section className="rb-template-grid-section">
+  <div className="rb-container">
+    <h2>Choose Your Real-World Template</h2>
 
+    <div className="rb-template-grid">
+      {allTemplates.map((template, index) => (
+        <div className="rb-template-box-wrapper" key={index}>
+          <div className="rb-resume-inner-preview">
+            {/* Profile Image & Header */}
+            <div className="rb-preview-header">
+              <div className="rb-preview-image">
+                <img
+                  src={template.profileImage}
+                  alt={template.nameText}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    e.target.parentElement.classList.add('fallback');
+                  }}
+                />
+                <div className="rb-preview-fallback">
+                  {template.nameText.split(' ').map(n => n[0]).join('')}
+                </div>
+              </div>
+              <div className="rb-preview-info">
+                <h4>{template.nameText}</h4>
+                <p>{template.title.substring(0, 40)}…</p>
+              </div>
+            </div>
 
-      {/* Templates Section */}
-      <section className="rb-templates">
-        <div className="rb-container">
-          <div className="rb-section-header">
-            <h2>Professional Templates for Every Career</h2>
-            <p>Choose from 10 beautifully designed templates, each optimized for readability and ATS compatibility.</p>
-          </div>
-          <div className="rb-template-showcase">
-            <div className="rb-template-card-3d">
-              <div className="rb-template-card-inner">
-                <div className="rb-template-front classic">
-                  <h4>Classic</h4>
-                  <p>Timeless & elegant</p>
-                </div>
-                <div className="rb-template-back">
-                  <span>Use Template →</span>
-                </div>
-              </div>
+            {/* Summary snippet */}
+            <div className="rb-preview-summary">
+              {template.summary.substring(0, 60)}…
             </div>
-            <div className="rb-template-card-3d">
-              <div className="rb-template-card-inner">
-                <div className="rb-template-front modern">
-                  <h4>Modern</h4>
-                  <p>Sleek & minimal</p>
-                </div>
-                <div className="rb-template-back">
-                  <span>Use Template →</span>
-                </div>
-              </div>
+
+            {/* Skills tags (first 3) */}
+            <div className="rb-preview-skills">
+              {template.skills.slice(0, 3).map((skill, i) => (
+                <span key={i}>{skill}</span>
+              ))}
             </div>
-            <div className="rb-template-card-3d">
-              <div className="rb-template-card-inner">
-                <div className="rb-template-front professional">
-                  <h4>Professional</h4>
-                  <p>Executive & formal</p>
-                </div>
-                <div className="rb-template-back">
-                  <span>Use Template →</span>
-                </div>
-              </div>
-            </div>
-            <div className="rb-template-card-3d">
-              <div className="rb-template-card-inner">
-                <div className="rb-template-front creative">
-                  <h4>Creative</h4>
-                  <p>Artistic & unique</p>
-                </div>
-                <div className="rb-template-back">
-                  <span>Use Template →</span>
-                </div>
-              </div>
-            </div>
-            <div className="rb-template-card-3d">
-              <div className="rb-template-card-inner">
-                <div className="rb-template-front executive">
-                  <h4>Executive</h4>
-                  <p>High‑impact</p>
-                </div>
-                <div className="rb-template-back">
-                  <span>Use Template →</span>
-                </div>
-              </div>
+
+            {/* Footer line */}
+            <div className="rb-preview-footer">
+              <span>⏤ Experience · Education</span>
             </div>
           </div>
-          <div className="rb-view-all">
-            <a href="/templates" className="rb-animated-arrow">
-              View All Templates <span>→</span>
-            </a>
+          <div className="rb-template-label">
+            <h3>{template.name} Template</h3>
           </div>
         </div>
-      </section>
+      ))}
+    </div>
 
+    {/* View All Templates Link */}
+    <div className="rb-view-all">
+  <Link to="/templates" className="rb-animated-arrow">
+    View All Templates <span>→</span>
+  </Link>
+</div>
+  </div>
+</section>
       {/* Features Section */}
       <section className="rb-features">
         <div className="rb-container">

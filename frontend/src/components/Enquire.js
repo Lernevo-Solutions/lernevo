@@ -35,7 +35,7 @@ const Enquire = () => {
     }));
   };
 
- const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
@@ -58,9 +58,15 @@ const Enquire = () => {
     if (response.ok) {
       setIsSubmitted(true);
       setTimeout(() => setIsSubmitted(false), 3000);
+    } else {
+      // 👇 This will show the backend error message
+      const errorData = await response.json();
+      console.error("Backend error:", errorData);
+      alert("Error: " + (errorData.error || "Something went wrong"));
     }
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Network error:", error);
+    alert("Network error – please check your connection");
   }
 };
 

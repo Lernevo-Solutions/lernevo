@@ -24,13 +24,13 @@ import Learning from "./components/Learning";
 import MentalHealth from "./components/MentalHealth";
 import AiCoaching from "./components/AICoachingPage";
 import Careers from "./components/Careers";
-import Features from './components/features';
+import Features from "./components/features";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
 
 import PrivacyPolicy from "./components/PrivacyPolicy";
-import TermsOfService from './components/TermsOfService';
+import TermsOfService from "./components/TermsOfService";
 import TrustandSafety from "./components/TrustandSafety";
 import Partnerships from "./components/Partnerships";
 import BookaDemo from "./components/BookaDemo";
@@ -39,26 +39,40 @@ import Blog from "./components/Blog";
 import Contact from "./components/Contact";
 import HelpCenter from "./components/HelpCenter";
 
-
-
+import MyResumes from "./components/MyResumes";
+import ResumeBuilder from "./components/ResumeBuilder";
+import Homepage from "./components/HomePage";
+import Templates from "./components/Templates";
 
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
 
-  // 👉 intha pages-la footer vendam
+  // 👉 Footer hide panna routes
   const hideFooterRoutes = [
     "/get-started",
     "/reset-password",
     "/reset-password-confirm",
   ];
 
+  // 👉 Navbar hide panna routes
+  const hideNavbarRoutes = [
+    "/resume",
+    "/builder",
+    "/home",
+    "/templates",
+  ];
+
   const hideFooter = hideFooterRoutes.includes(location.pathname);
+  const hideNavbar = hideNavbarRoutes.includes(location.pathname);
 
   return (
     <>
-      <Navbar />
+      {/* ✅ Navbar conditionally */}
+      {!hideNavbar && <Navbar />}
+
       <ScrollToTop />
+
       <Routes>
         {/* Public Pages */}
         <Route path="/" element={<LandingPage />} />
@@ -66,7 +80,6 @@ const AppLayout = () => {
         <Route path="/faq" element={<Faq />} />
         <Route path="/our-approach" element={<OurApproachPage />} />
         <Route path="/get-started" element={<AuthPage />} />
-       
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/book-demo" element={<BookaDemo />} />
         <Route path="/trust-safety" element={<TrustandSafety />} />
@@ -75,14 +88,12 @@ const AppLayout = () => {
         <Route path="/Blog" element={<Blog />} />
         <Route path="/Contact" element={<Contact />} />
         <Route path="/help-center" element={<HelpCenter />} />
-        
-        
-          <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/reset-password-confirm"
-          element={<ResetPasswordConfirmPage />} />
-        
+          element={<ResetPasswordConfirmPage />}
+        />
 
         {/* Protected Pages */}
         <Route
@@ -111,8 +122,14 @@ const AppLayout = () => {
         <Route path="/services/learning" element={<Learning />} />
         <Route path="/services/mental-health" element={<MentalHealth />} />
         <Route path="/ai-coaching" element={<AiCoaching />} />
-        <Route path='/careers' element={<Careers />} />
-        <Route path='/features' element={<Features />} />
+        <Route path="/careers" element={<Careers />} />
+        <Route path="/features" element={<Features />} />
+
+        {/* Resume Pages (No Navbar) */}
+        <Route path="/resume" element={<MyResumes />} />
+        <Route path="/builder" element={<ResumeBuilder />} />
+        <Route path="/home" element={<Homepage />} />
+        <Route path="/templates" element={<Templates />} />
       </Routes>
 
       {/* ✅ Footer conditionally */}
@@ -124,18 +141,7 @@ const AppLayout = () => {
 /* ---------------- APP ---------------- */
 function App() {
   useEffect(() => {
-    // Set title immediately
     document.title = "Lernevo - Transform Your Life The Smarter Way";
-    
-    // Force it again after a tiny delay (overrides anything that runs after)
-    setTimeout(() => {
-      document.title = "Lernevo - Transform Your Life The Smarter Way";
-    }, 100);
-    
-    // And one more time to be sure
-    setTimeout(() => {
-      document.title = "Lernevo - Transform Your Life The Smarter Way";
-    }, 500);
   }, []);
 
   return (
@@ -144,9 +150,5 @@ function App() {
     </Router>
   );
 }
+
 export default App;
-
-
-
-
-
