@@ -1,24 +1,28 @@
-.split-layout {
+/* Main Layout */
+.resume-builder-layout {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  min-height: 100vh;
+  grid-template-columns: 1fr 1.3fr;
+  height: 100vh;
   background: #f1f5f9;
 }
 
-.form-panel {
-  background: white;
+/* Left Form Panel */
+.resume-form-panel {
+  background: #ffffff;
   padding: 30px;
   overflow-y: auto;
   border-right: 1px solid #e2e8f0;
 }
 
-.builder-title {
+/* Title */
+.resume-builder-title {
   font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 20px;
   color: #0f172a;
 }
 
+/* Template Buttons */
 .template-selector {
   display: flex;
   gap: 12px;
@@ -48,12 +52,14 @@
   background: #e2e8f0;
 }
 
-.preview-panel {
+/* Right Preview Panel */
+.resume-preview-panel {
   background: #f8fafc;
-  padding: 30px;
+  padding: 40px;
   overflow-y: auto;
 }
 
+/* Preview Title */
 .preview-title {
   font-size: 1.5rem;
   font-weight: 600;
@@ -61,12 +67,24 @@
   color: #0f172a;
 }
 
-.preview-card-wrapper {
-  max-width: 800px;
-  margin: 0 auto;
+/* Preview Wrapper */
+.resume-preview-wrapper {
+  display: flex;
+  justify-content: center;
 }
 
-.save-btn {
+/* Resume Card */
+.resume-preview-card {
+  width: 100%;
+  max-width: 850px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+/* Save Button */
+.save-resume-btn {
   width: 100%;
   background: #2563eb;
   color: white;
@@ -80,17 +98,37 @@
   transition: 0.2s;
 }
 
-.save-btn:hover {
+.save-resume-btn:hover {
   background: #1d4ed8;
   transform: translateY(-2px);
   box-shadow: 0 10px 20px -5px rgba(37,99,235,0.3);
 }
-/*----------------------------*/
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .split-layout {
+  .resume-builder-layout {
     grid-template-columns: 1fr;
   }
-  .form-panel, .preview-panel {
-    height: auto;
+
+  .resume-preview-panel {
+    padding: 20px;
   }
+}.rb-preview-wrapper{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
+
+.rb-preview-card{
+  width:100%;
+  max-width:850px;
+  min-height:900px;   /* IMPORTANT */
+  background:white;
+  border-radius:12px;
+  padding:40px;       /* IMPORTANT */
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}.rb-preview-card{
+  width:794px;
+  min-height:1123px;
 }

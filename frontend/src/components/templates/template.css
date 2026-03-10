@@ -358,4 +358,32 @@
   border-radius: 30px;
   font-size: 0.9rem;
   font-weight: 500;
+}.resume-section{
+  margin-top:30px;
+}
+
+.resume-section h3{
+  font-size:20px;
+  margin-bottom:10px;
+}
+
+.resume-section p{
+  margin:6px 0;
+}.resume-item{
+  margin-bottom:18px;
+}
+
+.resume-item-title{
+  font-weight:600;
+}
+
+.resume-item-sub{
+  color:#2563eb;
+  margin-bottom:5px;
+}
+
+.resume-date{
+  float:right;
+  color:#64748b;
+  font-size:14px;
 }
