@@ -371,7 +371,7 @@ export default function TermsOfService() {
                 { icon: "🔐", title: "End-to-End Encrypted", desc: "All trainer messages are fully secure" },
                 { icon: "🤝", title: "Human-in-the-Loop", desc: "AI supervised by certified trainers" },
                 { icon: "🛡️", title: "Your Data is Safe", desc: "Never sold to third parties" },
-                { icon: "📋", title: "Last Updated", desc: "March 2026" },
+                
               ].map((c) => (
                 <div key={c.title} className="icard">
                   <span style={{ fontSize: "26px" }}>{c.icon}</span>
