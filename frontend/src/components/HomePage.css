@@ -3134,3 +3134,838 @@ body {
 @media (max-width: 550px) {
   .rb-all-templates-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Resume UI Styling inside Card */
+.completed-resume-ui {
+  padding: 20px;
+  background: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.resume-ui-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.ui-photo {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+.ui-name { font-size: 14px; font-weight: 700; color: #111; margin: 0; }
+.ui-title { font-size: 10px; color: #3b82f6; font-weight: 600; margin: 0; }
+
+.ui-section-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: #999;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.ui-summary-text {
+  font-size: 10.5px;
+  color: #555;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ui-skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ui-skill-tag {
+  font-size: 8.5px;
+  background: #f0f4ff;
+  color: #2563eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ui-exp-text {
+  font-size: 10px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.template-label-name {
+  margin-top: 10px;
+  font-weight: 600;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+/* Ensure card content looks professional */
+.rb-card-preview-area {
+  border: 1px solid #e0e0e0;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+}/* General Layout */
+.rb-all-templates-page {
+  background-color: #f3f4f6;
+  min-height: 100vh;
+  padding: 60px 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.rb-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Header */
+.rb-page-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.rb-page-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 10px;
+}
+
+.rb-page-subtitle {
+  color: #4b5563;
+  font-size: 1.1rem;
+}
+
+/* Tabs */
+.rb-category-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 50px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-item {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-item.active {
+  color: #2563eb;
+  border-bottom: 3px solid #2563eb;
+  font-weight: 600;
+}
+
+/* Grid */
+.rb-all-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 35px;
+}
+
+/* Card */
+.rb-template-full-card {
+  background: white;
+  padding: 15px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.rb-card-preview-area {
+  background: #f9fafb;
+  border-radius: 10px;
+  height: 380px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #f3f4f6;
+}
+
+/* Mock Resume Styles */
+.rb-preview-inner {
+  padding: 20px;
+}
+
+.mock-resume-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.mock-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.mock-text h4 { font-size: 0.9rem; margin: 0; color: #111827; }
+.mock-text p { font-size: 0.7rem; margin: 0; color: #6b7280; }
+
+.mock-line {
+  height: 6px;
+  background: #e5e7eb;
+  margin-bottom: 8px;
+  border-radius: 3px;
+}
+.mock-line.long { width: 90%; }
+.mock-line.short { width: 40%; }
+
+/* Hover Overlay */
+.rb-hover-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.rb-card-preview-area:hover .rb-hover-overlay { opacity: 1; }
+
+.use-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Controls */
+.rb-card-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.color-dots { display: flex; gap: 6px; }
+.dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #d1d5db;
+  cursor: pointer;
+}
+
+.btn-export {
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.rb-card-label {
+  margin-top: 10px;
+  text-align: left;
+}
+
+.template-name {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}/* Resume UI Styling inside Card */
+.completed-resume-ui {
+  padding: 20px;
+  background: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.resume-ui-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.ui-photo {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+.ui-name { font-size: 14px; font-weight: 700; color: #111; margin: 0; }
+.ui-title { font-size: 10px; color: #3b82f6; font-weight: 600; margin: 0; }
+
+.ui-section-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: #999;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.ui-summary-text {
+  font-size: 10.5px;
+  color: #555;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ui-skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ui-skill-tag {
+  font-size: 8.5px;
+  background: #f0f4ff;
+  color: #2563eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ui-exp-text {
+  font-size: 10px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.template-label-name {
+  margin-top: 10px;
+  font-weight: 600;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+/* Ensure card content looks professional */
+.rb-card-preview-area {
+  border: 1px solid #e0e0e0;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+}/* Color Dots Animation */
+.dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #ddd;
+  transition: transform 0.2s;
+}
+
+.dot:hover { transform: scale(1.2); }
+.active-dot { box-shadow: 0 0 0 2px #555; transform: scale(1.1); }
+
+/* --- TEMPLATE SPECIFIC STYLES --- */
+
+/* 1. Classic Template Style (Left Photo) */
+.tpl-classic .resume-ui-header {
+  flex-direction: row;
+  text-align: left;
+}
+
+/* 2. Modern Template Style (Centered Photo & Border) */
+.tpl-modern .resume-ui-header {
+  flex-direction: column;
+  text-align: center;
+  border-left: none !important; /* Center alignment doesn't need left border */
+  border-top: 5px solid; /* Use the dynamic color on top instead */
+  padding-top: 15px;
+}
+
+.tpl-modern .ui-photo {
+  width: 60px; height: 60px;
+  margin: 0 auto 10px;
+}
+
+.tpl-modern .ui-skills-list {
+  justify-content: center;
+}
+
+/* 3. Common UI fixes */
+.completed-resume-ui {
+  height: 100%;
+  background: #fff;
+  padding: 15px;
+  font-size: 12px;
+}
+
+.ui-section h5 {
+  font-size: 10px;
+  text-transform: uppercase;
+  margin: 10px 0 5px;
+  font-weight: 800;
+}/* --- LAYOUT 1: Standard (Classic) --- */
+.layout-standard .resume-header-part {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+/* --- LAYOUT 2: Centered (Modern) --- */
+
+.layout-centered .resume-header-part {
+  text-align: center;
+  display: block;
+}
+.layout-centered .ui-photo {
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  width: 60px; height: 60px;
+}
+
+/* --- LAYOUT 3: Sidebar (Executive) --- */
+
+.layout-sidebar .resume-main-wrapper {
+  display: grid;
+  grid-template-columns: 80px 1fr; /* Image and some info on left */
+  gap: 15px;
+}
+.layout-sidebar .resume-header-part {
+  flex-direction: column;
+  background: #f9f9f9;
+  height: 100%;
+  padding: 5px;
+}
+.layout-sidebar .ui-header-text h4 { font-size: 10px; }
+
+/* --- LAYOUT 4: Clean (Minimalist) --- */
+.layout-clean .resume-header-part {
+  border-left: 4px solid;
+  padding-left: 15px;
+}
+.layout-clean .ui-photo { display: none; } /* Photo illatha clean look */
+
+/* Common UI */
+.completed-resume-ui {
+  height: 100%;
+  padding: 15px;
+  background: white;
+  font-size: 11px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.rb-template-full-card:hover .completed-resume-ui {
+  transform: scale(0.98);
+}
+
+.dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.active-dot {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}.rb-all-templates-page { background: #f4f7f6; padding: 40px 20px; }
+.rb-all-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+}
+
+/* Resume Canvas */
+.resume-canvas {
+  background: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 15px rgba(0,0,0,0.05);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Header */
+.res-header {
+  padding: 20px;
+  color: white;
+  min-height: 60px;
+}
+.res-header-content h2 { font-size: 16px; margin: 0; letter-spacing: 1px; }
+.res-header-content p { font-size: 10px; opacity: 0.8; margin: 0; }
+
+/* Body Layout */
+.res-body { display: grid; grid-template-columns: 35% 65%; flex-grow: 1; }
+
+/* Sidebar */
+.res-sidebar { background: #eaeff2; padding: 15px; border-right: 1px solid #ddd; }
+.res-photo-box img { width: 100%; border-radius: 4px; margin-bottom: 10px; }
+.res-side-section h6 { font-size: 9px; margin-bottom: 5px; color: #333; border-bottom: 1px solid #ccc; }
+.res-side-section p { font-size: 8px; margin: 2px 0; color: #555; }
+.res-side-section ul { padding-left: 10px; margin: 0; }
+.res-side-section li { font-size: 8px; color: #555; margin-bottom: 2px; }
+
+/* Main Area */
+.res-main { padding: 15px; background: #fff; }
+.res-section h6 { font-size: 9px; margin: 10px 0 5px; font-weight: 800; }
+.res-section p { font-size: 8.5px; color: #444; line-height: 1.3; }
+.res-exp-item p { font-size: 8.5px; margin: 0; }
+.res-exp-item span { font-size: 7.5px; color: #888; }
+
+/* Interaction Styles */
+.rb-card-preview-area { position: relative; height: 450px; overflow: hidden; border-radius: 8px; }
+.rb-hover-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: 0.3s;
+}
+.rb-card-preview-area:hover .rb-hover-overlay { opacity: 1; }
+
+.dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px #ccc; }
+.rb-card-footer { display: flex; justify-content: space-between; padding: 15px 0 5px; }
+.btn-small { background: #e2e8f0; border: none; padding: 4px 8px; font-size: 10px; font-weight: bold; color: #475569; border-radius: 4px; cursor: pointer; margin-left: 5px; }
+.tpl-label { font-size: 13px; font-weight: 600; color: #333; }/* Layout 1: Sidebar (BetterCV Style) */
+
+.layout-sidebar .res-content-wrapper { display: grid; grid-template-columns: 35% 65%; height: 100%; }
+.layout-sidebar .res-sidebar { background: #f1f5f9; padding: 15px; border-right: 1px solid #ddd; }
+.layout-sidebar .res-photo { width: 100%; border-radius: 5px; margin-bottom: 10px; }
+
+/* Layout 2: Modern Top (Centered) */
+
+.layout-modern-top .res-header { text-align: center; padding: 30px 10px; }
+.layout-modern-top .res-content-wrapper { padding: 20px; }
+.layout-modern-top .res-main { display: block; }
+
+/* Layout 3: Minimal Clean (No Photo) */
+
+.layout-minimal-clean .res-header { background: white !important; color: black !important; border-bottom: 3px solid; padding: 20px 0; }
+.layout-minimal-clean .res-content-wrapper { padding: 20px; }
+
+/* Layout 4: Grid Style (Two Columns) */
+
+.layout-grid-style .res-main { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+
+/* Common UI fixes */
+.resume-canvas { height: 100%; display: flex; flex-direction: column; background: white; font-size: 10px; overflow: hidden; }
+.res-header h2 { font-size: 14px; margin: 0; letter-spacing: 1px; }
+.res-header p { font-size: 9px; margin: 0; opacity: 0.9; }
+.main-sec h6 { font-size: 9px; margin: 12px 0 5px; font-weight: 800; border-bottom: 1px solid #eee; }
+.tag { font-size: 8px; background: #f0f4ff; padding: 2px 5px; border-radius: 3px; margin: 2px; display: inline-block; }
+
+/* Hover & Controls */
+.rb-template-full-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.rb-card-preview-area { height: 420px; border-radius: 8px; overflow: hidden; position: relative; border: 1px solid #eee; }
+.dot { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px #ddd; }
+.btn-dl { font-size: 10px; font-weight: bold; background: #e2e8f0; border: none; padding: 4px 8px; border-radius: 4px; margin-left: 5px; cursor: pointer; }/* Container & Row Logic */
+.rb-all-templates-page { background: #f8fafc; padding: 60px 20px; }
+.rb-container { max-width: 1200px; margin: 0 auto; }
+
+/* ONE ROW = 3 RESUMES */
+.rb-all-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Exactly 3 per row */
+  gap: 40px; /* Space between cards */
+}
+
+/* Card Visuals */
+.rb-template-full-card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+}
+.rb-template-full-card:hover { transform: translateY(-10px); }
+
+/* Layout Variations */
+
+.layout-sidebar .res-content-wrapper { display: grid; grid-template-columns: 35% 65%; }
+.layout-sidebar .res-sidebar { background: #f1f5f9; padding: 10px; border-right: 1px solid #ddd; }
+
+
+.layout-modern .res-header { text-align: center; padding: 25px 10px; }
+.layout-modern .res-content-wrapper { padding: 15px; }
+
+
+.layout-minimal .res-header { background: white !important; color: #111 !important; border-bottom: 2px solid; padding: 15px 0; }
+.layout-minimal .res-content-wrapper { padding: 15px; }
+
+
+.layout-executive .res-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
+
+/* Shared Resume Canvas Styles */
+.resume-canvas { 
+  height: 450px; 
+  background: white; 
+  display: flex; 
+  flex-direction: column; 
+  font-size: 10px; 
+  overflow: hidden; 
+  border: 1px solid #eee; 
+}
+.res-header h2 { font-size: 14px; margin: 0; letter-spacing: 0.5px; color: #fff; }
+.res-header p { font-size: 9px; margin: 0; opacity: 0.9; color: #fff; }
+.main-sec h6 { font-size: 9px; margin: 12px 0 5px; font-weight: 800; border-bottom: 1px solid #f0f0f0; }
+.main-sec p, .exp-row { font-size: 8.5px; color: #444; line-height: 1.3; margin-bottom: 3px; }
+.mini-tag { background: #e2e8f0; font-size: 7.5px; padding: 2px 4px; margin: 2px 0; border-radius: 3px; display: inline-block; width: fit-content; }
+
+/* Controls */
+.rb-card-footer { display: flex; justify-content: space-between; padding: 15px 0 5px; border-top: 1px solid #f1f5f9; margin-top: 10px; }
+.dot { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px #ddd; transition: 0.2s; }
+.dot:hover { transform: scale(1.2); }
+.btn-dl { background: #f1f5f9; border: none; padding: 5px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+.tpl-name-label { font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 5px; }
+
+/* Responsive: 1 row to 2 or 1 on mobile */
+@media (max-width: 1024px) { .rb-all-templates-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .rb-all-templates-grid { grid-template-columns: 1fr; } }.rb-all-templates-page { background: #f1f5f9; padding: 50px 20px; }
+.rb-container { max-width: 1300px; margin: 0 auto; }
+
+/* 3 PER ROW GRID */
+.rb-all-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+/* Resume Canvas */
+.resume-canvas {
+  height: 520px; /* Full page feel */
+  background: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+.res-header { padding: 25px; color: white; }
+.res-header h2 { font-size: 18px; margin: 0; letter-spacing: 1px; text-transform: uppercase; }
+.res-header p { font-size: 11px; margin: 5px 0 0; opacity: 0.9; }
+
+.res-content { display: flex; flex-grow: 1; }
+.res-sidebar { width: 35%; background: #f8fafc; padding: 15px; border-right: 1px solid #e2e8f0; }
+.res-sidebar img { width: 100%; border-radius: 8px; margin-bottom: 15px; border: 3px solid #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+.res-main { flex-grow: 1; padding: 20px; background: #fff; }
+.res-sec h6 { font-size: 10px; margin: 15px 0 5px; font-weight: 800; border-bottom: 1px solid #f1f5f9; padding-bottom: 3px; }
+.res-sec p, .exp-item strong { font-size: 9.5px; color: #334155; line-height: 1.4; }
+.sub-row { font-size: 8.5px; color: #64748b; margin-top: 2px; }
+
+.skill-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.skill-tags span { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+/* DIFFERENT LAYOUTS */
+.layout-modern-bold .res-header { text-align: center; }
+.layout-minimal-pro .res-header { background: #fff !important; color: #000 !important; border-bottom: 4px solid; }
+.layout-executive-grid .res-main { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+/* Interactive Elements */
+.rb-template-full-card { background: white; padding: 15px; border-radius: 12px; transition: 0.3s; }
+.rb-template-full-card:hover { transform: translateY(-10px); }
+.rb-card-preview-area { position: relative; border-radius: 8px; overflow: hidden; }
+.rb-hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+.rb-card-preview-area:hover .rb-hover-overlay { opacity: 1; }
+.use-btn { color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: 700; cursor: pointer; }
+
+.rb-card-footer { display: flex; justify-content: space-between; padding: 15px 0; }
+.dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; }
+.btn-dl { background: #cbd5e1; border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 5px; }.rb-all-templates-page { background: #f4f6f8; padding: 50px 20px; }
+.rb-container { max-width: 1200px; margin: 0 auto; }
+
+/* 3 RESUMES PER ROW */
+.rb-all-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 35px;
+}
+
+/* Resume Canvas Styling */
+.resume-canvas {
+  height: 480px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+.res-header { padding: 18px; color: white; }
+.res-header h2 { font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+.res-header p { font-size: 9px; margin: 0; opacity: 0.8; }
+
+.res-content { display: flex; flex-grow: 1; height: 100%; }
+
+/* Sidebar Layout Variation */
+
+.res-sidebar { width: 35%; background: #f8fafc; padding: 12px; border-right: 1px solid #eee; }
+.res-img { width: 100%; border-radius: 4px; margin-bottom: 10px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+/* Main Content Area */
+.res-main { flex-grow: 1; padding: 15px; }
+.res-img-small { width: 45px; height: 45px; border-radius: 50%; margin-bottom: 8px; border: 1px solid #ddd; }
+
+.res-sec h6 { font-size: 9px; margin: 10px 0 4px; font-weight: 800; border-bottom: 1px solid #f0f0f0; padding-bottom: 2px; }
+.res-sec p { font-size: 8.5px; color: #444; line-height: 1.4; }
+.skill-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.skill-grid span { font-size: 7.5px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+
+/* Layout Variations */
+
+.layout-top-bar .res-header { text-align: center; }
+
+.layout-minimal .res-header { background: #fff !important; color: #111 !important; border-bottom: 3px solid; }
+
+/* Interactive Elements */
+.rb-template-full-card { background: white; padding: 15px; border-radius: 12px; transition: 0.3s ease; }
+.rb-template-full-card:hover { transform: translateY(-8px); }
+.rb-card-preview-area { position: relative; border-radius: 8px; overflow: hidden; height: 480px; border: 1px solid #eee; }
+.rb-hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+.rb-card-preview-area:hover .rb-hover-overlay { opacity: 1; }
+
+.rb-card-footer { display: flex; justify-content: space-between; padding: 15px 0 5px; }
+.dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px #ddd; }
+.btn-dl { background: #e5e7eb; border: none; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+.tpl-label { font-size: 14px; font-weight: 700; color: #334155; margin-top: 5px; }.rb-all-templates-page { background: #f8fafc; padding: 50px 20px; }
+.rb-container { max-width: 1240px; margin: 0 auto; }
+
+/* 3 PER ROW GRID */
+.rb-all-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 35px;
+}
+
+/* Resume Box Styles */
+.resume-canvas {
+  height: 500px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+.res-header { padding: 20px; color: white; text-align: left; }
+.res-header h2 { font-size: 15px; margin: 0; letter-spacing: 1px; }
+.res-header p { font-size: 10px; margin: 0; opacity: 0.9; }
+
+.res-content { display: flex; flex-grow: 1; }
+
+/* Sidebar Design Style */
+
+.res-sidebar { width: 35%; background: #f1f5f9; padding: 12px; border-right: 1px solid #e2e8f0; }
+.res-img { width: 100%; border-radius: 6px; margin-bottom: 10px; border: 2px solid #fff; }
+
+/* Main Area Design Style */
+.res-main { flex-grow: 1; padding: 18px; }
+.res-img-small { width: 50px; height: 50px; border-radius: 50%; margin-bottom: 10px; border: 1px solid #ddd; }
+
+.res-sec h6 { font-size: 9px; margin: 12px 0 5px; font-weight: 800; border-bottom: 1px solid #f1f5f9; padding-bottom: 2px; }
+.res-sec p { font-size: 9px; color: #444; line-height: 1.4; }
+
+.skill-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.skill-tags span { font-size: 8px; padding: 2px 5px; border-radius: 3px; font-weight: 600; }
+
+/* Layout Variations */
+
+.layout-top-bar .res-header { text-align: center; }
+
+.layout-minimal .res-header { background: #fff !important; color: #111 !important; border-bottom: 3px solid; }
+
+/* Interaction Elements */
+.rb-template-full-card { background: white; padding: 15px; border-radius: 12px; transition: transform 0.3s; }
+.rb-template-full-card:hover { transform: translateY(-10px); }
+.rb-card-preview-area { position: relative; border-radius: 8px; overflow: hidden; height: 500px; border: 1px solid #eee; }
+.rb-hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+.rb-card-preview-area:hover .rb-hover-overlay { opacity: 1; }
+
+.rb-card-footer { display: flex; justify-content: space-between; padding: 15px 0 5px; }
+.dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; }
+.btn-dl { background: #e2e8f0; border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+.tpl-label { font-size: 14px; font-weight: 700; color: #334155; margin-top: 5px; }/* GRID SETUP: 3 PER ROW */
+.rb-all-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.resume-canvas {
+  background: #fff;
+  height: 480px;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* DIFFERENT LAYOUT LOGIC */
+
+/* 1. Sidebar Left Layout */
+
+.layout-type-1 .res-body-grid, .layout-type-5 .res-body-grid, .layout-type-9 .res-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Sidebar Left */
+}
+
+/* 2. Photo Centered Layout */
+
+.layout-type-2 .res-header-section, .layout-type-6 .res-header-section {
+  flex-direction: column;
+  text-align: center;
+}
+.layout-type-2 .res-profile-img { margin: 0 auto 10px; }
+
+/* 3. Horizontal Split (Top Photo, Bottom Content) */
+
+.layout-type-3 .res-header-section, .layout-type-7 .res-header-section {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  background: #f8fafc;
+}
+
+/* 4. No Photo Minimalist Layout */
+
+.layout-type-4 .res-profile-img, .layout-type-8 .res-profile-img {
+  display: none;
+}
+.layout-type-4 .res-id-info h2 { font-size: 22px; }
+
+/* Generic Canvas Styles */
+.res-header-section { padding: 15px; display: flex; gap: 15px; align-items: center; }
+.res-profile-img { width: 55px; height: 55px; border-radius: 8px; object-fit: cover; }
+.res-id-info h2 { font-size: 16px; margin: 0; font-weight: 800; }
+.res-id-info p { font-size: 10px; margin: 0; color: #64748b; }
+
+.res-body-grid { flex-grow: 1; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+.res-item { font-size: 9px; margin-top: 5px; }
+.res-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+.res-tags span { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+/* Cards & Interaction */
+.rb-template-full-card { background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+.rb-card-preview-area { position: relative; height: 480px; overflow: hidden; border-radius: 6px; }
+.rb-hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+.rb-card-preview-area:hover .rb-hover-overlay { opacity: 1; }
+.use-btn { color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+.dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px #cbd5e1; }
+.tpl-label { margin-top: 10px; font-weight: 700; color: #334155; font-size: 14px; text-align: left; }
