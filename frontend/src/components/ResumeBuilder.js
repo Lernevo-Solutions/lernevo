@@ -307,7 +307,7 @@ body { font-family: 'Inter', 'DM Sans', sans-serif; background: #f0f0f0; color: 
 .r-modern .r-contact { font-size: 10px; opacity: 0.8; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 9px; }
 .r-modern .r-body { padding: 18px 26px; }
 .r-modern .r-sec { font-size: 9.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #7c3aed; margin: 13px 0 7px; display: flex; align-items: center; gap: 6px; }
-.r-modern .r-sec::before { content: ''; display: block; width: 12px; height: 3px; background: #7c3aed; border-radius: 2px; flex-shrink: 0; }
+.r-modern .r-sec::before { content: ''; display: block; width: 12px; height: 3px; background: currentColor; border-radius: 2px; flex-shrink: 0; }
 
 /* Minimal */
 .r-minimal .r-head { padding: 30px 30px 14px; border-bottom: 1px solid #e5e7eb; }
@@ -392,9 +392,13 @@ body { font-family: 'Inter', 'DM Sans', sans-serif; background: #f0f0f0; color: 
 
 function ResumePreview({ data, templateId, styling }) {
   const { personal, summary, experience, education, skills, projects, certifications, languages } = data;
+  const accent = styling.accentColor || "#2563eb";
   const fontStyle = { fontFamily: `'${styling.font}', sans-serif` };
   const hasName = !!personal.name;
   const nameText = personal.name || "Your Name";
+
+  // Helper to lighten accent for tag backgrounds
+  const accentBg = accent + "1a";
 
   const Contacts = () => {
     const items = [personal.email, personal.phone, personal.location, personal.linkedin].filter(Boolean);
@@ -414,10 +418,10 @@ function ResumePreview({ data, templateId, styling }) {
     </>
   );
 
-  const SkillTags = ({ accent }) => (
+  const SkillTags = () => (
     <div className="r-tags">
       {skills.filter(s => s.name).map(s => (
-        <span key={s.id} className="r-tag" style={{ background: `${accent}18`, color: accent }}>{s.name}</span>
+        <span key={s.id} className="r-tag" style={{ background: accentBg, color: accent }}>{s.name}</span>
       ))}
       {skills.every(s => !s.name) && <span className="r-placeholder">Skills here…</span>}
     </div>
@@ -426,7 +430,7 @@ function ResumePreview({ data, templateId, styling }) {
   const Edu = () => education.institution || education.degree ? (
     <div className="r-entry">
       <div className="r-etitle">{[education.degree, education.field].filter(Boolean).join(" in ")}</div>
-      <div className="r-esub">{education.institution}{education.year ? ` · ${education.year}` : ""}</div>
+      <div className="r-esub">{education.institution}{education.year ? ` · ${education.year}` : ""}{education.gpa ? ` · GPA: ${education.gpa}` : ""}</div>
     </div>
   ) : <div className="r-placeholder">Education here…</div>;
 
@@ -441,30 +445,73 @@ function ResumePreview({ data, templateId, styling }) {
           <div className="r-etitle">{p.name}</div>
           {p.stack && <div className="r-esub">{p.stack}</div>}
           {p.description && <div className="r-ebody">{p.description}</div>}
+          {p.link && <div className="r-esub" style={{color: accent}}>{p.link}</div>}
         </div>
       ))}
       {projects.every(p => !p.name) && <div className="r-placeholder">Projects here…</div>}
     </>
   );
 
+  // ── Certifications block — always render if any cert has a name ──
+  const hasCerts = certifications.some(c => c.name);
+  const Certs = () => hasCerts ? (
+    <>
+      {certifications.filter(c => c.name).map(c => (
+        <div key={c.id} className="r-entry">
+          <div className="r-etitle">{c.name}</div>
+          <div className="r-esub">{[c.issuer, c.date].filter(Boolean).join(" · ")}</div>
+          {c.description && <div className="r-ebody">{c.description}</div>}
+        </div>
+      ))}
+    </>
+  ) : null;
+
+  // ── Languages block — always render if any lang has a value ──
+  const hasLangs = languages.some(l => l.language);
+  const Langs = () => hasLangs ? (
+    <>
+      {languages.filter(l => l.language).map(l => (
+        <div key={l.id} className="r-esub" style={{ marginBottom: 3 }}>
+          <span style={{ fontWeight: 600, color: "#374151" }}>{l.language}</span>
+          <span style={{ color: "#9ca3af" }}> — {l.proficiency}</span>
+        </div>
+      ))}
+    </>
+  ) : null;
+
+  // Sec heading styled with accent color dynamically
+  const SecHead = ({ children, dark, invert }) => {
+    if (invert) {
+      // white text on accent background (creative style)
+      return <div className="r-sec" style={{ background: accent, color: "#fff", display: "inline-block", padding: "3px 9px", borderRadius: 4, marginBottom: 8, marginTop: 13, fontSize: "9.5px", fontWeight: 800, letterSpacing: "0.5px", textTransform: "uppercase" }}>{children}</div>;
+    }
+    if (dark) {
+      return <div className="r-sec" style={{ color: "#1e293b", borderBottomColor: "#1e293b" }}>{children}</div>;
+    }
+    return <div className="r-sec" style={{ color: accent, borderBottomColor: accent }}>{children}</div>;
+  };
+
   const wrap = { ...fontStyle, width: "100%" };
 
   if (templateId === "classic") return (
     <div className="resume-preview r-classic" style={wrap}>
-      <div className="r-head">
+      <div className="r-head" style={{ background: accent }}>
         <div className={`r-name${!hasName ? " r-ghost" : ""}`}>{nameText}</div>
         <div className="r-contact"><Contacts /></div>
       </div>
       <div className="r-body">
         <div className="r-left">
-          <div className="r-sec">Skills</div><SkillTags accent="#1e293b" />
-          <div className="r-sec">Education</div><Edu />
-          {languages.some(l => l.language) && <><div className="r-sec">Languages</div>{languages.filter(l => l.language).map(l => <div key={l.id} className="r-esub">{l.language} — {l.proficiency}</div>)}</>}
+          <div className="r-sec" style={{ color: accent, borderBottomColor: accent }}>Skills</div>
+          <SkillTags />
+          <div className="r-sec" style={{ color: accent, borderBottomColor: accent }}>Education</div>
+          <Edu />
+          {hasCerts && <><div className="r-sec" style={{ color: accent, borderBottomColor: accent }}>Certifications</div><Certs /></>}
+          {hasLangs && <><div className="r-sec" style={{ color: accent, borderBottomColor: accent }}>Languages</div><Langs /></>}
         </div>
         <div className="r-right">
-          <div className="r-sec">Summary</div><Sum />
-          <div className="r-sec">Experience</div><ExpItems />
-          {projects.some(p => p.name) && <><div className="r-sec">Projects</div><Projs /></>}
+          <div className="r-sec" style={{ color: accent, borderBottomColor: accent }}>Summary</div><Sum />
+          <div className="r-sec" style={{ color: accent, borderBottomColor: accent }}>Experience</div><ExpItems />
+          {projects.some(p => p.name) && <><div className="r-sec" style={{ color: accent, borderBottomColor: accent }}>Projects</div><Projs /></>}
         </div>
       </div>
     </div>
@@ -472,7 +519,7 @@ function ResumePreview({ data, templateId, styling }) {
 
   if (templateId === "modern") return (
     <div className="resume-preview r-modern" style={wrap}>
-      <div className="r-head">
+      <div className="r-head" style={{ background: accent }}>
         <div className="r-avatar">{personal.photo ? <img src={personal.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}} /> : "👤"}</div>
         <div>
           <div className={`r-name${!hasName ? " r-ghost" : ""}`}>{nameText}</div>
@@ -480,12 +527,13 @@ function ResumePreview({ data, templateId, styling }) {
         </div>
       </div>
       <div className="r-body">
-        <div className="r-sec">Summary</div><Sum />
-        <div className="r-sec">Experience</div><ExpItems />
-        <div className="r-sec">Skills</div><SkillTags accent="#7c3aed" />
-        <div className="r-sec">Education</div><Edu />
-         <div className="r-sec">Projects</div><Projs />
-          <div className="r-sec">Certifications</div><certifications />
+        <div className="r-sec" style={{ color: accent }}>Summary</div><Sum />
+        <div className="r-sec" style={{ color: accent }}>Experience</div><ExpItems />
+        <div className="r-sec" style={{ color: accent }}>Skills</div><SkillTags />
+        <div className="r-sec" style={{ color: accent }}>Education</div><Edu />
+        {hasCerts && <><div className="r-sec" style={{ color: accent }}>Certifications</div><Certs /></>}
+        {hasLangs && <><div className="r-sec" style={{ color: accent }}>Languages</div><Langs /></>}
+        {projects.some(p => p.name) && <><div className="r-sec" style={{ color: accent }}>Projects</div><Projs /></>}
       </div>
     </div>
   );
@@ -494,49 +542,51 @@ function ResumePreview({ data, templateId, styling }) {
     <div className="resume-preview r-minimal" style={wrap}>
       <div className="r-head">
         <div className={`r-name${!hasName ? " r-ghost-dark" : ""}`}>{nameText}</div>
-        {experience[0]?.role && <div className="r-role">{experience[0].role}</div>}
+        {experience[0]?.role && <div className="r-role" style={{ color: accent }}>{experience[0].role}</div>}
         <div className="r-contact"><Contacts /></div>
       </div>
       <div className="r-body">
-        <div className="r-sec">About</div><Sum />
-        <div className="r-sec">Experience</div><ExpItems />
-        <div className="r-sec">Skills</div><SkillTags accent="#111827" />
-        <div className="r-sec">Education</div><Edu />
-        <div className="r-sec">Projects</div><Projs />
-        <div className="r-sec">Certifications</div><certifications />
+        <div className="r-sec" style={{ color: accent }}>About</div><Sum />
+        <div className="r-sec" style={{ color: accent }}>Experience</div><ExpItems />
+        <div className="r-sec" style={{ color: accent }}>Skills</div><SkillTags />
+        <div className="r-sec" style={{ color: accent }}>Education</div><Edu />
+        {hasCerts && <><div className="r-sec" style={{ color: accent }}>Certifications</div><Certs /></>}
+        {hasLangs && <><div className="r-sec" style={{ color: accent }}>Languages</div><Langs /></>}
+        {projects.some(p => p.name) && <><div className="r-sec" style={{ color: accent }}>Projects</div><Projs /></>}
       </div>
     </div>
   );
 
   if (templateId === "professional") return (
     <div className="resume-preview r-professional" style={wrap}>
-      <div className="r-head">
+      <div className="r-head" style={{ background: accent }}>
         <div className={`r-name${!hasName ? " r-ghost" : ""}`}>{nameText}</div>
         <div className="r-contact"><Contacts /></div>
       </div>
       <div className="r-body">
-        <div className="r-sec">Professional Summary</div><Sum />
-        <div className="r-sec">Work Experience</div><ExpItems />
-        <div className="r-sec">Technical Skills</div><SkillTags accent="#1d4ed8" />
-        <div className="r-sec">Education</div><Edu />
-        <div className="r-sec">Projects</div><Projs />
-         <div className="r-sec">Certifications</div><certifications />
+        <div className="r-sec" style={{ color: accent, borderTopColor: accentBg, borderBottomColor: accentBg }}>Professional Summary</div><Sum />
+        <div className="r-sec" style={{ color: accent, borderTopColor: accentBg, borderBottomColor: accentBg }}>Work Experience</div><ExpItems />
+        <div className="r-sec" style={{ color: accent, borderTopColor: accentBg, borderBottomColor: accentBg }}>Technical Skills</div><SkillTags />
+        <div className="r-sec" style={{ color: accent, borderTopColor: accentBg, borderBottomColor: accentBg }}>Education</div><Edu />
+        {hasCerts && <><div className="r-sec" style={{ color: accent, borderTopColor: accentBg, borderBottomColor: accentBg }}>Certifications</div><Certs /></>}
+        {hasLangs && <><div className="r-sec" style={{ color: accent, borderTopColor: accentBg, borderBottomColor: accentBg }}>Languages</div><Langs /></>}
       </div>
     </div>
   );
 
   if (templateId === "creative") return (
     <div className="resume-preview r-creative" style={wrap}>
-      <div className="r-head">
+      <div className="r-head" style={{ background: `linear-gradient(135deg, ${accent}, ${accent}bb)` }}>
         <div className={`r-name${!hasName ? " r-ghost" : ""}`}>{nameText}</div>
         <div className="r-contact"><Contacts /></div>
       </div>
       <div className="r-body">
-        <div className="r-sec">Profile</div><Sum />
-        <div className="r-sec">Experience</div><ExpItems />
-        <div className="r-sec">Skills</div><SkillTags accent="#db2777" />
-        <div className="r-sec">Projects</div><Projs />
-         <div className="r-sec">Certifications</div><certifications />
+        <div className="r-sec" style={{ background: accent }}>Profile</div><Sum />
+        <div className="r-sec" style={{ background: accent }}>Experience</div><ExpItems />
+        <div className="r-sec" style={{ background: accent }}>Skills</div><SkillTags />
+        {projects.some(p => p.name) && <><div className="r-sec" style={{ background: accent }}>Projects</div><Projs /></>}
+        {hasCerts && <><div className="r-sec" style={{ background: accent }}>Certifications</div><Certs /></>}
+        {hasLangs && <><div className="r-sec" style={{ background: accent }}>Languages</div><Langs /></>}
       </div>
     </div>
   );
@@ -544,37 +594,38 @@ function ResumePreview({ data, templateId, styling }) {
   if (templateId === "elegant") return (
     <div className="resume-preview r-elegant" style={wrap}>
       <div className="r-head">
-        <div className={`r-name${!hasName ? " r-ghost-dark" : ""}`}>{nameText}</div>
-        <div className="r-div" />
+        <div className={`r-name${!hasName ? " r-ghost-dark" : ""}`} style={{ color: accent }}>{nameText}</div>
+        <div className="r-div" style={{ background: accent }} />
         <div className="r-contact"><Contacts /></div>
       </div>
       <div className="r-body">
-        <div className="r-sec">Summary</div><Sum />
-        <div className="r-sec">Experience</div><ExpItems />
-        <div className="r-sec">Education</div><Edu />
-        <div className="r-sec">Skills</div><SkillTags accent="#4338ca" />
-        <div className="r-sec">Projects</div><Projs />
-          <div className="r-sec">Certifications</div><certifications />
+        <div className="r-sec" style={{ color: accent, borderBottomColor: accentBg }}>Summary</div><Sum />
+        <div className="r-sec" style={{ color: accent, borderBottomColor: accentBg }}>Experience</div><ExpItems />
+        <div className="r-sec" style={{ color: accent, borderBottomColor: accentBg }}>Education</div><Edu />
+        <div className="r-sec" style={{ color: accent, borderBottomColor: accentBg }}>Skills</div><SkillTags />
+        {hasCerts && <><div className="r-sec" style={{ color: accent, borderBottomColor: accentBg }}>Certifications</div><Certs /></>}
+        {hasLangs && <><div className="r-sec" style={{ color: accent, borderBottomColor: accentBg }}>Languages</div><Langs /></>}
       </div>
     </div>
   );
 
   if (templateId === "compact") return (
     <div className="resume-preview r-compact" style={wrap}>
-      <div className="r-head">
+      <div className="r-head" style={{ background: accent }}>
         <div className={`r-name${!hasName ? " r-ghost" : ""}`}>{nameText}</div>
         <div className="r-contact"><Contacts /></div>
       </div>
       <div className="r-body">
-        <div className="r-left">
-          <div className="r-sec">Skills</div><SkillTags accent="#065f46" />
-          <div className="r-sec">Education</div><Edu />
+        <div className="r-left" style={{ borderRightColor: accent }}>
+          <div className="r-sec" style={{ color: accent }}>Skills</div><SkillTags />
+          <div className="r-sec" style={{ color: accent }}>Education</div><Edu />
+          {hasCerts && <><div className="r-sec" style={{ color: accent }}>Certs</div><Certs /></>}
+          {hasLangs && <><div className="r-sec" style={{ color: accent }}>Languages</div><Langs /></>}
         </div>
         <div className="r-right">
-          <div className="r-sec">Summary</div><Sum />
-          <div className="r-sec">Experience</div><ExpItems />
-          <div className="r-sec">Projects</div><Projs />
-           <div className="r-sec">Certifications</div><certifications />
+          <div className="r-sec" style={{ color: accent }}>Summary</div><Sum />
+          <div className="r-sec" style={{ color: accent }}>Experience</div><ExpItems />
+          {projects.some(p => p.name) && <><div className="r-sec" style={{ color: accent }}>Projects</div><Projs /></>}
         </div>
       </div>
     </div>
@@ -583,41 +634,45 @@ function ResumePreview({ data, templateId, styling }) {
   if (templateId === "bold") return (
     <div className="resume-preview r-bold" style={wrap}>
       <div className="r-head">
-        <div className="r-banner" />
+        <div className="r-banner" style={{ background: accent }} />
         <div className="r-head-inner">
           <div className={`r-name${!hasName ? " r-ghost" : ""}`}>{nameText}</div>
           <div className="r-contact"><Contacts /></div>
         </div>
       </div>
       <div className="r-body">
-        <div className="r-sec">Profile</div><Sum />
-        <div className="r-sec">Experience</div><ExpItems />
-        <div className="r-sec">Skills</div><SkillTags accent="#dc2626" />
-        <div className="r-sec">Education</div><Edu />
-        <div className="r-sec">Projects</div><Projs />
-         <div className="r-sec">Certifications</div><certifications />
+        <div className="r-sec" style={{ color: accent, borderLeftColor: accent }}>Profile</div><Sum />
+        <div className="r-sec" style={{ color: accent, borderLeftColor: accent }}>Experience</div><ExpItems />
+        <div className="r-sec" style={{ color: accent, borderLeftColor: accent }}>Skills</div><SkillTags />
+        <div className="r-sec" style={{ color: accent, borderLeftColor: accent }}>Education</div><Edu />
+        {hasCerts && <><div className="r-sec" style={{ color: accent, borderLeftColor: accent }}>Certifications</div><Certs /></>}
+        {hasLangs && <><div className="r-sec" style={{ color: accent, borderLeftColor: accent }}>Languages</div><Langs /></>}
+        {projects.some(p => p.name) && <><div className="r-sec" style={{ color: accent, borderLeftColor: accent }}>Projects</div><Projs /></>}
       </div>
     </div>
   );
 
   if (templateId === "timeline") return (
     <div className="resume-preview r-timeline" style={wrap}>
-      <div className="r-head">
+      <div className="r-head" style={{ background: `linear-gradient(160deg, ${accent}ee, ${accent})` }}>
         <div className={`r-name${!hasName ? " r-ghost" : ""}`}>{nameText}</div>
         <div className="r-contact"><Contacts /></div>
       </div>
       <div className="r-body">
-        <div className="r-sec">Summary</div><Sum />
-        <div className="r-sec">Experience</div>
+        <div className="r-sec" style={{ color: accent }}>Summary</div><Sum />
+        <div className="r-sec" style={{ color: accent }}>Experience</div>
         {experience.filter(e => e.company || e.role).map(e => (
-          <div key={e.id} className="tl">
+          <div key={e.id} className="tl" style={{ borderLeftColor: accentBg }}>
             <div className="r-etitle">{e.role}</div>
             <div className="r-esub">{e.company}{e.duration ? ` · ${e.duration}` : ""}</div>
             {e.description && <div className="r-ebody">{e.description}</div>}
+            <span style={{ position:"absolute", left:-5, top:4, width:8, height:8, borderRadius:"50%", background:accent, display:"block" }}></span>
           </div>
         ))}
         {experience.every(e => !e.company && !e.role) && <div className="r-placeholder">Experience appears here…</div>}
-        <div className="r-sec">Skills</div><SkillTags accent="#5b21b6" />
+        <div className="r-sec" style={{ color: accent }}>Skills</div><SkillTags />
+        {hasCerts && <><div className="r-sec" style={{ color: accent }}>Certifications</div><Certs /></>}
+        {hasLangs && <><div className="r-sec" style={{ color: accent }}>Languages</div><Langs /></>}
       </div>
     </div>
   );
@@ -625,16 +680,19 @@ function ResumePreview({ data, templateId, styling }) {
   // executive
   return (
     <div className="resume-preview r-executive" style={wrap}>
-      <div className="r-head">
-        <div className={`r-name${!hasName ? " r-ghost-dark" : ""}`}>{nameText}</div>
+      <div className="r-head" style={{ borderBottomColor: accent }}>
+        <div className={`r-name${!hasName ? " r-ghost-dark" : ""}`} style={{ color: accent }}>{nameText}</div>
         {experience[0]?.role && <div className="r-role">{experience[0].role}</div>}
         <div className="r-contact"><Contacts /></div>
       </div>
       <div className="r-body">
-        <div className="r-sec">Executive Summary</div><Sum />
-        <div className="r-sec">Professional Experience</div><ExpItems />
-        <div className="r-sec">Core Competencies</div><SkillTags accent="#1e3a5f" />
-        <div className="r-sec">Education</div><Edu />
+        <div className="r-sec" style={{ color: accent, background: accentBg }}>Executive Summary</div><Sum />
+        <div className="r-sec" style={{ color: accent, background: accentBg }}>Professional Experience</div><ExpItems />
+        <div className="r-sec" style={{ color: accent, background: accentBg }}>Core Competencies</div><SkillTags />
+        <div className="r-sec" style={{ color: accent, background: accentBg }}>Education</div><Edu />
+        {hasCerts && <><div className="r-sec" style={{ color: accent, background: accentBg }}>Certifications</div><Certs /></>}
+        {hasLangs && <><div className="r-sec" style={{ color: accent, background: accentBg }}>Languages</div><Langs /></>}
+        {projects.some(p => p.name) && <><div className="r-sec" style={{ color: accent, background: accentBg }}>Projects</div><Projs /></>}
       </div>
     </div>
   );
