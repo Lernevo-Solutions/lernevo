@@ -1,225 +1,98 @@
 import React, { useState } from 'react';
 import './HomePage.css';
-
+import { useNavigate } from "react-router-dom";
 const AllTemplatesPage = () => {
-  // ---------- 21 Unique Template Definitions ----------
+  const navigate = useNavigate();
+  
   const templates = [
-    // 1. Classic Sidebar (structure: sidebar-left)
-    {
-      id: 1,
-      name: 'Classic Sidebar',
-      layoutClass: 'layout-sidebar',
-      structure: 'sidebar-left',
-      photo: true,
-      contact: true
-    },
-    // 2. Modern Centered (structure: top-centered)
-    {
-      id: 2,
-      name: 'Modern Centered',
-      layoutClass: 'layout-modern-centered',
-      structure: 'top-centered',
-      photo: true,
-      contact: true
-    },
-    // 3. Minimal Clean (structure: minimal-no-photo)
-    {
-      id: 3,
-      name: 'Minimal Clean',
-      layoutClass: 'layout-minimal-clean',
-      structure: 'minimal-no-photo',
-      photo: false,
-      contact: false
-    },
-    // 4. Executive Grid (structure: executive-grid)
-    {
-      id: 4,
-      name: 'Executive Grid',
-      layoutClass: 'layout-executive-grid',
-      structure: 'executive-grid',
-      photo: true,
-      contact: true
-    },
-    // 5. Top Bar Bold (structure: header-bg)
-    {
-      id: 5,
-      name: 'Top Bar Bold',
-      layoutClass: 'layout-top-bar',
-      structure: 'header-bg',
-      photo: false,
-      contact: true
-    },
-    // 6. Creative Asymmetry (structure: asymmetric)
-    {
-      id: 6,
-      name: 'Creative Asymmetry',
-      layoutClass: 'layout-creative',
-      structure: 'asymmetric',
-      photo: true,
-      contact: true
-    },
-    // 7. Professional Card (structure: professional-card)
-    {
-      id: 7,
-      name: 'Professional Card',
-      layoutClass: 'layout-professional-card',
-      structure: 'professional-card',
-      photo: true,
-      contact: true
-    },
-    // 8. Technical Compact (structure: compact)
-    {
-      id: 8,
-      name: 'Technical Compact',
-      layoutClass: 'layout-compact',
-      structure: 'compact',
-      photo: true,
-      contact: true
-    },
-    // 9. Infographic Style (structure: infographic)
-    {
-      id: 9,
-      name: 'Infographic Style',
-      layoutClass: 'layout-infographic',
-      structure: 'infographic',
-      photo: true,
-      contact: false
-    },
-    // 10. Minimalist No Photo (structure: minimal-no-photo)
-    {
-      id: 10,
-      name: 'Minimalist No Photo',
-      layoutClass: 'layout-minimal-no-photo',
-      structure: 'minimal-no-photo',
-      photo: false,
-      contact: false
-    },
-    // 11. Two Column Modern (structure: two-column)
-    {
-      id: 11,
-      name: 'Two Column Modern',
-      layoutClass: 'layout-two-column-modern',
-      structure: 'two-column',
-      photo: true,
-      contact: true
-    },
-    // 12. Sidebar Right (structure: sidebar-right)
-    {
-      id: 12,
-      name: 'Sidebar Right',
-      layoutClass: 'layout-sidebar-right',
-      structure: 'sidebar-right',
-      photo: true,
-      contact: true
-    },
-    // 13. Header with Background (structure: header-bg)
-    {
-      id: 13,
-      name: 'Header with Background',
-      layoutClass: 'layout-header-bg',
-      structure: 'header-bg',
-      photo: false,
-      contact: true
-    },
-    // 14. Bold Dark Sidebar (structure: sidebar-left)
-    {
-      id: 14,
-      name: 'Bold Dark Sidebar',
-      layoutClass: 'layout-bold-dark',
-      structure: 'sidebar-left',
-      photo: true,
-      contact: true
-    },
-    // 15. Light Pastel (structure: pastel)
-    {
-      id: 15,
-      name: 'Light Pastel',
-      layoutClass: 'layout-light-pastel',
-      structure: 'pastel',
-      photo: true,
-      contact: true
-    },
-    // 16. Card Style (structure: card-style)
-    {
-      id: 16,
-      name: 'Card Style',
-      layoutClass: 'layout-card-style',
-      structure: 'card-style',
-      photo: true,
-      contact: true
-    },
-    // 17. Timeline Experience (structure: timeline)
-    {
-      id: 17,
-      name: 'Timeline Experience',
-      layoutClass: 'layout-timeline',
-      structure: 'timeline',
-      photo: true,
-      contact: true
-    },
-    // 18. Grid Skills (structure: grid-skills)
-    {
-      id: 18,
-      name: 'Grid Skills',
-      layoutClass: 'layout-grid-skills',
-      structure: 'grid-skills',
-      photo: true,
-      contact: true
-    },
-    // 19. Minimal with Accent (structure: minimal-accent)
-    {
-      id: 19,
-      name: 'Minimal with Accent',
-      layoutClass: 'layout-minimal-accent',
-      structure: 'minimal-accent',
-      photo: false,
-      contact: false
-    },
-    // 20. Creative Stack (structure: creative-stack)
-    {
-      id: 20,
-      name: 'Creative Stack',
-      layoutClass: 'layout-creative-stack',
-      structure: 'creative-stack',
-      photo: true,
-      contact: true
-    },
-    // 21. Executive Premium (structure: executive-grid)
-    {
-      id: 21,
-      name: 'Executive Premium',
-      layoutClass: 'layout-executive-premium',
-      structure: 'executive-grid',
-      photo: true,
-      contact: true
-    }
+    
+    { 
+    id: 0, 
+    name: 'Blank Document', 
+    layoutClass: 'layout-blank', 
+    structure: 'blank-start', 
+    photo: false, 
+    contact: false 
+  },
+    { id: 1, name: 'Classic Sidebar', layoutClass: 'layout-sidebar', structure: 'sidebar-left', photo: true, contact: true },
+    { id: 2, name: 'Modern Centered', layoutClass: 'layout-modern-centered', structure: 'top-centered', photo: true, contact: true },
+    { id: 3, name: 'Minimal Clean', layoutClass: 'layout-minimal-clean', structure: 'minimal-no-photo', photo: false, contact: false },
+    { id: 4, name: 'Executive Grid', layoutClass: 'layout-executive-grid', structure: 'executive-grid', photo: true, contact: true },
+    { id: 5, name: 'Top Bar Bold', layoutClass: 'layout-top-bar', structure: 'header-bg', photo: false, contact: true },
+    { id: 6, name: 'Creative Asymmetry', layoutClass: 'layout-creative', structure: 'asymmetric', photo: true, contact: true },
+    { id: 7, name: 'Professional Card', layoutClass: 'layout-professional-card', structure: 'professional-card', photo: true, contact: true },
+    { id: 8, name: 'Technical Compact', layoutClass: 'layout-compact', structure: 'compact', photo: true, contact: true },
+    { id: 9, name: 'Infographic Style', layoutClass: 'layout-infographic', structure: 'infographic', photo: true, contact: false },
+    { id: 10, name: 'Minimalist No Photo', layoutClass: 'layout-minimal-no-photo', structure: 'minimal-no-photo', photo: false, contact: false },
+    { id: 11, name: 'Two Column Modern', layoutClass: 'layout-two-column-modern', structure: 'two-column', photo: true, contact: true },
+    { id: 12, name: 'Sidebar Right', layoutClass: 'layout-sidebar-right', structure: 'sidebar-right', photo: true, contact: true },
+    { id: 13, name: 'Header with Background', layoutClass: 'layout-header-bg', structure: 'header-bg', photo: false, contact: true },
+    { id: 14, name: 'Bold Dark Sidebar', layoutClass: 'layout-bold-dark', structure: 'sidebar-left', photo: true, contact: true },
+    { id: 15, name: 'Light Pastel', layoutClass: 'layout-light-pastel', structure: 'pastel', photo: true, contact: true },
+    { id: 16, name: 'Card Style', layoutClass: 'layout-card-style', structure: 'card-style', photo: true, contact: true },
+    { id: 17, name: 'Timeline Experience', layoutClass: 'layout-timeline', structure: 'timeline', photo: true, contact: true },
+    { id: 18, name: 'Grid Skills', layoutClass: 'layout-grid-skills', structure: 'grid-skills', photo: true, contact: true },
+    { id: 19, name: 'Minimal with Accent', layoutClass: 'layout-minimal-accent', structure: 'minimal-accent', photo: false, contact: false },
+    { id: 20, name: 'Creative Stack', layoutClass: 'layout-creative-stack', structure: 'creative-stack', photo: true, contact: true },
+    
+    //{ id: 21, name: 'Executive Premium', layoutClass: 'layout-executive-premium', structure: 'executive-grid', photo: true, contact: true }
   ];
 
-  // ---------- Tamil Nadu Profile ----------
   const tnProfile = {
     name: "M. SENTHIL KUMAR",
     title: "Senior Software Engineer",
-    summary: "Dedicated professional from Chennai with 7+ years of experience in Zoho and Freshworks. Specialized in building scalable web applications for the Tamil Nadu tech industry.",
+    summary: "Dedicated professional from Chennai with 7+ years of experience in Zoho and Freshworks. Specialized in building scalable web applications and cloud-based solutions for the Tamil Nadu tech industry.",
     contact: {
       phone: "+91 98745 61230",
-      location: "Chennai, TN"
+      email: "senthil.kumar@email.com",
+      location: "Chennai, Tamil Nadu, India",
+      linkedin: "linkedin.com/in/senthilkumar",
+      github: "github.com/senthilkumar"
     },
-    experience: "Lead Developer at Zoho Corporation (2019-Present)",
-    skills: ["React.js", "Node.js", "Cloud Tech", "Team Management"]
+    experience: [
+      { role: "Lead Developer", company: "Zoho Corporation", duration: "2019 - Present", description: "Leading a team of developers to build enterprise SaaS products, improving performance and scalability for global customers." },
+      { role: "Software Engineer", company: "Freshworks", duration: "2017 - 2019", description: "Developed customer support automation tools and integrated REST APIs for CRM systems." }
+    ],
+    education: { degree: "B.E. Computer Science and Engineering", college: "Anna University", year: "2016" },
+    skills: ["React.js", "Node.js", "JavaScript", "Cloud Technologies", "REST API Development", "Microservices", "Team Management"],
+    projects: [
+      { name: "Customer Support Automation Platform", tech: ["React", "Node.js", "AWS"], description: "Built a scalable automation system used by multiple enterprises to handle customer tickets efficiently." },
+      { name: "SaaS Analytics Dashboard", tech: ["React", "Chart.js", "Node.js"], description: "Developed a real-time analytics dashboard to visualize business performance metrics." }
+    ],
+    certifications: ["AWS Certified Solutions Architect", "Google Cloud Professional Developer"],
+    achievements: ["Employee of the Year – Zoho Corporation (2022)", "Led a team that improved product performance by 40%"],
+    languages: ["Tamil", "English"]
   };
 
-  // State for color dots
   const [selectedColors, setSelectedColors] = useState({});
 
-  // Helper to get avatar image (different for each template using id offset)
-  const getPhotoUrl = (id) =>
-    `https://xsgames.co/randomusers/assets/avatars/male/${(id * 3 + 17) % 75}.jpg`;
+  const getPhotoUrl = (id) => `https://xsgames.co/randomusers/assets/avatars/male/${(id * 3 + 17) % 75}.jpg`;
 
-  // ---------- Render functions for each structure ----------
+  // Helper to render experience items consistently
+  const renderExp = (isCompact = false) => (
+    tnProfile.experience.map((exp, i) => (
+      <div key={i} style={{ marginBottom: isCompact ? '4px' : '8px' }}>
+        <strong>{exp.role}</strong> - {exp.company}
+        <div style={{ fontSize: isCompact ? "8px" : "10px" }}>{exp.duration}</div>
+        {!isCompact && <p style={{ fontSize: "9px", margin: "2px 0" }}>{exp.description}</p>}
+      </div>
+    ))
+  );
+
   const renderResumeContent = (tpl, currentColor) => {
     const photoUrl = getPhotoUrl(tpl.id);
 
     switch (tpl.structure) {
+      case 'blank-start':
+  return (
+    <div className="res-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#fff' }}>
+      <div style={{ textAlign: 'center', color: '#cbd5e1' }}>
+        <div style={{ fontSize: '40px', marginBottom: '10px' }}>+</div>
+        <p style={{ fontSize: '12px', fontWeight: '600' }}>Start from Scratch</p>
+        <p style={{ fontSize: '10px', padding: '0 20px' }}>Add your details to build a custom resume</p>
+      </div>
+    </div>
+  );
       case 'sidebar-left':
         return (
           <div className="res-content">
@@ -229,6 +102,7 @@ const AllTemplatesPage = () => {
                 <div className="res-side-sec">
                   <h6 style={{ color: currentColor }}>CONTACT</h6>
                   <p>{tnProfile.contact.phone}</p>
+                   <p>{tnProfile.contact.email}</p> 
                   <p>{tnProfile.contact.location}</p>
                 </div>
               )}
@@ -240,7 +114,7 @@ const AllTemplatesPage = () => {
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -268,14 +142,13 @@ const AllTemplatesPage = () => {
               )}
             </div>
             <div className="res-main">
-              {/* same as sidebar-left main */}
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>SUMMARY</h6>
                 <p>{tnProfile.summary}</p>
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -300,7 +173,7 @@ const AllTemplatesPage = () => {
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -314,68 +187,140 @@ const AllTemplatesPage = () => {
           </div>
         );
 
-      case 'minimal-no-photo':
-        return (
-          <div className="res-content">
-            <div className="res-main" style={{ padding: '25px' }}>
-              <div className="res-sec">
-                <h6 style={{ color: currentColor }}>SUMMARY</h6>
-                <p>{tnProfile.summary}</p>
-              </div>
-              <div className="res-sec">
-                <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
-              </div>
-              <div className="res-sec">
-                <h6 style={{ color: currentColor }}>SKILLS</h6>
-                <div className="skill-tags">
-                  {tnProfile.skills.map(s => (
-                    <span key={s} style={{ border: `1px solid ${currentColor}`, color: currentColor }}>{s}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+     case 'minimal-no-photo':
+  return (
+    <div className="res-content">
+      <div className="res-main" style={{ padding: '25px' }}>
 
+        {/* NAME + CONTACT */}
+        <div style={{ marginBottom: "15px" }}>
+          <h3 style={{ marginBottom: "4px" }}>{tnProfile.name}</h3>
+          <p style={{ fontSize: "9px", color: "#64748b" }}>
+            {tnProfile.contact.email} | {tnProfile.contact.phone} | {tnProfile.contact.location}
+          </p>
+        </div>
+
+        {/* SUMMARY */}
+        <div
+          style={{
+            background: "#f8fafc",
+            padding: "12px",
+            borderRadius: "8px",
+            marginBottom: "12px",
+            borderLeft: `3px solid ${currentColor}`
+          }}
+        >
+          <h6 style={{ color: currentColor }}>SUMMARY</h6>
+          <p>{tnProfile.summary}</p>
+        </div>
+
+        {/* EXPERIENCE */}
+        <div
+          style={{
+            background: "#f8fafc",
+            padding: "12px",
+            borderRadius: "8px",
+            marginBottom: "12px",
+            borderLeft: `3px solid ${currentColor}`
+          }}
+        >
+          <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
+          {renderExp()}
+        </div>
+
+        {/* SKILLS */}
+        <div
+          style={{
+            background: "#f8fafc",
+            padding: "12px",
+            borderRadius: "8px",
+            borderLeft: `3px solid ${currentColor}`
+          }}
+        >
+          <h6 style={{ color: currentColor }}>SKILLS</h6>
+
+          <div className="skill-tags">
+            {tnProfile.skills.map(s => (
+              <span
+                key={s}
+                style={{
+                  border: `1px solid ${currentColor}`,
+                  color: currentColor,
+                  fontSize: "8px",
+                  padding: "3px 6px",
+                  borderRadius: "10px",
+                  marginRight: "4px"
+                }}
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
       case 'executive-grid':
-        return (
-          <div className="res-content">
-            <div className="res-main">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div>
-                  {tpl.photo && <img src={photoUrl} alt="profile" className="res-img-small" />}
-                  {tpl.contact && (
-                    <>
-                      <h6 style={{ color: currentColor }}>CONTACT</h6>
-                      <p>{tnProfile.contact.phone}</p>
-                      <p>{tnProfile.contact.location}</p>
-                    </>
-                  )}
-                </div>
-                <div>
-                  <h6 style={{ color: currentColor }}>SUMMARY</h6>
-                  <p>{tnProfile.summary}</p>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
-                <div>
-                  <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                  <p><strong>{tnProfile.experience}</strong></p>
-                </div>
-                <div>
-                  <h6 style={{ color: currentColor }}>SKILLS</h6>
-                  <div className="skill-tags">
-                    {tnProfile.skills.map(s => (
-                      <span key={s} style={{ border: `1px solid ${currentColor}`, color: currentColor }}>{s}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+  return (
+    <div className="res-content">
+      <div className="executive-grid-layout">
 
+        {/* LEFT SIDE */}
+        <div className="exec-left">
+
+          {tpl.photo && (
+            <img src={photoUrl} alt="profile" className="exec-photo" />
+          )}
+
+          {tpl.contact && (
+            <div className="exec-section">
+              <h6 style={{ color: currentColor }}>CONTACT</h6>
+              <p>{tnProfile.contact.phone}</p>
+              <p>{tnProfile.contact.email}</p>
+              <p>{tnProfile.contact.location}</p>
+            </div>
+          )}
+
+          <div className="exec-section">
+            <h6 style={{ color: currentColor }}>SKILLS</h6>
+
+            <div className="exec-skills">
+              {tnProfile.skills.map((s) => (
+                <span
+                  key={s}
+                  style={{
+                    background: currentColor,
+                    color: "#fff"
+                  }}
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="exec-right">
+
+          <div className="exec-section">
+            <h6 style={{ color: currentColor }}>SUMMARY</h6>
+            <p>{tnProfile.summary}</p>
+          </div>
+
+          <div className="exec-section">
+            <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
+            {renderExp()}
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
       case 'header-bg':
         return (
           <div className="res-content">
@@ -392,7 +337,7 @@ const AllTemplatesPage = () => {
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -417,7 +362,7 @@ const AllTemplatesPage = () => {
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -449,7 +394,7 @@ const AllTemplatesPage = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="res-sec" style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px' }}>
                   <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                  <p><strong>{tnProfile.experience}</strong></p>
+                  {renderExp(true)}
                 </div>
                 <div className="res-sec" style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px' }}>
                   <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -479,7 +424,8 @@ const AllTemplatesPage = () => {
                 <p>{tnProfile.summary}</p>
               </div>
               <div className="res-sec" style={{ fontSize: '9px' }}>
-                <strong>Exp:</strong> {tnProfile.experience}
+                <strong>Exp:</strong> 
+                {renderExp(true)}
               </div>
               <div className="skill-tags" style={{ marginTop: '8px' }}>
                 {tnProfile.skills.map(s => (
@@ -507,7 +453,7 @@ const AllTemplatesPage = () => {
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -545,7 +491,7 @@ const AllTemplatesPage = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
                 <div>
                   <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                  <p><strong>{tnProfile.experience}</strong></p>
+                  {renderExp()}
                 </div>
                 <div>
                   <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -577,7 +523,7 @@ const AllTemplatesPage = () => {
               </div>
               <div className="res-sec" style={{ background: '#fff', padding: '12px', borderRadius: '12px', marginBottom: '15px' }}>
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec" style={{ background: '#fff', padding: '12px', borderRadius: '12px' }}>
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -608,7 +554,7 @@ const AllTemplatesPage = () => {
               </div>
               <div style={{ background: '#fff', padding: '15px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div style={{ background: '#fff', padding: '15px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -634,8 +580,7 @@ const AllTemplatesPage = () => {
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
                 <div style={{ borderLeft: `2px solid ${currentColor}`, paddingLeft: '15px', marginLeft: '5px' }}>
-                  <p><strong>{tnProfile.experience}</strong></p>
-                  <p style={{ fontSize: '8px' }}>2019 - Present</p>
+                  {renderExp()}
                 </div>
               </div>
               <div className="res-sec">
@@ -667,7 +612,7 @@ const AllTemplatesPage = () => {
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec">
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -693,7 +638,7 @@ const AllTemplatesPage = () => {
                 <p>{tnProfile.summary}</p>
               </div>
               <div className="res-sec">
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div className="res-sec">
                 <div className="skill-tags">
@@ -705,7 +650,46 @@ const AllTemplatesPage = () => {
             </div>
           </div>
         );
+      case 'marketing-sidebar':
+  return (
+    <div className="resume marketing-sidebar">
 
+      <div className="sidebar">
+        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="profile" />
+
+        <h4>Contact</h4>
+        <p>{tnProfile.contact.phone}</p>
+        <p>{tnProfile.contact.email}</p>
+        <p>{tnProfile.contact.location}</p>
+
+        <h4>Skills</h4>
+        {tnProfile.skills.map(s => (
+          <p key={s}>{s}</p>
+        ))}
+
+        <h4>Languages</h4>
+        <p>English</p>
+        <p>Tamil</p>
+      </div>
+
+      <div className="main">
+        <h2>{tnProfile.name}</h2>
+        <h4>{tnProfile.title}</h4>
+        <p>{tnProfile.summary}</p>
+
+        <h3>Professional Experience</h3>
+
+        {renderExp()}
+
+        <h3>Education</h3>
+        <p>Bachelor of Engineering</p>
+
+        <h3>References</h3>
+        <p>Available on request</p>
+      </div>
+
+    </div>
+  );
       case 'creative-stack':
         return (
           <div className="res-content">
@@ -723,7 +707,7 @@ const AllTemplatesPage = () => {
               </div>
               <div style={{ background: '#f1f5f9', padding: '15px', borderRadius: '16px', marginBottom: '15px' }}>
                 <h6 style={{ color: currentColor }}>EXPERIENCE</h6>
-                <p><strong>{tnProfile.experience}</strong></p>
+                {renderExp()}
               </div>
               <div style={{ background: '#f1f5f9', padding: '15px', borderRadius: '16px' }}>
                 <h6 style={{ color: currentColor }}>SKILLS</h6>
@@ -752,31 +736,35 @@ const AllTemplatesPage = () => {
 
         <div className="rb-all-templates-grid">
           {templates.map((tpl) => {
-            const currentColor = selectedColors[tpl.id] || '#2563eb'; // fallback blue
+            const currentColor = selectedColors[tpl.id] || '#2563eb';
 
             return (
               <div className="rb-template-full-card" key={tpl.id}>
-                <div className={`rb-card-preview-area ${tpl.layoutClass}`}>
-                  <div className="resume-canvas">
-                    {/* Header with dynamic color */}
-                    <div className="res-header" style={{ backgroundColor: currentColor }}>
-                      <h2>{tnProfile.name}</h2>
-                      <p>{tnProfile.title}</p>
-                    </div>
+                <div className={`rb-card-preview-area ${tpl.layoutClass}`}>  
+                 <div className="resume-canvas">
 
-                    {/* Render content based on structure */}
-                    {renderResumeContent(tpl, currentColor)}
-                  </div>
+  {tpl.structure !== "blank-start" && (
+    <div className="res-header" style={{ backgroundColor: currentColor }}>
+      <h2>{tnProfile.name}</h2>
+      <p>{tnProfile.title}</p>
+    </div>
+  )}
 
-                  {/* Hover overlay */}
+  {renderResumeContent(tpl, currentColor)}
+
+</div>
+                  
                   <div className="rb-hover-overlay">
-                    <button className="use-btn" style={{ backgroundColor: currentColor }}>
-                      Use Design
-                    </button>
+                    <button
+  className="use-btn"
+  style={{ backgroundColor: currentColor }}
+  onClick={() => navigate("/builder", { state: { template: tpl } })}
+>
+  Use Design
+</button>
                   </div>
                 </div>
 
-                {/* Footer controls */}
                 <div className="rb-card-footer">
                   <div className="color-dots">
                     {['#1e293b', '#2563eb', '#059669', '#dc2626'].map(c => (

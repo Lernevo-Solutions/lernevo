@@ -2620,16 +2620,18 @@ body {
 
 .rb-resume-inner-preview {
   background: white;
+  width: 100%;
+  height: 420px;               /* Increased height for a more realistic resume */
   border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.02);
-  border: 1px solid rgba(0,0,0,0.03);
-  text-align: left;
-  min-height: 280px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+  padding: 20px;                /* Slightly reduced padding */
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;             /* Keeps everything neat */
+  text-align: left;
 }
-
 /* Preview Header with Image */
 .rb-preview-header {
   display: flex;
@@ -3968,4 +3970,164 @@ body {
 .use-btn { color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
 .dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px #cbd5e1; }
-.tpl-label { margin-top: 10px; font-weight: 700; color: #334155; font-size: 14px; text-align: left; }
+.tpl-label { margin-top: 10px; font-weight: 700; color: #334155; font-size: 14px; text-align: left; }.marketing-sidebar{
+display:flex;
+font-family:Arial;
+}
+
+.marketing-sidebar .sidebar{
+width:30%;
+background:#0c3c60;
+color:white;
+padding:20px;
+}
+
+.marketing-sidebar .sidebar img{
+width:100px;
+border-radius:50%;
+margin-bottom:20px;
+}
+
+.marketing-sidebar .main{
+width:70%;
+padding:30px;
+background:#f4f4f4;
+}.marketing-sidebar{
+  display:flex;
+  width:100%;
+  min-height:420px;
+  font-family:Arial, sans-serif;
+}
+
+.marketing-sidebar .sidebar{
+  width:30%;
+  background:#0f3d5e;
+  color:white;
+  padding:20px;
+}
+
+.marketing-sidebar .sidebar img{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  margin-bottom:15px;
+}
+
+.marketing-sidebar .main{
+  width:70%;
+  background:white;
+  padding:20px;
+}.res-header{
+  width:100%;
+  padding:15px;
+  color:white;
+}.sidebar p{
+  word-break:break-word;
+  font-size:12px;
+}.marketing-sidebar{
+  display:flex;
+  width:100%;
+  min-height:420px;
+}
+
+.marketing-sidebar .sidebar{
+  width:30%;
+  background:#0f3d5e;
+  color:white;
+  padding:20px;
+}
+
+.marketing-sidebar .profile-img{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  margin-bottom:15px;
+}
+
+.marketing-sidebar .main{
+  width:70%;
+  background:white;
+  padding:20px;
+}
+
+.inner-header{
+  color:white;
+  padding:15px;
+  margin-bottom:20px;
+}
+
+.section{
+  margin-bottom:18px;
+}.executive-grid-layout{
+  display:grid;
+  grid-template-columns:35% 65%;
+  height:100%;
+}
+
+/* LEFT PANEL */
+
+.exec-left{
+  background:#f8fafc;
+  padding:15px;
+  border-right:1px solid #e2e8f0;
+}
+
+.exec-photo{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  margin-bottom:15px;
+  border:3px solid white;
+  box-shadow:0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* RIGHT PANEL */
+
+.exec-right{
+  padding:18px;
+}
+
+/* SECTIONS */
+
+.exec-section{
+  margin-bottom:15px;
+}
+
+.exec-section h6{
+  font-size:9px;
+  font-weight:800;
+  margin-bottom:5px;
+}
+
+.exec-section p{
+  font-size:9px;
+  color:#475569;
+}
+
+/* SKILLS */
+
+.exec-skills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+
+.exec-skills span{
+  font-size:8px;
+  padding:3px 7px;
+  border-radius:4px;
+  font-weight:600;
+}.contact-item{
+  font-size:9px;
+  margin-bottom:6px;
+  word-break: break-word;
+}.exec-section p{
+  font-size:9px;
+  color:#475569;
+  margin-bottom:6px;
+
+  white-space:normal;     /* allow line wrap */
+  overflow:visible;       /* don't hide text */
+  text-overflow:clip;     /* remove ellipsis */
+  word-break:break-word;  /* long email break properly */
+}

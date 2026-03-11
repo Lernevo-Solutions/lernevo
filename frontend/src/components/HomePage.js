@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './HomePage.css'; // Make sure the CSS file has the new class names
 import { Link } from 'react-router-dom';
+
 const HomePage = () => {
   const [skillScore, setSkillScore] = useState(0);
   const canvasRef = useRef(null);
@@ -61,77 +62,225 @@ const mockupRef = useRef(null);
     }, 10);
   };
 const [currentTemplate, setCurrentTemplate] = useState(0);
-const allTemplates = [
+
+const homeTemplates = [
   {
-    name: 'Classic',
-    nameText: 'DIYA AGARWAL',
-    title: 'Customer‑Owned Retail Sales Professional',
-    summary: 'Customer‑focused Retail Sales professional with solid understanding of retail dynamics...',
-    skills: ['Cash register', 'POS', 'Sales', 'Teamwork', 'Inventory'],
-    experience: ['2 years at XYZ Retail as Sales Associate', '3 years at ABC Store as Cashier'],
-    education: 'Diploma in Financial Accounting',
-    languages: [/* ... */],
-    badge: '⚡ Classic Template',
-    profileImage: 'https://randomuser.me/api/portraits/women/44.jpg'
+    id: 1,
+    name: "Sidebar Left",
+    structure: "sidebar-left",
+    photo: true,
+    contact: true
   },
   {
-    name: 'Modern',
-    nameText: 'DIYA AGARWAL',
-    title: 'Customer‑Owned Retail Sales Professional',
-    summary: 'Retail Sales professional with 5+ years of experience...',
-    skills: ['Cash register', 'POS', 'Sales', 'Teamwork', 'Inventory'],
-    experience: [/* ... */],
-    education: 'Diploma in Financial Accounting',
-    languages: [/* ... */],
-    badge: '✨ Modern Template',
-    profileImage: 'https://randomuser.me/api/portraits/women/45.jpg'
+    id: 2,
+    name: "Minimal",
+    structure: "minimal-no-photo",
+    photo: false,
+    contact: true
   },
   {
-    name: 'Professional',
-    nameText: 'DIY AGARWAL',
-    title: 'Retail Sales Professional',
-    summary: 'Results‑driven Retail Sales Associate with 5 years of experience...',
-    skills: ['Cash handling', 'POS', 'Upselling', 'Team leadership'],
-    experience: [/* ... */],
-    education: 'Diploma in Financial Accounting',
-    languages: [/* ... */],
-    badge: '📊 Professional Template',
-    profileImage: 'https://randomuser.me/api/portraits/women/46.jpg'
+    id: 3,
+    name: "Executive Grid",
+    structure: "executive-grid",
+    photo: true,
+    contact: true
   },
   {
-    name: 'Executive',
-    nameText: 'ALEX JOHNSON',
-    title: 'Senior Business Executive',
-    summary: 'Strategic leader with 15+ years of experience in operations and business development.',
-    skills: ['Leadership', 'Strategy', 'P&L Management', 'Team Building'],
-    experience: [
-      {
-        company: 'Global Corp',
-        role: 'VP of Operations',
-        bullets: ['Increased revenue by 30%', 'Led team of 50+']
-      }
-    ],
-    education: 'MBA, Harvard Business School',
-    languages: [],
-    badge: '🌟 Executive Template',
-    profileImage: 'https://randomuser.me/api/portraits/men/32.jpg'
+    id: 4,
+    name: "Header Bold",
+    structure: "header-bg",
+    photo: false,
+    contact: true
   }
 ];
+// Updated tnProfile (place this inside your HomePage component, replacing the old one)
+const tnProfile = {
+  name: "M. SENTHIL KUMAR",
+  title: "Senior Software Engineer",
+  summary: "Dedicated professional from Chennai with 7+ years of experience in Zoho and Freshworks. Specialized in building scalable web applications and cloud-based solutions for the Tamil Nadu tech industry.",
+  contact: {
+    phone: "+91 98745 61230",
+    email: "senthil.kumar@email.com",
+    location: "Chennai, Tamil Nadu, India"
+  },
+  skills: [
+    "React.js", "Node.js", "JavaScript", "Cloud Technologies",
+    "REST API Development", "Microservices", "Team Management"
+  ],
+  experience: [
+    {
+      role: "Lead Developer",
+      company: "Zoho Corporation",
+      period: "2019 - Present",
+      description: "Leading a team of developers to build enterprise SaaS products, improving performance and scalability for global customers."
+    },
+    {
+      role: "Software Engineer",
+      company: "Freshworks",
+      period: "2017 - 2019",
+      description: "Developed customer support automation tools and integrated REST APIs for CRM systems."
+    }
+  ]
+};
+// HomePage.js-la tnProfile-ku keela idha podunga
+const renderHomePreview = (tpl) => {
+  const primary = "#2563eb";
+  const photoUrl = "https://randomuser.me/api/portraits/men/32.jpg"
 
+  const data = {
+    name: tnProfile.name,
+    title: tnProfile.title,
+    summary: tnProfile.summary,
+    phone: tnProfile.contact.phone,
+    email: tnProfile.contact.email,
+    location: tnProfile.contact.location,
+    skills: tnProfile.skills,
+    experience: tnProfile.experience,
+  };
+
+  // ----- 1. SIDEBAR LEFT (Classic, matches your image) -----
+  if (tpl.structure === "sidebar-left") {
+    return (
+      <div style={{ display: "flex", height: "100%", background: "#fff", fontFamily: "Inter, sans-serif", borderRadius: "12px", overflow: "hidden" }}>
+        {/* Sidebar */}
+        <div style={{ width: "35%", background: "#1e293b", color: "#fff", padding: "16px 12px", display: "flex", flexDirection: "column" }}>
+          <img src={photoUrl} alt="" style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", border: "3px solid #fff", margin: "0 auto 16px" }} />
+          <div style={{ fontSize: "10px" }}>
+            <p style={{ fontWeight: "700", margin: "0 0 6px", borderBottom: "1px solid #475569", paddingBottom: "2px" }}>CONTACT</p>
+            <p style={{ margin: "4px 0" }}>{data.phone}</p>
+            <p style={{ margin: "4px 0", wordBreak: "break-word" }}>{data.email}</p>
+            <p style={{ margin: "4px 0" }}>{data.location}</p>
+          </div>
+          <div style={{ marginTop: "16px", fontSize: "10px" }}>
+            <p style={{ fontWeight: "700", margin: "0 0 6px", borderBottom: "1px solid #475569", paddingBottom: "2px" }}>SKILLS</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+              {data.skills.map(s => (
+                <span key={s} style={{ background: "#334155", padding: "2px 6px", borderRadius: "4px", fontSize: "8px" }}>{s}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Main */}
+        <div style={{ flex: 1, padding: "16px", textAlign: "left", display: "flex", flexDirection: "column" }}>
+          <h3 style={{ fontSize: "18px", fontWeight: "700", margin: "0 0 2px", color: "#0f172a" }}>{data.name}</h3>
+          <p style={{ fontSize: "12px", color: primary, fontWeight: "600", margin: "0 0 12px" }}>{data.title}</p>
+
+          <div style={{ marginBottom: "12px" }}>
+            <p style={{ fontSize: "10px", fontWeight: "700", color: primary, margin: "0 0 4px", textTransform: "uppercase" }}>SUMMARY</p>
+            <p style={{ fontSize: "10px", color: "#334155", lineHeight: "1.5", margin: "0" }}>{data.summary}</p>
+          </div>
+
+          <div>
+            <p style={{ fontSize: "10px", fontWeight: "700", color: primary, margin: "0 0 6px", textTransform: "uppercase" }}>EXPERIENCE</p>
+            {data.experience.map((exp, idx) => (
+              <div key={idx} style={{ marginBottom: "12px" }}>
+                <p style={{ fontSize: "11px", fontWeight: "700", margin: "0" }}>{exp.role} – {exp.company}</p>
+                <p style={{ fontSize: "8px", color: "#64748b", margin: "2px 0 4px" }}>{exp.period}</p>
+                <p style={{ fontSize: "9px", color: "#334155", margin: "0", lineHeight: "1.4" }}>{exp.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ----- 2. MINIMAL (Clean, no photo) -----
+  if (tpl.structure === "minimal-no-photo") {
+    return (
+      <div style={{ height: "100%", background: "#fff", padding: "20px", fontFamily: "Inter, sans-serif", display: "flex", flexDirection: "column" }}>
+        <h3 style={{ fontSize: "18px", fontWeight: "700", margin: "0 0 4px", color: "#0f172a", letterSpacing: "-0.5px" }}>{data.name}</h3>
+        <p style={{ fontSize: "11px", color: primary, fontWeight: "600", margin: "0 0 8px" }}>{data.title}</p>
+        <p style={{ fontSize: "9px", color: "#64748b", margin: "0 0 16px", borderBottom: "1px solid #e2e8f0", paddingBottom: "8px" }}>
+          {data.email} | {data.phone}
+        </p>
+        <div style={{ background: "#f8fafc", padding: "12px", borderRadius: "8px", borderLeft: `3px solid ${primary}`, marginBottom: "16px", textAlign: "left" }}>
+          <p style={{ fontSize: "9px", fontWeight: "700", color: primary, margin: "0 0 6px", textTransform: "uppercase" }}>Experience</p>
+          <p style={{ fontSize: "10px", fontWeight: "600", margin: "0" }}>Lead Developer – Zoho Corporation</p>
+          <p style={{ fontSize: "8px", color: "#94a3b8", margin: "2px 0 0" }}>2019 – present</p>
+          <p style={{ fontSize: "9px", color: "#334155", marginTop: "6px" }}>{data.experience[0].description.substring(0, 60)}…</p>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "auto" }}>
+          {data.skills.slice(0, 4).map(s => (
+            <span key={s} style={{ fontSize: "8px", background: "#eef2ff", color: primary, padding: "4px 10px", borderRadius: "20px", fontWeight: "600" }}>{s}</span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ----- 3. EXECUTIVE GRID (Structured) -----
+  if (tpl.structure === "executive-grid") {
+    return (
+      <div style={{ height: "100%", background: "#fff", display: "grid", gridTemplateColumns: "1fr 2fr", fontFamily: "Inter, sans-serif", borderRadius: "12px", overflow: "hidden" }}>
+        {/* Left column – skills & photo */}
+        <div style={{ background: "#f1f5f9", padding: "16px 10px", textAlign: "left", borderRight: "1px solid #e2e8f0" }}>
+          <img src={photoUrl} alt="" style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${primary}`, marginBottom: "12px" }} />
+          <p style={{ fontSize: "9px", fontWeight: "700", color: primary, margin: "0 0 8px", textTransform: "uppercase" }}>Skills</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {data.skills.map(s => (
+              <div key={s} style={{ fontSize: "9px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span style={{ width: "6px", height: "6px", background: primary, borderRadius: "50%" }}></span> {s}
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Right column – main info */}
+        <div style={{ padding: "16px", textAlign: "left" }}>
+          <h3 style={{ fontSize: "15px", fontWeight: "700", margin: "0 0 2px", color: "#0f172a" }}>{data.name}</h3>
+          <p style={{ fontSize: "10px", color: primary, fontWeight: "600", margin: "0 0 8px" }}>{data.title}</p>
+          <p style={{ fontSize: "9px", color: "#334155", lineHeight: "1.5", margin: "0 0 12px" }}>
+            <span style={{ fontWeight: "700" }}>Summary</span><br />{data.summary.substring(0, 100)}…
+          </p>
+          <div style={{ fontSize: "8px", color: "#64748b", borderTop: "1px solid #e2e8f0", paddingTop: "8px" }}>
+            <span>{data.phone}</span> · <span>{data.location}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ----- 4. HEADER BOLD (Colorful top bar) -----
+  if (tpl.structure === "header-bg") {
+    return (
+      <div style={{ height: "100%", background: "#fff", fontFamily: "Inter, sans-serif", display: "flex", flexDirection: "column", borderRadius: "12px", overflow: "hidden" }}>
+        <div style={{ background: primary, color: "#fff", padding: "18px 16px", textAlign: "left" }}>
+          <h3 style={{ fontSize: "16px", fontWeight: "700", margin: "0 0 2px" }}>{data.name}</h3>
+          <p style={{ fontSize: "11px", opacity: "0.9", margin: "0" }}>{data.title}</p>
+        </div>
+        <div style={{ padding: "16px", textAlign: "left" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", color: "#64748b", marginBottom: "16px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+            <span>{data.phone}</span>
+            <span>{data.email}</span>
+          </div>
+          <p style={{ fontSize: "9px", fontWeight: "700", color: primary, margin: "0 0 6px", textTransform: "uppercase" }}>Summary</p>
+          <p style={{ fontSize: "9px", color: "#334155", lineHeight: "1.5", marginBottom: "12px" }}>{data.summary.substring(0, 130)}…</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "auto" }}>
+            {data.skills.slice(0, 3).map(s => (
+              <span key={s} style={{ fontSize: "7px", background: "#eef2ff", color: primary, padding: "2px 8px", borderRadius: "12px" }}>{s}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
 const nextTemplate = () => {
-  setCurrentTemplate((prev) => (prev + 1) % allTemplates.length);
+  setCurrentTemplate((prev) => (prev + 1) % homeTemplates.length);
 };
 
 const prevTemplate = () => {
-  setCurrentTemplate((prev) => (prev - 1 + allTemplates.length) % allTemplates.length);
+  setCurrentTemplate((prev) => (prev - 1 + homeTemplates.length) % homeTemplates.length);
 };
 useEffect(() => {
   const interval = setInterval(() => {
-    setCurrentTemplate((prev) => (prev + 1) % allTemplates.length);
+    setCurrentTemplate((prev) => (prev + 1) % homeTemplates.length);
   }, 4000); // change every 4 seconds
 
   return () => clearInterval(interval);
-}, [allTemplates.length]);
+}, [homeTemplates.length]);
   return (
     <>
       {/* Particle Canvas */}
@@ -259,62 +408,31 @@ useEffect(() => {
   <div className="rb-container">
     <h2>Choose Your Real-World Template</h2>
 
-    <div className="rb-template-grid">
-      {allTemplates.map((template, index) => (
-        <div className="rb-template-box-wrapper" key={index}>
-          <div className="rb-resume-inner-preview">
-            {/* Profile Image & Header */}
-            <div className="rb-preview-header">
-              <div className="rb-preview-image">
-                <img
-                  src={template.profileImage}
-                  alt={template.nameText}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.style.display = 'none';
-                    e.target.parentElement.classList.add('fallback');
-                  }}
-                />
-                <div className="rb-preview-fallback">
-                  {template.nameText.split(' ').map(n => n[0]).join('')}
-                </div>
-              </div>
-              <div className="rb-preview-info">
-                <h4>{template.nameText}</h4>
-                <p>{template.title.substring(0, 40)}…</p>
-              </div>
-            </div>
+  <div className="rb-template-grid">
 
-            {/* Summary snippet */}
-            <div className="rb-preview-summary">
-              {template.summary.substring(0, 60)}…
-            </div>
+{homeTemplates.map((tpl)=>(
+  <div className="rb-template-box-wrapper" key={tpl.id}>
 
-            {/* Skills tags (first 3) */}
-            <div className="rb-preview-skills">
-              {template.skills.slice(0, 3).map((skill, i) => (
-                <span key={i}>{skill}</span>
-              ))}
-            </div>
+    <div className="rb-resume-inner-preview">
 
-            {/* Footer line */}
-            <div className="rb-preview-footer">
-              <span>⏤ Experience · Education</span>
-            </div>
-          </div>
-          <div className="rb-template-label">
-            <h3>{template.name} Template</h3>
-          </div>
-        </div>
-      ))}
+      {renderHomePreview(tpl)}
+
     </div>
 
-    {/* View All Templates Link */}
-    <div className="rb-view-all">
-  <Link to="/templates" className="rb-animated-arrow">
-    View All Templates <span>→</span>
-  </Link>
+    <div className="rb-template-label">
+      <h3>{tpl.name}</h3>
+    </div>
+
+  </div>
+))}
+
 </div>
+    <div className="rb-view-all">
+      <Link to="/templates" className="rb-animated-arrow">
+        View All Templates <span>→</span>
+      </Link>
+    </div>
+
   </div>
 </section>
       {/* Features Section */}
