@@ -4131,3 +4131,453 @@ background:#f4f4f4;
   text-overflow:clip;     /* remove ellipsis */
   word-break:break-word;  /* long email break properly */
 }
+
+
+
+
+
+
+
+/* Skills Section */
+/* ========== ATTRACTIVE TEMPLATE GRID – FIXED SIZE ========== */
+
+/* Template Grid Container */
+.rb-template-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+  margin: 40px 0;
+}
+
+/* Template Card Wrapper – All same size & attractive */
+.rb-template-box-wrapper {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px 15px 25px 15px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(37, 99, 235, 0.05) inset;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(5px);
+}
+
+/* Hover Effect – Lift & Glow */
+.rb-template-box-wrapper:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 30px 50px -15px rgba(37, 99, 235, 0.25), 0 0 0 1px rgba(37, 99, 235, 0.2) inset;
+  background: white;
+}
+
+/* Resume Preview Container – FIXED SIZE for ALL templates */
+.rb-resume-inner-preview {
+  height: 380px !important;        /* Exactly same height for all */
+  min-height: 380px !important;
+  max-height: 380px !important;
+  background: white;
+  border-radius: 18px;
+  overflow: hidden !important;      /* Hide extra content */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+.rb-template-box-wrapper:hover .rb-resume-inner-preview {
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.1);
+  border-color: #bfdbfe;
+}
+
+/* Template Label */
+.rb-template-label {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.rb-template-label h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  transition: color 0.3s;
+}
+
+.rb-template-box-wrapper:hover .rb-template-label h3 {
+  color: #2563eb;
+}
+
+/* Optional: Small indicator that it's clickable */
+.rb-template-label::after {
+  content: '→';
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 1.1rem;
+  color: #2563eb;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.rb-template-box-wrapper:hover .rb-template-label::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ===== PREVIEW CONTENT STYLING – FIX OVERFLOW ===== */
+
+/* All text inside preview – uniform size */
+.rb-resume-inner-preview * {
+  font-size: 0.75rem !important;    /* Reduced for consistent fit */
+  line-height: 1.4 !important;
+}
+
+/* Headers inside preview */
+.rb-resume-inner-preview h3,
+.rb-resume-inner-preview h4,
+.rb-resume-inner-preview .rb-resume-name {
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 4px !important;
+}
+
+/* Experience section – trim if too long */
+.rb-resume-job p,
+.rb-resume-summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;                      /* ✅ standard property */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Skills tags – wrap properly */
+.rb-resume-section .skill-tags,
+.rb-resume-section ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.rb-resume-section li {
+  white-space: nowrap;               /* Prevent line break inside tags */
+}
+
+/* ===== RESPONSIVE – 2 per row on tablet ===== */
+@media (max-width: 1024px) {
+  .rb-template-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  
+  .rb-resume-inner-preview {
+    height: 350px !important;
+    min-height: 350px !important;
+    max-height: 350px !important;
+  }
+}
+
+/* ===== RESPONSIVE – 1 per row on mobile ===== */
+@media (max-width: 640px) {
+  .rb-template-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rb-resume-inner-preview {
+    height: 320px !important;
+    min-height: 320px !important;
+    max-height: 320px !important;
+  }
+}
+
+
+/* ========== REAL PAPER RESUME LOOK – CLEAN & PROFESSIONAL ========== */
+
+/* Template Grid Container */
+.rb-template-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  margin: 50px 0;
+}
+
+/* Card Wrapper – Subtle, Clean Paper Feel */
+.rb-template-box-wrapper {
+  background: #ffffff;
+  border-radius: 12px;  /* Simple, clean corners */
+  padding: 20px 15px 20px 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  border: 1px solid #eaeef2;
+  transition: all 0.2s ease;
+}
+
+/* Minimal Hover – Just subtle lift, no flashy effects */
+.rb-template-box-wrapper:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+  border-color: #cdd9e6;
+}
+
+/* Resume Preview Container – EXACT Paper Size & Feel */
+.rb-resume-inner-preview {
+  height: 400px !important;
+  min-height: 400px !important;
+  max-height: 400px !important;
+  background: white;
+  border-radius: 8px;  /* Sharp corners like paper */
+  overflow: hidden !important;
+  box-shadow: none;  /* No shadow, just paper */
+  border: 1px solid #e2e8f0;
+  padding: 25px 22px !important;  /* Proper page margins */
+  font-family: 'Inter', -apple-system, 'Helvetica', Arial, sans-serif !important;
+  transition: border 0.2s;
+}
+
+/* Paper-like white background */
+.rb-resume-inner-preview {
+  background: #ffffff !important;
+}
+
+/* ALL TEXT – Clean, Readable, Print-like */
+.rb-resume-inner-preview * {
+  font-family: 'Inter', 'Helvetica', Arial, sans-serif !important;
+  color: #1e293b;
+}
+
+/* Name – Like Printed Resume */
+.rb-resume-name {
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 0 4px 0 !important;
+  letter-spacing: -0.3px;
+  background: none !important;  /* Remove gradients */
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #0f172a !important;
+}
+
+/* Title */
+.rb-resume-title {
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  margin: 0 0 8px 0 !important;
+  text-transform: none !important;
+  letter-spacing: normal;
+}
+
+/* Contact Info – Small, Subtle */
+.rb-resume-location,
+.rb-resume-email,
+.rb-resume-phone {
+  font-size: 0.7rem !important;
+  color: #64748b !important;
+  margin: 2px 0 !important;
+}
+
+/* Section Headers – Like Resume */
+.rb-resume-section h4 {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 14px 0 6px 0 !important;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 3px;
+}
+
+/* Summary Text */
+.rb-resume-summary {
+  font-size: 0.75rem !important;
+  line-height: 1.5 !important;
+  color: #334155 !important;
+  margin: 0 0 8px 0 !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Job Entries */
+.rb-resume-job {
+  margin-bottom: 12px;
+}
+
+.rb-job-role {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 0 2px 0 !important;
+}
+
+.rb-job-company {
+  font-size: 0.7rem !important;
+  color: #475569 !important;
+  margin: 0 0 3px 0 !important;
+}
+
+.rb-job-description {
+  font-size: 0.7rem !important;
+  line-height: 1.4 !important;
+  color: #475569 !important;
+  margin: 0 !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Skills – Simple Bullets or Tags */
+.rb-resume-section ul {
+  list-style: none;
+  padding: 0 !important;
+  margin: 4px 0 0 0 !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rb-resume-section li {
+  font-size: 0.7rem !important;
+  color: #334155 !important;
+  background: none !important;  /* Remove pill backgrounds */
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  position: relative;
+  padding-left: 12px !important;
+  margin-right: 10px;
+}
+
+.rb-resume-section li::before {
+  content: "•";
+  position: absolute;
+  left: 2px;
+  color: #2563eb;
+  font-size: 0.8rem;
+}
+
+/* Template Label – Clean */
+.rb-template-label {
+  margin-top: 18px;
+  text-align: left;  /* Left aligned like real templates */
+}
+
+.rb-template-label h3 {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  margin: 0 !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+}
+
+/* No sparkles, no arrows, no gradients */
+.rb-template-label::after {
+  display: none !important;
+}
+
+/* ===== LAYOUT-SPECIFIC REAL RESUME STYLES ===== */
+
+/* 1. SIDEBAR LEFT – Like Classic Resume */
+[class*="sidebar-left"] .rb-resume-inner-preview {
+  display: grid;
+  grid-template-columns: 30% 70%;
+  gap: 15px;
+  padding: 20px !important;
+}
+
+[class*="sidebar-left"] .rb-resume-inner-preview > div:first-child {
+  border-right: 1px solid #e2e8f0;
+  padding-right: 12px;
+}
+
+/* Profile Image in Sidebar */
+[class*="sidebar-left"] img {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;  /* Square like passport photo */
+  object-fit: cover;
+  margin-bottom: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+/* 2. MINIMAL NO PHOTO – Clean, Simple */
+[class*="minimal"] .rb-resume-inner-preview {
+  padding: 25px !important;
+}
+
+[class*="minimal"] .rb-resume-name {
+  font-size: 1.5rem !important;
+  margin-bottom: 6px !important;
+}
+
+[class*="minimal"] .rb-resume-section h4 {
+  border-left: none;
+  padding-left: 0;
+}
+
+/* 3. EXECUTIVE GRID – Two Column Layout */
+[class*="executive"] .rb-resume-inner-preview {
+  display: grid;
+  grid-template-columns: 35% 65%;
+  gap: 20px;
+  padding: 20px !important;
+}
+
+[class*="executive"] .rb-resume-inner-preview > div:first-child {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+/* 4. HEADER BOLD – Colored Top Bar */
+[class*="header"] .rb-resume-inner-preview {
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;  /* Remove padding for header to stretch */
+}
+
+[class*="header"] .rb-resume-header {
+  background: #2563eb;
+  color: white;
+  padding: 18px 20px !important;
+  margin: 0 !important;
+}
+
+[class*="header"] .rb-resume-header * {
+  color: white !important;
+}
+
+[class*="header"] .rb-resume-body {
+  padding: 20px !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .rb-template-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+  
+  .rb-resume-inner-preview {
+    height: 380px !important;
+    min-height: 380px !important;
+    max-height: 380px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .rb-template-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rb-resume-inner-preview {
+    height: 360px !important;
+    min-height: 360px !important;
+    max-height: 360px !important;
+  }
+}

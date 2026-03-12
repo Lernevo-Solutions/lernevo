@@ -4401,3 +4401,22 @@ body {
     height: 250px;
   }
 }
+
+
+
+/* Individual Ad Image size control */
+.ad-track img {
+  width: 180px;         /* Ellaa image-um orey width */
+  height: 250px;        /* Ellaa image-um orey height */
+  object-fit: cover;    /* Image ratio maarama irukka idhu mukkiyam */
+  margin-bottom: 20px;  /* Images-ku naduvula consistent gap */
+  border-radius: 12px;  /* Paaka premium-ah irukka konjam curve */
+  display: block;
+}
+
+/* Wrapper alignment fix */
+.side-ad {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}

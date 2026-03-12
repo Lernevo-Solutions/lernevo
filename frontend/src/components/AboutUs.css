@@ -1715,3 +1715,78 @@ footer {
     font-size: 2.2rem;
   }
 }
+
+/* ===== MISSION & VISION BOTH ICON LEFT ===== */
+
+/* Mission card: icon left, text right */
+.mission-card .card-header {
+  display: flex !important;
+  flex-direction: row !important;   /* icon left, text right */
+  align-items: center !important;
+  gap: 15px !important;
+  text-align: left !important;
+}
+
+/* Vision card: also icon left, text right */
+.vision-card .card-header {
+  display: flex !important;
+  flex-direction: row !important;   /* icon left, text right (override previous) */
+  align-items: center !important;
+  gap: 15px !important;
+  text-align: left !important;
+}
+
+/* Icon box styling (same for both) */
+.mission-card .card-icon,
+.vision-card .card-icon {
+  width: 50px !important;
+  height: 50px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: white !important;
+  border-radius: 12px !important;
+  font-size: 2rem !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+/* Heading style */
+.mission-card h3,
+.vision-card h3 {
+  margin: 0 !important;
+  font-size: 1.8rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+  color: #111827 !important;
+}/* ===== REDUCE SPACE BETWEEN ICON AND HEADING ===== */
+
+.mission-card .card-header,
+.vision-card .card-header {
+  gap: 8px !important;  
+}
+
+
+.mission-card .card-header,
+.vision-card .card-header {
+  gap: 0px !important;  
+}
+
+
+.mission-card .card-icon,
+.vision-card .card-icon {
+  width: 40px !important;   
+  height: 40px !important;
+  font-size: 1.5rem !important; 
+}
+.mission-card .card-header,
+.vision-card .card-header {
+  gap: 0 !important;
+}
+
+.mission-card h3,
+.vision-card h3 {
+  margin-left: 5px !important;  
+}

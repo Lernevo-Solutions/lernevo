@@ -370,3 +370,38 @@
     right: 20px;
   }
 }
+
+
+/* ===== FEATURES DROPDOWN (same as SERVICES) ===== */
+.nav-features {
+  position: relative;
+}
+
+.nav-features .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(225, 235, 255, 0.6);
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.20);
+  min-width: 260px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1100;
+  pointer-events: none;
+  backdrop-filter: blur(15px);
+}
+
+.nav-features:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
