@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-
+import React, { useState, useCallback, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
 const NAV_SECTIONS = [
@@ -396,10 +396,10 @@ function ResumePreview({ data, templateId, styling }) {
   const fontStyle = { fontFamily: `'${styling.font}', sans-serif` };
   const hasName = !!personal.name;
   const nameText = personal.name || "Your Name";
-
+  
   // Helper to lighten accent for tag backgrounds
   const accentBg = accent + "1a";
-
+ 
   const Contacts = () => {
     const items = [personal.email, personal.phone, personal.location, personal.linkedin].filter(Boolean);
     return <>{items.map((c, i) => <span key={i}>{c}</span>)}</>;
@@ -939,29 +939,162 @@ function StylingSection({ data, onChange }) {
 
 // ─── APP ─────────────────────────────────────────────────────────────────────
 
+
 export default function App() {
+  const location = useLocation();
+  const selectedTemplateFromPage = location.state?.template;
+
+  // Map gallery template (from Templates.js) to builder template ID
+  const mapTemplateFromGallery = (template) => {
+    if (!template || typeof template === 'string') return template; // already a string ID
+    const structure = template.structure;
+    const mapping = {
+      'sidebar-left': 'classic',
+      'top-centered': 'modern',
+      'minimal-no-photo': 'minimal',
+      'executive-grid': 'executive',
+      'header-bg': 'bold',
+      'asymmetric': 'creative',
+      'professional-card': 'professional',
+      'compact': 'compact',
+      'timeline': 'timeline',
+      'grid-skills': 'elegant',
+      'minimal-accent': 'minimal',
+      'sidebar-right': 'classic',
+      'two-column': 'professional',
+      'pastel': 'elegant',
+      'card-style': 'modern',
+      'creative-stack': 'creative',
+      'infographic': 'creative',    // fallback for infographic style
+      'blank-start': 'minimal'      // blank document → minimal
+    };
+    return mapping[structure] || 'classic'; // default to classic
+  };
+
   const [st, setSt] = useState(INITIAL_STATE);
 
-  const sec    = useCallback(id => setSt(s => ({ ...s, activeSection: id })), []);
-  const setTpl = useCallback(id => setSt(s => ({ ...s, selectedTemplate: id })), []);
-  const setFld = useCallback((k, v) => setSt(s => ({ ...s, [k]: v })), []);
-  const adjZoom = useCallback(d => setSt(s => ({ ...s, zoom: Math.min(120, Math.max(30, s.zoom + d)) })), []);
+  /* TEMPLATE AUTO LOAD FROM TEMPLATE PAGE */
+  useEffect(() => {
+    if (selectedTemplateFromPage) {
+      const templateId = mapTemplateFromGallery(selectedTemplateFromPage);
+      setSt(s => ({
+        ...s,
+        selectedTemplate: templateId
+      }));
+    }
+  }, [selectedTemplateFromPage]);
+
+  const sec = useCallback(
+    id => setSt(s => ({ ...s, activeSection: id })),
+    []
+  );
+
+  const setTpl = useCallback(
+    id => setSt(s => ({ ...s, selectedTemplate: id })),
+    []
+  );
+
+  const setFld = useCallback(
+    (k, v) => setSt(s => ({ ...s, [k]: v })),
+    []
+  );
+
+  const adjZoom = useCallback(
+    d => setSt(s => ({
+      ...s,
+      zoom: Math.min(120, Math.max(30, s.zoom + d))
+    })),
+    []
+  );
 
   const idx = NAV_SECTIONS.findIndex(n => n.id === st.activeSection);
   const meta = SECTION_META[st.activeSection];
 
   const renderForm = () => {
     switch (st.activeSection) {
-      case "template":       return <TemplateSection selected={st.selectedTemplate} onSelect={setTpl} />;
-      case "personal":       return <PersonalSection data={st.personal} onChange={v => setFld("personal", v)} />;
-      case "summary":        return <SummarySection data={st.summary} onChange={v => setFld("summary", v)} />;
-      case "experience":     return <ExperienceSection data={st.experience} onChange={v => setFld("experience", v)} />;
-      case "education":      return <EducationSection data={st.education} onChange={v => setFld("education", v)} />;
-      case "skills":         return <SkillsSection data={st.skills} onChange={v => setFld("skills", v)} />;
-      case "projects":       return <ProjectsSection data={st.projects} onChange={v => setFld("projects", v)} />;
-      case "certifications": return <CertificationsSection data={st.certifications} onChange={v => setFld("certifications", v)} />;
-      case "languages":      return <LanguagesSection data={st.languages} onChange={v => setFld("languages", v)} />;
-      case "styling":        return <StylingSection data={st.styling} onChange={v => setFld("styling", v)} />;
+
+      case "template":
+        return (
+          <TemplateSection
+            selected={st.selectedTemplate}
+            onSelect={setTpl}
+          />
+        );
+
+      case "personal":
+        return (
+          <PersonalSection
+            data={st.personal}
+            onChange={v => setFld("personal", v)}
+          />
+        );
+
+      case "summary":
+        return (
+          <SummarySection
+            data={st.summary}
+            onChange={v => setFld("summary", v)}
+          />
+        );
+
+      case "experience":
+        return (
+          <ExperienceSection
+            data={st.experience}
+            onChange={v => setFld("experience", v)}
+          />
+        );
+
+      case "education":
+        return (
+          <EducationSection
+            data={st.education}
+            onChange={v => setFld("education", v)}
+          />
+        );
+
+      case "skills":
+        return (
+          <SkillsSection
+            data={st.skills}
+            onChange={v => setFld("skills", v)}
+          />
+        );
+
+      case "projects":
+        return (
+          <ProjectsSection
+            data={st.projects}
+            onChange={v => setFld("projects", v)}
+          />
+        );
+
+      case "certifications":
+        return (
+          <CertificationsSection
+            data={st.certifications}
+            onChange={v => setFld("certifications", v)}
+          />
+        );
+
+      case "languages":
+        return (
+          <LanguagesSection
+            data={st.languages}
+            onChange={v => setFld("languages", v)}
+          />
+        );
+
+      case "styling":
+        return (
+          <StylingSection
+            data={st.styling}
+            onChange={v => setFld("styling", v)}
+          />
+        );
+
+      default:
+        return null;
     }
   };
 
@@ -974,21 +1107,29 @@ export default function App() {
       {/* TOP BAR */}
       <div className="topbar">
         <span className="topbar-title">My Resume</span>
+
         <div className="zoom-controls">
           <button className="zoom-btn" onClick={() => adjZoom(-5)}>−</button>
           <span className="zoom-label">{st.zoom}%</span>
           <button className="zoom-btn" onClick={() => adjZoom(5)}>+</button>
         </div>
+
         <div className="topbar-divider" />
+
         <button className="btn-save">💾 Save</button>
         <button className="btn-download">⬇ Download PDF</button>
       </div>
 
       <div className="app-layout">
+
         {/* SIDEBAR */}
         <aside className="sidebar">
           {NAV_SECTIONS.map(n => (
-            <button key={n.id} className={`nav-item ${st.activeSection === n.id ? "active" : ""}`} onClick={() => sec(n.id)}>
+            <button
+              key={n.id}
+              className={`nav-item ${st.activeSection === n.id ? "active" : ""}`}
+              onClick={() => sec(n.id)}
+            >
               <span className="nav-icon">{n.icon}</span>
               <span className="nav-label">{n.label}</span>
             </button>
@@ -996,29 +1137,66 @@ export default function App() {
         </aside>
 
         <div className="content-area">
-          {/* FORM */}
+
+          {/* FORM SIDE */}
           <div className="form-side">
+
             <div className="form-header">
               <h2>{meta.title}</h2>
               <p>{meta.desc}</p>
             </div>
-            <div className="form-body">{renderForm()}</div>
-            <div className="form-footer">
-              <button className="btn-back" disabled={idx === 0} onClick={() => sec(NAV_SECTIONS[idx-1].id)}>‹ Back</button>
-              <button className="btn-next" disabled={idx === NAV_SECTIONS.length-1} onClick={() => sec(NAV_SECTIONS[idx+1].id)}>Next ›</button>
+
+            <div className="form-body">
+              {renderForm()}
             </div>
+
+            <div className="form-footer">
+              <button
+                className="btn-back"
+                disabled={idx === 0}
+                onClick={() => sec(NAV_SECTIONS[idx - 1].id)}
+              >
+                ‹ Back
+              </button>
+
+              <button
+                className="btn-next"
+                disabled={idx === NAV_SECTIONS.length - 1}
+                onClick={() => sec(NAV_SECTIONS[idx + 1].id)}
+              >
+                Next ›
+              </button>
+            </div>
+
           </div>
 
-          {/* PREVIEW */}
+          {/* PREVIEW SIDE */}
           <div className="preview-side">
-            <div className="resume-sheet" style={{ width: previewWidth }}>
+
+            <div
+              className="resume-sheet"
+              style={{ width: previewWidth }}
+            >
+
               <ResumePreview
-                data={{ personal: st.personal, summary: st.summary, experience: st.experience, education: st.education, skills: st.skills, projects: st.projects, certifications: st.certifications, languages: st.languages }}
+                data={{
+                  personal: st.personal,
+                  summary: st.summary,
+                  experience: st.experience,
+                  education: st.education,
+                  skills: st.skills,
+                  projects: st.projects,
+                  certifications: st.certifications,
+                  languages: st.languages
+                }}
                 templateId={st.selectedTemplate}
                 styling={st.styling}
               />
+
             </div>
+
           </div>
+
         </div>
       </div>
     </>
