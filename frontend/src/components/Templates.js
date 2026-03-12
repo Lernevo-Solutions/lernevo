@@ -758,7 +758,12 @@ const AllTemplatesPage = () => {
                     <button
   className="use-btn"
   style={{ backgroundColor: currentColor }}
-  onClick={() => navigate("/builder", { state: { template: tpl } })}
+  onClick={() => navigate("/builder", {
+  state: {
+    template: tpl,
+    selectedColor: selectedColors[tpl.id] || '#2563eb'
+  }
+})}
 >
   Use Design
 </button>
