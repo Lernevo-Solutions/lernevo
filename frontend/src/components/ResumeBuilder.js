@@ -396,6 +396,7 @@ function GalleryPreview({ tpl, data, accentColor, font }) {
           </div>
         </div>
       );
+      
 
     case "sidebar-right":
       return (
