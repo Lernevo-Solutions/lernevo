@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './HomePage.css'; // Make sure the CSS file has the new class names
 import { Link } from 'react-router-dom';
-
+// Example imports (unga actual file path kudunga)
+import template1Img from './templates/template4.png';
+import template2Img from './templates/template11.png';
+import template3Img from './templates/template14.png';
+import template4Img from './templates/template12.png';
 const HomePage = () => {
   const [skillScore, setSkillScore] = useState(0);
   const canvasRef = useRef(null);
@@ -68,29 +72,25 @@ const homeTemplates = [
     id: 1,
     name: "Sidebar Left",
     structure: "sidebar-left",
-    photo: true,
-    contact: true
+    image: template1Img // Inga import panna image
   },
   {
     id: 2,
     name: "Minimal",
     structure: "minimal-no-photo",
-    photo: false,
-    contact: true
+    image: template2Img
   },
   {
     id: 3,
     name: "Executive Grid",
     structure: "executive-grid",
-    photo: true,
-    contact: true
+    image: template3Img
   },
   {
     id: 4,
     name: "Header Bold",
     structure: "header-bg",
-    photo: false,
-    contact: true
+    image: template4Img
   }
 ];
 // Updated tnProfile (place this inside your HomePage component, replacing the old one)
@@ -413,11 +413,23 @@ useEffect(() => {
 {homeTemplates.map((tpl)=>(
   <div className="rb-template-box-wrapper" key={tpl.id}>
 
-    <div className="rb-resume-inner-preview">
-
-      {renderHomePreview(tpl)}
-
-    </div>
+   <div className="rb-resume-inner-preview" style={{ 
+  padding: '0',           // Box kulla padding-a remove pannunga
+  overflow: 'hidden',     // Image box-a vittu veliya varama irukka
+  height: '420px',        // CSS-la irukira height
+  display: 'flex'         // Alignment-kaga
+}}>
+  <img 
+    src={tpl.image} 
+    alt={tpl.name} 
+    style={{ 
+      width: '100%', 
+      height: '100%', 
+      objectFit: 'cover', // Ithu thaan image-a full-aa fill panna vaikkum
+      objectPosition: 'top' // Resume-oda top part first theriyum
+    }} 
+  />
+</div>
 
     <div className="rb-template-label">
       <h3>{tpl.name}</h3>

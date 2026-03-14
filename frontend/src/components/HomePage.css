@@ -5692,3 +5692,16 @@ pointer-events:none;
   background: rgba(241,245,249,0.55) !important;  /* lighter */
   backdrop-filter: blur(3px) !important;           /* less blur */
 }
+
+
+.rb-resume-inner-preview {
+  background: white;
+  width: 100%;
+  height: 420px;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+  padding: 0 !important;   /* Padding-a kandippa 0 pannunga */
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
