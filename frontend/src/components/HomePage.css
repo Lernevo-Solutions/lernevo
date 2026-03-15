@@ -5693,7 +5693,6 @@ pointer-events:none;
   backdrop-filter: blur(3px) !important;           /* less blur */
 }
 
-<<<<<<< HEAD
 /* ===== PROFESSIONAL RESUME GALLERY LAYOUT ===== */
 
 .rb-container{
@@ -5951,22 +5950,4 @@ padding:20px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-}
-
-.tpl-modal-footer h3{
-font-size:18px;
-margin:0;
-=======
-
-.rb-resume-inner-preview {
-  background: white;
-  width: 100%;
-  height: 420px;
-  border-radius: 20px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.06);
-  padding: 0 !important;   /* Padding-a kandippa 0 pannunga */
-  position: relative;
-  overflow: hidden;
-  text-align: left;
->>>>>>> 1e7959d4791dfdfef3d73381ef055f5d3550f218
 }
