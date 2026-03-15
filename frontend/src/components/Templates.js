@@ -35,6 +35,7 @@ const AllTemplatesPage = () => {
   const navigate   = useNavigate();
   const fixedColor = '#2563eb';
   const [hovered, setHovered] = useState(null);
+  const [previewTpl, setPreviewTpl] = useState(null);
 
   const handleEnter = useCallback((e, tpl) => {
     const cardRect = e.currentTarget.getBoundingClientRect();
@@ -77,6 +78,42 @@ const AllTemplatesPage = () => {
           <div className="tpl-popup-label">{hovered.tpl.name}</div>
         </div>
       )}
+      {previewTpl && (
+  <div className="tpl-modal-overlay" onClick={() => setPreviewTpl(null)}>
+
+    <div className="tpl-modal" onClick={(e) => e.stopPropagation()}>
+
+      <img
+        src={previewTpl.image}
+        alt={previewTpl.name}
+        className="tpl-modal-img"
+      />
+
+      <div className="tpl-modal-footer">
+
+        <h3>{previewTpl.name}</h3>
+
+        <button
+          className="tpl-btn-use"
+          style={{ backgroundColor: fixedColor }}
+          onClick={() =>
+            navigate('/builder', {
+              state: {
+                template: previewTpl,
+                selectedColor: fixedColor
+              }
+            })
+          }
+        >
+          Use This Template
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
 
       <div className="rb-container">
         <header className="rb-page-header">
@@ -92,7 +129,13 @@ const AllTemplatesPage = () => {
               onMouseEnter={(e) => handleEnter(e, tpl)}
               onMouseLeave={handleLeave}
             >
-              <div className="preview-wrapper">
+              
+              <div
+  className="preview-wrapper"
+  onMouseEnter={(e) => handleEnter(e, tpl)}
+  onMouseLeave={handleLeave}
+  onClick={() => setPreviewTpl(tpl)}
+>
                 {tpl.name === 'Blank Document' ? (
                   <div className="blank-preview"><span>Blank Resume</span></div>
                 ) : (

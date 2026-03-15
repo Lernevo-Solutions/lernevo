@@ -5692,3 +5692,267 @@ pointer-events:none;
   background: rgba(241,245,249,0.55) !important;  /* lighter */
   backdrop-filter: blur(3px) !important;           /* less blur */
 }
+
+/* ===== PROFESSIONAL RESUME GALLERY LAYOUT ===== */
+
+.rb-container{
+max-width:1400px;
+margin:0 auto;
+padding:0 20px;
+}
+
+/* HEADER */
+.rb-page-header{
+text-align:center;
+margin-bottom:40px;
+}
+
+.rb-page-header h1{
+font-size:2.6rem;
+font-weight:800;
+color:#0f172a;
+}
+
+.rb-page-header p{
+color:#64748b;
+font-size:1rem;
+}
+
+/* ===== GRID ===== */
+
+.rb-all-templates-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);   /* 3 per row */
+gap:35px;
+width:100%;
+}
+
+/* ===== CARD ===== */
+
+.rb-template-full-card{
+background:#ffffff;
+border-radius:14px;
+overflow:hidden;
+border:1px solid #e2e8f0;
+display:flex;
+flex-direction:column;
+transition:all .35s ease;
+box-shadow:0 6px 18px rgba(0,0,0,0.05);
+}
+
+/* Hover lift */
+.rb-template-full-card:hover{
+transform:translateY(-8px);
+box-shadow:0 16px 40px rgba(0,0,0,0.12);
+border-color:#2563eb;
+}
+
+/* ===== TEMPLATE PREVIEW ===== */
+
+.preview-wrapper{
+width:100%;
+height:420px;
+overflow:hidden;
+background:#f1f5f9;
+}
+
+.template-thumbnail{
+width:100%;
+height:100%;
+object-fit:cover;
+transition:transform .4s ease;
+}
+
+.rb-template-full-card:hover .template-thumbnail{
+transform:scale(1.05);
+}
+
+/* ===== FOOTER ===== */
+
+.tpl-footer{
+padding:14px;
+}
+
+.tpl-name{
+display:block;
+font-size:.9rem;
+font-weight:700;
+color:#1e293b;
+margin-bottom:10px;
+text-align:center;
+}
+
+/* BUTTONS */
+
+.tpl-btns{
+display:flex;
+gap:10px;
+}
+
+.tpl-btn-use{
+flex:1;
+border:none;
+padding:10px;
+border-radius:8px;
+font-size:.8rem;
+font-weight:700;
+color:white;
+background:#2563eb;
+cursor:pointer;
+}
+
+.tpl-btn-use:hover
+
+.tpl-btn-pdf{
+padding:10px 16px;
+border:none;
+border-radius:8px;
+background:#0f172a;
+color:white;
+font-size:.8rem;
+font-weight:700;
+cursor:pointer;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media(max-width:1100px){
+.rb-all-templates-grid{
+grid-template-columns:repeat(2,1fr);
+}
+}
+
+@media(max-width:600px){
+.rb-all-templates-grid{
+grid-template-columns:1fr;
+}
+}
+/* ===============================
+PROFESSIONAL TEMPLATE HOVER UI
+=============================== */
+
+/* Blur background when hover */
+.tpl-backdrop{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.45);
+backdrop-filter:blur(6px);
+z-index:50;
+}
+
+/* Popup preview */
+.tpl-fixed-popup{
+position:fixed;
+z-index:999;
+background:white;
+border-radius:12px;
+overflow:hidden;
+box-shadow:
+0 0 0 3px #2563eb,
+0 20px 60px rgba(0,0,0,0.35);
+animation:previewIn .25s ease;
+}
+
+/* Popup animation */
+@keyframes previewIn{
+from{
+opacity:0;
+transform:scale(.85);
+}
+to{
+opacity:1;
+transform:scale(1);
+}
+}
+
+/* Popup image */
+.tpl-popup-img{
+width:100%;
+height:100%;
+object-fit:contain;
+background:white;
+}
+
+/* Popup label */
+.tpl-popup-label{
+padding:8px;
+font-size:.8rem;
+font-weight:700;
+text-align:center;
+border-top:1px solid #e2e8f0;
+background:white;
+}
+
+/* Other cards blur */
+.rb-template-full-card.is-blurred{
+filter:blur(3px);
+opacity:.3;
+transform:scale(.95);
+transition:.3s;
+}
+.rb-template-full-card:hover{
+transform:translateY(-10px);
+box-shadow:0 25px 50px rgba(0,0,0,0.25);
+border-color:#2563eb;
+}
+/* ===== 3 TEMPLATES PER ROW ===== */
+
+.rb-container{
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 20px;
+}
+
+.rb-all-templates-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);  /* exactly 3 */
+  gap:30px;
+}
+/* allow clicking buttons */
+
+.tpl-fixed-popup{
+  pointer-events:none;
+}
+
+.tpl-btn-use,
+.tpl-btn-pdf{
+  pointer-events:auto;
+}
+/* ===== TEMPLATE MODAL ===== */
+
+.tpl-modal-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.7);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:1000;
+}
+
+.tpl-modal{
+background:white;
+border-radius:12px;
+width:600px;
+max-width:90%;
+overflow:hidden;
+box-shadow:0 30px 80px rgba(0,0,0,0.5);
+}
+
+.tpl-modal-img{
+width:100%;
+height:auto;
+display:block;
+}
+
+.tpl-modal-footer{
+padding:20px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.tpl-modal-footer h3{
+font-size:18px;
+margin:0;
+}
