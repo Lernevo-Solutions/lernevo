@@ -43,7 +43,7 @@ import MyResumes from "./components/MyResumes";
 import ResumeBuilder from "./components/ResumeBuilder";
 import Homepage from "./components/HomePage";
 import Templates from "./components/Templates";
-
+import ComingSoon from "./components/ComingSoon";
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
@@ -53,6 +53,7 @@ const AppLayout = () => {
     "/get-started",
     "/reset-password",
     "/reset-password-confirm",
+    "/features/coming-soon",
   ];
 
   // 👉 Navbar hide panna routes
@@ -90,6 +91,7 @@ const AppLayout = () => {
         <Route path="/help-center" element={<HelpCenter />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/features/coming-soon" element={<ComingSoon />} />
         <Route
           path="/reset-password-confirm"
           element={<ResetPasswordConfirmPage />}

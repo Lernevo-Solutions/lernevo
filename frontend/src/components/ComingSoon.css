@@ -1,0 +1,436 @@
+/* ===== RESET & BASE ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.cs-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 80px 20px;
+  background: #ffffff;
+  color: #0b1e33;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ===== ANIMATED BACKGROUND MESH ===== */
+.cs-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.cs-gradient-mesh {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(59,130,246,0.1) 0%, transparent 30%),
+    radial-gradient(circle at 80% 70%, rgba(37,99,235,0.1) 0%, transparent 35%),
+    radial-gradient(circle at 40% 80%, rgba(96,165,250,0.1) 0%, transparent 40%),
+    radial-gradient(circle at 70% 20%, rgba(147,197,253,0.1) 0%, transparent 45%);
+  filter: blur(40px);
+  animation: meshMove 20s ease-in-out infinite alternate;
+}
+
+@keyframes meshMove {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.2) rotate(3deg); }
+}
+
+/* Soft blobs */
+.cs-blob {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  filter: blur(100px);
+  opacity: 0.3;
+  animation: blobFloat 25s infinite alternate ease-in-out;
+}
+
+.cs-blob1 {
+  background: radial-gradient(circle, #3b82f6, transparent 70%);
+  top: -200px;
+  left: -200px;
+}
+
+.cs-blob2 {
+  background: radial-gradient(circle, #60a5fa, transparent 70%);
+  bottom: -200px;
+  right: -200px;
+  animation-delay: -5s;
+}
+
+.cs-blob3 {
+  background: radial-gradient(circle, #93c5fd, transparent 70%);
+  top: 50%;
+  left: 30%;
+  transform: translate(-50%, -50%);
+  animation-delay: -10s;
+}
+
+@keyframes blobFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(5%, 5%) scale(1.2); }
+}
+
+/* Floating particles */
+.cs-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #3b82f6;
+  border-radius: 50%;
+  filter: blur(2px);
+  opacity: 0.2;
+  animation: particleFloat 15s infinite linear;
+}
+
+.cs-particle:nth-child(5) { top: 10%; left: 15%; animation-duration: 12s; }
+.cs-particle:nth-child(6) { top: 80%; left: 70%; animation-duration: 18s; }
+.cs-particle:nth-child(7) { top: 30%; left: 90%; animation-duration: 14s; }
+.cs-particle:nth-child(8) { top: 60%; left: 20%; animation-duration: 16s; }
+.cs-particle:nth-child(9) { top: 85%; left: 40%; animation-duration: 20s; }
+
+@keyframes particleFloat {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.1; }
+  50% { opacity: 0.4; }
+  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+}
+
+/* Decorative floating lines */
+.cs-line {
+  position: absolute;
+  width: 2px;
+  height: 300px;
+  background: linear-gradient(to bottom, transparent, #3b82f6, transparent);
+  left: 10%;
+  top: 20%;
+  opacity: 0.2;
+  transform: rotate(30deg);
+  animation: lineMove 15s infinite alternate;
+}
+
+.cs-line:nth-child(2) {
+  left: 90%;
+  top: 60%;
+  width: 3px;
+  height: 400px;
+  animation-duration: 20s;
+}
+
+@keyframes lineMove {
+  0% { transform: rotate(30deg) translateY(0); }
+  100% { transform: rotate(30deg) translateY(-100px); }
+}
+
+/* ===== HEADER ===== */
+.cs-header {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin-bottom: 70px;
+  padding: 50px 30px;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 50px;
+  border: 1px solid rgba(59,130,246,0.3);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+}
+
+.cs-header h1 {
+  font-size: clamp(2.8rem, 8vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(145deg, #1e3a8a, #3b82f6, #60a5fa, #1e3a8a);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientFlow 8s ease infinite;
+  text-shadow: 0 5px 20px rgba(59,130,246,0.3);
+}
+
+/* Glitch effect */
+.glitch {
+  position: relative;
+  animation: glitch 3s infinite;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.glitch::before {
+  left: 2px;
+  text-shadow: -2px 0 #1e40af;
+  animation: glitch-anim-1 2s infinite linear alternate-reverse;
+}
+.glitch::after {
+  left: -2px;
+  text-shadow: 2px 0 #60a5fa;
+  animation: glitch-anim-2 2s infinite linear alternate-reverse;
+}
+@keyframes glitch-anim-1 {
+  0% { clip-path: inset(20% 0 30% 0); }
+  20% { clip-path: inset(60% 0 10% 0); }
+  40% { clip-path: inset(30% 0 50% 0); }
+  60% { clip-path: inset(80% 0 5% 0); }
+  80% { clip-path: inset(10% 0 70% 0); }
+  100% { clip-path: inset(40% 0 40% 0); }
+}
+@keyframes glitch-anim-2 {
+  0% { clip-path: inset(30% 0 40% 0); }
+  20% { clip-path: inset(10% 0 60% 0); }
+  40% { clip-path: inset(50% 0 30% 0); }
+  60% { clip-path: inset(20% 0 70% 0); }
+  80% { clip-path: inset(70% 0 10% 0); }
+  100% { clip-path: inset(40% 0 50% 0); }
+}
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.cs-header p {
+  font-size: 1.3rem;
+  color: #1e3a8a;
+  margin-top: 25px;
+  border-right: 3px solid #3b82f6;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 0;
+  animation: typing 4s steps(40, end) forwards, blink 0.75s step-end infinite;
+}
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+@keyframes blink {
+  from, to { border-color: transparent; }
+  50% { border-color: #3b82f6; }
+}
+
+/* ===== GRID ===== */
+.cs-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 40px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* ===== CARDS (each with unique style) ===== */
+.cs-card {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(15px);
+  border-radius: 40px;
+  padding: 40px 25px;
+  text-align: center;
+  transition: all 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  border: 1px solid rgba(59,130,246,0.2);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.cs-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(59,130,246,0.2) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.cs-card:hover::before {
+  opacity: 1;
+}
+
+.cs-card:hover {
+  transform: translateY(-15px) scale(1.02) rotateX(2deg) rotateY(2deg);
+  box-shadow: 0 40px 70px -12px rgba(37,99,235,0.4);
+  border-color: #3b82f6;
+}
+
+/* Card 1 – Resume Builder */
+.card-1 {
+  border-top: 4px solid #2563eb;
+}
+.card-1 .cs-icon-wrapper {
+  background: linear-gradient(145deg, #dbeafe, #ffffff);
+}
+
+/* Card 2 – Skill Gap Analyzer (highlight) */
+.card-2 {
+  border-top: 4px solid #7c3aed;
+  box-shadow: 0 0 30px rgba(124,58,237,0.2);
+}
+.card-2 .cs-icon-wrapper {
+  background: linear-gradient(145deg, #ede9fe, #ffffff);
+}
+
+/* Icon wrapper */
+.cs-icon-wrapper {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 25px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 15px 30px -8px rgba(0,0,0,0.2);
+  transition: 0.3s;
+}
+
+.cs-icon {
+  font-size: 50px;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 5px 10px rgba(37,99,235,0.3));
+  animation: iconFloat 3s infinite ease-in-out;
+}
+
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.cs-icon-glow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+  filter: blur(15px);
+  opacity: 0.5;
+  animation: glowPulse 3s infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.2); }
+}
+
+/* Card text */
+.cs-card h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  background: linear-gradient(135deg, #0b1e33, #1e3a8a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cs-card p {
+  color: #334155;
+  font-size: 16px;
+  line-height: 1.7;
+  padding: 0 10px;
+}
+
+/* Button */
+.cs-button {
+  margin-top: 30px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  outline: none;
+}
+
+.cs-button span {
+  display: inline-block;
+  padding: 14px 36px;
+  border-radius: 60px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 10px 25px #2563eb80;
+  transition: 0.3s;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.cs-button span::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  z-index: -1;
+}
+
+.cs-button:hover span {
+  transform: scale(1.05);
+  box-shadow: 0 20px 35px #2563eb;
+}
+
+.cs-button:hover span::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Badge */
+.cs-badge {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  padding: 8px 20px;
+  border-radius: 40px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  color: white;
+  box-shadow: 0 10px 20px #2563eb80;
+  animation: badgeGlow 2s infinite;
+}
+
+@keyframes badgeGlow {
+  0%, 100% { box-shadow: 0 5px 20px #2563eb; }
+  50% { box-shadow: 0 5px 40px #60a5fa; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .cs-header p {
+    font-size: 1rem;
+    white-space: normal;
+    border-right: none;
+    animation: none;
+    width: 100%;
+  }
+  .cs-grid {
+    grid-template-columns: 1fr;
+  }
+}

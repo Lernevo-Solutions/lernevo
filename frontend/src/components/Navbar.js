@@ -152,11 +152,7 @@ export default function Navbar({ onGetStarted }) {
 <div className={`nav-item dropdown nav-features ${location.pathname.startsWith("/features") ? "active" : ""}`}>
   <span className="dropdown-trigger">FEATURES</span>
   <div className="dropdown-menu">
-    {/* Resume Builder now goes to /home */}
-    <Link to="/home" className="dropdown-link">
-      <strong>Resume Builder</strong>
-      <span>Build your professional resume</span>
-    </Link>
+   
     
     {/* Coming Soon still goes to /features/coming-soon */}
     <Link to="/features/coming-soon" className="dropdown-link">

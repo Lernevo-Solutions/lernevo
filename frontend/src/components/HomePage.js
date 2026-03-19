@@ -1,16 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './HomePage.css'; // Make sure the CSS file has the new class names
-import { Link } from 'react-router-dom';
+
+import { Link, useLocation, useNavigate } from "react-router-dom";
 // Example imports (unga actual file path kudunga)
-import template1Img from './templates/template4.png';
-import template2Img from './templates/template11.png';
-import template3Img from './templates/template14.png';
-import template4Img from './templates/template12.png';
+import template1Img from './template_1.avif';
+import template2Img from './template_2.avif';
+import template3Img from './template_12.webp';
+import template4Img from './template_5.avif';
+
 const HomePage = () => {
   const [skillScore, setSkillScore] = useState(0);
   const canvasRef = useRef(null);
   const [counts, setCounts] = useState({ resumes: 0, satisfaction: 0, ats: 0 });
 const statsRef = useRef(null);
+ const location = useLocation();
+  const navigate = useNavigate();
+const handleNavClick = (e, target, isSection = false) => {
+  if (isSection) {
+    if (location.pathname === '/') {
+      e.preventDefault();
+      const element = document.getElementById(target);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+};
 const mockupRef = useRef(null);
   // Animated background particles
   useEffect(() => {
@@ -66,7 +81,29 @@ const mockupRef = useRef(null);
     }, 10);
   };
 const [currentTemplate, setCurrentTemplate] = useState(0);
+useEffect(() => {
+  const handleScroll = () => {
+    const scrollY = window.scrollY;
+    const orbs = document.querySelectorAll('.rb-orb');
+    orbs.forEach((orb, i) => {
+      const speed = 0.1 + i * 0.05;
+      orb.style.transform = `translateY(${scrollY * speed}px)`;
+    });
+  };
+  window.addEventListener('scroll', handleScroll);
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+useEffect(() => {
+  const handleMouseMove = (e) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  };
+  window.addEventListener('mousemove', handleMouseMove);
+  return () => window.removeEventListener('mousemove', handleMouseMove);
+}, []);
 
+// In JSX, apply a transform to particles based on mousePos
+// (You'd need to map over particles and set inline styles)
 const homeTemplates = [
   {
     id: 1,
@@ -292,117 +329,127 @@ useEffect(() => {
 {/* Navigation */}
 <nav className="rb-navbar">
   <div className="rb-container rb-nav-container">
+
+    {/* LEFT - LOGO */}
     <div className="rb-logo">
-      <div className="rb-logo-3d">
-        <span className="rb-logo-icon">📄✨</span>
+      <div
+        className="logo-section"
+        onClick={() => navigate('/')}
+        style={{ cursor: 'pointer' }}
+      >
+        <span className="logo-text">LERNEVO</span>
       </div>
-      <div className="rb-logo-text">
-        <span className="rb-logo-main">ResumeBuilder</span>
-        <span className="rb-logo-sub">AI-Powered Resume Builder</span>
+    </div>
+
+    {/* RIGHT SIDE (Links + Button together) */}
+    <div className="rb-nav-right">
+      <div className="rb-nav-links">
+        <a href="/">Home</a>
+        <a href="/my-resumes">My Resumes</a>
+      </div>
+
+      <div className="rb-nav-cta">
+        <a href="/builder" className="rb-btn-glow">Get Started</a>
       </div>
     </div>
-    <div className="rb-nav-links">
-      <a href="/">Home</a>
-      <a href="/my-resumes">My Resumes</a>
-      <a href="/builder">Create Resume</a>
-      <a href="/analyzer">Skill Analyzer</a>
-    </div>
-    <div className="rb-nav-cta">
-      <a href="/builder" className="rb-btn-glow">Get Started</a>
-    </div>
+
   </div>
 </nav>
 
 {/* Hero Section */}
 {/* Hero Section */}
 <section className="rb-hero">
+  {/* Background layers */}
   <div className="rb-hero-backdrop">
     <div className="rb-orb rb-orb-1"></div>
     <div className="rb-orb rb-orb-2"></div>
     <div className="rb-orb rb-orb-3"></div>
+    <div className="rb-grid-overlay"></div>
   </div>
 
   <div className="rb-container rb-hero-container">
-    {/* Left Column – Text */}
+    {/* LEFT SIDE – Enhanced content */}
     <div className="rb-hero-content">
-    
-
-      <h1 className="rb-gradient-text">
-        Build a free resume <br />in a few clicks
-      </h1>
-
-      <p className="rb-hero-description">
-        The first step to a better job? A better resume. Only 2% of resumes win, and yours will be one of them. Create it now with our free resume builder!
-      </p>
-
-      <div className="rb-hero-buttons">
-        <a href="/builder" className="rb-btn rb-btn-primary rb-btn-3d">
-          Create a New Resume <span className="rb-btn-arrow">→</span>
-        </a>
-        <a href="/improve" className="rb-btn rb-btn-outline rb-btn-3d-outline">
-          Improve My Resume
-        </a>
+      {/* Animated badge */}
+      <div className="rb-hero-badge">
+        <span className="rb-badge-pulse"></span>
+        ✨ AI-Powered Resume Builder
       </div>
 
+      {/* Headline with gradient & floating underline */}
+      <h1 className="rb-gradient-text">
+        Build your perfect resume <br /> in minutes
+        <span className="rb-underline"></span>
+      </h1>
+
+      {/* Subheadline with animated typing effect (optional) */}
+      <p className="rb-hero-description">
+        Create a professional resume easily with modern templates 
+        and smart tools. <span className="rb-highlight">No complexity</span> — just simple and powerful.
+      </p>
+
+      {/* CTA group with hover effect and micro-interactions */}
+      <div className="rb-hero-buttons">
+        <a href="/builder" className="rb-btn rb-btn-primary rb-btn-3d">
+          <span>Create Resume</span>
+          <span className="rb-btn-arrow">→</span>
+        </a>
+       
+      </div>
+
+  
+
+      {/* Feature chips (now animated on hover) */}
     
     </div>
 
-    {/* Right Column – Resume Mockup (Samantha Williams) */}
+    {/* RIGHT SIDE – Clean device mockup with live template rotation */}
     <div className="rb-hero-mockup">
-      <div className="rb-mockup-3d" ref={mockupRef}>
-        <div className="rb-mockup-screen">
-          <div className="rb-mockup-reflection"></div>
-          <div className="rb-mockup-resume">
-            {/* Header – no image, just text */}
-            <div className="rb-resume-header">
-              <h3 className="rb-resume-name">Samantha Williams</h3>
-              <p className="rb-resume-title">Senior Analyst</p>
-              <p className="rb-resume-location">New York, NY, 10001</p>
-              <p className="rb-resume-email">samantha.william@example.com</p>
-              <p className="rb-resume-phone">(212) 789-1234</p>
-            </div>
-
-            {/* Summary */}
-            <div className="rb-resume-section">
-              <h4>SUMMARY</h4>
-              <p className="rb-resume-summary">
-                Senior Analyst with a 2+ year of experience in data analytics, business intelligence, and process improvement. Skilled in driving operational efficiency, forecasting, and leading data-driven strategies to improve business results and efficiencies.
-              </p>
-            </div>
-
-            {/* Experience */}
-            <div className="rb-resume-section">
-              <h4>EXPERIENCE</h4>
-              <div className="rb-resume-job">
-                <p className="rb-job-role">Senior Analyst</p>
-                <p className="rb-job-company">Los Angeles, CA - New York, NY</p>
-                <p className="rb-job-description">
-                  Lead Data Analyst for a global financial services firm. Led the development and implementation of a new data analysis platform that increased productivity by 50%. Achieved a 20% reduction in processing time.
-                </p>
-                <p className="rb-job-duties-label">Duties:</p>
-                <ul>
-                  <li>Develop and maintain data models and reports</li>
-                  <li>Analyze data to identify trends and patterns</li>
-                  <li>Work with stakeholders to understand business needs</li>
-                  <li>Collaborate with cross-functional teams to implement solutions</li>
-                </ul>
-              </div>
+      <div className="rb-device-mockup" ref={mockupRef}>
+        {/* Device frame (laptop/phone style) */}
+        <div className="rb-device-frame">
+          <div className="rb-device-screen">
+            <div className="rb-screen-content">
+              <img
+                src={homeTemplates[currentTemplate]?.image}
+                alt="Resume Preview"
+                className="rb-rotating-image"
+              />
             </div>
           </div>
+          <div className="rb-device-base"></div>
         </div>
-        <div className="rb-mockup-glow"></div>
-        <div className="rb-mockup-shadow"></div>
+
+        {/* Floating glow effect behind the device */}
+        <div className="rb-device-glow"></div>
+
+        {/* Navigation dots for templates (clickable) */}
+        <div className="rb-template-dots">
+          {homeTemplates.map((_, index) => (
+            <button
+              key={index}
+              className={`rb-dot ${index === currentTemplate ? 'active' : ''}`}
+              onClick={() => setCurrentTemplate(index)}
+              aria-label={`Show template ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   </div>
 
-  {/* Wave Divider */}
+  {/* Wave divider (keep as is, or replace with a more subtle one) */}
   <div className="rb-hero-wave">
     <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
-      <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="#ffffff" fillOpacity="0.8"></path>
+      <path
+        d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L0,120Z"
+        fill="#ffffff"
+        fillOpacity="0.8"
+      ></path>
     </svg>
   </div>
 </section>
+  
 {/* Templates Section – Real Resume Previews with Photos */}
 <section className="rb-template-grid-section">
   <div className="rb-container">

@@ -5951,3 +5951,1442 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 }
+
+
+/*home page design*/
+/* Gradient Heading */
+.rb-gradient-text {
+  font-size: 48px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #6366f1, #9333ea);
+
+  /* ✅ Add this line (standard property) */
+  background-clip: text;
+
+  /* ✅ Keep webkit for browser support */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Optional fallback */
+  color: transparent;
+}
+
+/* Description */
+.rb-hero-description {
+  margin-top: 15px;
+  font-size: 16px;
+  color: #555;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* Buttons */
+.rb-hero-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.rb-btn-glass {
+  padding: 12px 22px;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.rb-btn-glass:hover {
+  background: rgba(99,102,241,0.15);
+  color: #6366f1;
+}
+
+/* Feature Pills */
+.rb-hero-features {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+  flex-wrap: wrap;
+}
+
+.rb-hero-features span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: rgba(99,102,241,0.1);
+  color: #4f46e5;
+  transition: 0.3s;
+}
+
+.rb-hero-features span:hover {
+  background: #6366f1;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* Image Mockup */
+.rb-mockup-image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.rb-mockup-image {
+  width: 85%;
+  max-width: 380px;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  transform: rotateY(-8deg) rotateX(5deg);
+  transition: 0.5s;
+}
+
+.rb-mockup-image:hover {
+  transform: rotateY(0deg) rotateX(0deg) scale(1.05);
+}
+/* Container alignment */
+.rb-hero-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+}
+
+/* LEFT SIDE FIX */
+.rb-hero-content {
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Heading FIX */
+.rb-gradient-text {
+  font-size: 52px;   /* Bigger */
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+
+  background: linear-gradient(90deg, #6366f1, #9333ea);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Description FIX */
+.rb-hero-description {
+  margin-top: 18px;
+  font-size: 17px;
+  color: #555;
+  line-height: 1.7;
+}
+
+/* Button spacing */
+.rb-hero-buttons {
+  margin-top: 25px;
+}
+
+/* Feature pills */
+.rb-hero-features {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.rb-hero-features span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: rgba(99,102,241,0.1);
+  color: #4f46e5;
+}
+
+/* RIGHT SIDE IMAGE */
+.rb-mockup-image {
+  width: 90%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+/* ===== RESET & BASE ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.rb-hero {
+  position: relative;
+  min-height: 100vh;
+  background: #f8fafc; /* soft white */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ===== BACKGROUND ORBS & PARTICLES ===== */
+.rb-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.rb-orb {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.4;
+  animation: orbFloat 20s infinite alternate ease-in-out;
+}
+
+.rb-orb-1 {
+  background: radial-gradient(circle, #3b82f6, transparent 70%);
+  top: -200px;
+  left: -200px;
+}
+
+.rb-orb-2 {
+  background: radial-gradient(circle, #60a5fa, transparent 70%);
+  bottom: -200px;
+  right: -200px;
+  animation-delay: -5s;
+}
+
+.rb-orb-3 {
+  background: radial-gradient(circle, #93c5fd, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: -10s;
+}
+
+@keyframes orbFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(5%, 5%) scale(1.2); }
+}
+
+/* Floating particles */
+.rb-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #3b82f6;
+  border-radius: 50%;
+  filter: blur(2px);
+  opacity: 0.2;
+  animation: particleFloat 15s infinite linear;
+}
+
+.rb-particle:nth-child(4) { top: 10%; left: 20%; animation-duration: 12s; }
+.rb-particle:nth-child(5) { top: 70%; left: 80%; animation-duration: 18s; }
+.rb-particle:nth-child(6) { top: 40%; left: 10%; animation-duration: 14s; }
+.rb-particle:nth-child(7) { top: 80%; left: 30%; animation-duration: 20s; }
+
+@keyframes particleFloat {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+  50% { opacity: 0.6; }
+  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+}
+
+/* ===== CONTAINER ===== */
+.rb-container {
+  position: relative;
+  z-index: 2;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 30px;
+  width: 100%;
+}
+
+.rb-hero-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px;
+}
+
+/* ===== LEFT CONTENT ===== */
+.rb-hero-content {
+  flex: 1;
+  max-width: 600px;
+}
+
+.rb-gradient-text {
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 25px;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6, #60a5fa);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientMove 6s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.rb-hero-description {
+  font-size: 1.2rem;
+  color: #334155;
+  margin-bottom: 35px;
+  line-height: 1.7;
+  max-width: 500px;
+}
+
+/* ===== BUTTON ===== */
+.rb-hero-buttons {
+  margin-bottom: 40px;
+}
+
+.rb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 38px;
+  border-radius: 60px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  cursor: pointer;
+}
+
+.rb-btn-primary {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  box-shadow: 0 15px 30px -8px #2563eb80;
+}
+
+.rb-btn-3d {
+  transform-style: preserve-3d;
+  transform: perspective(500px) translateZ(0);
+}
+
+.rb-btn-3d:hover {
+  transform: perspective(500px) translateZ(20px);
+  box-shadow: 0 25px 40px -8px #2563eb;
+}
+
+.rb-btn-3d:active {
+  transform: perspective(500px) translateZ(10px);
+}
+
+.rb-btn span {
+  position: relative;
+  z-index: 2;
+}
+
+.rb-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  z-index: 1;
+}
+
+.rb-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.rb-btn-arrow {
+  font-size: 1.4rem;
+  transition: transform 0.3s;
+}
+
+.rb-btn:hover .rb-btn-arrow {
+  transform: translateX(8px);
+}
+
+/* ===== FEATURE TAGS ===== */
+.rb-hero-features {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.rb-feature-item {
+  padding: 8px 20px;
+  background: rgba(59,130,246,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 40px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e3a8a;
+  border: 1px solid rgba(59,130,246,0.3);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  animation: fadeInUp 0.6s ease backwards;
+  animation-delay: calc(0.1s * var(--i, 1));
+}
+
+.rb-feature-item:nth-child(1) { --i: 1; }
+.rb-feature-item:nth-child(2) { --i: 2; }
+.rb-feature-item:nth-child(3) { --i: 3; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== RIGHT MOCKUP ===== */
+.rb-hero-mockup {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rb-mockup-3d {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease;
+  cursor: pointer;
+}
+
+.rb-mockup-screen {
+  position: relative;
+  background: white;
+  border-radius: 30px;
+  padding: 20px;
+  box-shadow: 
+    0 30px 50px -20px rgba(0,0,0,0.3),
+    0 0 0 1px rgba(59,130,246,0.2) inset;
+  transform: rotateY(0deg) rotateX(5deg) translateZ(20px);
+  overflow: hidden;
+}
+
+.rb-mockup-reflection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: inherit;
+}
+
+.rb-mockup-image-wrapper {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.rb-mockup-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.4s;
+}
+
+.rb-mockup-3d:hover .rb-mockup-image {
+  transform: scale(1.02);
+}
+
+.rb-mockup-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle at 30% 30%, #3b82f6, transparent 70%);
+  filter: blur(40px);
+  opacity: 0.4;
+  z-index: -1;
+  animation: glowPulse 4s infinite alternate;
+}
+
+@keyframes glowPulse {
+  0% { opacity: 0.3; transform: scale(0.9); }
+  100% { opacity: 0.6; transform: scale(1.1); }
+}
+
+.rb-mockup-shadow {
+  position: absolute;
+  bottom: -30px;
+  left: 10%;
+  width: 80%;
+  height: 40px;
+  background: rgba(0,0,0,0.2);
+  filter: blur(20px);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+/* ===== WAVE DIVIDER ===== */
+.rb-hero-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  line-height: 0;
+  z-index: 3;
+}
+
+.rb-hero-wave svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: waveMove 8s infinite alternate ease-in-out;
+}
+
+@keyframes waveMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-2%); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .rb-hero-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  .rb-hero-content {
+    max-width: 100%;
+  }
+  .rb-hero-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .rb-hero-features {
+    justify-content: center;
+  }
+  .rb-mockup-3d {
+    max-width: 400px;
+  }
+}.rb-gradient-text {
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ffe66d);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientMove 8s ease infinite;
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}.rb-btn-primary {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.rb-btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+}
+.rb-btn-arrow {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+.rb-btn-primary:hover .rb-btn-arrow {
+  transform: translateX(5px);
+}.rb-hero-content {
+  opacity: 0;
+  animation: fadeInUp 0.8s forwards;
+}
+.rb-hero-mockup {
+  opacity: 0;
+  animation: fadeInUp 0.8s 0.2s forwards;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}.rb-hero-wave path {
+  animation: waveColor 8s ease-in-out infinite;
+}
+@keyframes waveColor {
+  0%, 100% { fill: #ffffff; }
+  50% { fill: #f0f0ff; }
+}.rb-mockup-reflection {
+  background: radial-gradient(circle at var(--reflect-x, 50%) var(--reflect-y, 50%), rgba(255,255,255,0.4) 0%, transparent 50%);
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.rb-mockup-3d:hover .rb-mockup-reflection {
+  opacity: 1;
+}/* ===== HERO SECTION OVERALL ===== */
+.rb-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+}
+
+/* Animated background orbs (keep your existing ones or replace with these) */
+.rb-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: floatOrb 15s infinite alternate ease-in-out;
+}
+.rb-orb-1 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle at 30% 30%, #2563eb, #1e40af);
+  top: -100px;
+  left: -100px;
+}
+.rb-orb-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle at 70% 70%, #8b5cf6, #6d28d9);
+  bottom: -200px;
+  right: -100px;
+  animation-delay: -5s;
+}
+.rb-orb-3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle at 50% 50%, #06b6d4, #0891b2);
+  top: 50%;
+  left: 30%;
+  animation-delay: -10s;
+}
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, -40px) scale(1.1); }
+}
+
+/* Subtle grid overlay */
+.rb-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(37, 99, 235, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+/* ===== LEFT CONTENT ===== */
+.rb-hero-content {
+  flex: 1;
+  max-width: 600px;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeInUp 0.8s forwards;
+}
+
+/* Badge */
+.rb-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(37, 99, 235, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 40px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e40af;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  margin-bottom: 24px;
+  animation: badgePulse 2s infinite;
+}
+.rb-badge-pulse {
+  width: 8px;
+  height: 8px;
+  background: #2563eb;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+/* Headline with gradient and underline */
+.rb-gradient-text {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  position: relative;
+  background: linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientMove 8s ease infinite;
+  background-size: 200% 200%;
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.rb-underline {
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 120px;
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6);
+  border-radius: 4px;
+  animation: underlineWidth 2s infinite alternate;
+}
+@keyframes underlineWidth {
+  0% { width: 80px; opacity: 0.6; }
+  100% { width: 160px; opacity: 1; }
+}
+
+/* Description */
+.rb-hero-description {
+  font-size: 1.25rem;
+  color: #334155;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+.rb-highlight {
+  background: linear-gradient(120deg, #ffe7b3 0%, #ffe7b3 40%, transparent 80%);
+  padding: 0 4px;
+  font-weight: 500;
+}
+
+/* Buttons */
+.rb-hero-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.rb-btn {
+  padding: 14px 32px;
+  border-radius: 40px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.rb-btn-primary {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+.rb-btn-primary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.4);
+}
+.rb-btn-outline {
+  border: 2px solid #2563eb;
+  color: #2563eb;
+  background: transparent;
+}
+.rb-btn-outline:hover {
+  background: rgba(37, 99, 235, 0.05);
+  transform: translateY(-2px);
+}
+.rb-btn-arrow {
+  transition: transform 0.2s;
+}
+.rb-btn-primary:hover .rb-btn-arrow {
+  transform: translateX(6px);
+}
+
+/* Stats */
+.rb-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 16px 24px;
+  border-radius: 60px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  width: fit-content;
+}
+.rb-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+.rb-stat-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+.rb-stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.rb-stat-divider {
+  width: 1px;
+  height: 30px;
+  background: #e2e8f0;
+}
+
+/* Feature chips */
+.rb-hero-features {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.rb-feature-item {
+  background: white;
+  padding: 8px 16px;
+  border-radius: 40px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e293b;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+.rb-feature-item:hover {
+  transform: scale(1.05);
+  border-color: #2563eb;
+  color: #2563eb;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+}
+
+/* ===== RIGHT SIDE – DEVICE MOCKUP ===== */
+.rb-hero-mockup {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeInUp 0.8s 0.2s forwards;
+}
+.rb-device-mockup {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  perspective: 1000px;
+}
+.rb-device-frame {
+  transform-style: preserve-3d;
+  animation: floatDevice 6s ease-in-out infinite;
+}
+@keyframes floatDevice {
+  0%, 100% { transform: translateY(0) rotateY(0deg); }
+  50% { transform: translateY(-15px) rotateY(5deg); }
+}
+.rb-device-screen {
+  background: #0f172a;
+  border-radius: 24px;
+  padding: 12px;
+  box-shadow: 
+    0 30px 40px -20px rgba(0,0,0,0.3),
+    inset 0 2px 4px rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.rb-device-screen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: 24px;
+}
+.rb-screen-content {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 3/4; /* Adjust to match your resume image ratio */
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+}
+.rb-rotating-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.5s ease;
+}
+/* Device base (laptop style) – optional, comment out if not needed */
+.rb-device-base {
+  height: 10px;
+  background: #1e293b;
+  width: 60%;
+  margin: 0 auto;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+.rb-device-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle at 50% 50%, rgba(37,99,235,0.3), transparent 70%);
+  filter: blur(30px);
+  z-index: -1;
+  opacity: 0.6;
+  animation: glowPulse 4s infinite alternate;
+}
+@keyframes glowPulse {
+  0% { opacity: 0.4; transform: scale(0.95); }
+  100% { opacity: 0.8; transform: scale(1.05); }
+}
+
+/* Template navigation dots */
+.rb-template-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.rb-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.rb-dot.active {
+  width: 28px;
+  border-radius: 20px;
+  background: #2563eb;
+  transform: scale(1.1);
+}
+.rb-dot:hover {
+  background: #2563eb;
+  transform: scale(1.2);
+}
+
+/* Wave divider (optional – keep as is or tweak) */
+.rb-hero-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  line-height: 0;
+  z-index: 1;
+}
+.rb-hero-wave svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Fade in animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .rb-gradient-text { font-size: 2.8rem; }
+  .rb-hero-container { flex-direction: column; text-align: center; }
+  .rb-hero-content { max-width: 100%; }
+  .rb-hero-stats { margin: 0 auto 32px; }
+  .rb-hero-buttons { justify-content: center; }
+  .rb-hero-features { justify-content: center; }
+}
+@media (max-width: 640px) {
+  .rb-gradient-text { font-size: 2.2rem; }
+  .rb-hero-stats { flex-direction: column; gap: 12px; padding: 16px; }
+  .rb-stat-divider { display: none; }
+}/* Add top padding to hero container to account for fixed navbar */
+.rb-hero-container {
+  padding-top: 80px; /* adjust based on your navbar height */
+}
+
+/* Alternatively, if navbar is fixed, ensure hero starts below it */
+.rb-hero {
+  padding-top: 80px; /* same adjustment */
+}.rb-hero {
+  min-height: calc(100vh - 80px); /* subtract navbar height */
+  display: flex;
+  align-items: center;
+}/* Make the mockup smaller */
+.rb-device-mockup {
+  max-width: 380px;
+}
+
+/* Thicker bezel and more realistic frame */
+.rb-device-screen {
+  background: #1e293b;
+  padding: 14px;
+  border-radius: 36px;
+  box-shadow: 0 25px 40px -15px rgba(0,0,0,0.4);
+}
+
+/* Optional: add a subtle camera notch */
+.rb-device-screen::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 22px;
+  background: #0f172a;
+  border-radius: 20px;
+  z-index: 5;
+}
+
+/* Inner screen with slight border */
+.rb-screen-content {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1);
+}
+
+/* Ensure the image fills the screen */
+.rb-rotating-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}/* ===== HERO SECTION OVERALL ===== */
+.rb-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+}
+
+/* Animated background orbs (keep your existing ones or replace with these) */
+.rb-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: floatOrb 15s infinite alternate ease-in-out;
+}
+.rb-orb-1 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle at 30% 30%, #2563eb, #1e40af);
+  top: -100px;
+  left: -100px;
+}
+.rb-orb-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle at 70% 70%, #8b5cf6, #6d28d9);
+  bottom: -200px;
+  right: -100px;
+  animation-delay: -5s;
+}
+.rb-orb-3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle at 50% 50%, #06b6d4, #0891b2);
+  top: 50%;
+  left: 30%;
+  animation-delay: -10s;
+}
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, -40px) scale(1.1); }
+}
+
+/* Subtle grid overlay */
+.rb-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(37, 99, 235, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+/* ===== LEFT CONTENT ===== */
+.rb-hero-content {
+  flex: 1;
+  max-width: 600px;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeInUp 0.8s forwards;
+}
+
+/* Badge */
+.rb-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(37, 99, 235, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 40px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e40af;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  margin-bottom: 24px;
+  animation: badgePulse 2s infinite;
+}
+.rb-badge-pulse {
+  width: 8px;
+  height: 8px;
+  background: #2563eb;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+/* Headline with gradient and underline */
+.rb-gradient-text {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  position: relative;
+  background: linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientMove 8s ease infinite;
+  background-size: 200% 200%;
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.rb-underline {
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 120px;
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6);
+  border-radius: 4px;
+  animation: underlineWidth 2s infinite alternate;
+}
+@keyframes underlineWidth {
+  0% { width: 80px; opacity: 0.6; }
+  100% { width: 160px; opacity: 1; }
+}
+
+/* Description */
+.rb-hero-description {
+  font-size: 1.25rem;
+  color: #334155;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+.rb-highlight {
+  background: linear-gradient(120deg, #ffe7b3 0%, #ffe7b3 40%, transparent 80%);
+  padding: 0 4px;
+  font-weight: 500;
+}
+
+/* Buttons */
+.rb-hero-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.rb-btn {
+  padding: 14px 32px;
+  border-radius: 40px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.rb-btn-primary {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+.rb-btn-primary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.4);
+}
+.rb-btn-outline {
+  border: 2px solid #2563eb;
+  color: #2563eb;
+  background: transparent;
+}
+.rb-btn-outline:hover {
+  background: rgba(37, 99, 235, 0.05);
+  transform: translateY(-2px);
+}
+.rb-btn-arrow {
+  transition: transform 0.2s;
+}
+.rb-btn-primary:hover .rb-btn-arrow {
+  transform: translateX(6px);
+}
+
+/* Stats */
+.rb-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 16px 24px;
+  border-radius: 60px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  width: fit-content;
+}
+.rb-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+.rb-stat-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+.rb-stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.rb-stat-divider {
+  width: 1px;
+  height: 30px;
+  background: #e2e8f0;
+}
+
+/* Feature chips */
+.rb-hero-features {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.rb-feature-item {
+  background: white;
+  padding: 8px 16px;
+  border-radius: 40px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e293b;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+.rb-feature-item:hover {
+  transform: scale(1.05);
+  border-color: #2563eb;
+  color: #2563eb;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+}
+
+/* ===== RIGHT SIDE – DEVICE MOCKUP ===== */
+.rb-hero-mockup {
+  flex: 0 0 auto;
+  width: 45%;                /* Increase right column width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  animation: fadeInUp 0.8s 0.2s forwards;
+}
+.rb-device-mockup {
+  position: relative;
+  width: 100%;
+  max-width: 480px;          /* Increased from 380px – now larger */
+  perspective: 1000px;
+}
+.rb-device-frame {
+  transform-style: preserve-3d;
+  animation: floatDevice 6s ease-in-out infinite;
+}
+@keyframes floatDevice {
+  0%, 100% { transform: translateY(0) rotateY(0deg); }
+  50% { transform: translateY(-15px) rotateY(5deg); }
+}
+.rb-device-screen {
+  background: #1e293b;
+  padding: 14px;
+  border-radius: 36px;
+  box-shadow: 0 25px 40px -15px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
+}
+/* Optional: add a subtle camera notch */
+.rb-device-screen::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 22px;
+  background: #0f172a;
+  border-radius: 20px;
+  z-index: 5;
+}
+.rb-device-screen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: 24px;
+}
+.rb-screen-content {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1);
+}
+.rb-rotating-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.5s ease;
+}
+/* Device base (laptop style) – optional */
+.rb-device-base {
+  height: 10px;
+  background: #1e293b;
+  width: 60%;
+  margin: 0 auto;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+.rb-device-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle at 50% 50%, rgba(37,99,235,0.3), transparent 70%);
+  filter: blur(30px);
+  z-index: -1;
+  opacity: 0.6;
+  animation: glowPulse 4s infinite alternate;
+}
+@keyframes glowPulse {
+  0% { opacity: 0.4; transform: scale(0.95); }
+  100% { opacity: 0.8; transform: scale(1.05); }
+}
+
+/* Template navigation dots */
+.rb-template-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.rb-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.rb-dot.active {
+  width: 28px;
+  border-radius: 20px;
+  background: #2563eb;
+  transform: scale(1.1);
+}
+.rb-dot:hover {
+  background: #2563eb;
+  transform: scale(1.2);
+}
+
+/* Wave divider (optional) */
+.rb-hero-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  line-height: 0;
+  z-index: 1;
+}
+.rb-hero-wave svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Fade in animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .rb-gradient-text { font-size: 2.8rem; }
+  .rb-hero-container { flex-direction: column; text-align: center; }
+  .rb-hero-content { max-width: 100%; }
+  .rb-hero-stats { margin: 0 auto 32px; }
+  .rb-hero-buttons { justify-content: center; }
+  .rb-hero-features { justify-content: center; }
+  .rb-hero-mockup { width: 80%; margin-top: 40px; }
+}
+@media (max-width: 640px) {
+  .rb-gradient-text { font-size: 2.2rem; }
+  .rb-hero-stats { flex-direction: column; gap: 12px; padding: 16px; }
+  .rb-stat-divider { display: none; }
+}
+.rb-nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Group right side items */
+.rb-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Remove center alignment */
+.rb-nav-links {
+  display: flex;
+  gap: 20px;
+}
