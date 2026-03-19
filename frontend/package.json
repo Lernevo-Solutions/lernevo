@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.13.4",
     "chart.js": "^4.5.1",
+    "cross-env": "^10.1.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-chartjs-2": "^5.3.1",
@@ -20,11 +21,11 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+  "start": "cross-env NODE_OPTIONS=--max_old_space_size=4096 react-scripts start",
+  "build": "react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+},
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -44,3 +45,4 @@
     ]
   }
 }
+
