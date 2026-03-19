@@ -9,7 +9,9 @@ from django.contrib.auth.models import User as AuthUser
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.utils.timezone import now
-
+from rest_framework import viewsets, permissions
+from .models import Resume
+from .serializers import ResumeSerializer
 from datetime import timedelta
 import uuid
 from .models import UserProfile
@@ -569,3 +571,13 @@ Questions:
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ResumeViewSet(viewsets.ModelViewSet):
+    serializer_class = ResumeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Resume.objects.filter(user=self.request.user.lernevo_user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user.lernevo_user)

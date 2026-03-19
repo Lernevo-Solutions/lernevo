@@ -138,3 +138,121 @@ class DemoBookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemoBooking
         fields = "__all__"
+
+
+
+
+
+
+
+
+
+
+
+
+
+from rest_framework import serializers
+from .models import *
+
+# -------------------------
+# CHILD SERIALIZERS
+# -------------------------
+
+class ResumePersonalInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResumePersonalInfo
+        fields = '__all__'
+
+
+class ResumeExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResumeExperience
+        fields = '__all__'
+
+
+class ResumeEducationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResumeEducation
+        fields = '__all__'
+
+
+class ResumeSkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResumeSkill
+        fields = '__all__'
+
+
+# -------------------------
+# MAIN RESUME SERIALIZER
+# -------------------------
+
+class ResumeSerializer(serializers.ModelSerializer):
+    personal_info = ResumePersonalInfoSerializer()
+    experiences = ResumeExperienceSerializer(many=True)
+    educations = ResumeEducationSerializer(many=True)
+    skills = ResumeSkillSerializer(many=True)
+
+    class Meta:
+        model = Resume
+        fields = '__all__'
+
+    # 🔥 CREATE (IMPORTANT)
+    def create(self, validated_data):
+        personal_data = validated_data.pop('personal_info')
+        experiences_data = validated_data.pop('experiences')
+        educations_data = validated_data.pop('educations')
+        skills_data = validated_data.pop('skills')
+
+        resume = Resume.objects.create(**validated_data)
+
+        # personal
+        ResumePersonalInfo.objects.create(
+            resume=resume, **personal_data
+        )
+
+        # experiences
+        for exp in experiences_data:
+            ResumeExperience.objects.create(resume=resume, **exp)
+
+        # education
+        for edu in educations_data:
+            ResumeEducation.objects.create(resume=resume, **edu)
+
+        # skills
+        for skill in skills_data:
+            ResumeSkill.objects.create(resume=resume, **skill)
+
+        return resume
+
+    # 🔥 UPDATE
+    def update(self, instance, validated_data):
+        personal_data = validated_data.pop('personal_info')
+        experiences_data = validated_data.pop('experiences')
+        educations_data = validated_data.pop('educations')
+        skills_data = validated_data.pop('skills')
+
+        # update resume
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # update personal info
+        ResumePersonalInfo.objects.update_or_create(
+            resume=instance,
+            defaults=personal_data
+        )
+
+        # clear old & re-add
+        instance.experiences.all().delete()
+        for exp in experiences_data:
+            ResumeExperience.objects.create(resume=instance, **exp)
+
+        instance.educations.all().delete()
+        for edu in educations_data:
+            ResumeEducation.objects.create(resume=instance, **edu)
+
+        instance.skills.all().delete()
+        for skill in skills_data:
+            ResumeSkill.objects.create(resume=instance, **skill)
+
+        return instance
