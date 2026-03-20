@@ -7498,4 +7498,427 @@ align-items:center;
   }
 }.rb-hero {
   padding-top: 120px;   /* 80px navbar + extra spacing */
+}/* ===== HERO SECTION – EXACT ALIGNMENT FROM Hero.js ===== */
+
+.rb-hero {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  padding-top: calc(64px + 2rem);   /* 64px navbar + 2rem breathing */
+  position: relative;
+  overflow: hidden;
+  background: transparent !important;
+  scroll-margin-top: 64px;
+}
+
+.rb-hero-container {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;   /* Strict 50/50 split */
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 5% !important;                  /* padding-left: 5% as in Hero */
+  gap: 60px;
+  height: calc(100vh - (64px + 4rem));       /* Viewport minus navbar/spacing */
+  align-items: flex-start !important;
+}
+
+/* LEFT SIDE – must fill entire height and push elements to top/bottom */
+.rb-hero-content {
+  height: 100% !important;                   /* Match image column height */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important; /* Zero vertical white space */
+  align-items: flex-start !important;        /* Strict left alignment */
+  max-width: 600px !important;
+  z-index: 10;
+}
+
+/* Heading – exactly like .hero-title */
+.rb-heading-compact,
+.rb-gradient-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800 !important;
+  font-size: 64px !important;
+  line-height: 1.2 !important;
+  color: #001d3d !important;                 /* Original hero title colour */
+  margin: 0 0 16px 0 !important;
+  text-align: left !important;
+  max-width: 550px !important;
+  background: none !important;               /* Remove gradient effect */
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #001d3d !important;                 /* Solid colour override */
+}
+
+/* Optional underline (if you keep it, adjust position) */
+.rb-underline {
+  display: none;  /* or adjust if needed */
+}
+
+/* Badge – preserve but style like original hero badge (optional) */
+.rb-hero-badge {
+  margin-bottom: 0;  /* will be handled by justify-content: space-between */
+}
+
+/* Description – match .hero-description */
+.rb-hero-description {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 18px !important;
+  line-height: 1.6 !important;
+  color: #4A5568 !important;
+  margin: 0 !important;
+  max-width: 600px !important;
+  text-shadow: none;
+  text-decoration: none;
+}
+
+/* ========== FINAL FIX – EXACT Hero.js LAYOUT ========== */
+
+/* Reset hero section */
+.rb-hero {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  padding-top: calc(64px + 2rem);   /* navbar height + breathing */
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  scroll-margin-top: 64px;
+}
+
+/* Strict 2‑column grid */
+.rb-hero-container {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 5%;
+  gap: 60px;
+  height: calc(100vh - (64px + 4rem));
+  align-items: flex-start;
+}
+
+/* LEFT SIDE – text content */
+.rb-hero-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* pushes badge, heading, desc, button to top/bottom */
+  align-items: flex-start;
+  max-width: 600px;
+  z-index: 10;
+}
+
+/* Heading – solid dark colour */
+.rb-gradient-text,
+.rb-heading-compact {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 64px;
+  line-height: 1.2;
+  color: #001d3d !important;
+  margin: 0 0 16px 0;
+  text-align: left;
+  max-width: 550px;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: #001d3d !important;
+}
+
+/* Description */
+.rb-hero-description {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #4A5568;
+  margin: 0;
+  max-width: 600px;
+}
+
+/* Button */
+.rb-hero-buttons .rb-btn-primary {
+  background: #2563eb !important;
+  color: white !important;
+  border: none;
+  padding: 22px 52px;
+  border-radius: 9999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.rb-hero-buttons .rb-btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.3);
+}
+
+/* RIGHT SIDE – image container */
+.rb-hero-mockup {
+  height: 100% !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  width: auto !important;
+  flex: none !important;
+  position: relative !important;
+}
+
+/* The mockup itself – fill the column */
+.rb-device-mockup {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 40px !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1) !important;
+  transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+  position: relative !important;
+  background: #fff; /* fallback */
+}
+
+/* Remove all extra frames – keep only the image */
+.rb-device-screen,
+.rb-screen-content {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: inherit !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* The image fills the container */
+.rb-rotating-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  transition: transform 0.4s;
+}
+
+/* Hide any decorative elements that could cover the image */
+.rb-device-base,
+.rb-device-glow,
+.rb-device-frame,
+.rb-device-frame::before,
+.rb-device-screen::before,
+.rb-device-screen::after {
+  display: none !important;
+}
+
+/* Hover effect */
+.rb-hero-mockup:hover .rb-device-mockup {
+  transform: scale(1.02);
+}
+
+/* Navigation dots – positioned below the image */
+.rb-template-dots {
+  position: absolute !important;
+  bottom: -40px !important;
+  left: 0 !important;
+  right: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  z-index: 20 !important;
+}
+
+.rb-dot {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: #cbd5e1 !important;
+  border: none !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+}
+.rb-dot.active {
+  width: 28px !important;
+  border-radius: 20px !important;
+  background: #2563eb !important;
+  transform: scale(1.1) !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .rb-hero {
+    height: auto !important;
+    min-height: 100vh !important;
+    padding-top: 100px !important;
+    padding-bottom: 60px !important;
+  }
+  .rb-hero-container {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    text-align: center !important;
+    gap: 40px !important;
+    padding: 0 5% !important;
+  }
+  .rb-hero-content {
+    align-items: center !important;
+    text-align: center !important;
+    max-width: 100% !important;
+    height: auto !important;
+    justify-content: flex-start !important;
+    gap: 20px !important;
+  }
+  .rb-heading-compact,
+  .rb-gradient-text {
+    text-align: center !important;
+    max-width: 100% !important;
+  }
+  .rb-hero-description {
+    max-width: 100% !important;
+  }
+  .rb-hero-mockup {
+    justify-content: center !important;
+    width: 100% !important;
+    height: 50vh !important;
+    min-height: 300px !important;
+  }
+  .rb-device-mockup {
+    max-width: 400px !important;
+    margin: 0 auto !important;
+  }
+  .rb-template-dots {
+    bottom: -30px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .rb-heading-compact,
+  .rb-gradient-text {
+    font-size: 48px !important;
+  }
+  .rb-hero-buttons .rb-btn-primary {
+    padding: 18px 36px !important;
+    font-size: 1rem !important;
+  }
+}/* ===== FINAL HERO FIXES: heading up & attractive mockup ===== */
+
+/* 1. Move heading higher by reducing top padding and content gap */
+.rb-hero {
+  padding-top: calc(64px + 0.5rem) !important; /* less space above */
+}
+.rb-hero-content {
+  justify-content: flex-start !important; /* content starts at the top */
+  gap: 15px !important; /* smaller gaps between elements */
+}
+.rb-gradient-text,
+.rb-heading-compact {
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+}
+
+/* 2. Make the right-side mockup attractive – gradient border + glow */
+.rb-device-mockup {
+  position: relative;
+  border-radius: 30px !important;
+  background: #fff;
+  box-shadow: 
+    0 30px 60px -20px rgba(0,0,0,0.3),
+    0 0 0 2px rgba(255,255,255,0.8) inset,
+    0 0 0 6px #f0f2f5 !important;
+  transition: all 0.4s ease;
+}
+.rb-device-mockup::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(135deg, #2563eb, #8b5cf6, #ec489a);
+  border-radius: 33px;
+  z-index: -1;
+  opacity: 0.5;
+  transition: opacity 0.4s;
+}
+.rb-device-mockup:hover::before {
+  opacity: 0.8;
+}
+.rb-device-mockup:hover {
+  transform: scale(1.02);
+  box-shadow: 0 40px 70px -20px rgba(0,0,0,0.4);
+}
+
+/* Ensure the image fills the mockup completely */
+.rb-rotating-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}/* Adjust top spacing so hero content doesn't touch navbar */
+.rb-hero {
+  padding-top: calc(64px + 3rem) !important; /* increase from 0.5rem to 3rem */
+}
+.rb-hero-container {
+  height: calc(100vh - (64px + 4rem)) !important; /* keep consistency */
+}/* 🔥 MINI FEATURE POINTS */
+.rb-hero-features-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 25px;
+}
+
+/* Each feature pill */
+.rb-hero-features-mini span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e40af;
+
+  background: #eff6ff;
+  padding: 6px 14px;
+  border-radius: 20px;
+
+  border: 1px solid #dbeafe;
+  transition: all 0.25s ease;
+  cursor: default;
+}
+
+/* Hover effect */
+.rb-hero-features-mini span:hover {
+  background: #2563eb;
+  color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.25);
+}.rb-hero-features-mini span {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeMini 0.5s ease forwards;
+}
+
+.rb-hero-features-mini span:nth-child(1) { animation-delay: 0.2s; }
+.rb-hero-features-mini span:nth-child(2) { animation-delay: 0.4s; }
+.rb-hero-features-mini span:nth-child(3) { animation-delay: 0.6s; }
+.rb-hero-features-mini span:nth-child(4) { animation-delay: 0.8s; }
+
+@keyframes fadeMini {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

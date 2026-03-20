@@ -358,6 +358,7 @@ useEffect(() => {
 
 {/* Hero Section */}
 {/* Hero Section */}
+{/* Hero Section */}
 <section className="rb-hero">
   {/* Background layers */}
   <div className="rb-hero-backdrop">
@@ -368,85 +369,62 @@ useEffect(() => {
   </div>
 
   <div className="rb-container rb-hero-container">
-    {/* LEFT SIDE – Enhanced content */}
     <div className="rb-hero-content">
-      {/* Animated badge */}
       <div className="rb-hero-badge">
         <span className="rb-badge-pulse"></span>
-        ✨ AI-Powered Resume Builder
+        AI-Powered Resume Builder
       </div>
 
-      {/* Headline with gradient & floating underline */}
-      <h1 className="rb-gradient-text">
-        Build your perfect resume <br /> in minutes
+      <h1 className="rb-gradient-text rb-heading-compact">
+        Build your dream <br /> resume in minutes
         <span className="rb-underline"></span>
       </h1>
 
-      {/* Subheadline with animated typing effect (optional) */}
       <p className="rb-hero-description">
-        Create a professional resume easily with modern templates 
-        and smart tools. <span className="rb-highlight">No complexity</span> — just simple and powerful.
+        Land your dream job with a resume that stands out. Use our AI-driven 
+        templates to showcase your skills professionally. <br />
+        <span className="rb-highlight">Fast, Smart, and ATS-Friendly.</span>
       </p>
+    
+<div className="rb-hero-features-mini">
+  <span>AI-Powered Suggestions</span>
+  <span>Multiple Modern Templates</span>
+  <span>Instant Resume Download</span>
+  
+</div>
 
-      {/* CTA group with hover effect and micro-interactions */}
       <div className="rb-hero-buttons">
         <a href="/builder" className="rb-btn rb-btn-primary rb-btn-3d">
-          <span>Create Resume</span>
+          <span>Start Building Now</span>
           <span className="rb-btn-arrow">→</span>
         </a>
-       
       </div>
-
-  
-
-      {/* Feature chips (now animated on hover) */}
-    
     </div>
 
-    {/* RIGHT SIDE – Clean device mockup with live template rotation */}
+    {/* RIGHT SIDE – Fixed Mockup Structure */}
     <div className="rb-hero-mockup">
       <div className="rb-device-mockup" ref={mockupRef}>
-        {/* Device frame (laptop/phone style) */}
-        <div className="rb-device-frame">
-          <div className="rb-device-screen">
-            <div className="rb-screen-content">
-              <img
-                src={homeTemplates[currentTemplate]?.image}
-                alt="Resume Preview"
-                className="rb-rotating-image"
-              />
-            </div>
+        <div className="rb-device-screen">
+          <div className="rb-screen-content">
+            <img
+              src={homeTemplates[currentTemplate]?.image}
+              alt="Resume Preview"
+              className="rb-rotating-image"
+            />
           </div>
-          <div className="rb-device-base"></div>
         </div>
-
-        {/* Floating glow effect behind the device */}
-        <div className="rb-device-glow"></div>
-
-        {/* Navigation dots for templates (clickable) */}
+        
         <div className="rb-template-dots">
           {homeTemplates.map((_, index) => (
             <button
               key={index}
               className={`rb-dot ${index === currentTemplate ? 'active' : ''}`}
               onClick={() => setCurrentTemplate(index)}
-              aria-label={`Show template ${index + 1}`}
             />
           ))}
         </div>
       </div>
     </div>
-  </div>
-
-  {/* Wave divider (keep as is, or replace with a more subtle one) */}
-  <div className="rb-hero-wave">
-    <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
-      <path
-        d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L0,120Z"
-        fill="#ffffff"
-        fillOpacity="0.8"
-      ></path>
-    </svg>
   </div>
 </section>
   
