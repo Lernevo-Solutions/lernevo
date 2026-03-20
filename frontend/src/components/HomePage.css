@@ -43,7 +43,7 @@ body {
 .rb-container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 10px;
   position: relative;
   z-index: 5;
 }
@@ -2027,6 +2027,7 @@ body {
   padding-left: 0; /* Left side alignment sharp fix */
   margin-top: -20px; /* Pulls text specifically higher */
   display: flex;
+  margin-left: 0;
   flex-direction: column;
   justify-content: center;
 }
@@ -6594,7 +6595,9 @@ align-items:center;
   opacity: 0;
   animation: fadeInUp 0.8s forwards;
 }
-
+.rb-hero-container {
+  padding-top: 20px;   /* Reduced from 80px */
+}
 /* Badge */
 .rb-hero-badge {
   display: inline-flex;
@@ -6925,7 +6928,7 @@ align-items:center;
 
 /* Alternatively, if navbar is fixed, ensure hero starts below it */
 .rb-hero {
-  padding-top: 80px; /* same adjustment */
+  padding-top: 20px; /* same adjustment */
 }.rb-hero {
   min-height: calc(100vh - 80px); /* subtract navbar height */
   display: flex;
@@ -6934,7 +6937,17 @@ align-items:center;
 .rb-device-mockup {
   max-width: 380px;
 }
+.rb-hero-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
+.rb-hero-content {
+  flex: 1;
+  max-width: 600px;
+  text-align: left;   /* IMPORTANT */
+}
 /* Thicker bezel and more realistic frame */
 .rb-device-screen {
   background: #1e293b;
@@ -7389,4 +7402,100 @@ align-items:center;
 .rb-nav-links {
   display: flex;
   gap: 20px;
+}
+/* ---------- FULL LEFT ALIGNMENT FIX ---------- */
+
+.rb-hero {
+  position: relative;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  background: #f8fafc; 
+  padding: 0;           /* Remove top/bottom padding */
+  overflow: hidden;
+}
+
+.rb-hero-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 100%;      /* Allow container to touch edges */
+  margin: 0;            /* Remove auto-centering */
+  padding: 0 5%;        /* Only a small side gap like the 2nd image */
+}
+
+.rb-hero-content {
+  flex: 0 0 50%;        /* Content takes up half the screen */
+  max-width: 600px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Force all internal items to the left */
+  padding-left: 20px;   /* Small offset to match standard margins */
+  z-index: 10;
+}
+
+/* Force the Heading to start at the absolute left */
+.rb-gradient-text {
+  font-size: 4rem;      /* Bigger font like image 2 */
+  font-weight: 850;
+  line-height: 1.1;
+  margin: 0 0 20px 0;   /* Remove any top margin */
+  padding: 0;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, #0f172a, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Align Description and Buttons */
+.rb-hero-description {
+  font-size: 1.15rem;
+  color: #475569;
+  line-height: 1.7;
+  margin: 0 0 35px 0;   /* Space before buttons */
+  max-width: 550px;
+  text-align: left;
+}
+
+.rb-hero-buttons {
+  display: flex;
+  gap: 15px;
+  margin: 0;
+  justify-content: flex-start;
+}
+
+/* RIGHT SIDE MOCKUP POSITIONING */
+.rb-hero-mockup {
+  flex: 0 0 45%;
+  display: flex;
+  justify-content: flex-end; /* Push mockup to the right edge */
+  padding-right: 2%;
+}
+
+.rb-device-mockup {
+  width: 100%;
+  max-width: 500px;      /* Larger mockup like image 2 */
+}
+
+/* Responsive Fix for Mobile */
+@media (max-width: 1024px) {
+  .rb-hero-container {
+    flex-direction: column;
+    padding: 60px 20px;
+    text-align: center;
+  }
+  .rb-hero-content {
+    flex: 0 0 100%;
+    align-items: center;
+    padding-left: 0;
+  }
+  .rb-hero-mockup {
+    margin-top: 50px;
+    justify-content: center;
+  }
+}.rb-hero {
+  padding-top: 120px;   /* 80px navbar + extra spacing */
 }
