@@ -86,8 +86,8 @@ export default function AllTemplatesPage() {
           <div className="atp-hero-stats">
             <div className="atp-stat"><span className="atp-stat-num">{ALL_TEMPLATES.length - 1}</span><span className="atp-stat-lbl">Templates</span></div>
             <div className="atp-stat-div" />
-            <div className="atp-stat"><span className="atp-stat-num">ATS</span><span className="atp-stat-lbl">Optimised</span></div>
-            <div className="atp-stat-div" />
+           
+           
             <div className="atp-stat"><span className="atp-stat-num">PDF</span><span className="atp-stat-lbl">1-click export</span></div>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function AllTemplatesPage() {
             </div>
             <div className="atp-float-chip atp-float-chip--star">
               <span className="atp-chip-icon">⭐</span>
-              <span className="atp-chip-text">ATS Score 98%</span>
+              
             </div>
             <div className="atp-float-chip atp-float-chip--pdf">
               <span className="atp-chip-icon">↓</span>
@@ -262,8 +262,7 @@ export default function AllTemplatesPage() {
           <div className="atp-hero-badge atp-hero-badge--2">
             <span className="atp-badge-icon">⚡</span>
             <div>
-              <p className="atp-badge-num">ATS</p>
-              <p className="atp-badge-lbl">Friendly</p>
+              
             </div>
           </div>
           <div className="atp-hero-badge atp-hero-badge--3">
@@ -348,7 +347,7 @@ export default function AllTemplatesPage() {
                 A professionally designed template. Click <strong>Use Template</strong> to start building your resume with this layout.
               </p>
               <div className="atp-modal-pills">
-                <span className="atp-modal-pill">⚡ ATS Friendly</span>
+                
                 <span className="atp-modal-pill">📄 PDF Export</span>
                 <span className="atp-modal-pill">🎨 Customisable</span>
               </div>

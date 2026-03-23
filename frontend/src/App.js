@@ -40,7 +40,7 @@ import Contact from "./components/Contact";
 import HelpCenter from "./components/HelpCenter";
 
 import MyResumes from "./components/MyResumes";
-import ResumeBuilder from "./components/ResumeBuilder";
+import ResumeBuilder from "./components/Resumebuilderrouter";
 import Homepage from "./components/HomePage";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
