@@ -978,11 +978,15 @@ function BlankBuilder({ galleryColor }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // TEMPLATE BUILDER
 // ═══════════════════════════════════════════════════════════════════════════════
-function TemplateBuilder({ galleryTemplate, galleryColor }) {
+function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   const [st, setSt] = useState({
     ...INIT,
-    styling:{...INIT.styling, accentColor:galleryColor||"#2563eb"},
+    activeSection: visibleIds[0], // Start with the first visible section
+    styling: { ...INIT.styling, accentColor: galleryColor || "#2563eb" },
   });
+
+  const filteredSidebar = ALL_SECTIONS.filter(s => visibleIds.includes(s.id));
+  const currentIdx = filteredSidebar.findIndex(s => s.id === st.activeSection);
   const previewRef = useRef(null);
   const sec    = id => setSt(s=>({...s,activeSection:id}));
   const setFld = (k,v) => setSt(s=>({...s,[k]:v}));
@@ -1010,7 +1014,7 @@ function TemplateBuilder({ galleryTemplate, galleryColor }) {
     }
   };
 
-  return (
+return (
     <>
       <style>{CSS}</style>
       <div className="rb-bar">
@@ -1023,7 +1027,8 @@ function TemplateBuilder({ galleryTemplate, galleryColor }) {
 
       <div className="rb-layout">
         <aside className="rb-sidebar">
-          {ALL_SECTIONS.map(n=>(
+          {/* UPDATED: ALL_SECTIONS-ku badhila filteredSidebar use panrom */}
+          {filteredSidebar.map(n=>(
             <button key={n.id} className={`rb-nav${st.activeSection===n.id?" on":""}`} onClick={()=>sec(n.id)}>
               <span className="rb-nav-icon">{n.icon}</span>
               <span className="rb-nav-lbl">{n.label}</span>
@@ -1036,8 +1041,21 @@ function TemplateBuilder({ galleryTemplate, galleryColor }) {
             <div className="rb-form-head"><h2>{meta.title}</h2><p>{meta.desc}</p></div>
             <div className="rb-form-body">{renderForm()}</div>
             <div className="rb-form-foot">
-              <button className="rb-back" disabled={idx===0} onClick={()=>sec(ALL_SECTIONS[idx-1].id)}>‹ Back</button>
-              <button className="rb-next" disabled={idx===ALL_SECTIONS.length-1} onClick={()=>sec(ALL_SECTIONS[idx+1].id)}>Next ›</button>
+              {/* UPDATED: Back/Next logic filtered sidebar-ku yethapadi work aagum */}
+              <button 
+                className="rb-back" 
+                disabled={currentIdx === 0} 
+                onClick={()=>sec(filteredSidebar[currentIdx - 1].id)}
+              >
+                ‹ Back
+              </button>
+              <button 
+                className="rb-next" 
+                disabled={currentIdx === filteredSidebar.length - 1} 
+                onClick={()=>sec(filteredSidebar[currentIdx + 1].id)}
+              >
+                Next ›
+              </button>
             </div>
           </div>
 
@@ -1066,17 +1084,34 @@ function TemplateBuilder({ galleryTemplate, galleryColor }) {
     </>
   );
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROUTER — entry point
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ResumeBuilderRouter() {
-  const location        = useLocation();
-  const galleryTemplate = location.state?.template      || null;
-  const galleryColor    = location.state?.selectedColor || null;
+  const location = useLocation();
+  
+  // FIX 1: Default to Sidebar Left if no template is passed
+  const galleryTemplate = location.state?.template || { id: 6, name: 'Bold Two-Column', structure: 'bold-two-col' }; 
+  const galleryColor    = location.state?.selectedColor || "#2563eb";
+
+  // FIX 2: Logic to filter sidebar based on Template Structure
+  const getVisibleSections = (structure) => {
+    const base = ["personal", "summary", "experience", "education", "skills", "styling"];
+    switch(structure) {
+      case 'classic-minimal': return [...base, "certifications"];
+      case 'serif-pro':        return [...base, "languages"];
+      case 'bold-two-col':    return [...base, "projects", "languages"];
+      case 'blank-start':     return ALL_SECTIONS.map(s => s.id);
+      default:                return ALL_SECTIONS.map(s => s.id);
+    }
+  };
 
   if (!galleryTemplate || galleryTemplate.structure === "blank-start") {
-    return <BlankBuilder galleryColor={galleryColor}/>;
+    return <BlankBuilder galleryColor={galleryColor} visibleIds={getVisibleSections("blank-start")}/>;
   }
-  return <TemplateBuilder galleryTemplate={galleryTemplate} galleryColor={galleryColor}/>;
+  return <TemplateBuilder 
+            galleryTemplate={galleryTemplate} 
+            galleryColor={galleryColor} 
+            visibleIds={getVisibleSections(galleryTemplate.structure)}
+         />;
 }
