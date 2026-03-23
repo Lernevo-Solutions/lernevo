@@ -1114,4 +1114,4 @@ export default function ResumeBuilderRouter() {
             galleryColor={galleryColor} 
             visibleIds={getVisibleSections(galleryTemplate.structure)}
          />;
-}
+ }
