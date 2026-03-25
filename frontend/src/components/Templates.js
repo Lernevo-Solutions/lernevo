@@ -45,7 +45,7 @@ const ALL_TEMPLATES = [
   { id: 5,  name: 'Data Pro ATS',      structure: 'data-pro-ats',    image: imgTemplate5  },
   { id: 6,  name: 'Bold Two-Column',   structure: 'bold-two-col',    image: imgTemplate6  },
   { id: 7,  name: 'Minimalist Top',    structure: 'minimalist-top',  image: imgTemplate7  },
-  { id: 8,  name: 'Minimalist Pro',    structure: 'minimalist-top',  image: imgTemplate8  },  // ← FIXED: was 'section-shade'
+  { id: 8,  name: 'Minimalist Pro',    structure: 'minimalist-pro',  image: imgTemplate8  },  // ← FIXED: was 'section-shade'
   { id: 9,  name: 'Section Shade',     structure: 'section-shade',   image: imgTemplate9  },  // ← FIXED: was 'photo-ats'
   { id: 10, name: 'Photo ATS',         structure: 'photo-ats',       image: imgTemplate10 },  // ← FIXED: was 'teal-split'
   { id: 11, name: 'Teal Split',        structure: 'teal-split',      image: imgTemplate11 },  // ← FIXED: was 'two-column'

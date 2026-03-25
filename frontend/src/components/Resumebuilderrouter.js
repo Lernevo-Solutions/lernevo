@@ -1,16 +1,16 @@
 // ResumeBuilderRouter.jsx
 // Features:
 // • Blank Resume → full builder with live preview
-// • 3 Layouts: 1-column, 2-column, sidebar-left (Styling tab)
-// • Photo: left/center/right position + small/medium/large size + delete (Personal tab)
+// • Template Resume → GalleryPreview-based builder with multi-page support
+// • Automatic blank second page for specific templates
+// • Add/remove blank pages manually
 // • Section drag & drop reorder in preview
-// • Multi-page support
-// • Template Resume → GalleryPreview-based builder (unchanged)
+// • Photo: left/center/right position + small/medium/large size + delete
 
 import React, { useState, useRef, useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
 import GalleryPreview from "./GalleryPreview";
-
+import BlankCanvasBuilder from "./BlankCanvasBuilder";
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const ALL_SECTIONS = [
   { id: "personal",       label: "Personal",       icon: "👤" },
@@ -241,7 +241,7 @@ function PreviewScaler({ children, containerRef }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// LIVE PREVIEW
+// LIVE PREVIEW (for blank pages)
 // ═══════════════════════════════════════════════════════════════════════════════
 function LivePreview({ data, styling, sectionOrder, onReorder }) {
   const { font, accentColor:col, layout, photoPosition, photoSize } = styling;
@@ -269,7 +269,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
   const name      = personal.name||"";
   const title     = personal.title||"";
 
-  // Photo element
   const PhotoEl = ({ extraStyle={} }) => !photo ? null : (
     <img src={photo} alt="profile" style={{
       width:pxSize, height:pxSize, borderRadius:"50%",
@@ -278,7 +277,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     }}/>
   );
 
-  // Section heading
   const Heading = ({ label, dark=false }) => (
     <div style={{ borderBottom:`2px solid ${dark?"rgba(255,255,255,.4)":col}`, paddingBottom:2, marginBottom:7 }}>
       <h2 style={{ fontSize:10, fontWeight:800, margin:0,
@@ -286,7 +284,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     </div>
   );
 
-  // Render section block content
   const renderBlock = (id, dark=false) => {
     const t  = (w=400) => ({ fontSize:8.5, color:dark?"rgba(255,255,255,.85)":"#333", fontWeight:w });
     const sm = ()      => ({ fontSize:8,   color:dark?"rgba(255,255,255,.6)" :"#777"  });
@@ -385,7 +382,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     }
   };
 
-  // Draggable wrapper
   const DragSection = ({ id, dark=false, style={} }) => {
     const block = renderBlock(id, dark);
     if(!block) return null;
@@ -408,7 +404,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
   const hasHeader = name||title||personal.email||personal.phone||personal.location;
   const hasAny    = hasHeader||sectionOrder.some(id=>renderBlock(id)!==null);
 
-  // ── Header block (reusable) ────────────────────────────────────────────────
   const Header = ({ center=false }) => (
     <div style={{
       display:"flex",
@@ -432,9 +427,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     </div>
   );
 
-  // ══════════════════════════════════════════════════════════════
-  // ONE COLUMN
-  // ══════════════════════════════════════════════════════════════
   if(layout==="one-col") return (
     <div style={{...fontStyle,background:"#fff",padding:"20px 22px",minHeight:500}}>
       {!hasAny ? (
@@ -452,9 +444,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     </div>
   );
 
-  // ══════════════════════════════════════════════════════════════
-  // TWO COLUMN
-  // ══════════════════════════════════════════════════════════════
   if(layout==="two-col") {
     const visible  = sectionOrder.filter(id=>renderBlock(id)!==null);
     const mid      = Math.ceil(visible.length/2);
@@ -489,15 +478,11 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // SIDEBAR LEFT
-  // ══════════════════════════════════════════════════════════════
   if(layout==="sidebar-left") {
     const sideIds = sectionOrder.filter(id=>["skills","languages","certifications"].includes(id));
     const mainIds = sectionOrder.filter(id=>!["skills","languages","certifications"].includes(id));
     return (
       <div style={{...fontStyle,background:"#fff",display:"flex",minHeight:500}}>
-        {/* Sidebar */}
         <div style={{width:168,flexShrink:0,background:col,padding:"16px 13px",display:"flex",flexDirection:"column",gap:12}}>
           {photo&&(
             <div style={{display:"flex",justifyContent:photoPosition==="right"?"flex-end":photoPosition==="center"?"center":"flex-start"}}>
@@ -535,7 +520,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
             </div>
           ))}
         </div>
-        {/* Main */}
         <div style={{flex:1,padding:"16px 16px"}}>
           {mainIds.map(id=><DragSection key={id} id={id}/>)}
           {mainIds.length===0&&<p style={{fontSize:8,color:"#ccc",fontStyle:"italic",marginTop:20,textAlign:"center"}}>Fill in your details to see preview…</p>}
@@ -576,11 +560,9 @@ function PersonalSection({ data, onChange, styling, onStylingChange }) {
         </div>
       </div>
 
-      {/* Photo controls — shown only when photo uploaded */}
       {data.photo && (
         <div className="rb-photo-controls">
           <div className="rb-photo-ctrl-title">📸 Photo Settings</div>
-
           <span className="rb-ctrl-label">Position</span>
           <div className="rb-pos-row">
             {["left","center","right"].map(pos=>(
@@ -591,7 +573,6 @@ function PersonalSection({ data, onChange, styling, onStylingChange }) {
               </button>
             ))}
           </div>
-
           <span className="rb-ctrl-label">Size</span>
           <div className="rb-size-row">
             {["small","medium","large"].map(sz=>(
@@ -602,7 +583,6 @@ function PersonalSection({ data, onChange, styling, onStylingChange }) {
               </button>
             ))}
           </div>
-
           <button className="rb-del-photo" onClick={()=>onChange({...data,photo:null})}>
             🗑️ Remove Photo
           </button>
@@ -851,13 +831,6 @@ function StylingSection({ data, onChange }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SHARED BUILDER SHELL
-// ═══════════════════════════════════════════════════════════════════════════════
-function BuilderShell({ children, topbarRight, previewContent, previewLabel, isBlank=false, onAddPage, pages, onRemovePage }) {
-  return children; // inline below in each builder
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // BLANK BUILDER
 // ═══════════════════════════════════════════════════════════════════════════════
 function BlankBuilder({ galleryColor }) {
@@ -976,27 +949,47 @@ function BlankBuilder({ galleryColor }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TEMPLATE BUILDER
+// TEMPLATE BUILDER (with automatic blank second page for specific templates)
 // ═══════════════════════════════════════════════════════════════════════════════
 function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   const [st, setSt] = useState({
     ...INIT,
-    activeSection: visibleIds[0], // Start with the first visible section
+    activeSection: visibleIds[0],
     styling: { ...INIT.styling, accentColor: galleryColor || "#2563eb" },
   });
+
+  // Only show Add Page button for these template structures
+ const showAddPageStructures = [
+  'clean-centered',
+  'classic-minimal',
+  'bold-two-col',
+  'minimalist-top',
+  'minimalist-pro',
+  'photo-ats',
+  'graphic-split'
+];
+  const showAddPage = showAddPageStructures.includes(galleryTemplate.structure);
+
+  const [pages, setPages] = useState([{ id: uid(), type: 'template' }]); // start with one template page
+  const [order, setOrder] = useState([...DEFAULT_ORDER]);
 
   const filteredSidebar = ALL_SECTIONS.filter(s => visibleIds.includes(s.id));
   const currentIdx = filteredSidebar.findIndex(s => s.id === st.activeSection);
   const previewRef = useRef(null);
   const sec    = id => setSt(s=>({...s,activeSection:id}));
   const setFld = (k,v) => setSt(s=>({...s,[k]:v}));
-  const idx    = ALL_SECTIONS.findIndex(n=>n.id===st.activeSection);
   const meta   = SECTION_META[st.activeSection];
 
   const resumeData = {
     personal:st.personal, summary:st.summary, experience:st.experience,
     education:st.education, skills:st.skills, projects:st.projects,
     certifications:st.certifications, languages:st.languages,
+  };
+
+  const addPage = () => setPages(p => [...p, { id: uid(), type: 'blank' }]);
+  const removePage = (id) => {
+    if (pages[0].id === id) return; // never remove the template page
+    setPages(p => p.filter(x => x.id !== id));
   };
 
   const renderForm = () => {
@@ -1014,20 +1007,30 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     }
   };
 
-return (
+  return (
     <>
       <style>{CSS}</style>
       <div className="rb-bar">
         <span className="rb-bar-title">Resume Builder</span>
         <span className="rb-badge">📄 {galleryTemplate?.name}</span>
         <div className="rb-sep"/>
+        {showAddPage && (
+          <>
+            <button className="rb-btn rb-btn-ghost" onClick={addPage}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Page
+            </button>
+            <div className="rb-sep"/>
+          </>
+        )}
         <button className="rb-btn">💾 Save</button>
         <button className="rb-btn rb-btn-dark">⬇ Download PDF</button>
       </div>
 
       <div className="rb-layout">
         <aside className="rb-sidebar">
-          {/* UPDATED: ALL_SECTIONS-ku badhila filteredSidebar use panrom */}
           {filteredSidebar.map(n=>(
             <button key={n.id} className={`rb-nav${st.activeSection===n.id?" on":""}`} onClick={()=>sec(n.id)}>
               <span className="rb-nav-icon">{n.icon}</span>
@@ -1041,42 +1044,49 @@ return (
             <div className="rb-form-head"><h2>{meta.title}</h2><p>{meta.desc}</p></div>
             <div className="rb-form-body">{renderForm()}</div>
             <div className="rb-form-foot">
-              {/* UPDATED: Back/Next logic filtered sidebar-ku yethapadi work aagum */}
-              <button 
-                className="rb-back" 
-                disabled={currentIdx === 0} 
-                onClick={()=>sec(filteredSidebar[currentIdx - 1].id)}
-              >
-                ‹ Back
-              </button>
-              <button 
-                className="rb-next" 
-                disabled={currentIdx === filteredSidebar.length - 1} 
-                onClick={()=>sec(filteredSidebar[currentIdx + 1].id)}
-              >
-                Next ›
-              </button>
+              <button className="rb-back" disabled={currentIdx === 0} onClick={()=>sec(filteredSidebar[currentIdx - 1].id)}>‹ Back</button>
+              <button className="rb-next" disabled={currentIdx === filteredSidebar.length - 1} onClick={()=>sec(filteredSidebar[currentIdx + 1].id)}>Next ›</button>
             </div>
           </div>
 
           <div className="rb-preview" ref={previewRef}>
             <div className="rb-preview-bar">
               <div className="rb-preview-lbl">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                </svg>
                 Live Preview — {galleryTemplate?.name}
               </div>
             </div>
             <div className="rb-pages">
-              <PreviewScaler containerRef={previewRef}>
-                <div className="rb-sheet">
-                  <GalleryPreview
-                    tpl={galleryTemplate}
-                    data={resumeData}
-                    accentColor={st.styling.accentColor}
-                    font={st.styling.font}
-                  />
+              {pages.map((page, pi) => (
+                <div key={page.id} className="rb-page-block">
+                  <PreviewScaler containerRef={previewRef}>
+                    <div className="rb-sheet">
+                      {page.type === 'template' ? (
+                        <GalleryPreview
+                          tpl={galleryTemplate}
+                          data={resumeData}
+                          accentColor={st.styling.accentColor}
+                          font={st.styling.font}
+                        />
+                      ) : (
+                        <LivePreview
+                          data={resumeData}
+                          styling={st.styling}
+                          sectionOrder={order}
+                          onReorder={setOrder}
+                        />
+                      )}
+                    </div>
+                  </PreviewScaler>
+                  <div className="rb-page-num">Page {pi+1} of {pages.length}</div>
+                  {page.type !== 'template' && (
+                    <button className="rb-rm-page" onClick={() => removePage(page.id)}>× Remove page</button>
+                  )}
                 </div>
-              </PreviewScaler>
+              ))}
+              {/* Bottom "Add Another Page" button removed */}
             </div>
           </div>
         </div>
@@ -1084,34 +1094,50 @@ return (
     </>
   );
 }
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROUTER — entry point
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ResumeBuilderRouter() {
   const location = useLocation();
   
-  // FIX 1: Default to Sidebar Left if no template is passed
   const galleryTemplate = location.state?.template || { id: 6, name: 'Bold Two-Column', structure: 'bold-two-col' }; 
   const galleryColor    = location.state?.selectedColor || "#2563eb";
 
-  // FIX 2: Logic to filter sidebar based on Template Structure
-  const getVisibleSections = (structure) => {
-    const base = ["personal", "summary", "experience", "education", "skills", "styling"];
-    switch(structure) {
-      case 'classic-minimal': return [...base, "certifications"];
-      case 'serif-pro':        return [...base, "languages"];
-      case 'bold-two-col':    return [...base, "projects", "languages"];
-      case 'blank-start':     return ALL_SECTIONS.map(s => s.id);
-      default:                return ALL_SECTIONS.map(s => s.id);
-    }
-  };
+const getVisibleSections = (structure) => {
+  const base = ["personal", "summary", "experience", "education", "skills", "styling"];
 
-  if (!galleryTemplate || galleryTemplate.structure === "blank-start") {
-    return <BlankBuilder galleryColor={galleryColor} visibleIds={getVisibleSections("blank-start")}/>;
+  switch(structure) {
+    case 'classic-minimal':
+      return [...base, "certifications"];
+
+    case 'bold-two-col':
+      return [...base, "projects", "languages"];
+
+    case 'minimalist-top':
+    case 'minimalist-pro':
+    case 'photo-ats':
+    case 'graphic-split':
+    case 'clean-centered':
+      return [...base, "projects", "languages", "certifications"];
+
+    case 'serif-pro':
+      return [...base, "languages"];
+
+    case 'blank-start':
+      return ALL_SECTIONS.map(s => s.id);
+
+    default:
+      return ALL_SECTIONS.map(s => s.id);
   }
+};
+
+  if (galleryTemplate?.structure === "blank-start") {
+  return <BlankCanvasBuilder />;
+}
   return <TemplateBuilder 
             galleryTemplate={galleryTemplate} 
             galleryColor={galleryColor} 
             visibleIds={getVisibleSections(galleryTemplate.structure)}
          />;
- }
+}
