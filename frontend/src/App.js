@@ -55,6 +55,7 @@ const AppLayout = () => {
     "/reset-password",
     "/reset-password-confirm",
     "/features/coming-soon",
+    "/builder",
   ];
 
   // 👉 Navbar hide panna routes

@@ -1,8 +1,8 @@
-// BlankCanvasBuilder.js
-import React, { useState, useRef, useEffect } from "react";
+// BlankCanvasBuilder.js – Complete with Undo/Redo, Layouts, Additional Sections, Resizable Elements
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Draggable from "react-draggable";
 
-// ─── CONSTANTS (same as your router) ──────────────────────────────────────────
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const ALL_SECTIONS = [
   { id: "personal",       label: "Personal",       icon: "👤" },
   { id: "summary",        label: "Summary",        icon: "📄" },
@@ -13,6 +13,7 @@ const ALL_SECTIONS = [
   { id: "certifications", label: "Certifications", icon: "🏆" },
   { id: "languages",      label: "Languages",      icon: "Aa" },
   { id: "styling",        label: "Styling",        icon: "🎨" },
+  { id: "additional",     label: "More",           icon: "➕" },
 ];
 
 const SECTION_META = {
@@ -25,6 +26,7 @@ const SECTION_META = {
   certifications: { title:"Certifications",         desc:"Professional certifications" },
   languages:      { title:"Languages",              desc:"Languages you speak" },
   styling:        { title:"Resume Styling",         desc:"Customize fonts, colors & layout" },
+  additional:     { title:"Additional Sections",    desc:"Add awards, references, hobbies, or custom sections" },
 };
 
 const AI = {
@@ -34,7 +36,13 @@ const AI = {
   certification: "Completed advanced coursework covering architecture patterns, security best practices, and cost optimization.",
 };
 
-const FONTS        = ["DM Sans","Inter","Lato","Merriweather","Playfair Display","Raleway"];
+const BASE_FONTS = ["DM Sans","Inter","Lato","Merriweather","Playfair Display","Raleway"];
+const EXTRA_FONTS = [
+  "Poppins", "Roboto", "Open Sans", "Montserrat", "Source Sans Pro", "Nunito",
+  "Ubuntu", "Cabin", "Work Sans", "Josefin Sans", "Quicksand", "Rubik"
+];
+const ALL_FONTS = [...BASE_FONTS, ...EXTRA_FONTS];
+
 const PROF_LEVELS  = ["Native","Fluent","Advanced","Intermediate","Basic"];
 const SKILL_LEVELS = ["Beginner","Intermediate","Advanced","Expert"];
 const COLORS       = ["#1e293b","#2563eb","#059669","#dc2626","#7c3aed","#db2777","#b45309","#0f766e","#e11d48","#0f172a"];
@@ -65,38 +73,101 @@ const INIT = {
   certifications: [makeCert()],
   languages:      [makeLang()],
   styling: { font:"Inter", accentColor:"#2563eb", layout:"one-col", photoPosition:"left", photoSize:"medium" },
+  optionalSections: [],
 };
 
-// ─── Helper: Resizable Box ─────────────────────────────────────────────────────
-const ResizableBox = ({ children, width, height, onResize, minWidth = 150, minHeight = 100, maxWidth = 600, maxHeight = 800 }) => {
-  const [isResizing, setIsResizing] = useState(false);
+// ─── Design Elements Data (only lines are used for adding lines, shapes and stickers not used)
+const LINES = [
+  { id: "hline", name: "Horizontal", icon: "─", defaultProps: { lineType: "horizontal", width: 150, height: 2, color: "#475569", thickness: 2, rotation: 0 } },
+  { id: "vline", name: "Vertical", icon: "│", defaultProps: { lineType: "vertical", width: 2, height: 100, color: "#475569", thickness: 2, rotation: 0 } },
+  { id: "diag", name: "Diagonal", icon: "╱", defaultProps: { lineType: "diagonal", width: 100, height: 100, color: "#475569", thickness: 2, rotation: 0 } },
+];
+
+// ─── Table helper ────────────────────────────────────────────────────────────
+const makeTable = () => ({
+  id: uid(),
+  type: "table",
+  rows: 3,
+  cols: 3,
+  data: Array(3).fill().map(() => Array(3).fill("")),
+  width: 300,
+  height: 200,
+  x: 50,
+  y: 50,
+});
+
+// ─── Resizable Component with Invisible Corners (fixed dependency) ──────────
+const ResizableWithHandles = ({ children, width, height, onResize, minWidth = 20, minHeight = 20, maxWidth = 600, maxHeight = 4000 }) => {
+  const [resizing, setResizing] = useState(false);
+  const [handleType, setHandleType] = useState(null);
   const startPos = useRef({ x: 0, y: 0 });
   const startSize = useRef({ width, height });
-  const boxRef = useRef(null);
+  const startPosition = useRef({ x: 0, y: 0 });
+  const containerRef = useRef(null);
 
-  const handleMouseDown = (e) => {
+  const getPosition = useCallback(() => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    const rect = containerRef.current.getBoundingClientRect();
+    const parentRect = containerRef.current.parentElement?.getBoundingClientRect() || { left: 0, top: 0 };
+    return {
+      x: rect.left - parentRect.left,
+      y: rect.top - parentRect.top,
+    };
+  }, []);
+
+  const handleMouseDown = (e, handle) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsResizing(true);
+    setResizing(true);
+    setHandleType(handle);
     startPos.current = { x: e.clientX, y: e.clientY };
-    startSize.current = { width, height };
+    startSize.current = { width: typeof width === 'number' ? width : 0, height: typeof height === 'number' ? height : 0 };
+    startPosition.current = getPosition();
   };
 
-  const handleMouseMove = (e) => {
-    if (!isResizing) return;
+  const handleMouseMove = useCallback((e) => {
+    if (!resizing) return;
     const dx = e.clientX - startPos.current.x;
     const dy = e.clientY - startPos.current.y;
-    let newWidth = Math.min(maxWidth, Math.max(minWidth, startSize.current.width + dx));
-    let newHeight = Math.min(maxHeight, Math.max(minHeight, startSize.current.height + dy));
-    onResize(newWidth, newHeight);
-  };
+    let newWidth = startSize.current.width;
+    let newHeight = startSize.current.height;
+    let newX = startPosition.current.x;
+    let newY = startPosition.current.y;
 
-  const handleMouseUp = () => {
-    setIsResizing(false);
-  };
+    switch (handleType) {
+      case "bottom-right":
+        newWidth = Math.min(maxWidth, Math.max(minWidth, startSize.current.width + dx));
+        newHeight = Math.min(maxHeight, Math.max(minHeight, startSize.current.height + dy));
+        break;
+      case "bottom-left":
+        newWidth = Math.min(maxWidth, Math.max(minWidth, startSize.current.width - dx));
+        newHeight = Math.min(maxHeight, Math.max(minHeight, startSize.current.height + dy));
+        newX = startPosition.current.x + (startSize.current.width - newWidth);
+        break;
+      case "top-right":
+        newWidth = Math.min(maxWidth, Math.max(minWidth, startSize.current.width + dx));
+        newHeight = Math.min(maxHeight, Math.max(minHeight, startSize.current.height - dy));
+        newY = startPosition.current.y + (startSize.current.height - newHeight);
+        break;
+      case "top-left":
+        newWidth = Math.min(maxWidth, Math.max(minWidth, startSize.current.width - dx));
+        newHeight = Math.min(maxHeight, Math.max(minHeight, startSize.current.height - dy));
+        newX = startPosition.current.x + (startSize.current.width - newWidth);
+        newY = startPosition.current.y + (startSize.current.height - newHeight);
+        break;
+      default: break;
+    }
+
+    onResize(newWidth, newHeight, newX, newY);
+  }, [resizing, handleType, maxWidth, maxHeight, minWidth, minHeight, onResize]);
+
+  const handleMouseUp = useCallback(() => {
+    setResizing(false);
+    setHandleType(null);
+  }, []);
 
   useEffect(() => {
-    if (isResizing) {
+    if (resizing) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -104,36 +175,197 @@ const ResizableBox = ({ children, width, height, onResize, minWidth = 150, minHe
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isResizing]);
+  }, [resizing, handleMouseMove, handleMouseUp]);
 
-  const boxStyle = {
-    width: typeof width === 'number' ? width : 'auto',
-    height: typeof height === 'number' ? height : 'auto',
-    position: 'relative',
+  const cornerStyle = {
+    position: 'absolute',
+    width: 16,
+    height: 16,
+    zIndex: 10,
+    opacity: 0,
+    cursor: 'default',
   };
 
   return (
-    <div ref={boxRef} style={boxStyle}>
+    <div
+      ref={containerRef}
+      style={{
+        width: typeof width === 'number' ? width : 'auto',
+        height: typeof height === 'number' ? height : 'auto',
+        display: 'inline-block',
+        position: 'relative',
+      }}
+    >
       {children}
       <div
-        onMouseDown={handleMouseDown}
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          right: 0,
-          width: 12,
-          height: 12,
-          cursor: 'se-resize',
-          backgroundColor: '#3b82f6',
-          borderRadius: '2px',
-          zIndex: 10,
-        }}
+        onMouseDown={(e) => handleMouseDown(e, "top-left")}
+        style={{ ...cornerStyle, top: -8, left: -8, cursor: 'nw-resize' }}
+      />
+      <div
+        onMouseDown={(e) => handleMouseDown(e, "top-right")}
+        style={{ ...cornerStyle, top: -8, right: -8, cursor: 'ne-resize' }}
+      />
+      <div
+        onMouseDown={(e) => handleMouseDown(e, "bottom-left")}
+        style={{ ...cornerStyle, bottom: -8, left: -8, cursor: 'sw-resize' }}
+      />
+      <div
+        onMouseDown={(e) => handleMouseDown(e, "bottom-right")}
+        style={{ ...cornerStyle, bottom: -8, right: -8, cursor: 'se-resize' }}
       />
     </div>
   );
 };
 
-// ─── FORM COMPONENTS (exactly as in your router) ───────────────────────────────
+// ─── Draggable Text Block (fully draggable) ─────────────────────────────────
+const DraggableTextBlock = ({ id, text, baseStyle, defaultPos, defaultSize, onTextChange, defaultFontSize, defaultTextAlign, onDragStop, onResize, onFontSizeChange, onTextAlignChange, isSelected, onSelect, minWidth = 50, minHeight = 30 }) => {
+  const nodeRef = useRef(null);
+  const [size, setSize] = useState(defaultSize || { width: 'auto', height: 'auto' });
+  const [fontSize, setFontSize] = useState(defaultFontSize || (baseStyle.fontSize ? parseInt(baseStyle.fontSize) : 14));
+  const [textAlign, setTextAlign] = useState(defaultTextAlign || 'left');
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    setSize(defaultSize || { width: 'auto', height: 'auto' });
+  }, [defaultSize]);
+
+  useEffect(() => {
+    setFontSize(defaultFontSize || (baseStyle.fontSize ? parseInt(baseStyle.fontSize) : 14));
+  }, [defaultFontSize, baseStyle]);
+
+  useEffect(() => {
+    setTextAlign(defaultTextAlign || 'left');
+  }, [defaultTextAlign]);
+
+  const handleResize = (w, h) => {
+    const newSize = { width: w, height: h };
+    setSize(newSize);
+    onResize(newSize);
+  };
+
+  const increaseFont = (e) => {
+    e.stopPropagation();
+    const newSize = Math.min(48, fontSize + 2);
+    setFontSize(newSize);
+    onFontSizeChange(newSize);
+  };
+
+  const decreaseFont = (e) => {
+    e.stopPropagation();
+    const newSize = Math.max(8, fontSize - 2);
+    setFontSize(newSize);
+    onFontSizeChange(newSize);
+  };
+
+  const currentStyle = {
+    ...baseStyle,
+    fontSize: `${fontSize}px`,
+    lineHeight: '1',
+    textAlign: textAlign,
+  };
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onSelect(id);
+  };
+
+  return (
+   // DraggableTextBlock component-kulla check pannunga
+<Draggable
+  nodeRef={nodeRef}
+  bounds="parent"
+  // State-la irukara x, y-a inga connect pannanum
+  position={{ x: defaultPos.x, y: defaultPos.y }} 
+  onStop={(e, data) => onDragStop(e, data)}
+>
+      <div
+        ref={nodeRef}
+        onClick={handleClick}
+        className="draggable-text-block"
+        style={{
+          position: "absolute",
+          cursor: "move",
+          background: "transparent",
+          border: isSelected ? "1px dashed #3b82f6" : "1px dashed transparent",
+          transition: "border 0.2s",
+        }}
+        onMouseOver={(e) => {
+          if (!isSelected) e.currentTarget.style.border = "1px dashed #cbd5e1";
+        }}
+        onMouseOut={(e) => {
+          if (!isSelected) e.currentTarget.style.border = "1px dashed transparent";
+        }}
+      >
+        {isSelected && (
+          <div
+            style={{
+              position: "absolute",
+              top: -32,
+              left: 0,
+              display: "flex",
+              gap: "6px",
+              background: "white",
+              borderRadius: "20px",
+              padding: "4px 8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              zIndex: 20,
+              fontSize: "12px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <button
+              onClick={decreaseFont}
+              style={{ cursor: "pointer", background: "#f1f5f9", border: "none", borderRadius: "50%", width: "24px", height: "24px", fontWeight: "bold" }}
+            >
+              –
+            </button>
+            <span style={{ fontSize: "12px", fontWeight: 500, minWidth: "30px", textAlign: "center" }}>{fontSize}px</span>
+            <button
+              onClick={increaseFont}
+              style={{ cursor: "pointer", background: "#f1f5f9", border: "none", borderRadius: "50%", width: "24px", height: "24px", fontWeight: "bold" }}
+            >
+              +
+            </button>
+            <div style={{ width: "1px", background: "#e2e8f0", margin: "0 2px" }} />
+          </div>
+        )}
+        <ResizableWithHandles
+          width={size.width === 'auto' ? 'auto' : size.width}
+          height={size.height === 'auto' ? 'auto' : size.height}
+          onResize={handleResize}
+          minWidth={minWidth}
+          minHeight={minHeight}
+          maxWidth={600}
+        >
+       
+<div
+  contentEditable={isEditing}
+  suppressContentEditableWarning
+  onDoubleClick={() => setIsEditing(true)}
+  onBlur={(e) => {
+    setIsEditing(false);
+    if (onTextChange) onTextChange(e.target.innerText);
+  }}
+  style={{
+    ...currentStyle,
+    display: 'block', 
+    padding: '0px 2px',
+    width: '100%',     
+    height: 'auto',
+    whiteSpace: 'normal', 
+    outline: isEditing ? '1px solid #3b82f6' : 'none',
+    cursor: isEditing ? 'text' : 'move',
+  }}
+>
+  {text}
+</div>
+        </ResizableWithHandles>
+      </div>
+    </Draggable>
+  );
+};
+
+// ─── FORM COMPONENTS ─────────────────────────────────────────────────────────
 function PersonalSection({ data, onChange, styling, onStylingChange }) {
   const s = k => e => onChange({...data,[k]:e.target.value});
   const handlePhoto = e => {
@@ -391,8 +623,11 @@ function LanguagesSection({ data, onChange }) {
   );
 }
 
-function StylingSection({ data, onChange }) {
-  const s=k=>v=>onChange({...data,[k]:v});
+// ─── StylingSection with "More" fonts ───────────────────────────────────────
+function StylingSection({ data, onChange, onAddTable, onAddLine }) {
+  const [showMoreFonts, setShowMoreFonts] = useState(false);
+  const s = k => v => onChange({...data,[k]:v});
+  const displayedFonts = showMoreFonts ? ALL_FONTS : BASE_FONTS;
   return (
     <div>
       <div className="rb-style-lbl">Resume Layout</div>
@@ -406,13 +641,25 @@ function StylingSection({ data, onChange }) {
           </div>
         ))}
       </div>
+
       <div className="rb-style-lbl">Font Family</div>
       <div className="rb-font-grid">
-        {FONTS.map(f=>(
+        {displayedFonts.map(f=>(
           <div key={f} className={`rb-font-opt${data.font===f?" on":""}`}
             style={{fontFamily:`'${f}',sans-serif`}} onClick={()=>s("font")(f)}>{f}</div>
         ))}
+        {!showMoreFonts && (
+          <div className="rb-font-opt" onClick={()=>setShowMoreFonts(true)} style={{textAlign:"center", background:"#f1f5f9"}}>
+            + More
+          </div>
+        )}
+        {showMoreFonts && (
+          <div className="rb-font-opt" onClick={()=>setShowMoreFonts(false)} style={{textAlign:"center", background:"#f1f5f9"}}>
+            Show less
+          </div>
+        )}
       </div>
+
       <div className="rb-style-lbl">Accent Color</div>
       <div className="rb-color-row">
         {COLORS.map(c=>(
@@ -423,126 +670,196 @@ function StylingSection({ data, onChange }) {
           onChange={e=>s("accentColor")(e.target.value)}
           style={{width:28,height:28,border:"none",borderRadius:"50%",cursor:"pointer",padding:0}}/>
       </div>
+
+      <div className="rb-style-lbl">Add Design Elements</div>
+      <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+        <button
+          onClick={onAddTable}
+          style={{
+            flex: 1,
+            padding: "8px",
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: "12px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+          }}
+        >
+          <span>📊</span> Add Table
+        </button>
+        <button
+          onClick={onAddLine}
+          style={{
+            flex: 1,
+            padding: "8px",
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: "12px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+          }}
+        >
+          <span>➖</span> Add Line
+        </button>
+      </div>
     </div>
   );
 }
 
-// ─── CANVAS RENDERER FOR STRUCTURED SECTIONS (as draggable blocks) ────────────
-function StructuredSectionBlock({ id, data, styling }) {
-  const { font, accentColor, layout, photoPosition, photoSize } = styling;
-  const pxSize = PHOTO_SIZES[photoSize] || 72;
-  const photo = data.personal?.photo;
+// ─── Additional Sections Panel (empty placeholder) ──────────────────────────
+function AdditionalSectionsPanel({ optionalSections, onAdd, onRemove, onUpdate }) {
+  const [customTitle, setCustomTitle] = useState("");
+  const [customContent, setCustomContent] = useState("");
+  const [showCustomForm, setShowCustomForm] = useState(false);
 
-  const renderBlock = () => {
-    switch(id) {
-      case "personal":
-        return (
-          <div style={{ minWidth: 220 }}>
-            <div style={{ display:"flex", gap:12, alignItems:"center", marginBottom:8 }}>
-              {photo && (
-                <img src={photo} alt="profile" style={{ width:pxSize, height:pxSize, borderRadius:"50%", objectFit:"cover", border:`2px solid ${accentColor}` }}/>
-              )}
-              <div>
-                <div style={{ fontSize:18, fontWeight:"bold" }}>{data.personal.name || "Your Name"}</div>
-                <div style={{ fontSize:12, color:accentColor }}>{data.personal.title || "Job Title"}</div>
-                <div style={{ fontSize:10, color:"#666", marginTop:4 }}>
-                  {[data.personal.location, data.personal.phone, data.personal.email].filter(Boolean).join(" · ")}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case "summary":
-        return (
-          <div style={{ minWidth: 260 }}>
-            <h3 style={{ fontSize:16, fontWeight:"bold", marginBottom:8, borderLeft:`3px solid ${accentColor}`, paddingLeft:8 }}>Summary</h3>
-            <p style={{ fontSize:12, lineHeight:1.5, color:"#333" }}>{data.summary.text || "Your professional summary will appear here."}</p>
-          </div>
-        );
-      case "experience":
-        return (
-          <div style={{ minWidth: 280 }}>
-            <h3 style={{ fontSize:16, fontWeight:"bold", marginBottom:8, borderLeft:`3px solid ${accentColor}`, paddingLeft:8 }}>Experience</h3>
-            {data.experience.filter(e=>e.company || e.role).map(exp => (
-              <div key={exp.id} style={{ marginBottom:12 }}>
-                <div style={{ fontWeight:"bold" }}>{exp.role}{exp.company && ` @ ${exp.company}`}</div>
-                <div style={{ fontSize:10, color:"#666" }}>{exp.duration} · {exp.location}</div>
-                <div style={{ fontSize:11, marginTop:4 }}>{exp.description}</div>
-              </div>
-            ))}
-            {data.experience.every(e=>!e.company && !e.role) && <p style={{ fontSize:11, color:"#999", fontStyle:"italic" }}>Add your experience from the left panel</p>}
-          </div>
-        );
-      case "education":
-        return (
-          <div style={{ minWidth: 240 }}>
-            <h3 style={{ fontSize:16, fontWeight:"bold", marginBottom:8, borderLeft:`3px solid ${accentColor}`, paddingLeft:8 }}>Education</h3>
-            <div><strong>{data.education.degree || "Degree"}</strong></div>
-            <div style={{ fontSize:12 }}>{data.education.college || "Institution"}</div>
-            <div style={{ fontSize:11, color:"#666" }}>{data.education.year}{data.education.gpa && ` · GPA: ${data.education.gpa}`}</div>
-          </div>
-        );
-      case "skills":
-        return (
-          <div style={{ minWidth: 200 }}>
-            <h3 style={{ fontSize:16, fontWeight:"bold", marginBottom:8, borderLeft:`3px solid ${accentColor}`, paddingLeft:8 }}>Skills</h3>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-              {data.skills.filter(s=>s.name).map(s => (
-                <span key={s.id} style={{ background:"#eef2ff", padding:"4px 12px", borderRadius:20, fontSize:12 }}>{s.name}</span>
-              ))}
-              {data.skills.every(s=>!s.name) && <span style={{ fontSize:12, color:"#999" }}>Add skills from left panel</span>}
-            </div>
-          </div>
-        );
-      case "projects":
-        return (
-          <div style={{ minWidth: 260 }}>
-            <h3 style={{ fontSize:16, fontWeight:"bold", marginBottom:8, borderLeft:`3px solid ${accentColor}`, paddingLeft:8 }}>Projects</h3>
-            {data.projects.filter(p=>p.name).map(proj => (
-              <div key={proj.id} style={{ marginBottom:10 }}>
-                <strong>{proj.name}</strong> {proj.stack && <span style={{ fontSize:10, color:"#666" }}>· {proj.stack}</span>}
-                <p style={{ fontSize:11, marginTop:2 }}>{proj.description}</p>
-              </div>
-            ))}
-          </div>
-        );
-      case "certifications":
-        return (
-          <div style={{ minWidth: 240 }}>
-            <h3 style={{ fontSize:16, fontWeight:"bold", marginBottom:8, borderLeft:`3px solid ${accentColor}`, paddingLeft:8 }}>Certifications</h3>
-            {data.certifications.filter(c=>c.name).map(cert => (
-              <div key={cert.id} style={{ marginBottom:6 }}>
-                <strong>{cert.name}</strong> <span style={{ fontSize:10, color:"#666" }}>{cert.issuer}</span>
-              </div>
-            ))}
-          </div>
-        );
-      case "languages":
-        return (
-          <div style={{ minWidth: 180 }}>
-            <h3 style={{ fontSize:16, fontWeight:"bold", marginBottom:8, borderLeft:`3px solid ${accentColor}`, paddingLeft:8 }}>Languages</h3>
-            <div>
-              {data.languages.filter(l=>l.language).map(l => (
-                <div key={l.id} style={{ display:"flex", justifyContent:"space-between", fontSize:12, marginBottom:4 }}>
-                  <span>{l.language}</span> <span style={{ color:"#666" }}>{l.proficiency}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      default: return null;
-    }
+  const predefinedSections = [
+    { id: "awards", title: "Awards & Honors", content: "" },
+    { id: "websites", title: "Websites & Social Media", content: "" },
+    { id: "references", title: "References", content: "" },
+    { id: "hobbies", title: "Hobbies & Interests", content: "" },
+  ];
+
+  const addPredefined = (type, title, content) => {
+    const newId = uid();
+    onAdd({
+      id: newId,
+      title,
+      content: content || "Click to edit...",
+      type: "predefined",
+    });
+  };
+
+  const addCustom = () => {
+    if (!customTitle.trim()) return;
+    const newId = uid();
+    onAdd({
+      id: newId,
+      title: customTitle.trim(),
+      content: customContent.trim() || "Click to edit...",
+      type: "custom",
+    });
+    setCustomTitle("");
+    setCustomContent("");
+    setShowCustomForm(false);
   };
 
   return (
-    <div style={{ width:"100%", height:"100%" }}>
-      {renderBlock()}
+    <div style={{ padding: "8px 0" }}>
+      <p style={{ fontSize: "13px", color: "#4b5563", marginBottom: "16px" }}>
+        Add extra sections like awards, references, hobbies, or create your own.
+      </p>
+
+      <div className="rb-style-lbl">Pre‑defined Sections</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "20px" }}>
+        {predefinedSections.map(sec => (
+          <button
+            key={sec.id}
+            onClick={() => addPredefined(sec.id, sec.title, sec.content)}
+            style={{
+              padding: "8px 12px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: "30px",
+              cursor: "pointer",
+              fontSize: "12px",
+              fontWeight: 500,
+            }}
+          >
+            + {sec.title}
+          </button>
+        ))}
+      </div>
+
+      <div className="rb-style-lbl">Custom Section</div>
+      {!showCustomForm ? (
+        <button
+          onClick={() => setShowCustomForm(true)}
+          style={{
+            width: "100%",
+            padding: "10px",
+            background: "#f8fafc",
+            border: "1px dashed #cbd5e1",
+            borderRadius: "12px",
+            cursor: "pointer",
+            fontSize: "13px",
+            fontWeight: 500,
+            color: "#2563eb",
+            marginBottom: "20px",
+          }}
+        >
+          + Create Custom Section
+        </button>
+      ) : (
+        <div style={{ background: "#f9fafb", padding: "12px", borderRadius: "12px", marginBottom: "20px" }}>
+          <input
+            type="text"
+            placeholder="Section title (e.g., 'Volunteering')"
+            value={customTitle}
+            onChange={(e) => setCustomTitle(e.target.value)}
+            style={{ width: "100%", marginBottom: "10px", padding: "8px", borderRadius: "6px", border: "1px solid #e2e8f0" }}
+          />
+          <textarea
+            placeholder="Section content (one item per line)"
+            value={customContent}
+            onChange={(e) => setCustomContent(e.target.value)}
+            rows={3}
+            style={{ width: "100%", marginBottom: "10px", padding: "8px", borderRadius: "6px", border: "1px solid #e2e8f0", resize: "vertical" }}
+          />
+          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+            <button onClick={() => setShowCustomForm(false)} style={{ padding: "5px 12px", background: "#e5e7eb", border: "none", borderRadius: "20px", cursor: "pointer" }}>Cancel</button>
+            <button onClick={addCustom} style={{ padding: "5px 12px", background: "#2563eb", color: "white", border: "none", borderRadius: "20px", cursor: "pointer" }}>Add Section</button>
+          </div>
+        </div>
+      )}
+
+      {optionalSections.length > 0 && (
+        <>
+          <div className="rb-style-lbl">Your Added Sections</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {optionalSections.map(section => (
+              <div key={section.id} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <strong style={{ fontSize: "14px" }}>{section.title}</strong>
+                  <button
+                    onClick={() => onRemove(section.id)}
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "#ef4444" }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+                <div
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => onUpdate(section.id, { ...section, content: e.target.innerText })}
+                  style={{
+                    fontSize: "12px",
+                    color: "#4b5563",
+                    whiteSpace: "pre-wrap",
+                    outline: "none",
+                    padding: "4px 0",
+                    minHeight: "40px",
+                  }}
+                  data-placeholder={section.content === "" ? "Click to edit..." : undefined}
+                >
+                  {section.content || ""}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-// ─── FREE‑FORM ELEMENT BLOCK (Text, Image, SkillsCloud) ───────────────────────
-function FreeformElement({ element, onUpdate, onDelete, onDuplicate }) {
+// ─── FREE‑FORM ELEMENT (including table, shape, line, sticker) ──────────────
+function FreeformElement({ element, onUpdate }) {
   const fileInputRef = useRef(null);
   const [activeImageElement, setActiveImageElement] = useState(null);
 
@@ -573,6 +890,117 @@ function FreeformElement({ element, onUpdate, onDelete, onDuplicate }) {
     const newSkills = [...(element.skills || [])];
     newSkills.splice(idx, 1);
     onUpdate({ ...element, skills: newSkills });
+  };
+
+  const renderTable = () => {
+    const { rows, cols, data } = element;
+    const updateCell = (r, c, value) => {
+      const newData = [...data];
+      newData[r][c] = value;
+      onUpdate({ ...element, data: newData });
+    };
+    return (
+      <div style={{ overflow: "auto", width: "100%", height: "100%" }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "12px" }}>
+          <tbody>
+            {Array(rows).fill().map((_, r) => (
+              <tr key={r}>
+                {Array(cols).fill().map((_, c) => (
+                  <td
+                    key={c}
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => updateCell(r, c, e.target.innerText)}
+                    style={{
+                      border: "1px solid #cbd5e1",
+                      padding: "8px",
+                      minWidth: "60px",
+                      outline: "none",
+                      background: "white",
+                    }}
+                  >
+                    {data[r][c]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const renderShape = () => {
+    const { shapeType, width, height, fill, stroke, strokeWidth, rotation } = element;
+    const style = { width, height, transform: `rotate(${rotation}deg)`, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+    if (shapeType === 'rect') {
+      return <div style={{ ...style, background: fill, border: `${strokeWidth}px solid ${stroke}` }} />;
+    }
+    if (shapeType === 'circle') {
+      return <div style={{ ...style, borderRadius: '50%', background: fill, border: `${strokeWidth}px solid ${stroke}` }} />;
+    }
+    if (shapeType === 'triangle') {
+      return (
+        <div style={{ ...style, position: 'relative' }}>
+          <div style={{
+            width: 0, height: 0,
+            borderLeft: `${width/2}px solid transparent`,
+            borderRight: `${width/2}px solid transparent`,
+            borderBottom: `${height}px solid ${fill}`,
+            position: 'absolute',
+            top: 0, left: 0,
+          }} />
+          {strokeWidth > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: 0, left: 0,
+              width: width, height: height,
+              clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+              border: `${strokeWidth}px solid ${stroke}`,
+              boxSizing: 'border-box',
+            }} />
+          )}
+        </div>
+      );
+    }
+    if (shapeType === 'star') {
+      return (
+        <svg width={width} height={height} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={strokeWidth}>
+          <polygon points="12,2 15,9 22,9 16,14 19,22 12,17 5,22 8,14 2,9 9,9 12,2" />
+        </svg>
+      );
+    }
+    if (shapeType === 'heart') {
+      return (
+        <svg width={width} height={height} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={strokeWidth}>
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+        </svg>
+      );
+    }
+    return null;
+  };
+
+  const renderLine = () => {
+    const { lineType, width, height, color, thickness, rotation } = element;
+    const style = { width, height, transform: `rotate(${rotation}deg)`, backgroundColor: color };
+    if (lineType === 'horizontal') return <div style={{ ...style, height: thickness }} />;
+    if (lineType === 'vertical') return <div style={{ ...style, width: thickness }} />;
+    if (lineType === 'diagonal') {
+      return (
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ transform: `rotate(${rotation}deg)` }}>
+          <line x1="0" y1="0" x2={width} y2={height} stroke={color} strokeWidth={thickness} />
+        </svg>
+      );
+    }
+    return null;
+  };
+
+  const renderSticker = () => {
+    const { stickerType, content, fontSize } = element;
+    if (stickerType === 'emoji') {
+      return <div style={{ fontSize: `${fontSize}px`, textAlign: 'center' }}>{content}</div>;
+    }
+    return null;
   };
 
   switch(element.type) {
@@ -646,52 +1074,500 @@ function FreeformElement({ element, onUpdate, onDelete, onDuplicate }) {
           />
         </div>
       );
+    case "table":
+      return renderTable();
+    case "shape":
+      return renderShape();
+    case "line":
+      return renderLine();
+    case "sticker":
+      return renderSticker();
     default: return null;
   }
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// ─── Helper: Generate all draggable text items (includes optional sections) ──
+function getAllDraggableItems(state, styling) {
+  const items = [];
+  const { personal, summary, experience, education, skills, projects, certifications, languages } = state;
+  const optionalSections = state.optionalSections || [];
+  const { accentColor, font } = styling;
+
+  const baseFont = { fontFamily: `'${font}', sans-serif` };
+
+  // Personal
+  if (personal.name) {
+    items.push({
+      id: "personal-name",
+      text: personal.name,
+      style: { ...baseFont, fontSize: 24, fontWeight: "bold", color: "#1e293b", marginBottom: "0px", whiteSpace: "normal", maxWidth: "280px", padding: "2px 4px" }
+    });
+  }
+  if (personal.title) {
+    items.push({
+      id: "personal-title",
+      text: personal.title,
+      style: { ...baseFont, fontSize: 14, color: accentColor, fontWeight: 500, marginBottom: "2px", whiteSpace: "normal", maxWidth: "280px" }
+    });
+  }
+  if (personal.email) items.push({ id: "personal-email", text: personal.email, style: { ...baseFont, fontSize: 11, color: "#64748b", whiteSpace: "normal", maxWidth: "200px" } });
+  if (personal.phone) items.push({ id: "personal-phone", text: personal.phone, style: { ...baseFont, fontSize: 11, color: "#64748b", whiteSpace: "normal", maxWidth: "200px" } });
+  if (personal.location) items.push({ id: "personal-location", text: personal.location, style: { ...baseFont, fontSize: 11, color: "#64748b", whiteSpace: "normal", maxWidth: "200px" } });
+  if (personal.linkedin) items.push({ id: "personal-linkedin", text: `🔗 ${personal.linkedin}`, style: { ...baseFont, fontSize: 11, color: "#64748b", whiteSpace: "normal", maxWidth: "200px" } });
+  if (personal.github) items.push({ id: "personal-github", text: `🐙 ${personal.github}`, style: { ...baseFont, fontSize: 11, color: "#64748b", whiteSpace: "normal", maxWidth: "200px" } });
+
+  // Summary
+  // Summary section logic-la indha style-a update pannunga
+if (summary.text.trim()) {
+  items.push({ 
+    id: "heading-summary", 
+    text: "Summary", 
+    style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } 
+  });
+  
+  items.push({
+    id: "summary-text",
+    text: summary.text,
+    style: { 
+      ...baseFont, 
+      fontSize: 12, 
+      lineHeight: 1.5, 
+      color: "#334155", 
+      // FIX: Indha rendu lines dhaan text-a page-kulla wrap pannum
+      whiteSpace: "normal", 
+      maxWidth: "520px"  
+    }
+  });
+}
+
+  // Experience
+  const hasExperience = experience.some(e => e.company || e.role || e.description);
+  if (hasExperience) {
+    items.push({ id: "heading-experience", text: "Experience", style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } });
+    experience.forEach(exp => {
+      if (exp.role || exp.company) items.push({ id: `exp-title-${exp.id}`, text: `${exp.role}${exp.company ? ` | ${exp.company}` : ''}`, style: { ...baseFont, fontWeight: 700, fontSize: 13, color: "#1e293b", whiteSpace: "normal" } });
+      if (exp.duration || exp.location) items.push({ id: `exp-meta-${exp.id}`, text: `${exp.duration}${exp.location ? ` • ${exp.location}` : ''}`, style: { ...baseFont, fontSize: 10, color: accentColor, fontWeight: 600, whiteSpace: "normal" } });
+      if (exp.description) items.push({ id: `exp-desc-${exp.id}`, text: exp.description, style: { ...baseFont, fontSize: 11, lineHeight: 1.5, color: "#475569", whiteSpace: "normal" } });
+    });
+  }
+
+  // Education
+  if (education.degree || education.college) {
+    items.push({ id: "heading-education", text: "Education", style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } });
+    items.push({ id: "edu-degree", text: `${education.degree}${education.college ? `, ${education.college}` : ''}`, style: { ...baseFont, fontWeight: 700, fontSize: 13, color: "#1e293b", whiteSpace: "normal" } });
+    if (education.year || education.gpa) items.push({ id: "edu-meta", text: `${education.year}${education.gpa ? ` • GPA: ${education.gpa}` : ''}`, style: { ...baseFont, fontSize: 11, color: accentColor, whiteSpace: "normal" } });
+  }
+
+  // Skills
+  const hasSkills = skills.some(s => s.name);
+  if (hasSkills) {
+    items.push({ id: "heading-skills", text: "Skills", style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } });
+    skills.filter(s => s.name).forEach(skill => {
+      items.push({ id: `skill-${skill.id}`, text: `${skill.name}${skill.level ? ` · ${skill.level}` : ''}`, style: { ...baseFont, fontSize: 11, padding: "3px 10px", borderRadius: 4, border: `1px solid #e2e8f0`, color: "#475569", whiteSpace: "nowrap" } });
+    });
+  }
+
+  // Projects
+  const hasProjects = projects.some(p => p.name);
+  if (hasProjects) {
+    items.push({ id: "heading-projects", text: "Projects", style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } });
+    projects.forEach(proj => {
+      if (proj.name) items.push({ id: `proj-name-${proj.id}`, text: `${proj.name}${proj.stack ? ` (${proj.stack})` : ''}`, style: { ...baseFont, fontWeight: 700, fontSize: 13, color: "#1e293b", whiteSpace: "normal" } });
+      if (proj.description) items.push({ id: `proj-desc-${proj.id}`, text: proj.description, style: { ...baseFont, fontSize: 11, lineHeight: 1.5, color: "#475569", whiteSpace: "normal" } });
+      if (proj.link) items.push({ id: `proj-link-${proj.id}`, text: `🔗 ${proj.link}`, style: { ...baseFont, fontSize: 10, color: accentColor, whiteSpace: "nowrap" } });
+    });
+  }
+
+  // Certifications (main)
+  const hasCerts = certifications.some(c => c.name);
+  if (hasCerts) {
+    items.push({ id: "heading-certifications", text: "Certifications", style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } });
+    certifications.forEach(cert => {
+      if (cert.name) items.push({ id: `cert-name-${cert.id}`, text: cert.name, style: { ...baseFont, fontWeight: 700, fontSize: 13, color: "#1e293b", whiteSpace: "normal" } });
+      if (cert.issuer) items.push({ id: `cert-issuer-${cert.id}`, text: cert.issuer, style: { ...baseFont, fontSize: 11, color: "#475569", whiteSpace: "normal" } });
+      if (cert.date) items.push({ id: `cert-date-${cert.id}`, text: cert.date, style: { ...baseFont, fontSize: 10, color: accentColor, whiteSpace: "normal" } });
+      if (cert.description) items.push({ id: `cert-desc-${cert.id}`, text: cert.description, style: { ...baseFont, fontSize: 11, lineHeight: 1.5, color: "#475569", whiteSpace: "normal" } });
+    });
+  }
+
+  // Languages (main)
+  const hasLanguages = languages.some(l => l.language);
+  if (hasLanguages) {
+    items.push({ id: "heading-languages", text: "Languages", style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } });
+    languages.filter(l => l.language).forEach(lang => {
+      items.push({ id: `lang-${lang.id}`, text: `${lang.language} · ${lang.proficiency}`, style: { ...baseFont, fontSize: 11, color: "#475569", whiteSpace: "normal" } });
+    });
+  }
+
+  // Optional Sections
+  optionalSections.forEach(section => {
+    const sectionId = `opt-${section.id}`;
+    items.push({
+      id: `${sectionId}-heading`,
+      text: section.title,
+      style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" }
+    });
+    items.push({
+      id: `${sectionId}-content`,
+      text: section.content,
+      style: { ...baseFont, fontSize: 12, lineHeight: 1.5, color: "#475569", whiteSpace: "pre-wrap" }
+    });
+  });
+
+  return items;
+}
+
+// ─── Layout repositioning engine ────────────────────────────────────────────
+function repositionItemsForLayout(items, layout, st, canvasWidth = 600) {
+  let leftSections = [], rightSections = [];
+  let leftWidth = (canvasWidth - 100) * 0.45;
+
+  const getItemHeight = (id) => {
+    if (id.includes("name")) return 35;
+    if (id.includes("title")) return 22;
+    if (["email", "phone", "location", "linkedin", "github"].some(k => id.includes(k))) return 16;
+    
+    // FIX 1: Heading-ku kila nalla gap vara 45-nu mathiruken
+    if (id.includes("heading-")) return 45; 
+    
+    // FIX 2: Summary wording-ku adutha section thalli poga dynamic calculation
+    if (id.includes("summary-text")) {
+      // Safe check for st and summary text
+      const text = (st && st.summary && st.summary.text) ? st.summary.text : "";
+      const lines = Math.ceil(text.length / 80); 
+      // Multi-line-a irundha height-a automatic-a increase pannum
+      return (lines * 18) + 35; 
+    }
+
+    if (id.includes("exp-desc") || id.includes("proj-desc")) return 65;
+    return 22;
+  };
+
+  if (layout === "one-col") {
+    leftSections = items.map(i => i.id);
+  } else {
+    leftSections = items.filter(i => 
+      i.id.startsWith("personal-") || i.id.startsWith("heading-skills") || i.id.startsWith("skill-")
+    ).map(i => i.id);
+    rightSections = items.filter(i => !leftSections.includes(i.id)).map(i => i.id);
+  }
+
+  const newProps = {};
+  let leftY = 40;
+  let rightY = 40;
+
+  leftSections.forEach(id => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    // Headings-ku munnadi padding
+    if (id.includes("heading-") && leftY > 50) {
+      leftY += 20; 
+    }
+
+    newProps[id] = {
+      x: 40,
+      y: leftY,
+      width: 'auto',
+      height: 'auto',
+      fontSize: item.style.fontSize ? parseInt(item.style.fontSize) : 14,
+      textAlign: 'left',
+    };
+    leftY += getItemHeight(id);
+  });
+
+  // (Right sections logic follows same pattern...)
+  rightSections.forEach(id => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    if (id.includes("heading-") && rightY > 50) rightY += 20;
+    newProps[id] = {
+      x: 40 + leftWidth + 20,
+      y: rightY,
+      width: 'auto',
+      height: 'auto',
+      fontSize: item.style.fontSize ? parseInt(item.style.fontSize) : 14,
+      textAlign: 'left',
+    };
+    rightY += getItemHeight(id);
+  });
+
+  return newProps;
+}
+// ─── AI Modal Component ─────────────────────────────────────────────────────
+const AIModal = ({ isOpen, onClose, onGenerate, activeSection }) => {
+  const [prompt, setPrompt] = useState("");
+  const [generating, setGenerating] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleGenerate = () => {
+    setGenerating(true);
+    setTimeout(() => {
+      let generatedText = "";
+      const lowerPrompt = prompt.toLowerCase();
+      if (lowerPrompt.includes("summary")) {
+        generatedText = AI.summary;
+      } else if (lowerPrompt.includes("experience") || lowerPrompt.includes("work")) {
+        generatedText = AI.experience;
+      } else if (lowerPrompt.includes("project")) {
+        generatedText = AI.project;
+      } else if (lowerPrompt.includes("certification")) {
+        generatedText = AI.certification;
+      } else {
+        generatedText = `AI-generated content based on: "${prompt}"\n\n(This is a demo. In a real app you would connect to an AI API.)`;
+      }
+      onGenerate(generatedText, activeSection);
+      setGenerating(false);
+      onClose();
+    }, 500);
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: "white",
+          borderRadius: "20px",
+          width: "500px",
+          padding: "24px",
+          boxShadow: "0 20px 35px rgba(0,0,0,0.2)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 style={{ margin: "0 0 12px 0", fontSize: "20px" }}>✨ Ask AI</h3>
+        <p style={{ fontSize: "14px", color: "#666", marginBottom: "16px" }}>
+          Describe what you want to add or improve for the <strong>{activeSection}</strong> section.
+        </p>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="e.g., Write a summary for a senior software developer with 5 years of experience in React..."
+          style={{
+            width: "100%",
+            height: "120px",
+            padding: "12px",
+            border: "1px solid #ddd",
+            borderRadius: "12px",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            resize: "vertical",
+            marginBottom: "16px",
+          }}
+        />
+        <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: "8px 16px",
+              background: "#f1f5f9",
+              border: "none",
+              borderRadius: "20px",
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleGenerate}
+            disabled={generating || !prompt.trim()}
+            style={{
+              padding: "8px 20px",
+              background: "#2563eb",
+              color: "white",
+              border: "none",
+              borderRadius: "20px",
+              cursor: generating ? "default" : "pointer",
+              opacity: generating ? 0.6 : 1,
+            }}
+          >
+            {generating ? "Generating..." : "Generate & Insert"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Helper to deep clone state for history ─────────────────────────────────
+const cloneState = (structured, freeform, itemProps, photoPosition) => ({
+  structured: JSON.parse(JSON.stringify(structured)),
+  freeform: JSON.parse(JSON.stringify(freeform)),
+  itemProps: JSON.parse(JSON.stringify(itemProps)),
+  photoPosition: { ...photoPosition },
+});
+
+// ─── MAIN COMPONENT with Undo/Redo ──────────────────────────────────────────
 export default function BlankCanvasBuilderPro() {
   const [st, setSt] = useState(INIT);
   const [freeformElements, setFreeformElements] = useState([]);
-  const [sectionSizes, setSectionSizes] = useState({});
-  const paperRef = useRef(null);
+  const [itemProps, setItemProps] = useState(() => {
+    const initialItems = getAllDraggableItems(INIT, INIT.styling);
+    return computeDefaultProps(initialItems);
+  });
+  const [photoPosition, setPhotoPosition] = useState({ x: 300, y: 40 });
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [selectedDraggableId, setSelectedDraggableId] = useState(null);
+  const [selectedFreeformId, setSelectedFreeformId] = useState(null);
   const nodeRefs = useRef({});
+  const canvasContainerRef = useRef(null);
+  const photoRef = useRef(null);
 
-  const sec = id => setSt(s=>({...s, activeSection:id}));
-  const setFld = (k,v) => setSt(s=>({...s,[k]:v}));
+  // History state
+  const [history, setHistory] = useState(() => {
+    const initialSnapshot = cloneState(INIT, [], {}, { x: 300, y: 40 });
+    return [initialSnapshot];
+  });
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const MAX_HISTORY = 50;
+  const isRestoringRef = useRef(false);
 
-  const idx = ALL_SECTIONS.findIndex(n=>n.id===st.activeSection);
-  const meta = SECTION_META[st.activeSection];
+  const pushSnapshot = useCallback(() => {
+    if (isRestoringRef.current) return;
+    const newSnapshot = cloneState(st, freeformElements, itemProps, photoPosition);
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1);
+      newHistory.push(newSnapshot);
+      if (newHistory.length > MAX_HISTORY) newHistory.shift();
+      return newHistory;
+    });
+    setHistoryIndex(prev => Math.min(prev + 1, MAX_HISTORY - 1));
+  }, [st, freeformElements, itemProps, photoPosition, historyIndex]);
 
-  // Add a new freeform element
-  const addFreeformElement = (type) => {
-    let newEl = {
-      id: Date.now(),
-      type,
-      x: 50,
-      y: 50,
-      width: 220,
-      height: 'auto',
+  const restoreSnapshot = useCallback((snapshot) => {
+    isRestoringRef.current = true;
+    setSt(snapshot.structured);
+    setFreeformElements(snapshot.freeform);
+    setItemProps(snapshot.itemProps);
+    setPhotoPosition(snapshot.photoPosition);
+    setSelectedDraggableId(null);
+    setSelectedFreeformId(null);
+    setTimeout(() => { isRestoringRef.current = false; }, 0);
+  }, []);
+
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      restoreSnapshot(history[newIndex]);
+    }
+  }, [historyIndex, history, restoreSnapshot]);
+
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      restoreSnapshot(history[newIndex]);
+    }
+  }, [historyIndex, history, restoreSnapshot]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        redo();
+      }
     };
-    if (type === "text") newEl.content = "Double-click to edit";
-    if (type === "section") { newEl.title = "New Section"; newEl.content = "Write your content here..."; }
-    if (type === "image") { newEl.imageUrl = null; newEl.placeholder = "🖼️ Click to upload"; }
-    if (type === "skills") newEl.skills = [];
-    setFreeformElements(prev => [...prev, newEl]);
-  };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
 
-  const deleteFreeform = (id) => {
-    setFreeformElements(prev => prev.filter(el => el.id !== id));
-    delete nodeRefs.current[id];
+  // Wrapped state setters
+  const setFld = (k, v) => {
+    setSt(prev => ({ ...prev, [k]: v }));
+    pushSnapshot();
   };
-  const duplicateFreeform = (el) => {
+ const updateItemProp = (id, updates) => {
+  setItemProps(prev => ({
+    ...prev,
+    [id]: { 
+      ...prev[id], 
+      ...updates // Inga x, y save aagum
+    }
+  }));
+  pushSnapshot(); // Undo/Redo-la save aagum
+};
+  const setPhotoPositionAndSnapshot = (newPos) => {
+    setPhotoPosition(newPos);
+    pushSnapshot();
+  };
+  const addTable = () => {
+    const newTable = makeTable();
+    setFreeformElements(prev => [...prev, newTable]);
+    setSelectedFreeformId(newTable.id);
+    pushSnapshot();
+  };
+  const addLine = () => {
+    const lineProps = LINES.find(l => l.id === "hline").defaultProps;
     const newId = Date.now();
-    const newEl = { ...el, id: newId, x: el.x + 30, y: el.y + 30 };
-    setFreeformElements(prev => [...prev, newEl]);
+    const newLine = { id: newId, type: "line", x: 50, y: 50, ...lineProps };
+    setFreeformElements(prev => [...prev, newLine]);
+    setSelectedFreeformId(newId);
+    pushSnapshot();
   };
   const updateFreeform = (id, newData) => {
     setFreeformElements(prev => prev.map(el => el.id === id ? { ...el, ...newData } : el));
+    pushSnapshot();
+  };
+  const addOptionalSection = (section) => {
+    setSt(prev => ({ ...prev, optionalSections: [...prev.optionalSections, section] }));
+    pushSnapshot();
+  };
+  const removeOptionalSection = (id) => {
+    setSt(prev => ({ ...prev, optionalSections: prev.optionalSections.filter(s => s.id !== id) }));
+    pushSnapshot();
+  };
+  const updateOptionalSection = (id, newData) => {
+    setSt(prev => ({ ...prev, optionalSections: prev.optionalSections.map(s => s.id === id ? newData : s) }));
+    pushSnapshot();
+  };
+  const setItemPropsAndPush = (newProps) => {
+    setItemProps(newProps);
+    pushSnapshot();
+  };
+
+  const sec = id => setSt(prev => ({ ...prev, activeSection: id }));
+  const handleAIGenerate = (generatedText, sectionId) => {
+    if (sectionId === "summary") {
+      setFld("summary", { ...st.summary, text: generatedText });
+    } else if (sectionId === "experience") {
+      if (st.experience.length > 0) {
+        const updated = [...st.experience];
+        updated[0] = { ...updated[0], description: generatedText };
+        setFld("experience", updated);
+      }
+    } else if (sectionId === "projects") {
+      if (st.projects.length > 0) {
+        const updated = [...st.projects];
+        updated[0] = { ...updated[0], description: generatedText };
+        setFld("projects", updated);
+      }
+    } else if (sectionId === "certifications") {
+      if (st.certifications.length > 0) {
+        const updated = [...st.certifications];
+        updated[0] = { ...updated[0], description: generatedText };
+        setFld("certifications", updated);
+      }
+    }
   };
 
   const renderForm = () => {
@@ -704,189 +1580,269 @@ export default function BlankCanvasBuilderPro() {
       case "projects":       return <ProjectsSection data={st.projects} onChange={v=>setFld("projects",v)}/>;
       case "certifications": return <CertificationsSection data={st.certifications} onChange={v=>setFld("certifications",v)}/>;
       case "languages":      return <LanguagesSection data={st.languages} onChange={v=>setFld("languages",v)}/>;
-      case "styling":        return <StylingSection data={st.styling} onChange={v=>setFld("styling",v)}/>;
+      case "styling":        return <StylingSection data={st.styling} onChange={v=>setFld("styling",v)} onAddTable={addTable} onAddLine={addLine} />;
+      case "additional":     return <AdditionalSectionsPanel optionalSections={st.optionalSections} onAdd={addOptionalSection} onRemove={removeOptionalSection} onUpdate={updateOptionalSection} />;
       default: return null;
     }
   };
 
-  // All structured sections as draggable blocks (only those with content)
-  const visibleSections = ALL_SECTIONS.filter(s => {
-    if (s.id === "personal") return true;
-    if (s.id === "summary") return st.summary.text.trim() !== "";
-    if (s.id === "experience") return st.experience.some(e => e.company || e.role);
-    if (s.id === "education") return st.education.degree || st.education.college;
-    if (s.id === "skills") return st.skills.some(sk => sk.name);
-    if (s.id === "projects") return st.projects.some(p => p.name);
-    if (s.id === "certifications") return st.certifications.some(c => c.name);
-    if (s.id === "languages") return st.languages.some(l => l.language);
-    return true;
-  }).map(s => s.id);
-
-  const getSectionSize = (secId) => sectionSizes[secId] || { width: 260, height: 'auto' };
-  const setSectionSize = (secId, width, height) => {
-    setSectionSizes(prev => ({ ...prev, [secId]: { width, height } }));
+  const handleSelectDraggable = (id) => {
+    setSelectedDraggableId(id);
+    setSelectedFreeformId(null);
+  };
+  const handleSelectFreeform = (id) => {
+    setSelectedFreeformId(id);
+    setSelectedDraggableId(null);
+  };
+  const onFreeformResize = (id, newWidth, newHeight, newX, newY) => {
+    updateFreeform(id, { width: newWidth, height: newHeight, x: newX, y: newY });
   };
 
+  const draggableItems = getAllDraggableItems(st, st.styling);
+  const idx = ALL_SECTIONS.findIndex(n => n.id === st.activeSection);
+  const meta = SECTION_META[st.activeSection];
+
+  // Layout change effect – pushes snapshot only if positions actually changed
+ // useEffect (Layout change logic) - Line 1060 range-la irukum
+useEffect(() => {
+  const newPositions = repositionItemsForLayout(draggableItems, st.styling.layout, 600);
+  
+  setItemProps(prev => {
+    const updated = { ...prev };
+    Object.keys(newPositions).forEach(id => {
+      // FIX: User manual-a move panna items-a (x > 40 irundha) layout logic touch panna koodathu
+      // Pudhu layout-ku maarum pothu mattum default-a align aagum
+      if (!updated[id] || (updated[id].x === 40)) { 
+        updated[id] = { ...updated[id], x: newPositions[id].x, y: newPositions[id].y };
+      }
+    });
+    return updated;
+  });
+  // Note: Layout maathum pothu snapshot push aagum
+}, [st.styling.layout]);
+
+  // Dynamic canvas height effect – no snapshot needed
+  useEffect(() => {
+    if (!canvasContainerRef.current) return;
+    let maxY = 20;
+    Object.values(itemProps).forEach(prop => {
+      if (prop.y > maxY) maxY = prop.y;
+    });
+    freeformElements.forEach(el => {
+      if (el.y > maxY) maxY = el.y;
+    });
+    if (photoPosition.y > maxY) maxY = photoPosition.y;
+    const neededHeight = maxY + 300;
+    canvasContainerRef.current.style.minHeight = `${Math.max(800, neededHeight)}px`;
+  }, [itemProps, freeformElements, photoPosition]);
+
+  // Auto-add missing props for draggable items – push snapshot only if items were added
+ // Auto-add missing props for draggable items
+useEffect(() => {
+  const newProps = { ...itemProps };
+  const currentIds = new Set(draggableItems.map(i => i.id));
+  
+  // Clean up old IDs
+  Object.keys(newProps).forEach(id => {
+    if (!currentIds.has(id)) delete newProps[id];
+  });
+
+  const missing = draggableItems.filter(item => !newProps[item.id]);
+  if (missing.length) {
+    let maxYUsed = 20;
+    Object.values(newProps).forEach(prop => {
+      if (prop.y > maxYUsed) maxYUsed = prop.y;
+    });
+
+    missing.forEach((item, index) => {
+      const defaultFontSize = item.style.fontSize ? parseInt(item.style.fontSize) : 14;
+      newProps[item.id] = {
+        x: 40,
+        // FIX: Changed 70 to 20 to prevent huge gaps when typing
+        y: maxYUsed + (20 * (index + 1)), 
+        width: 'auto',
+        height: 'auto',
+        fontSize: defaultFontSize,
+        textAlign: 'left',
+      };
+    });
+    setItemPropsAndPush(newProps);
+  }
+}, [draggableItems]);
+
+  // Sync photo position with styling – push snapshot only if position changed
+  useEffect(() => {
+    if (!st.personal.photo) return;
+    const photoSize = PHOTO_SIZES[st.styling.photoSize] || 72;
+    const canvasWidth = 600;
+    const margin = 20;
+    let newX = photoPosition.x;
+    switch (st.styling.photoPosition) {
+      case "left": newX = margin; break;
+      case "center": newX = (canvasWidth - photoSize) / 2; break;
+      case "right": newX = canvasWidth - photoSize - margin; break;
+      default: return;
+    }
+    if (Math.abs(newX - photoPosition.x) > 1) {
+      setPhotoPositionAndSnapshot({ x: newX, y: photoPosition.y });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [st.styling.photoPosition, st.styling.photoSize, st.personal.photo]);
+
   return (
-    <div style={{ display:"flex", height:"100vh", fontFamily:"'Inter', sans-serif", overflow:"hidden" }}>
-      {/* LEFT: Section sidebar + form */}
-      <div style={{ width: 68, background:"#1e293b", flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", padding:"8px 0", overflowY:"auto" }}>
+    <div style={{ display: "flex", height: "100vh", fontFamily: "'Inter', sans-serif", overflow: "hidden" }}>
+      {/* LEFT: Section sidebar */}
+      <div style={{ width: 68, background: "#1e293b", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", overflowY: "auto" }}>
         {ALL_SECTIONS.map(n => (
-          <button key={n.id} className={`rb-nav${st.activeSection===n.id?" on":""}`} onClick={()=>sec(n.id)} style={{ marginBottom:1 }}>
+          <button key={n.id} className={`rb-nav${st.activeSection === n.id ? " on" : ""}`} onClick={() => sec(n.id)} style={{ marginBottom: 1 }}>
             <span className="rb-nav-icon">{n.icon}</span>
             <span className="rb-nav-lbl">{n.label}</span>
           </button>
         ))}
       </div>
 
-      <div style={{ width: 500, background:"#fff", borderRight:"1px solid #e5e7eb", display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
-        <div className="rb-form-head" style={{ padding:"18px 22px 12px", borderBottom:"1px solid #f3f4f6" }}>
-          <h2 style={{ fontSize:17, fontWeight:700 }}>{meta.title}</h2>
-          <p style={{ fontSize:12, color:"#6b7280" }}>{meta.desc}</p>
+      {/* MIDDLE: Form panel */}
+      <div style={{ width: 500, background: "#fff", borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+        <div className="rb-form-head" style={{ padding: "18px 22px 12px", borderBottom: "1px solid #f3f4f6" }}>
+          <h2 style={{ fontSize: 17, fontWeight: 700 }}>{meta.title}</h2>
+          <p style={{ fontSize: 12, color: "#6b7280" }}>{meta.desc}</p>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"18px 22px" }}>{renderForm()}</div>
-        <div className="rb-form-foot" style={{ padding:"12px 22px", borderTop:"1px solid #f3f4f6", display:"flex", justifyContent:"space-between" }}>
-          <button className="rb-back" disabled={idx===0} onClick={()=>sec(ALL_SECTIONS[idx-1].id)}>‹ Back</button>
-          <button className="rb-next" disabled={idx===ALL_SECTIONS.length-1} onClick={()=>sec(ALL_SECTIONS[idx+1].id)}>Next ›</button>
+        <div style={{ flex: 1, overflowY: "auto", padding: "18px 22px" }}>{renderForm()}</div>
+        <div className="rb-form-foot" style={{ padding: "12px 22px", borderTop: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between" }}>
+          <button className="rb-back" disabled={idx === 0} onClick={() => sec(ALL_SECTIONS[idx - 1].id)}>‹ Back</button>
+          <button className="rb-next" disabled={idx === ALL_SECTIONS.length - 1} onClick={() => sec(ALL_SECTIONS[idx + 1].id)}>Next ›</button>
         </div>
       </div>
 
-      {/* RIGHT: Canvas area with A4 sheet */}
-      <div style={{ flex:1, background:"#d1d5db", display:"flex", alignItems:"center", justifyContent:"center", overflow:"auto", padding:"20px" }}>
+      {/* RIGHT: Canvas area */}
+      <div style={{ flex: 1, background: "#d1d5db", display: "flex", flexDirection: "column", alignItems: "center", overflow: "auto", padding: "40px" }}>
+        <div style={{ position: "relative", width: "600px", marginBottom: "10px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+          <button onClick={undo} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↩️ Undo</button>
+          <button onClick={redo} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↪️ Redo</button>
+        </div>
         <div
-          ref={paperRef}
-          onDragOver={e=>e.preventDefault()}
+          ref={canvasContainerRef}
+          onDragOver={e => e.preventDefault()}
           style={{
-            position:"relative",
-            width:"794px", height:"1123px",
-            background:"white",
-            boxShadow:"0 25px 50px -12px rgba(0,0,0,0.25)",
-            borderRadius:"4px",
-            overflow:"hidden"
+            position: "relative",
+            width: "600px",
+            minHeight: "800px",
+            height: "fit-content",
+            background: "white",
+            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+            borderRadius: "4px",
+            paddingBottom: "150px",
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column"
           }}
         >
-          {/* Structured sections as draggable blocks */}
-          {visibleSections.map((secId, i) => {
-            const size = getSectionSize(secId);
-            if (!nodeRefs.current[`sec-${secId}`]) nodeRefs.current[`sec-${secId}`] = { current: null };
+          {draggableItems.map(item => {
+            const props = itemProps[item.id] || { x: 40, y: 20, width: 'auto', height: 'auto', fontSize: 14, textAlign: 'left' };
+            const customMinWidth = item.id === "personal-name" ? 30 : 50;
             return (
-              <Draggable
-                key={`sec-${secId}`}
-                nodeRef={nodeRefs.current[`sec-${secId}`]}
-                handle=".drag-handle"
-                bounds="parent"
-                defaultPosition={{ x: 30 + (i%2)*50, y: 50 + i*120 }}
-              >
-                <div
-                  ref={nodeRefs.current[`sec-${secId}`]}
-                  style={{
-                    position:"absolute",
-                    background:"white",
-                    borderRadius:"20px",
-                    boxShadow:"0 12px 30px rgba(0,0,0,0.08)",
-                    padding:"12px 16px",
-                    cursor:"default"
-                  }}
-                >
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, borderBottom:"1px solid #eef2ff", paddingBottom:6 }}>
-                    <span className="drag-handle" style={{ cursor:"grab", fontSize:16, color:"#94a3b8", letterSpacing:2 }}>⋮⋮</span>
-                    <div style={{ display:"flex", gap:8 }}>
-                      <span onClick={() => {
-                        const newId = Date.now();
-                        const newEl = { type:"section", id:newId, title: secId, content: "", x: 60, y: 60, width: 220, height: 'auto' };
-                        setFreeformElements(prev => [...prev, newEl]);
-                      }} style={{ cursor:"pointer", fontSize:13, color:"#3b82f6", background:"#eff6ff", padding:"2px 8px", borderRadius:20 }}>Duplicate</span>
-                    </div>
-                  </div>
-                  <ResizableBox
-                    width={size.width}
-                    height={size.height}
-                    onResize={(w, h) => setSectionSize(secId, w, h)}
-                    minWidth={180}
-                    maxWidth={500}
-                    minHeight={100}
-                  >
-                    <StructuredSectionBlock id={secId} data={st} styling={st.styling} />
-                  </ResizableBox>
-                </div>
-              </Draggable>
+              <DraggableTextBlock
+                key={item.id}
+                id={item.id}
+                text={item.text}
+                baseStyle={item.style}
+                defaultPos={{ x: props.x, y: props.y }}
+                defaultSize={{ width: props.width, height: props.height }}
+                defaultFontSize={props.fontSize}
+                defaultTextAlign={props.textAlign}
+                onDragStop={(e, data) => updateItemProp(item.id, { x: data.x, y: data.y })}
+                onResize={(newSize) => updateItemProp(item.id, { width: newSize.width, height: newSize.height })}
+                onFontSizeChange={(newSize) => updateItemProp(item.id, { fontSize: newSize })}
+                onTextAlignChange={(newAlign) => updateItemProp(item.id, { textAlign: newAlign })}
+                isSelected={selectedDraggableId === item.id}
+                onSelect={handleSelectDraggable}
+                minWidth={customMinWidth}
+                minHeight={30}
+              />
             );
           })}
 
-          {/* Freeform elements */}
+          {st.personal.photo && (
+            <Draggable
+              nodeRef={photoRef}
+              bounds="parent"
+              position={photoPosition}
+              onStop={(e, data) => setPhotoPositionAndSnapshot({ x: data.x, y: data.y })}
+            >
+              <div ref={photoRef} style={{ position: "absolute", cursor: "move", zIndex: 10 }}>
+                <img
+                  src={st.personal.photo}
+                  alt="profile"
+                  style={{
+                    width: PHOTO_SIZES[st.styling.photoSize] || 72,
+                    height: PHOTO_SIZES[st.styling.photoSize] || 72,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: `2px solid ${st.styling.accentColor}`,
+                  }}
+                />
+              </div>
+            </Draggable>
+          )}
+
           {freeformElements.map(el => {
             if (!nodeRefs.current[el.id]) nodeRefs.current[el.id] = { current: null };
+            const isDesign = ["shape", "line", "sticker", "table"].includes(el.type);
+            const isSelected = selectedFreeformId === el.id;
+
             return (
               <Draggable
                 key={el.id}
                 nodeRef={nodeRefs.current[el.id]}
-                handle=".drag-handle"
                 bounds="parent"
-                defaultPosition={{ x: el.x, y: el.y }}
+                position={{ x: el.x, y: el.y }}
                 onStop={(e, data) => updateFreeform(el.id, { x: data.x, y: data.y })}
               >
                 <div
                   ref={nodeRefs.current[el.id]}
+                  className="freeform-element"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectFreeform(el.id);
+                  }}
                   style={{
-                    position:"absolute",
-                    background:"white",
-                    borderRadius:"20px",
-                    boxShadow:"0 12px 30px rgba(0,0,0,0.08)",
-                    padding:"12px 16px",
-                    cursor:"default"
+                    position: "absolute",
+                    cursor: "move",
+                    background: isDesign ? "transparent" : "white",
+                    borderRadius: isDesign ? 0 : "20px",
+                    boxShadow: isDesign ? "none" : "0 12px 30px rgba(0,0,0,0.08)",
+                    padding: isDesign ? 0 : "12px 16px",
+                    outline: isSelected ? "2px solid #3b82f6" : "none",
+                    outlineOffset: "2px",
                   }}
                 >
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, borderBottom:"1px solid #eef2ff", paddingBottom:6 }}>
-                    <span className="drag-handle" style={{ cursor:"grab", fontSize:16, color:"#94a3b8", letterSpacing:2 }}>⋮⋮</span>
-                    <div style={{ display:"flex", gap:8 }}>
-                      <span onClick={() => duplicateFreeform(el)} style={{ cursor:"pointer", fontSize:13, color:"#3b82f6", background:"#eff6ff", padding:"2px 8px", borderRadius:20 }}>Duplicate</span>
-                      <span onClick={() => deleteFreeform(el.id)} style={{ cursor:"pointer", fontSize:13, color:"#ef4444", background:"#fee2e2", padding:"2px 8px", borderRadius:20 }}>Delete</span>
-                    </div>
-                  </div>
-                  <ResizableBox
-                    width={el.width || 220}
-                    height={el.height || 'auto'}
-                    onResize={(w, h) => updateFreeform(el.id, { width: w, height: h })}
-                    minWidth={150}
+                  <ResizableWithHandles
+                    width={el.width}
+                    height={el.height}
+                    onResize={(w, h, x, y) => onFreeformResize(el.id, w, h, x, y)}
+                    minWidth={isDesign ? 20 : 150}
+                    minHeight={isDesign ? 20 : 100}
                     maxWidth={600}
-                    minHeight={100}
                   >
                     <FreeformElement element={el} onUpdate={(newData) => updateFreeform(el.id, newData)} />
-                  </ResizableBox>
+                  </ResizableWithHandles>
                 </div>
               </Draggable>
             );
           })}
-
-          {visibleSections.length === 0 && freeformElements.length === 0 && (
-            <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", textAlign:"center", color:"#9ca3af", pointerEvents:"none" }}>
-              <p>Drag elements from the left panel or use the floating menu to add blocks</p>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Floating action menu for freeform elements */}
-      <div style={{ position:"fixed", bottom:"24px", right:"24px", display:"flex", gap:"12px", zIndex:20 }}>
-        <button onClick={() => addFreeformElement("text")} style={{ background:"#0f172a", border:"none", padding:"10px 16px", borderRadius:"40px", color:"white", fontWeight:600, fontSize:12, cursor:"pointer" }}>➕ Text</button>
-        <button onClick={() => addFreeformElement("section")} style={{ background:"#0f172a", border:"none", padding:"10px 16px", borderRadius:"40px", color:"white", fontWeight:600, fontSize:12, cursor:"pointer" }}>📌 Section</button>
-        <button onClick={() => addFreeformElement("image")} style={{ background:"#0f172a", border:"none", padding:"10px 16px", borderRadius:"40px", color:"white", fontWeight:600, fontSize:12, cursor:"pointer" }}>🖼️ Image</button>
-        <button onClick={() => addFreeformElement("skills")} style={{ background:"#0f172a", border:"none", padding:"10px 16px", borderRadius:"40px", color:"white", fontWeight:600, fontSize:12, cursor:"pointer" }}>⚡ Skills</button>
-        <button onClick={() => {
-          const dataStr = JSON.stringify({ structured: st, freeform: freeformElements, sectionSizes }, null, 2);
-          const blob = new Blob([dataStr], { type:"application/json" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "resume-canvas-full.json";
-          a.click();
-          URL.revokeObjectURL(url);
-        }} style={{ background:"#10b981", border:"none", padding:"10px 16px", borderRadius:"40px", color:"white", fontWeight:600, fontSize:12, cursor:"pointer" }}>💾 Export</button>
-        <button onClick={() => { setSt(INIT); setFreeformElements([]); setSectionSizes({}); }} style={{ background:"#ef4444", border:"none", padding:"10px 16px", borderRadius:"40px", color:"white", fontWeight:600, fontSize:12, cursor:"pointer" }}>🗑️ Clear All</button>
-      </div>
+      <AIModal
+        isOpen={showAIModal}
+        onClose={() => setShowAIModal(false)}
+        onGenerate={handleAIGenerate}
+        activeSection={st.activeSection}
+      />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;600;700&family=Raleway:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=Nunito:wght@300;400;600;700&family=Ubuntu:wght@300;400;500;700&family=Cabin:wght@400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&family=Josefin+Sans:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&display=swap');
         .rb-nav{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; cursor:pointer; border-radius:8px; width:58px; border:none; background:none; color:#94a3b8; transition:all .15s; margin-bottom:1px; }
         .rb-nav:hover{ background:rgba(255,255,255,.08); color:#e2e8f0; }
         .rb-nav.on{ background:rgba(255,255,255,.14); color:#fff; }
@@ -942,7 +1898,33 @@ export default function BlankCanvasBuilderPro() {
         .rb-layout-icon{font-size:20px;margin-bottom:4px;display:block;}
         .rb-layout-name{font-size:11px;font-weight:700;color:#374151;display:block;}
         .rb-layout-desc{font-size:9px;color:#94a3b8;display:block;margin-top:2px;}
+        [contentEditable][data-placeholder]:empty:before {
+          content: attr(data-placeholder);
+          color: #9ca3af;
+        }
+        .draggable-text-block, .freeform-element { }
       `}</style>
     </div>
   );
+}
+
+function computeDefaultProps(items) {
+  const props = {};
+  let currentY = 20;
+  items.forEach((item) => {
+    props[item.id] = {
+      x: 40,
+      y: currentY,
+      width: 'auto',
+      height: 'auto',
+      fontSize: item.style.fontSize ? parseInt(item.style.fontSize) : 14,
+      textAlign: 'left',
+    };
+    if (item.id.startsWith('personal-')) {
+      currentY += 8;
+    } else {
+      currentY += 55;
+    }
+  });
+  return props;
 }
