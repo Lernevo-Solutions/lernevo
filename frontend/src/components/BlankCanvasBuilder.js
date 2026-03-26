@@ -859,7 +859,7 @@ function AdditionalSectionsPanel({ optionalSections, onAdd, onRemove, onUpdate }
 }
 
 // ─── FREE‑FORM ELEMENT (including table, shape, line, sticker) ──────────────
-function FreeformElement({ element, onUpdate }) {
+function FreeformElement({ element, onUpdate,isSelected }) {
   const fileInputRef = useRef(null);
   const [activeImageElement, setActiveImageElement] = useState(null);
 
@@ -895,31 +895,16 @@ function FreeformElement({ element, onUpdate }) {
  const renderTable = () => {
     const { rows, cols, data } = element;
     
-    // Puthu Row add panna (Fix)
     const addRow = (e) => {
       e.stopPropagation();
-      // Current-a evvalo columns (cols) iruko, anthe width-ku empty row create panrom
-      const newRow = Array(cols || 3).fill(""); 
-      const newData = [...data, newRow];
-      
-      onUpdate({ 
-        ...element, 
-        rows: rows + 1, 
-        data: newData 
-      });
+      const newRow = Array(cols || 3).fill("");
+      onUpdate({ ...element, rows: rows + 1, data: [...data, newRow] });
     };
 
-    // Puthu Column add panna
     const addCol = (e) => {
       e.stopPropagation();
-      // Ovvoru row-laiyum oru empty cell-a extra-va otturom
       const newData = data.map(row => [...row, ""]);
-      
-      onUpdate({ 
-        ...element, 
-        cols: cols + 1, 
-        data: newData 
-      });
+      onUpdate({ ...element, cols: cols + 1, data: newData });
     };
 
     const updateCell = (r, c, value) => {
@@ -932,18 +917,13 @@ function FreeformElement({ element, onUpdate }) {
 
     return (
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        {/* Row/Col Add Buttons */}
-        <div style={{ 
-          position: "absolute", 
-          top: -35, 
-          left: 0, 
-          display: "flex", 
-          gap: "8px",
-          zIndex: 100 
-        }}>
-          <button onClick={addRow} style={{ padding: "4px 10px", fontSize: "11px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>+ Row</button>
-          <button onClick={addCol} style={{ padding: "4px 10px", fontSize: "11px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>+ Column</button>
-        </div>
+        {/* Buttons appear ONLY when selected */}
+        {isSelected && (
+          <div style={{ position: "absolute", top: -35, left: 0, display: "flex", gap: "8px", zIndex: 100 }}>
+            <button onClick={addRow} style={{ padding: "4px 10px", fontSize: "11px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>+ Row</button>
+            <button onClick={addCol} style={{ padding: "4px 10px", fontSize: "11px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>+ Column</button>
+          </div>
+        )}
         
         <div style={{ overflow: "hidden", width: "100%", height: "100%", border: "1px solid #cbd5e1" }}>
           <table style={{ borderCollapse: "collapse", width: "100%", height: "100%", fontSize: "12px", tableLayout: "fixed" }}>
@@ -956,14 +936,7 @@ function FreeformElement({ element, onUpdate }) {
                       contentEditable
                       suppressContentEditableWarning
                       onBlur={(e) => updateCell(r, c, e.target.innerText)}
-                      style={{
-                        border: "1px solid #cbd5e1",
-                        padding: "8px",
-                        outline: "none",
-                        background: "white",
-                        minHeight: "30px",
-                        wordBreak: "break-word"
-                      }}
+                      style={{ border: "1px solid #cbd5e1", padding: "8px", outline: "none", background: "white", wordBreak: "break-word" }}
                     >
                       {cell}
                     </td>
@@ -1760,29 +1733,44 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* RIGHT: Canvas area */}
-      <div style={{ flex: 1, background: "#d1d5db", display: "flex", flexDirection: "column", alignItems: "center", overflow: "auto", padding: "40px" }}>
-        <div style={{ position: "relative", width: "600px", marginBottom: "10px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-          <button onClick={undo} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↩️ Undo</button>
-          <button onClick={redo} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↪️ Redo</button>
-        </div>
-        <div
-          ref={canvasContainerRef}
-          onDragOver={e => e.preventDefault()}
-          style={{
-            position: "relative",
-            width: "600px",
-            minHeight: "800px",
-            height: "fit-content",
-            background: "white",
-            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-            borderRadius: "4px",
-            paddingBottom: "150px",
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column"
-          }}
-        >
+     {/* RIGHT: Canvas area */}
+<div 
+  style={{ flex: 1, background: "#d1d5db", display: "flex", flexDirection: "column", alignItems: "center", overflow: "auto", padding: "40px" }}
+  // Inga click panna selection cancel aagum
+  onClick={() => {
+    setSelectedDraggableId(null);
+    setSelectedFreeformId(null);
+  }}
+>
+  {/* Undo/Redo Buttons - Stop propagation add panniruken so click selection-a disturb pannaathu */}
+  <div style={{ position: "relative", width: "600px", marginBottom: "10px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+    <button onClick={(e) => { e.stopPropagation(); undo(); }} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↩️ Undo</button>
+    <button onClick={(e) => { e.stopPropagation(); redo(); }} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↪️ Redo</button>
+  </div>
+
+  <div
+    ref={canvasContainerRef}
+    onDragOver={e => e.preventDefault()}
+    // Canvas kulla click pannaalum selection poyidanum
+    onClick={(e) => {
+      if (e.target === e.currentTarget) {
+        setSelectedDraggableId(null);
+        setSelectedFreeformId(null);
+      }
+    }}
+    style={{
+      position: "relative",
+      width: "600px",
+      minHeight: "800px",
+      background: "white",
+      boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+      borderRadius: "4px",
+      paddingBottom: "150px",
+      flexShrink: 0,
+      display: "flex",
+      flexDirection: "column"
+    }}
+  >
           {draggableItems.map(item => {
             const props = itemProps[item.id] || { x: 40, y: 20, width: 'auto', height: 'auto', fontSize: 14, textAlign: 'left' };
             const customMinWidth = item.id === "personal-name" ? 30 : 50;
@@ -1831,51 +1819,57 @@ useEffect(() => {
             </Draggable>
           )}
 
-          {freeformElements.map(el => {
-            if (!nodeRefs.current[el.id]) nodeRefs.current[el.id] = { current: null };
-            const isDesign = ["shape", "line", "sticker", "table"].includes(el.type);
-            const isSelected = selectedFreeformId === el.id;
+       {freeformElements.map(el => {
+  if (!nodeRefs.current[el.id]) nodeRefs.current[el.id] = { current: null };
+  const isDesign = ["shape", "line", "sticker", "table"].includes(el.type);
+  const isSelected = selectedFreeformId === el.id;
 
-            return (
-              <Draggable
-                key={el.id}
-                nodeRef={nodeRefs.current[el.id]}
-                bounds="parent"
-                position={{ x: el.x, y: el.y }}
-                onStop={(e, data) => updateFreeform(el.id, { x: data.x, y: data.y })}
-              >
-                <div
-                  ref={nodeRefs.current[el.id]}
-                  className="freeform-element"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectFreeform(el.id);
-                  }}
-                  style={{
-                    position: "absolute",
-                    cursor: "move",
-                    background: isDesign ? "transparent" : "white",
-                    borderRadius: isDesign ? 0 : "20px",
-                    boxShadow: isDesign ? "none" : "0 12px 30px rgba(0,0,0,0.08)",
-                    padding: isDesign ? 0 : "12px 16px",
-                    outline: isSelected ? "2px solid #3b82f6" : "none",
-                    outlineOffset: "2px",
-                  }}
-                >
-                  <ResizableWithHandles
-                    width={el.width}
-                    height={el.height}
-                    onResize={(w, h, x, y) => onFreeformResize(el.id, w, h, x, y)}
-                    minWidth={isDesign ? 20 : 150}
-                    minHeight={isDesign ? 20 : 100}
-                    maxWidth={600}
-                  >
-                    <FreeformElement element={el} onUpdate={(newData) => updateFreeform(el.id, newData)} />
-                  </ResizableWithHandles>
-                </div>
-              </Draggable>
-            );
-          })}
+  return (
+    <Draggable
+      key={el.id}
+      nodeRef={nodeRefs.current[el.id]}
+      bounds="parent"
+      position={{ x: el.x, y: el.y }}
+      onStop={(e, data) => updateFreeform(el.id, { x: data.x, y: data.y })}
+    >
+      <div
+        ref={nodeRefs.current[el.id]}
+        className="freeform-element"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleSelectFreeform(el.id);
+        }}
+        style={{
+          position: "absolute",
+          cursor: "move",
+          background: isDesign ? "transparent" : "white",
+          borderRadius: el.type === "table" ? "0px" : "20px",
+          // Blue outline logic: Click panna mattum varum
+          outline: isSelected ? "2px solid #3b82f6" : "none", 
+          outlineOffset: "2px",
+          padding: el.type === "table" ? 0 : (isDesign ? 0 : "12px 16px"),
+          zIndex: isSelected ? 50 : 5,
+        }}
+      >
+        <ResizableWithHandles
+          width={el.width}
+          height={el.height}
+          onResize={(w, h, x, y) => onFreeformResize(el.id, w, h, x, y)}
+          minWidth={isDesign ? 20 : 150}
+          minHeight={isDesign ? 20 : 100}
+          maxWidth={600}
+        >
+          {/* Passing isSelected to the element */}
+          <FreeformElement 
+            element={el} 
+            isSelected={isSelected} 
+            onUpdate={(newData) => updateFreeform(el.id, newData)} 
+          />
+        </ResizableWithHandles>
+      </div>
+    </Draggable>
+  );
+})}
         </div>
       </div>
 
