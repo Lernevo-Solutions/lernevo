@@ -895,40 +895,62 @@ function FreeformElement({ element, onUpdate }) {
  const renderTable = () => {
     const { rows, cols, data } = element;
     
-    const updateCell = (r, c, value) => {
-      const newData = [...data];
-      newData[r][c] = value;
-      onUpdate({ ...element, data: newData });
-    };
-
-    // Puthu Row add panna:
+    // Puthu Row add panna (Fix)
     const addRow = (e) => {
       e.stopPropagation();
-      const newRow = Array(cols).fill("");
-      onUpdate({ ...element, rows: rows + 1, data: [...data, newRow] });
+      // Current-a evvalo columns (cols) iruko, anthe width-ku empty row create panrom
+      const newRow = Array(cols || 3).fill(""); 
+      const newData = [...data, newRow];
+      
+      onUpdate({ 
+        ...element, 
+        rows: rows + 1, 
+        data: newData 
+      });
     };
 
-    // Puthu Column add panna:
+    // Puthu Column add panna
     const addCol = (e) => {
       e.stopPropagation();
+      // Ovvoru row-laiyum oru empty cell-a extra-va otturom
       const newData = data.map(row => [...row, ""]);
-      onUpdate({ ...element, cols: cols + 1, data: newData });
+      
+      onUpdate({ 
+        ...element, 
+        cols: cols + 1, 
+        data: newData 
+      });
+    };
+
+    const updateCell = (r, c, value) => {
+      const newData = [...data];
+      if (newData[r]) {
+        newData[r][c] = value;
+        onUpdate({ ...element, data: newData });
+      }
     };
 
     return (
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        {/* Control Buttons for Table */}
-        <div style={{ position: "absolute", top: -30, right: 0, display: "flex", gap: "5px" }}>
-          <button onClick={addRow} style={{ padding: "2px 8px", fontSize: "10px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" }}>+ Row</button>
-          <button onClick={addCol} style={{ padding: "2px 8px", fontSize: "10px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" }}>+ Col</button>
+        {/* Row/Col Add Buttons */}
+        <div style={{ 
+          position: "absolute", 
+          top: -35, 
+          left: 0, 
+          display: "flex", 
+          gap: "8px",
+          zIndex: 100 
+        }}>
+          <button onClick={addRow} style={{ padding: "4px 10px", fontSize: "11px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>+ Row</button>
+          <button onClick={addCol} style={{ padding: "4px 10px", fontSize: "11px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>+ Column</button>
         </div>
         
-        <div style={{ overflow: "hidden", width: "100%", height: "100%" }}>
-          <table style={{ borderCollapse: "collapse", width: "100%", height: "100%", fontSize: "12px" }}>
+        <div style={{ overflow: "hidden", width: "100%", height: "100%", border: "1px solid #cbd5e1" }}>
+          <table style={{ borderCollapse: "collapse", width: "100%", height: "100%", fontSize: "12px", tableLayout: "fixed" }}>
             <tbody>
-              {Array(rows).fill().map((_, r) => (
+              {data.map((row, r) => (
                 <tr key={r}>
-                  {Array(cols).fill().map((_, c) => (
+                  {row.map((cell, c) => (
                     <td
                       key={c}
                       contentEditable
@@ -939,10 +961,11 @@ function FreeformElement({ element, onUpdate }) {
                         padding: "8px",
                         outline: "none",
                         background: "white",
-                        wordBreak: "break-all"
+                        minHeight: "30px",
+                        wordBreak: "break-word"
                       }}
                     >
-                      {data[r] ? data[r][c] : ""}
+                      {cell}
                     </td>
                   ))}
                 </tr>
