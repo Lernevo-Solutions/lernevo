@@ -270,14 +270,12 @@ const DraggableTextBlock = ({ id, text, baseStyle, defaultPos, defaultSize, onTe
   };
 
   return (
-   // DraggableTextBlock component-kulla check pannunga
-<Draggable
-  nodeRef={nodeRef}
-  bounds="parent"
-  // State-la irukara x, y-a inga connect pannanum
-  position={{ x: defaultPos.x, y: defaultPos.y }} 
-  onStop={(e, data) => onDragStop(e, data)}
->
+    <Draggable
+      nodeRef={nodeRef}
+      bounds="parent"
+      position={{ x: defaultPos.x, y: defaultPos.y }}
+      onStop={onDragStop}
+    >
       <div
         ref={nodeRef}
         onClick={handleClick}
@@ -337,28 +335,27 @@ const DraggableTextBlock = ({ id, text, baseStyle, defaultPos, defaultSize, onTe
           minHeight={minHeight}
           maxWidth={600}
         >
-       
-<div
-  contentEditable={isEditing}
-  suppressContentEditableWarning
-  onDoubleClick={() => setIsEditing(true)}
-  onBlur={(e) => {
-    setIsEditing(false);
-    if (onTextChange) onTextChange(e.target.innerText);
-  }}
-  style={{
-    ...currentStyle,
-    display: 'block', 
-    padding: '0px 2px',
-    width: '100%',     
-    height: 'auto',
-    whiteSpace: 'normal', 
-    outline: isEditing ? '1px solid #3b82f6' : 'none',
-    cursor: isEditing ? 'text' : 'move',
-  }}
->
-  {text}
-</div>
+          <div
+            contentEditable={isEditing}
+            suppressContentEditableWarning
+            onDoubleClick={() => setIsEditing(true)}
+            onBlur={(e) => {
+              setIsEditing(false);
+              if (onTextChange) onTextChange(e.target.innerText);
+            }}
+            style={{
+              ...currentStyle,
+              display: 'block',
+              padding: '0px 2px',
+              width: '100%',
+              height: 'auto',
+              whiteSpace: 'normal',
+              outline: isEditing ? '1px solid #3b82f6' : 'none',
+              cursor: isEditing ? 'text' : 'move',
+            }}
+          >
+            {text}
+          </div>
         </ResizableWithHandles>
       </div>
     </Draggable>
@@ -859,7 +856,7 @@ function AdditionalSectionsPanel({ optionalSections, onAdd, onRemove, onUpdate }
 }
 
 // ─── FREE‑FORM ELEMENT (including table, shape, line, sticker) ──────────────
-function FreeformElement({ element, onUpdate,isSelected }) {
+function FreeformElement({ element, onUpdate, isSelected }) {
   const fileInputRef = useRef(null);
   const [activeImageElement, setActiveImageElement] = useState(null);
 
@@ -892,7 +889,7 @@ function FreeformElement({ element, onUpdate,isSelected }) {
     onUpdate({ ...element, skills: newSkills });
   };
 
- const renderTable = () => {
+  const renderTable = () => {
     const { rows, cols, data } = element;
     
     const addRow = (e) => {
@@ -917,7 +914,6 @@ function FreeformElement({ element, onUpdate,isSelected }) {
 
     return (
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        {/* Buttons appear ONLY when selected */}
         {isSelected && (
           <div style={{ position: "absolute", top: -35, left: 0, display: "flex", gap: "8px", zIndex: 100 }}>
             <button onClick={addRow} style={{ padding: "4px 10px", fontSize: "11px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>+ Row</button>
@@ -949,6 +945,7 @@ function FreeformElement({ element, onUpdate,isSelected }) {
       </div>
     );
   };
+
   const renderShape = () => {
     const { shapeType, width, height, fill, stroke, strokeWidth, rotation } = element;
     const style = { width, height, transform: `rotate(${rotation}deg)`, display: 'flex', alignItems: 'center', justifyContent: 'center' };
@@ -1136,28 +1133,26 @@ function getAllDraggableItems(state, styling) {
   if (personal.github) items.push({ id: "personal-github", text: `🐙 ${personal.github}`, style: { ...baseFont, fontSize: 11, color: "#64748b", whiteSpace: "normal", maxWidth: "200px" } });
 
   // Summary
-  // Summary section logic-la indha style-a update pannunga
-if (summary.text.trim()) {
-  items.push({ 
-    id: "heading-summary", 
-    text: "Summary", 
-    style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } 
-  });
-  
-  items.push({
-    id: "summary-text",
-    text: summary.text,
-    style: { 
-      ...baseFont, 
-      fontSize: 12, 
-      lineHeight: 1.5, 
-      color: "#334155", 
-      // FIX: Indha rendu lines dhaan text-a page-kulla wrap pannum
-      whiteSpace: "normal", 
-      maxWidth: "520px"  
-    }
-  });
-}
+  if (summary.text.trim()) {
+    items.push({ 
+      id: "heading-summary", 
+      text: "Summary", 
+      style: { ...baseFont, fontSize: 14, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", borderLeft: `3px solid ${accentColor}`, paddingLeft: 10, color: "#1e293b", whiteSpace: "nowrap" } 
+    });
+    
+    items.push({
+      id: "summary-text",
+      text: summary.text,
+      style: { 
+        ...baseFont, 
+        fontSize: 12, 
+        lineHeight: 1.5, 
+        color: "#334155", 
+        whiteSpace: "normal", 
+        maxWidth: "520px"  
+      }
+    });
+  }
 
   // Experience
   const hasExperience = experience.some(e => e.company || e.role || e.description);
@@ -1236,7 +1231,7 @@ if (summary.text.trim()) {
   return items;
 }
 
-// ─── Layout repositioning engine ────────────────────────────────────────────
+// ─── Layout repositioning engine (with better spacing) ──────────────────────
 function repositionItemsForLayout(items, layout, st, canvasWidth = 600) {
   let leftSections = [], rightSections = [];
   let leftWidth = (canvasWidth - 100) * 0.45;
@@ -1245,19 +1240,12 @@ function repositionItemsForLayout(items, layout, st, canvasWidth = 600) {
     if (id.includes("name")) return 35;
     if (id.includes("title")) return 22;
     if (["email", "phone", "location", "linkedin", "github"].some(k => id.includes(k))) return 16;
-    
-    // FIX 1: Heading-ku kila nalla gap vara 45-nu mathiruken
-    if (id.includes("heading-")) return 45; 
-    
-    // FIX 2: Summary wording-ku adutha section thalli poga dynamic calculation
+    if (id.includes("heading-")) return 45;
     if (id.includes("summary-text")) {
-      // Safe check for st and summary text
       const text = (st && st.summary && st.summary.text) ? st.summary.text : "";
-      const lines = Math.ceil(text.length / 80); 
-      // Multi-line-a irundha height-a automatic-a increase pannum
-      return (lines * 18) + 35; 
+      const lines = Math.ceil(text.length / 80);
+      return (lines * 20) + 30;
     }
-
     if (id.includes("exp-desc") || id.includes("proj-desc")) return 65;
     return 22;
   };
@@ -1279,9 +1267,8 @@ function repositionItemsForLayout(items, layout, st, canvasWidth = 600) {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
-    // Headings-ku munnadi padding
     if (id.includes("heading-") && leftY > 50) {
-      leftY += 20; 
+      leftY += 12;
     }
 
     newProps[id] = {
@@ -1295,11 +1282,14 @@ function repositionItemsForLayout(items, layout, st, canvasWidth = 600) {
     leftY += getItemHeight(id);
   });
 
-  // (Right sections logic follows same pattern...)
   rightSections.forEach(id => {
     const item = items.find(i => i.id === id);
     if (!item) return;
-    if (id.includes("heading-") && rightY > 50) rightY += 20;
+
+    if (id.includes("heading-") && rightY > 50) {
+      rightY += 12;
+    }
+
     newProps[id] = {
       x: 40 + leftWidth + 20,
       y: rightY,
@@ -1313,6 +1303,7 @@ function repositionItemsForLayout(items, layout, st, canvasWidth = 600) {
 
   return newProps;
 }
+
 // ─── AI Modal Component ─────────────────────────────────────────────────────
 const AIModal = ({ isOpen, onClose, onGenerate, activeSection }) => {
   const [prompt, setPrompt] = useState("");
@@ -1515,16 +1506,16 @@ export default function BlankCanvasBuilderPro() {
     setSt(prev => ({ ...prev, [k]: v }));
     pushSnapshot();
   };
- const updateItemProp = (id, updates) => {
-  setItemProps(prev => ({
-    ...prev,
-    [id]: { 
-      ...prev[id], 
-      ...updates // Inga x, y save aagum
-    }
-  }));
-  pushSnapshot(); // Undo/Redo-la save aagum
-};
+  const updateItemProp = (id, updates) => {
+    setItemProps(prev => ({
+      ...prev,
+      [id]: { 
+        ...prev[id], 
+        ...updates
+      }
+    }));
+    pushSnapshot();
+  };
   const setPhotoPositionAndSnapshot = (newPos) => {
     setPhotoPosition(newPos);
     pushSnapshot();
@@ -1622,23 +1613,21 @@ export default function BlankCanvasBuilderPro() {
   const meta = SECTION_META[st.activeSection];
 
   // Layout change effect – pushes snapshot only if positions actually changed
- // useEffect (Layout change logic) - Line 1060 range-la irukum
-useEffect(() => {
-  const newPositions = repositionItemsForLayout(draggableItems, st.styling.layout, 600);
-  
-  setItemProps(prev => {
-    const updated = { ...prev };
-    Object.keys(newPositions).forEach(id => {
-      // FIX: User manual-a move panna items-a (x > 40 irundha) layout logic touch panna koodathu
-      // Pudhu layout-ku maarum pothu mattum default-a align aagum
-      if (!updated[id] || (updated[id].x === 40)) { 
-        updated[id] = { ...updated[id], x: newPositions[id].x, y: newPositions[id].y };
-      }
+  useEffect(() => {
+    const newPositions = repositionItemsForLayout(draggableItems, st.styling.layout, st, 600);
+    
+    setItemProps(prev => {
+      const updated = { ...prev };
+      Object.keys(newPositions).forEach(id => {
+        // Only apply layout if the item hasn't been manually moved (x === 40)
+        if (!updated[id] || updated[id].x === 40) { 
+          updated[id] = { ...updated[id], x: newPositions[id].x, y: newPositions[id].y };
+        }
+      });
+      return updated;
     });
-    return updated;
-  });
-  // Note: Layout maathum pothu snapshot push aagum
-}, [st.styling.layout]);
+    // Note: layout change does NOT push a snapshot automatically; manual changes will.
+  }, [st.styling.layout, draggableItems]);
 
   // Dynamic canvas height effect – no snapshot needed
   useEffect(() => {
@@ -1655,39 +1644,37 @@ useEffect(() => {
     canvasContainerRef.current.style.minHeight = `${Math.max(800, neededHeight)}px`;
   }, [itemProps, freeformElements, photoPosition]);
 
-  // Auto-add missing props for draggable items – push snapshot only if items were added
- // Auto-add missing props for draggable items
-useEffect(() => {
-  const newProps = { ...itemProps };
-  const currentIds = new Set(draggableItems.map(i => i.id));
-  
-  // Clean up old IDs
-  Object.keys(newProps).forEach(id => {
-    if (!currentIds.has(id)) delete newProps[id];
-  });
-
-  const missing = draggableItems.filter(item => !newProps[item.id]);
-  if (missing.length) {
-    let maxYUsed = 20;
-    Object.values(newProps).forEach(prop => {
-      if (prop.y > maxYUsed) maxYUsed = prop.y;
+  // Auto-add missing props for draggable items
+  useEffect(() => {
+    const newProps = { ...itemProps };
+    const currentIds = new Set(draggableItems.map(i => i.id));
+    
+    // Clean up old IDs
+    Object.keys(newProps).forEach(id => {
+      if (!currentIds.has(id)) delete newProps[id];
     });
 
-    missing.forEach((item, index) => {
-      const defaultFontSize = item.style.fontSize ? parseInt(item.style.fontSize) : 14;
-      newProps[item.id] = {
-        x: 40,
-        // FIX: Changed 70 to 20 to prevent huge gaps when typing
-        y: maxYUsed + (20 * (index + 1)), 
-        width: 'auto',
-        height: 'auto',
-        fontSize: defaultFontSize,
-        textAlign: 'left',
-      };
-    });
-    setItemPropsAndPush(newProps);
-  }
-}, [draggableItems]);
+    const missing = draggableItems.filter(item => !newProps[item.id]);
+    if (missing.length) {
+      let maxYUsed = 20;
+      Object.values(newProps).forEach(prop => {
+        if (prop.y > maxYUsed) maxYUsed = prop.y;
+      });
+
+      missing.forEach((item, index) => {
+        const defaultFontSize = item.style.fontSize ? parseInt(item.style.fontSize) : 14;
+        newProps[item.id] = {
+          x: 40,
+          y: maxYUsed + (20 * (index + 1)), // small gap to prevent overlapping
+          width: 'auto',
+          height: 'auto',
+          fontSize: defaultFontSize,
+          textAlign: 'left',
+        };
+      });
+      setItemPropsAndPush(newProps);
+    }
+  }, [draggableItems]);
 
   // Sync photo position with styling – push snapshot only if position changed
   useEffect(() => {
@@ -1733,44 +1720,41 @@ useEffect(() => {
         </div>
       </div>
 
-     {/* RIGHT: Canvas area */}
-<div 
-  style={{ flex: 1, background: "#d1d5db", display: "flex", flexDirection: "column", alignItems: "center", overflow: "auto", padding: "40px" }}
-  // Inga click panna selection cancel aagum
-  onClick={() => {
-    setSelectedDraggableId(null);
-    setSelectedFreeformId(null);
-  }}
->
-  {/* Undo/Redo Buttons - Stop propagation add panniruken so click selection-a disturb pannaathu */}
-  <div style={{ position: "relative", width: "600px", marginBottom: "10px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-    <button onClick={(e) => { e.stopPropagation(); undo(); }} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↩️ Undo</button>
-    <button onClick={(e) => { e.stopPropagation(); redo(); }} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↪️ Redo</button>
-  </div>
+      {/* RIGHT: Canvas area */}
+      <div 
+        style={{ flex: 1, background: "#d1d5db", display: "flex", flexDirection: "column", alignItems: "center", overflow: "auto", padding: "40px" }}
+        onClick={() => {
+          setSelectedDraggableId(null);
+          setSelectedFreeformId(null);
+        }}
+      >
+        <div style={{ position: "relative", width: "600px", marginBottom: "10px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+          <button onClick={(e) => { e.stopPropagation(); undo(); }} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↩️ Undo</button>
+          <button onClick={(e) => { e.stopPropagation(); redo(); }} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↪️ Redo</button>
+        </div>
 
-  <div
-    ref={canvasContainerRef}
-    onDragOver={e => e.preventDefault()}
-    // Canvas kulla click pannaalum selection poyidanum
-    onClick={(e) => {
-      if (e.target === e.currentTarget) {
-        setSelectedDraggableId(null);
-        setSelectedFreeformId(null);
-      }
-    }}
-    style={{
-      position: "relative",
-      width: "600px",
-      minHeight: "800px",
-      background: "white",
-      boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-      borderRadius: "4px",
-      paddingBottom: "150px",
-      flexShrink: 0,
-      display: "flex",
-      flexDirection: "column"
-    }}
-  >
+        <div
+          ref={canvasContainerRef}
+          onDragOver={e => e.preventDefault()}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSelectedDraggableId(null);
+              setSelectedFreeformId(null);
+            }
+          }}
+          style={{
+            position: "relative",
+            width: "600px",
+            minHeight: "800px",
+            background: "white",
+            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+            borderRadius: "4px",
+            paddingBottom: "150px",
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
           {draggableItems.map(item => {
             const props = itemProps[item.id] || { x: 40, y: 20, width: 'auto', height: 'auto', fontSize: 14, textAlign: 'left' };
             const customMinWidth = item.id === "personal-name" ? 30 : 50;
@@ -1819,57 +1803,55 @@ useEffect(() => {
             </Draggable>
           )}
 
-       {freeformElements.map(el => {
-  if (!nodeRefs.current[el.id]) nodeRefs.current[el.id] = { current: null };
-  const isDesign = ["shape", "line", "sticker", "table"].includes(el.type);
-  const isSelected = selectedFreeformId === el.id;
+          {freeformElements.map(el => {
+            if (!nodeRefs.current[el.id]) nodeRefs.current[el.id] = { current: null };
+            const isDesign = ["shape", "line", "sticker", "table"].includes(el.type);
+            const isSelected = selectedFreeformId === el.id;
 
-  return (
-    <Draggable
-      key={el.id}
-      nodeRef={nodeRefs.current[el.id]}
-      bounds="parent"
-      position={{ x: el.x, y: el.y }}
-      onStop={(e, data) => updateFreeform(el.id, { x: data.x, y: data.y })}
-    >
-      <div
-        ref={nodeRefs.current[el.id]}
-        className="freeform-element"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleSelectFreeform(el.id);
-        }}
-        style={{
-          position: "absolute",
-          cursor: "move",
-          background: isDesign ? "transparent" : "white",
-          borderRadius: el.type === "table" ? "0px" : "20px",
-          // Blue outline logic: Click panna mattum varum
-          outline: isSelected ? "2px solid #3b82f6" : "none", 
-          outlineOffset: "2px",
-          padding: el.type === "table" ? 0 : (isDesign ? 0 : "12px 16px"),
-          zIndex: isSelected ? 50 : 5,
-        }}
-      >
-        <ResizableWithHandles
-          width={el.width}
-          height={el.height}
-          onResize={(w, h, x, y) => onFreeformResize(el.id, w, h, x, y)}
-          minWidth={isDesign ? 20 : 150}
-          minHeight={isDesign ? 20 : 100}
-          maxWidth={600}
-        >
-          {/* Passing isSelected to the element */}
-          <FreeformElement 
-            element={el} 
-            isSelected={isSelected} 
-            onUpdate={(newData) => updateFreeform(el.id, newData)} 
-          />
-        </ResizableWithHandles>
-      </div>
-    </Draggable>
-  );
-})}
+            return (
+              <Draggable
+                key={el.id}
+                nodeRef={nodeRefs.current[el.id]}
+                bounds="parent"
+                position={{ x: el.x, y: el.y }}
+                onStop={(e, data) => updateFreeform(el.id, { x: data.x, y: data.y })}
+              >
+                <div
+                  ref={nodeRefs.current[el.id]}
+                  className="freeform-element"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectFreeform(el.id);
+                  }}
+                  style={{
+                    position: "absolute",
+                    cursor: "move",
+                    background: isDesign ? "transparent" : "white",
+                    borderRadius: el.type === "table" ? "0px" : "20px",
+                    outline: isSelected ? "2px solid #3b82f6" : "none",
+                    outlineOffset: "2px",
+                    padding: el.type === "table" ? 0 : (isDesign ? 0 : "12px 16px"),
+                    zIndex: isSelected ? 50 : 5,
+                  }}
+                >
+                  <ResizableWithHandles
+                    width={el.width}
+                    height={el.height}
+                    onResize={(w, h, x, y) => onFreeformResize(el.id, w, h, x, y)}
+                    minWidth={isDesign ? 20 : 150}
+                    minHeight={isDesign ? 20 : 100}
+                    maxWidth={600}
+                  >
+                    <FreeformElement 
+                      element={el} 
+                      isSelected={isSelected} 
+                      onUpdate={(newData) => updateFreeform(el.id, newData)} 
+                    />
+                  </ResizableWithHandles>
+                </div>
+              </Draggable>
+            );
+          })}
         </div>
       </div>
 
