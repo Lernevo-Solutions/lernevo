@@ -892,44 +892,67 @@ function FreeformElement({ element, onUpdate }) {
     onUpdate({ ...element, skills: newSkills });
   };
 
-  const renderTable = () => {
+ const renderTable = () => {
     const { rows, cols, data } = element;
+    
     const updateCell = (r, c, value) => {
       const newData = [...data];
       newData[r][c] = value;
       onUpdate({ ...element, data: newData });
     };
+
+    // Puthu Row add panna:
+    const addRow = (e) => {
+      e.stopPropagation();
+      const newRow = Array(cols).fill("");
+      onUpdate({ ...element, rows: rows + 1, data: [...data, newRow] });
+    };
+
+    // Puthu Column add panna:
+    const addCol = (e) => {
+      e.stopPropagation();
+      const newData = data.map(row => [...row, ""]);
+      onUpdate({ ...element, cols: cols + 1, data: newData });
+    };
+
     return (
-      <div style={{ overflow: "auto", width: "100%", height: "100%" }}>
-        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "12px" }}>
-          <tbody>
-            {Array(rows).fill().map((_, r) => (
-              <tr key={r}>
-                {Array(cols).fill().map((_, c) => (
-                  <td
-                    key={c}
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={(e) => updateCell(r, c, e.target.innerText)}
-                    style={{
-                      border: "1px solid #cbd5e1",
-                      padding: "8px",
-                      minWidth: "60px",
-                      outline: "none",
-                      background: "white",
-                    }}
-                  >
-                    {data[r][c]}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+        {/* Control Buttons for Table */}
+        <div style={{ position: "absolute", top: -30, right: 0, display: "flex", gap: "5px" }}>
+          <button onClick={addRow} style={{ padding: "2px 8px", fontSize: "10px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" }}>+ Row</button>
+          <button onClick={addCol} style={{ padding: "2px 8px", fontSize: "10px", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" }}>+ Col</button>
+        </div>
+        
+        <div style={{ overflow: "hidden", width: "100%", height: "100%" }}>
+          <table style={{ borderCollapse: "collapse", width: "100%", height: "100%", fontSize: "12px" }}>
+            <tbody>
+              {Array(rows).fill().map((_, r) => (
+                <tr key={r}>
+                  {Array(cols).fill().map((_, c) => (
+                    <td
+                      key={c}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onBlur={(e) => updateCell(r, c, e.target.innerText)}
+                      style={{
+                        border: "1px solid #cbd5e1",
+                        padding: "8px",
+                        outline: "none",
+                        background: "white",
+                        wordBreak: "break-all"
+                      }}
+                    >
+                      {data[r] ? data[r][c] : ""}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
-
   const renderShape = () => {
     const { shapeType, width, height, fill, stroke, strokeWidth, rotation } = element;
     const style = { width, height, transform: `rotate(${rotation}deg)`, display: 'flex', alignItems: 'center', justifyContent: 'center' };
