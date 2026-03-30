@@ -4,6 +4,8 @@ import Draggable from "react-draggable";
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const ALL_SECTIONS = [
+  { id: "layout",         label: "Layout",         icon: "📐" },
+  { id: "styling",        label: "Styling",        icon: "🎨" },
   { id: "personal",       label: "Personal",       icon: "👤" },
   { id: "summary",        label: "Summary",        icon: "📄" },
   { id: "experience",     label: "Experience",     icon: "💼" },
@@ -12,11 +14,11 @@ const ALL_SECTIONS = [
   { id: "projects",       label: "Projects",       icon: "🚀" },
   { id: "certifications", label: "Certifications", icon: "🏆" },
   { id: "languages",      label: "Languages",      icon: "Aa" },
-  { id: "styling",        label: "Styling",        icon: "🎨" },
   { id: "additional",     label: "More",           icon: "➕" },
 ];
 
 const SECTION_META = {
+  layout:         { title:"Resume Layout",          desc:"Craft a personalized layout with complete creative freedom" },
   personal:       { title:"Personal Information",   desc:"Your contact details and basic info" },
   summary:        { title:"Professional Summary",   desc:"A brief overview of your background" },
   experience:     { title:"Work Experience",        desc:"Your employment history" },
@@ -48,9 +50,13 @@ const SKILL_LEVELS = ["Beginner","Intermediate","Advanced","Expert"];
 const COLORS       = ["#1e293b","#2563eb","#059669","#dc2626","#7c3aed","#db2777","#b45309","#0f766e","#e11d48","#0f172a"];
 
 const LAYOUTS = [
-  { id:"one-col",      label:"Single Column", icon:"▬",   desc:"Classic top-to-bottom" },
-  { id:"two-col",      label:"Two Column",    icon:"▌▐",  desc:"Side by side sections" },
-  { id:"sidebar-left", label:"Sidebar",       icon:"▌▬",  desc:"Dark sidebar + main" },
+  { id: "one-col", label: "Classic", icon: "📋", desc: "Standard top-to-bottom" },
+  { id: "two-col", label: "Two Column", icon: "▌▐", desc: "Balanced side-by-side" },
+  { id: "sidebar-left", label: "Modern Sidebar", icon: "▌▬", desc: "Left sidebar + Main" },
+  { id: "creative", label: "Creative", icon: "🎨", desc: "Asymmetric stylish design" },
+  { id: "technical", label: "Tech Focused", icon: "💻", desc: "Highlighting skills and stack" },
+  
+  { id: "academic", label: "Academic CV", icon: "🎓", desc: "Detailed for research/edu" },
 ];
 
 const PHOTO_SIZES = { small:52, medium:72, large:96 };
@@ -63,7 +69,7 @@ const makeLang = () => ({ id:uid(), language:"", proficiency:"Intermediate" });
 const makeSkill= () => ({ id:uid(), name:"", level:"Intermediate" });
 
 const INIT = {
-  activeSection:"personal",
+  activeSection:"layout",
   personal:       { name:"", title:"", email:"", phone:"", location:"", linkedin:"", github:"", photo:null },
   summary:        { text:"" },
   experience:     [makeExp()],
@@ -627,17 +633,8 @@ function StylingSection({ data, onChange, onAddTable, onAddLine }) {
   const displayedFonts = showMoreFonts ? ALL_FONTS : BASE_FONTS;
   return (
     <div>
-      <div className="rb-style-lbl">Resume Layout</div>
-      <div className="rb-layout-grid">
-        {LAYOUTS.map(l=>(
-          <div key={l.id} className={`rb-layout-card${data.layout===l.id?" on":""}`}
-            onClick={()=>s("layout")(l.id)}>
-            <span className="rb-layout-icon">{l.icon}</span>
-            <span className="rb-layout-name">{l.label}</span>
-            <span className="rb-layout-desc">{l.desc}</span>
-          </div>
-        ))}
-      </div>
+      
+     
 
       <div className="rb-style-lbl">Font Family</div>
       <div className="rb-font-grid">
@@ -1231,79 +1228,118 @@ function getAllDraggableItems(state, styling) {
   return items;
 }
 
-// ─── Layout repositioning engine (with better spacing) ──────────────────────
-function repositionItemsForLayout(items, layout, st, canvasWidth = 600) {
-  let leftSections = [], rightSections = [];
-  let leftWidth = (canvasWidth - 100) * 0.45;
+// ─── Layout repositioning engine (enhanced for all layouts) ─────────────────
+// ─── DYNAMIC LAYOUT ENGINE (FIXED & DISTINCT) ────────────────────────────────
+// ─── DYNAMIC LAYOUT ENGINE (FIXED & HIGHLY DISTINCT) ─────────────────────────
+function repositionItemsForLayout(items, layoutId, state, canvasWidth = 600) {
+  const margin = 40;
+  const sidebarWidth = 200;
+  const mainWidth = canvasWidth - sidebarWidth - (margin * 2.5);
+  const fullWidth = canvasWidth - (margin * 2);
 
-  const getItemHeight = (id) => {
-    if (id.includes("name")) return 35;
-    if (id.includes("title")) return 22;
-    if (["email", "phone", "location", "linkedin", "github"].some(k => id.includes(k))) return 16;
-    if (id.includes("heading-")) return 45;
-    if (id.includes("summary-text")) {
-      const text = (st && st.summary && st.summary.text) ? st.summary.text : "";
-      const lines = Math.ceil(text.length / 80);
-      return (lines * 20) + 30;
+  let positions = {};
+  
+  // 1. PHOTO AWARENESS: Photo irundhaal space allocate pannuvom
+  const hasPhoto = !!state.personal.photo;
+  const photoHeight = hasPhoto ? 130 : 0; // Space for the photo
+
+  let leftY = margin, rightY = margin, centerY = margin;
+
+  // 2. LAYOUT-SPECIFIC PHOTO OFFSET: Photo mela text overlap aagaama irukka logic
+  if (hasPhoto) {
+    if (layoutId === "modern-sidebar" || layoutId === "sidebar-left") {
+      leftY += photoHeight; // Left sidebar-la gap
+    } else if (layoutId === "creative") {
+      rightY += photoHeight; // Creative-la right column-la gap (Personal info side)
+      // Creative-la photo perusa irundha summary-um overlap aagalaam, so leftY-um konjam thalluvom
+      leftY += 20; 
+    } else if (layoutId === "two-col") {
+      centerY += photoHeight; // Center gap
+    } else {
+      centerY += photoHeight; // Default top gap
     }
-    if (id.includes("exp-desc") || id.includes("proj-desc")) return 65;
-    return 22;
-  };
-
-  if (layout === "one-col") {
-    leftSections = items.map(i => i.id);
-  } else {
-    leftSections = items.filter(i => 
-      i.id.startsWith("personal-") || i.id.startsWith("heading-skills") || i.id.startsWith("skill-")
-    ).map(i => i.id);
-    rightSections = items.filter(i => !leftSections.includes(i.id)).map(i => i.id);
   }
 
-  const newProps = {};
-  let leftY = 40;
-  let rightY = 40;
+  const getH = (text, width, fontSize) => {
+    const charsPerLine = (width / fontSize) * 1.8;
+    const lines = Math.ceil((text || "").length / charsPerLine) || 1;
+    return lines * (fontSize * 1.6); 
+  };
 
-  leftSections.forEach(id => {
-    const item = items.find(i => i.id === id);
-    if (!item) return;
+  const isHeading = (id) => id.includes("heading");
+  const isPersonal = (id) => id.startsWith("personal-");
 
-    if (id.includes("heading-") && leftY > 50) {
-      leftY += 12;
-    }
+  switch (layoutId) {
+    case "creative":
+      // STYLE: Asymmetric Bold - Personal on Right, Body on Left
+      items.forEach(item => {
+        if (isPersonal(item.id)) {
+          // RIGHT SIDE: Personal details shift downwards if photo exists
+          positions[item.id] = { x: margin + 320, y: rightY, width: 240, fontSize: 11, textAlign: "right" };
+          rightY += getH(item.text, 240, 11) + 12;
+        } else {
+          // LEFT SIDE: Experience, Education, etc.
+          positions[item.id] = { x: margin, y: leftY, width: 300, fontSize: 11, textAlign: "left" };
+          leftY += getH(item.text, 300, 11) + 20;
+        }
+      });
+      break;
 
-    newProps[id] = {
-      x: 40,
-      y: leftY,
-      width: 'auto',
-      height: 'auto',
-      fontSize: item.style.fontSize ? parseInt(item.style.fontSize) : 14,
-      textAlign: 'left',
-    };
-    leftY += getItemHeight(id);
-  });
+    case "modern-sidebar":
+    case "sidebar-left":
+      items.forEach(item => {
+        const isSidebar = isPersonal(item.id) || item.id.includes("skill") || item.id.includes("edu") || item.id.includes("lang");
+        if (isSidebar) {
+          positions[item.id] = { x: margin, y: leftY, width: sidebarWidth, fontSize: 10, textAlign: "left" };
+          leftY += getH(item.text, sidebarWidth, 10) + (isHeading(item.id) ? 14 : 8);
+        } else {
+          positions[item.id] = { x: margin + sidebarWidth + 35, y: rightY, width: mainWidth, fontSize: 11, textAlign: "left" };
+          rightY += getH(item.text, mainWidth, 11) + (isHeading(item.id) ? 18 : 12);
+        }
+      });
+      break;
 
-  rightSections.forEach(id => {
-    const item = items.find(i => i.id === id);
-    if (!item) return;
+    case "two-col":
+      items.forEach(item => {
+        if (isPersonal(item.id)) {
+          positions[item.id] = { x: margin, y: centerY, width: fullWidth, fontSize: 12, textAlign: "center" };
+          centerY += getH(item.text, fullWidth, 12) + 8;
+        } else {
+          const colW = (fullWidth / 2) - 15;
+          let side = leftY <= rightY ? "left" : "right";
+          let xPos = side === "left" ? margin : margin + colW + 30;
+          positions[item.id] = { x: xPos, y: (side === "left" ? leftY : rightY) + centerY + 20, width: colW, fontSize: 11, textAlign: "left" };
+          if (side === "left") leftY += getH(item.text, colW, 11) + 15;
+          else rightY += getH(item.text, colW, 11) + 15;
+        }
+      });
+      break;
 
-    if (id.includes("heading-") && rightY > 50) {
-      rightY += 12;
-    }
+    case "technical":
+      items.sort((a, b) => (a.id.includes("skill") ? -1 : 1)).forEach(item => {
+        let align = item.id.includes("skill") ? "center" : "left";
+        positions[item.id] = { x: margin, y: centerY, width: fullWidth, fontSize: 11, textAlign: align };
+        centerY += getH(item.text, fullWidth, 11) + (isHeading(item.id) ? 15 : 10);
+      });
+      break;
 
-    newProps[id] = {
-      x: 40 + leftWidth + 20,
-      y: rightY,
-      width: 'auto',
-      height: 'auto',
-      fontSize: item.style.fontSize ? parseInt(item.style.fontSize) : 14,
-      textAlign: 'left',
-    };
-    rightY += getItemHeight(id);
-  });
+    case "academic":
+      items.forEach(item => {
+        let xPos = isHeading(item.id) ? margin : margin + 45;
+        positions[item.id] = { x: xPos, y: centerY, width: fullWidth - 50, fontSize: 11, textAlign: "left" };
+        centerY += getH(item.text, fullWidth - 50, 11) + (isHeading(item.id) ? 22 : 8);
+      });
+      break;
 
-  return newProps;
+    default: // Classic / Executive
+      items.forEach(item => {
+        positions[item.id] = { x: margin, y: centerY, width: fullWidth, fontSize: 11, textAlign: "left" };
+        centerY += getH(item.text, fullWidth, 11) + (isHeading(item.id) ? 15 : 10);
+      });
+      break;
+  }
+  return positions;
 }
-
 // ─── AI Modal Component ─────────────────────────────────────────────────────
 const AIModal = ({ isOpen, onClose, onGenerate, activeSection }) => {
   const [prompt, setPrompt] = useState("");
@@ -1582,6 +1618,35 @@ export default function BlankCanvasBuilderPro() {
 
   const renderForm = () => {
     switch(st.activeSection){
+   case "layout":
+  return (
+    <div>
+      <div className="rb-style-lbl">Choose a Base Layout</div>
+      <div className="rb-layout-grid">
+        {LAYOUTS.map(l => (
+          <div key={l.id} className={`rb-layout-card${st.styling.layout === l.id ? " on" : ""}`}
+            onClick={() => {
+              // 1. Update the layout style state
+              const newStyling = { ...st.styling, layout: l.id };
+              setFld("styling", newStyling);
+              
+              // 2. Refresh the items list to get absolute latest data
+              const freshItems = getAllDraggableItems(st, newStyling);
+              
+              // 3. Force calculation using the NEW layout ID
+              const newPositions = repositionItemsForLayout(freshItems, l.id, st, 600);
+              
+              // 4. Update the actual positions on the canvas
+              setItemPropsAndPush(newPositions);
+            }}>
+            <span className="rb-layout-icon">{l.icon}</span>
+            <span className="rb-layout-name">{l.label}</span>
+            <span className="rb-layout-desc">{l.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
       case "personal":       return <PersonalSection data={st.personal} onChange={v=>setFld("personal",v)} styling={st.styling} onStylingChange={v=>setFld("styling",v)}/>;
       case "summary":        return <SummarySection data={st.summary} onChange={v=>setFld("summary",v)}/>;
       case "experience":     return <ExperienceSection data={st.experience} onChange={v=>setFld("experience",v)}/>;
@@ -1612,22 +1677,8 @@ export default function BlankCanvasBuilderPro() {
   const idx = ALL_SECTIONS.findIndex(n => n.id === st.activeSection);
   const meta = SECTION_META[st.activeSection];
 
-  // Layout change effect – pushes snapshot only if positions actually changed
-  useEffect(() => {
-    const newPositions = repositionItemsForLayout(draggableItems, st.styling.layout, st, 600);
-    
-    setItemProps(prev => {
-      const updated = { ...prev };
-      Object.keys(newPositions).forEach(id => {
-        // Only apply layout if the item hasn't been manually moved (x === 40)
-        if (!updated[id] || updated[id].x === 40) { 
-          updated[id] = { ...updated[id], x: newPositions[id].x, y: newPositions[id].y };
-        }
-      });
-      return updated;
-    });
-    // Note: layout change does NOT push a snapshot automatically; manual changes will.
-  }, [st.styling.layout, draggableItems]);
+  // Layout change effect – now fully replaces itemProps for all draggable items
+  
 
   // Dynamic canvas height effect – no snapshot needed
   useEffect(() => {
