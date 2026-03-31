@@ -71,7 +71,7 @@ const MONTHS_FULL  = ["January","February","March","April","May","June",
 
 const uid      = () => Date.now() + Math.random();
 const makeExp  = () => ({ id:uid(), company:"", role:"", duration:"", location:"", description:"" });
-const makeProj = () => ({ id:uid(), name:"", stack:"", date:"", description:"", link:"" });
+const makeProj = () => ({ id:uid(), name:"", tech:"", keywords:"", date:"", validTill:"", description:"" });
 const makeCert = () => ({ id:uid(), name:"", issuer:"", date:"", description:"" });
 const makeLang = () => ({ id:uid(), language:"", proficiency:"Intermediate", stars:0 });
 const makeSkill= () => ({ id:uid(), name:"", level:3, badge:"Intermediate" });
@@ -542,7 +542,7 @@ function StarRating({ value, onChange, hovered, setHovered }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // DURATION PICKER — Start + End with tab UI
 // ═══════════════════════════════════════════════════════════════════════════════
-function DurationPicker({ value, onChange }) {
+function DurationPicker({ value, onChange, singleDate = false }) {
   const parseRange = (v) => {
     if (!v) return ["", ""];
     const sep = v.includes(" – ") ? " – " : v.includes(" - ") ? " - " : null;
@@ -598,7 +598,34 @@ function DurationPicker({ value, onChange }) {
   const labelStyle = { fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 5, display: "block" };
   const groupStyle = { display: "flex", flexDirection: "column", flex: 1 };
 
-  return (
+if (singleDate) {
+    const parts = value ? value.split(" ") : [];
+    const sMo = parts.length === 2 ? parts[0] : "";
+    const sYr = parts.length === 2 ? parts[1] : (parts.length === 1 ? parts[0] : "");
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i));
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const selStyle = {
+      flex:1, height:36, border:"1.5px solid #e5e7eb", borderRadius:7,
+      padding:"0 8px", fontSize:13, fontFamily:"inherit",
+      color:"#111827", background:"#fff", outline:"none", cursor:"pointer",
+    };
+    return (
+      <div style={{ display:"flex", gap:6 }}>
+        <select style={selStyle} value={sMo}
+          onChange={e => onChange(e.target.value && sYr ? `${e.target.value} ${sYr}` : e.target.value || sYr || "")}>
+          <option value="">Month</option>
+          {months.map(m => <option key={m}>{m}</option>)}
+        </select>
+        <select style={selStyle} value={sYr}
+          onChange={e => onChange(sMo && e.target.value ? `${sMo} ${e.target.value}` : sMo || e.target.value || "")}>
+          <option value="">Year</option>
+          {years.map(y => <option key={y}>{y}</option>)}
+        </select>
+      </div>
+    );
+  }
+return (
     <div style={{ background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
       {/* Summary bar */}
       <div style={{
@@ -1010,32 +1037,722 @@ function ExperienceSection({ data, onChange }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // EDUCATION SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
+function InlineDatePicker({ value, onChange, placeholder = "Select year" }) {
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i));
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const [open, setOpen] = useState(false);
+  const [view, setView] = useState("year");
+  const [selYear, setSelYear] = useState(() => {
+    if (!value) return "";
+    const p = value.split(" ");
+    return p.length === 2 ? p[1] : p[0];
+  });
+  const [selMonth, setSelMonth] = useState(() => {
+    if (!value) return "";
+    const p = value.split(" ");
+    return p.length === 2 ? p[0] : "";
+  });
+
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+        setView("year");
+      }
+    };
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const display = value || "";
+
+  const handleYear = (yr) => {
+    setSelYear(yr);
+    setView("month");
+    onChange(yr);
+  };
+
+  const handleMonth = (mo) => {
+    setSelMonth(mo);
+    onChange(`${mo} ${selYear}`);
+    setOpen(false);
+    setView("year");
+  };
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      {/* Trigger */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%",
+          padding: "8px 10px",
+          border: `1.5px solid ${open ? "#6366f1" : "#e5e7eb"}`,
+          borderRadius: 7,
+          fontSize: 12,
+          fontFamily: "inherit",
+          color: display ? "#111827" : "#9ca3af",
+          background: "#fff",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 6,
+          userSelect: "none",
+          boxShadow: open ? "0 0 0 3px rgba(99,102,241,.1)" : "none",
+          transition: "all .15s",
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {display || placeholder}
+        </span>
+        <svg
+          width="12" height="12" viewBox="0 0 24 24"
+          fill="none" stroke={open ? "#6366f1" : "#9ca3af"} strokeWidth="2.5"
+          style={{ flexShrink: 0, transition: "stroke .15s" }}
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 5px)",
+            left: 0,
+            zIndex: 1000,
+            background: "#fff",
+            border: "1.5px solid #e2e8f0",
+            borderRadius: 10,
+            boxShadow: "0 8px 28px rgba(0,0,0,.13)",
+            width: 220,
+            overflow: "hidden",
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+              padding: "9px 12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>
+              {view === "year" ? "Select Year" : `${selYear} · Pick Month`}
+            </span>
+            {view === "month" && (
+              <button
+                onClick={() => setView("year")}
+                style={{
+                  background: "rgba(255,255,255,.22)",
+                  border: "none",
+                  borderRadius: 5,
+                  color: "#fff",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  padding: "2px 8px",
+                  fontFamily: "inherit",
+                }}
+              >
+                ← Back
+              </button>
+            )}
+          </div>
+
+          <div style={{ padding: 8 }}>
+
+            {/* Year grid — 4 columns, compact */}
+            {view === "year" && (
+              <>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: 4,
+                    maxHeight: 210,
+                    overflowY: "auto",
+                    paddingRight: 2,
+                  }}
+                >
+                  {years.map(yr => (
+                    <button
+                      key={yr}
+                      onClick={() => handleYear(yr)}
+                      style={{
+                        padding: "6px 2px",
+                        border: `1.5px solid ${selYear === yr ? "#6366f1" : "#e5e7eb"}`,
+                        borderRadius: 6,
+                        background: selYear === yr ? "#ede9fe" : "#fff",
+                        color: selYear === yr ? "#6366f1" : "#374151",
+                        fontSize: 11,
+                        fontWeight: selYear === yr ? 700 : 500,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                        transition: "all .1s",
+                        textAlign: "center",
+                      }}
+                    >
+                      {yr}
+                    </button>
+                  ))}
+                </div>
+                <p style={{ fontSize: 10, color: "#9ca3af", textAlign: "center", marginTop: 6, marginBottom: 0 }}>
+                  Tap a year to pick month
+                </p>
+              </>
+            )}
+
+            {/* Month grid — 4 columns */}
+            {view === "month" && (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gap: 4,
+                }}
+              >
+                {months.map(mo => (
+                  <button
+                    key={mo}
+                    onClick={() => handleMonth(mo)}
+                    style={{
+                      padding: "8px 2px",
+                      border: `1.5px solid ${selMonth === mo ? "#6366f1" : "#e5e7eb"}`,
+                      borderRadius: 6,
+                      background: selMonth === mo ? "#ede9fe" : "#fff",
+                      color: selMonth === mo ? "#6366f1" : "#374151",
+                      fontSize: 11,
+                      fontWeight: selMonth === mo ? 700 : 500,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      transition: "all .1s",
+                      textAlign: "center",
+                    }}
+                  >
+                    {mo}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Clear button */}
+          {display && (
+            <div style={{ padding: "0 8px 8px" }}>
+              <button
+                onClick={() => {
+                  onChange("");
+                  setSelYear("");
+                  setSelMonth("");
+                  setOpen(false);
+                  setView("year");
+                }}
+                style={{
+                  width: "100%",
+                  padding: "5px",
+                  border: "1px solid #fca5a5",
+                  borderRadius: 6,
+                  background: "#fff",
+                  color: "#ef4444",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                ✕ Clear
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DegreeEntryCard({ edu, index, total, upd, rem }) {
-  const genAI = () => { const degree = edu.degree || "the programme"; const branch = edu.branch ? ` in ${edu.branch}` : ""; const inst = edu.college || "the institution"; const period = edu.startYear && edu.endYear ? ` from ${edu.startYear} to ${edu.endYear}` : edu.endYear ? ` graduating in ${edu.endYear}` : ""; const gpa = edu.gpa ? ` Achieved a CGPA of ${edu.gpa}.` : ""; return `Completed ${degree}${branch} at ${inst}${period}.${gpa} Gained in-depth knowledge through rigorous coursework, hands-on projects, and collaborative learning, building a strong foundation for a professional career.`; };
-  return (<div className="edu-degree-card"><div className="edu-degree-card-head"><div className="edu-degree-card-left"><div className="edu-degree-number">{index+1}</div><div><div className="edu-degree-card-title">{edu.college || edu.degree ? (edu.degree || "Degree") + (edu.college ? ` · ${edu.college}` : "") : `Education Entry ${index+1}`}</div><div className="edu-degree-card-sub">{edu.startYear || edu.endYear ? `${edu.startYear || ""}${edu.startYear && edu.endYear ? " – " : ""}${edu.endYear || ""}` : "Add college & degree below"}</div></div></div>{total > 1 && <button className="rb-rm" onClick={() => rem(edu.id)}>×</button>}</div><div className="rb-g"><label className="rb-lbl">College / University</label><input className="rb-in" placeholder="e.g. PSG College of Technology…" value={edu.college} onChange={e => upd(edu.id,"college",e.target.value)}/></div><div className="edu-two-col"><div className="rb-g"><label className="rb-lbl">Degree</label><input className="rb-in" placeholder="B.E. / B.Tech / B.Sc…" value={edu.degree} onChange={e => upd(edu.id,"degree",e.target.value)}/></div><div className="rb-g"><label className="rb-lbl">Branch / Specialisation</label><input className="rb-in" placeholder="CSE / ECE / Mech…" value={edu.branch} onChange={e => upd(edu.id,"branch",e.target.value)}/></div></div><div className="edu-three-col"><div className="rb-g"><label className="rb-lbl">Start Year</label><input className="rb-in" placeholder="2018" value={edu.startYear} onChange={e => upd(edu.id,"startYear",e.target.value)}/></div><div className="rb-g"><label className="rb-lbl">End Year</label><input className="rb-in" placeholder="2022" value={edu.endYear} onChange={e => upd(edu.id,"endYear",e.target.value)}/></div><div className="rb-g"><label className="rb-lbl">CGPA / % <span className="opt">opt</span></label><input className="rb-in" placeholder="8.5 / 84%" value={edu.gpa} onChange={e => upd(edu.id,"gpa",e.target.value)}/></div></div><div className="edu-ai-row"><span className="edu-ai-label">✏️ Highlights <span className="edu-ai-sub">(optional)</span></span><button className="edu-ai-btn" onClick={() => upd(edu.id,"highlights",genAI())}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>AI Suggest</button></div><div className="rb-g"><textarea className="rb-in rb-ta" style={{ minHeight:80 }} placeholder="Key projects, publications, awards, relevant coursework… (optional)" value={edu.highlights} onChange={e => upd(edu.id,"highlights",e.target.value)}/></div></div>);
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading]         = useState(false);
+  const [keywords, setKeywords]       = useState("");
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const wordCount = edu.highlights?.trim() === "" ? 0 : (edu.highlights?.trim().split(/\s+/).length || 0);
+  const MIN = 100, MAX = 200;
+  const isUnder = wordCount > 0 && wordCount < MIN;
+  const isOver  = wordCount > MAX;
+  const isGood  = wordCount >= MIN && wordCount <= MAX;
+  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
+  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
+  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
+  const counterMsg    = isGood ? "✓ Great" : isOver ? `${wordCount-MAX} over` : isUnder ? `${MIN-wordCount} more` : "100–200 words";
+
+  const handleAI = () => {
+    setLoading(true);
+    setTimeout(() => {
+      const degree = edu.degree || "the programme";
+      const branch = edu.branch ? ` in ${edu.branch}` : "";
+      const inst   = edu.college || "the institution";
+      const kw     = keywords.trim();
+      const kwCtx  = kw ? ` with focus on ${kw}` : "";
+      setSuggestions([
+        { tag:"Academic", text:`Completed ${degree}${branch} at ${inst}${kwCtx}. Gained in-depth knowledge through rigorous coursework, hands-on projects, and collaborative learning. Built a strong foundation in core concepts while developing practical skills through real-world applications and academic research.` },
+        { tag:"Achievement", text:`Pursued ${degree}${branch} at ${inst}${kwCtx}, consistently maintaining strong academic performance. Engaged in project-based learning, industry-relevant coursework, and extracurricular activities that shaped both technical acumen and professional readiness for the workforce.` },
+      ]);
+      setLoading(false);
+    }, 380);
+  };
+
+  return (
+    <div className="edu-degree-card">
+      <div className="edu-degree-card-head">
+        <div className="edu-degree-card-left">
+          <div className="edu-degree-number">{index+1}</div>
+          <div>
+            <div className="edu-degree-card-title">
+              {edu.college || edu.degree
+                ? (edu.degree || "Degree") + (edu.college ? ` · ${edu.college}` : "")
+                : `Education Entry ${index+1}`}
+            </div>
+            <div className="edu-degree-card-sub">
+              {edu.startYear || edu.endYear
+                ? `${edu.startYear||""}${edu.startYear&&edu.endYear?" – ":""}${edu.endYear||""}`
+                : "Add college & degree below"}
+            </div>
+          </div>
+        </div>
+        {total > 1 && <button className="rb-rm" onClick={() => rem(edu.id)}>×</button>}
+      </div>
+
+      <div className="rb-g">
+        <label className="rb-lbl">College / University</label>
+        <input className="rb-in" placeholder="e.g. PSG College of Technology…"
+          value={edu.college} onChange={e => upd(edu.id,"college",e.target.value)}/>
+      </div>
+
+      <div className="edu-two-col">
+        <div className="rb-g">
+          <label className="rb-lbl">Degree</label>
+          <input className="rb-in" placeholder="B.E. / B.Tech / B.Sc…"
+            value={edu.degree} onChange={e => upd(edu.id,"degree",e.target.value)}/>
+        </div>
+        <div className="rb-g">
+          <label className="rb-lbl">Branch / Specialisation</label>
+          <input className="rb-in" placeholder="CSE / ECE / Mech…"
+            value={edu.branch} onChange={e => upd(edu.id,"branch",e.target.value)}/>
+        </div>
+      </div>
+
+      <div className="edu-three-col">
+        <div className="rb-g">
+          <label className="rb-lbl">Start</label>
+          <InlineDatePicker value={edu.startYear}
+            onChange={v => upd(edu.id,"startYear",v)} placeholder="Start year"/>
+        </div>
+        <div className="rb-g">
+          <label className="rb-lbl">End</label>
+          <InlineDatePicker value={edu.endYear}
+            onChange={v => upd(edu.id,"endYear",v)} placeholder="End year"/>
+        </div>
+        <div className="rb-g">
+          <label className="rb-lbl">CGPA / % <span className="opt">opt</span></label>
+          <input className="rb-in" placeholder="8.5 / 84%"
+            value={edu.gpa} onChange={e => upd(edu.id,"gpa",e.target.value)}/>
+        </div>
+      </div>
+
+      {/* Keywords */}
+      <div className="rb-g">
+        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
+          <label className="rb-lbl" style={{ margin:0 }}>Keywords</label>
+          <div style={{ marginLeft:"auto" }}>
+            <button className="sum-ai-btn-top" onClick={handleAI} disabled={loading}
+              style={{ opacity:loading?0.5:1, cursor:loading?"not-allowed":"pointer" }}>
+              {loading
+                ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
+              {loading ? "Generating…" : "AI Suggest"}
+            </button>
+          </div>
+        </div>
+        <input className="rb-in"
+          placeholder="e.g. machine learning, data structures, capstone project…"
+          value={keywords} onChange={e => setKeywords(e.target.value)}
+          onKeyDown={e => e.key==="Enter" && handleAI()}/>
+      </div>
+
+      {/* Highlights with tooltip */}
+      <div className="rb-g">
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+
+          {/* Label + i tooltip */}
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <label className="rb-lbl" style={{ margin:0 }}>
+              Highlights
+              <span style={{ color:"#9ca3af", fontWeight:400, fontSize:11, marginLeft:4 }}>opt</span>
+            </label>
+            <div style={{ position:"relative", display:"inline-flex", alignItems:"center" }}>
+              <button
+                className="sum-info-btn"
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              >i</button>
+              {showTooltip && (
+                <div className="sum-tooltip"
+                  style={{ left:0, right:"auto", top:"calc(100% + 8px)", width:240 }}>
+                  <strong>📚 What to write here:</strong><br/>
+                  • Notable academic projects or thesis<br/>
+                  • Awards, scholarships & honours<br/>
+                  • Relevant coursework & electives<br/>
+                  • Club activities or leadership roles<br/>
+                  • Research papers or publications<br/><br/>
+                  <em>💡 Tip: 100–200 words keeps it ATS-friendly and scannable.</em>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Word counter */}
+          <div style={{
+            display:"inline-flex", alignItems:"center", gap:5,
+            padding:"3px 10px", borderRadius:99,
+            background:counterBg, border:`1.5px solid ${counterBorder}`,
+            transition:"all .25s",
+          }}>
+            <span style={{ fontSize:11, fontWeight:700, color:counterColor }}>{wordCount}</span>
+            <span style={{ fontSize:10, color:counterColor, opacity:.75 }}>/ {MAX}</span>
+            {wordCount > 0 && (
+              <span style={{
+                fontSize:10, fontWeight:600, color:counterColor,
+                borderLeft:`1px solid ${counterBorder}`,
+                paddingLeft:6, marginLeft:2,
+              }}>{counterMsg}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ width:"100%", height:3, background:"#f1f5f9", borderRadius:99, marginBottom:6, overflow:"hidden" }}>
+          <div style={{
+            height:"100%",
+            width:`${Math.min(100,(wordCount/MAX)*100)}%`,
+            background: isGood?"#16a34a":isOver?"#dc2626":"#f59e0b",
+            borderRadius:99, transition:"width .3s, background .3s",
+          }}/>
+        </div>
+
+        <textarea className="rb-in rb-ta"
+          style={{
+            minHeight:90,
+            borderColor: isOver?"#fca5a5":isGood?"#86efac":undefined,
+            transition:"border-color .25s",
+          }}
+          placeholder="Key projects, awards, relevant coursework… (optional)"
+          value={edu.highlights}
+          onChange={e => upd(edu.id,"highlights",e.target.value)}/>
+      </div>
+
+      {suggestions.length > 0 && (
+        <div className="sum-suggestions">
+          {suggestions.map((s,i) => (
+            <div key={i} className="sum-suggestion-card"
+              onClick={() => upd(edu.id,"highlights",s.text)}>
+              <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
+              <div className="sum-sug-text">{s.text}</div>
+              <div className="sum-sug-use">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Click to use
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function SchoolEntryCard({ edu, index, total, upd, rem }) {
-  const genAI = () => { const school = edu.schoolName || "the school"; const stream = edu.stream ? ` (${edu.stream})` : ""; const year = edu.passingYear ? `, passing out in ${edu.passingYear}` : ""; const pct = edu.percentage ? ` Scored ${edu.percentage}.` : ""; return `Completed schooling at ${school}${stream}${year}.${pct} Built a strong academic foundation through focused coursework, extracurricular participation, and consistent performance across core subjects.`; };
-  return (<div className="edu-school-card"><div className="edu-school-card-head"><div className="edu-degree-card-left"><div className="edu-school-number">{index+1}</div><div><div className="edu-degree-card-title">{edu.schoolName || `School Entry ${index+1}`}</div><div className="edu-degree-card-sub">{edu.board ? edu.board : "Add school details below"}{edu.passingYear ? ` · ${edu.passingYear}` : ""}</div></div></div>{total > 1 && <button className="rb-rm" onClick={() => rem(edu.id)}>×</button>}</div><div className="rb-g"><label className="rb-lbl">School Name</label><input className="rb-in" placeholder="e.g. St. Joseph's Higher Secondary School" value={edu.schoolName} onChange={e => upd(edu.id,"schoolName",e.target.value)}/></div><div className="edu-two-col"><div className="rb-g"><label className="rb-lbl">Board</label><input className="rb-in" placeholder="CBSE / State Board / ICSE" value={edu.board} onChange={e => upd(edu.id,"board",e.target.value)}/></div><div className="rb-g"><label className="rb-lbl">Stream <span className="opt">opt</span></label><input className="rb-in" placeholder="Science / Commerce / Arts" value={edu.stream} onChange={e => upd(edu.id,"stream",e.target.value)}/></div></div><div className="edu-two-col"><div className="rb-g"><label className="rb-lbl">Passing Year</label><input className="rb-in" placeholder="2018" value={edu.passingYear} onChange={e => upd(edu.id,"passingYear",e.target.value)}/></div><div className="rb-g"><label className="rb-lbl">Percentage / Grade <span className="opt">opt</span></label><input className="rb-in" placeholder="92% / A+" value={edu.percentage} onChange={e => upd(edu.id,"percentage",e.target.value)}/></div></div><div className="edu-ai-row"><span className="edu-ai-label">✏️ Highlights <span className="edu-ai-sub">(optional)</span></span><button className="edu-ai-btn" onClick={() => upd(edu.id,"highlights",genAI())}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>AI Suggest</button></div><div className="rb-g"><textarea className="rb-in rb-ta" style={{ minHeight:80 }} placeholder="Achievements, awards, co-curricular activities… (optional)" value={edu.highlights} onChange={e => upd(edu.id,"highlights",e.target.value)}/></div></div>);
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading]         = useState(false);
+  const [keywords, setKeywords]       = useState("");
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const wordCount = edu.highlights?.trim() === "" ? 0 : (edu.highlights?.trim().split(/\s+/).length || 0);
+  const MIN = 100, MAX = 200;
+  const isUnder = wordCount > 0 && wordCount < MIN;
+  const isOver  = wordCount > MAX;
+  const isGood  = wordCount >= MIN && wordCount <= MAX;
+  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
+  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
+  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
+  const counterMsg    = isGood ? "✓ Great" : isOver ? `${wordCount-MAX} over` : isUnder ? `${MIN-wordCount} more` : "100–200 words";
+
+  const handleAI = () => {
+    setLoading(true);
+    setTimeout(() => {
+      const school = edu.schoolName || "the school";
+      const year   = edu.passingYear ? ` passing out in ${edu.passingYear}` : "";
+      const pct    = edu.percentage  ? ` Scored ${edu.percentage}.` : "";
+      const kw     = keywords.trim();
+      const kwCtx  = kw ? ` with strengths in ${kw}` : "";
+      setSuggestions([
+        { tag:"Academic",  text:`Completed schooling at ${school}${year}.${pct} Built a strong academic foundation${kwCtx} through focused coursework and consistent performance across core subjects.` },
+        { tag:"Holistic",  text:`Pursued schooling at ${school}${year}.${pct} Actively participated in academics and extracurricular activities${kwCtx}, developing discipline, teamwork, and a passion for continuous learning.` },
+      ]);
+      setLoading(false);
+    }, 380);
+  };
+
+  return (
+    <div className="edu-school-card">
+      <div className="edu-school-card-head">
+        <div className="edu-degree-card-left">
+          <div className="edu-school-number">{index+1}</div>
+          <div>
+            <div className="edu-degree-card-title">
+              {edu.schoolName || `School Entry ${index+1}`}
+            </div>
+            <div className="edu-degree-card-sub">
+              {edu.passingYear ? `Passing Year · ${edu.passingYear}` : "Add school details below"}
+            </div>
+          </div>
+        </div>
+        {total > 1 && <button className="rb-rm" onClick={() => rem(edu.id)}>×</button>}
+      </div>
+
+      <div className="rb-g">
+        <label className="rb-lbl">School Name</label>
+        <input className="rb-in" placeholder="e.g. St. Joseph's Higher Secondary School"
+          value={edu.schoolName} onChange={e => upd(edu.id,"schoolName",e.target.value)}/>
+      </div>
+
+      <div className="edu-two-col">
+        <div className="rb-g">
+          <label className="rb-lbl">Passing Year</label>
+          <InlineDatePicker value={edu.passingYear}
+            onChange={v => upd(edu.id,"passingYear",v)} placeholder="Passing year"/>
+        </div>
+        <div className="rb-g">
+          <label className="rb-lbl">Percentage / Grade <span className="opt">opt</span></label>
+          <input className="rb-in" placeholder="92% / A+"
+            value={edu.percentage} onChange={e => upd(edu.id,"percentage",e.target.value)}/>
+        </div>
+      </div>
+
+      {/* Keywords */}
+      <div className="rb-g">
+        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
+          <label className="rb-lbl" style={{ margin:0 }}>Keywords</label>
+          <div style={{ marginLeft:"auto" }}>
+            <button className="sum-ai-btn-top" onClick={handleAI} disabled={loading}
+              style={{ opacity:loading?0.5:1, cursor:loading?"not-allowed":"pointer" }}>
+              {loading
+                ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
+              {loading ? "Generating…" : "AI Suggest"}
+            </button>
+          </div>
+        </div>
+        <input className="rb-in" placeholder="e.g. science, mathematics, debate, sports…"
+          value={keywords} onChange={e => setKeywords(e.target.value)}
+          onKeyDown={e => e.key==="Enter" && handleAI()}/>
+      </div>
+
+      {/* Highlights with tooltip */}
+      <div className="rb-g">
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+
+          {/* Label + i tooltip */}
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <label className="rb-lbl" style={{ margin:0 }}>
+              Highlights
+              <span style={{ color:"#9ca3af", fontWeight:400, fontSize:11, marginLeft:4 }}>opt</span>
+            </label>
+            <div style={{ position:"relative", display:"inline-flex", alignItems:"center" }}>
+              <button
+                className="sum-info-btn"
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              >i</button>
+              {showTooltip && (
+                <div className="sum-tooltip"
+                  style={{ left:0, right:"auto", top:"calc(100% + 8px)", width:240 }}>
+                  <strong>🏫 What to write here:</strong><br/>
+                  • Board exam scores or distinctions<br/>
+                  • Subject toppers or class rank<br/>
+                  • Sports, arts or cultural wins<br/>
+                  • School leadership (Head Boy/Girl)<br/>
+                  • Science fairs or competitions<br/><br/>
+                  <em>💡 Tip: 100–200 words is ideal for ATS readability.</em>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Word counter */}
+          <div style={{
+            display:"inline-flex", alignItems:"center", gap:5,
+            padding:"3px 10px", borderRadius:99,
+            background:counterBg, border:`1.5px solid ${counterBorder}`,
+            transition:"all .25s",
+          }}>
+            <span style={{ fontSize:11, fontWeight:700, color:counterColor }}>{wordCount}</span>
+            <span style={{ fontSize:10, color:counterColor, opacity:.75 }}>/ {MAX}</span>
+            {wordCount > 0 && (
+              <span style={{
+                fontSize:10, fontWeight:600, color:counterColor,
+                borderLeft:`1px solid ${counterBorder}`,
+                paddingLeft:6, marginLeft:2,
+              }}>{counterMsg}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ width:"100%", height:3, background:"#f1f5f9", borderRadius:99, marginBottom:6, overflow:"hidden" }}>
+          <div style={{
+            height:"100%",
+            width:`${Math.min(100,(wordCount/MAX)*100)}%`,
+            background: isGood?"#16a34a":isOver?"#dc2626":"#f59e0b",
+            borderRadius:99, transition:"width .3s, background .3s",
+          }}/>
+        </div>
+
+        <textarea className="rb-in rb-ta"
+          style={{
+            minHeight:90,
+            borderColor: isOver?"#fca5a5":isGood?"#86efac":undefined,
+            transition:"border-color .25s",
+          }}
+          placeholder="Achievements, awards, co-curricular activities… (optional)"
+          value={edu.highlights}
+          onChange={e => upd(edu.id,"highlights",e.target.value)}/>
+      </div>
+
+      {suggestions.length > 0 && (
+        <div className="sum-suggestions">
+          {suggestions.map((s,i) => (
+            <div key={i} className="sum-suggestion-card"
+              onClick={() => upd(edu.id,"highlights",s.text)}>
+              <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
+              <div className="sum-sug-text">{s.text}</div>
+              <div className="sum-sug-use">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Click to use
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function EducationSection({ data, onChange }) {
-  const safeUG = Array.isArray(data?.ug) && data.ug.length > 0 ? data.ug : [makeUG()];
+  const safeUG     = Array.isArray(data?.ug)     && data.ug.length     > 0 ? data.ug     : [makeUG()];
   const safeSchool = Array.isArray(data?.school) && data.school.length > 0 ? data.school : [makeSchool()];
   const [activeTab, setActiveTab] = useState("ug");
-  const updUG     = (id, k, v) => onChange({ ug: safeUG.map(e => e.id === id ? { ...e, [k]:v } : e), school: safeSchool });
-  const remUG     = id => onChange({ ug: safeUG.filter(e => e.id !== id), school: safeSchool });
-  const addUG     = () => onChange({ ug: [...safeUG, makeUG()], school: safeSchool });
-  const updSchool = (id, k, v) => onChange({ ug: safeUG, school: safeSchool.map(e => e.id === id ? { ...e, [k]:v } : e) });
-  const remSchool = id => onChange({ ug: safeUG, school: safeSchool.filter(e => e.id !== id) });
-  const addSchool = () => onChange({ ug: safeUG, school: [...safeSchool, makeSchool()] });
-  return (<div><div className="edu-tab-bar"><button className={`edu-tab-btn${activeTab === "ug" ? " active" : ""}`} onClick={() => setActiveTab("ug")}><span className="edu-tab-icon">📚</span><span className="edu-tab-label">UG / Degree</span><span className="edu-tab-count">{safeUG.length}</span></button><button className={`edu-tab-btn${activeTab === "school" ? " active" : ""}`} onClick={() => setActiveTab("school")}><span className="edu-tab-icon">🏫</span><span className="edu-tab-label">Schooling</span><span className="edu-tab-count">{safeSchool.length}</span></button></div>{activeTab === "ug" && (<div className="edu-tab-panel">{safeUG.length === 0 ? (<div className="edu-empty-hint"><span className="edu-empty-hint-icon">📚</span>No degree entries yet.</div>) : safeUG.map((edu, i) => (<DegreeEntryCard key={edu.id} edu={edu} index={i} total={safeUG.length} upd={updUG} rem={remUG}/>))}<button className="edu-add-btn" onClick={addUG}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Another Education</button></div>)}{activeTab === "school" && (<div className="edu-tab-panel">{safeSchool.length === 0 ? (<div className="edu-empty-hint"><span className="edu-empty-hint-icon">🏫</span>No schooling entries yet.</div>) : safeSchool.map((edu, i) => (<SchoolEntryCard key={edu.id} edu={edu} index={i} total={safeSchool.length} upd={updSchool} rem={remSchool}/>))}<button className="edu-add-btn" onClick={addSchool}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Another School</button></div>)}</div>);
-}
 
+  const updUG     = (id,k,v) => onChange({ ug: safeUG.map(e => e.id===id?{...e,[k]:v}:e), school:safeSchool });
+  const remUG     = id => onChange({ ug: safeUG.filter(e=>e.id!==id), school:safeSchool });
+  const addUG     = () => onChange({ ug:[...safeUG,makeUG()], school:safeSchool });
+  const updSchool = (id,k,v) => onChange({ ug:safeUG, school:safeSchool.map(e=>e.id===id?{...e,[k]:v}:e) });
+  const remSchool = id => onChange({ ug:safeUG, school:safeSchool.filter(e=>e.id!==id) });
+  const addSchool = () => onChange({ ug:safeUG, school:[...safeSchool,makeSchool()] });
+
+  const tabs = [
+    { id:"ug",     icon:"🎓", label:"UG / Degree",  count:safeUG.length },
+    { id:"school", icon:"🏫", label:"Schooling",     count:safeSchool.length },
+  ];
+
+  return (
+    <div>
+    
+<div style={{ display:"flex", gap:8, marginBottom:20 }}>
+  {tabs.map(t => (
+    <button key={t.id} type="button" onClick={() => setActiveTab(t.id)}
+      style={{
+        flex:1, display:"flex", alignItems:"center", gap:8,
+        padding:"10px 14px", borderRadius:10, cursor:"pointer",
+        border:`1.5px solid ${activeTab===t.id ? "#1e293b" : "#e5e7eb"}`,
+        background: activeTab===t.id ? "#1e293b" : "#fff",
+        fontFamily:"inherit", transition:"all .15s",
+      }}
+    >
+      <span style={{ fontSize:15 }}>{t.icon}</span>
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:1 }}>
+        <span style={{ fontSize:12, fontWeight:700, color: activeTab===t.id ? "#fff" : "#374151" }}>
+          {t.label}
+        </span>
+        <span style={{
+          fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99,
+          background: activeTab===t.id ? "rgba(255,255,255,.18)" : "#f1f5f9",
+          color: activeTab===t.id ? "#fff" : "#6b7280",
+        }}>{t.count} entry</span>
+      </div>
+    </button>
+  ))}
+</div>
+
+      {activeTab === "ug" && (
+        <div style={{ animation:"edu-fade-in .18s ease" }}>
+          {safeUG.map((edu,i) => (
+            <DegreeEntryCard key={edu.id} edu={edu} index={i} total={safeUG.length} upd={updUG} rem={remUG}/>
+          ))}
+          <button className="edu-add-btn" onClick={addUG}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Another Education
+          </button>
+        </div>
+      )}
+
+      
+
+      {activeTab === "school" && (
+        <div style={{ animation:"edu-fade-in .18s ease" }}>
+          {safeSchool.map((edu,i) => (
+            <SchoolEntryCard key={edu.id} edu={edu} index={i} total={safeSchool.length} upd={updSchool} rem={remSchool}/>
+          ))}
+          <button className="edu-add-btn" onClick={addSchool}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Another School
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 function normaliseEducation(raw) {
-  if (raw && !Array.isArray(raw) && (Array.isArray(raw.ug) || Array.isArray(raw.school))) { return { ug: Array.isArray(raw.ug) ? raw.ug : [makeUG()], school: Array.isArray(raw.school) ? raw.school : [makeSchool()] }; }
-  if (Array.isArray(raw)) { const ug = raw.filter(e => e.type === "ug" || e.type === "pg" || (!e.type && !e.schoolName)); const school = raw.filter(e => e.type === "school" || e.schoolName); return { ug: ug.length > 0 ? ug.map(e => ({ ...makeUG(), ...e, type:"ug" })) : [makeUG()], school: school.length > 0 ? school.map(e => ({ ...makeSchool(), ...e, type:"school" })) : [makeSchool()] }; }
+  if (raw && !Array.isArray(raw) && (Array.isArray(raw.ug) || Array.isArray(raw.school))) {
+    return {
+      ug:     Array.isArray(raw.ug)     ? raw.ug     : [makeUG()],
+      school: Array.isArray(raw.school) ? raw.school : [makeSchool()],
+    };
+  }
+  if (Array.isArray(raw)) {
+    const ug     = raw.filter(e => e.type==="ug" || e.type==="pg" || (!e.type && !e.schoolName));
+    const school = raw.filter(e => e.type==="school" || e.schoolName);
+    return {
+      ug:     ug.length     > 0 ? ug.map(e=>({...makeUG(),...e,type:"ug"}))         : [makeUG()],
+      school: school.length > 0 ? school.map(e=>({...makeSchool(),...e,type:"school"})) : [makeSchool()],
+    };
+  }
   return { ug:[makeUG()], school:[makeSchool()] };
 }
 
@@ -1044,82 +1761,401 @@ function normaliseEducation(raw) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function SkillsSection({ data, onChange }) {
   const safeData = Array.isArray(data) ? data : [makeSkill()];
-  const [hoveredMap, setHoveredMap] = useState({});
+  const [mode, setMode]           = useState("level");   // "level" | "rating"
+  const [ratingType, setRatingType] = useState("stars"); // stars | dots | bars | blocks | emoji
   const upd = (id, k, v) => onChange(safeData.map(s => s.id === id ? { ...s, [k]:v } : s));
   const rem = id => onChange(safeData.filter(s => s.id !== id));
+
+  const LEVELS = [
+    { label:"Beginner",     stars:1, color:"#16a34a", bg:"#f0fdf4", border:"#86efac" },
+    { label:"Elementary",   stars:2, color:"#0284c7", bg:"#f0f9ff", border:"#7dd3fc" },
+    { label:"Intermediate", stars:3, color:"#7c3aed", bg:"#f5f3ff", border:"#c4b5fd" },
+    { label:"Advanced",     stars:4, color:"#d97706", bg:"#fffbeb", border:"#fde68a" },
+    { label:"Expert",       stars:5, color:"#dc2626", bg:"#fef2f2", border:"#fca5a5" },
+  ];
+
+  const RATING_TYPES = [
+    { id:"stars",  label:"Stars" },
+    { id:"dots",   label:"Dots" },
+    { id:"bars",   label:"Bars" },
+    { id:"blocks", label:"Blocks" },
+   
+  ];
+
+ 
+
+  function RatingWidget({ skillId, value }) {
+    const [hov, setHov] = useState(0);
+    const active = hov || value || 0;
+    const col = "#6366f1";
+
+    if (ratingType === "stars") return (
+      <div style={{ display:"flex", gap:4 }}>
+        {[1,2,3,4,5].map(n => (
+          <button key={n} type="button"
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(skillId,"level",n)}
+            style={{ background:"none", border:"none", cursor:"pointer", fontSize:26,
+              color: n <= active ? "#f59e0b" : "#e2e8f0",
+              transform: n <= active ? "scale(1.12)" : "scale(1)",
+              transition:"all .1s", padding:"2px" }}
+          >★</button>
+        ))}
+      </div>
+    );
+
+    if (ratingType === "dots") return (
+      <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+        {[1,2,3,4,5].map(n => (
+          <div key={n}
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(skillId,"level",n)}
+            style={{ width: n<=active?22:16, height: n<=active?22:16,
+              borderRadius:"50%", cursor:"pointer",
+              background: n<=active ? col : "#e5e7eb",
+              border:`2px solid ${n<=active ? col : "#d1d5db"}`,
+              transition:"all .15s" }}
+          />
+        ))}
+      </div>
+    );
+
+    if (ratingType === "bars") return (
+      <div style={{ display:"flex", gap:5, alignItems:"flex-end", height:34 }}>
+        {[1,2,3,4,5].map(n => (
+          <div key={n}
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(skillId,"level",n)}
+            style={{ width:26, height:8+n*4, borderRadius:"3px 3px 0 0", cursor:"pointer",
+              background: n<=active ? col : "#e5e7eb",
+              border:`1.5px solid ${n<=active ? col : "#d1d5db"}`,
+              transition:"all .15s" }}
+          />
+        ))}
+      </div>
+    );
+
+    if (ratingType === "blocks") return (
+      <div style={{ display:"flex", gap:5 }}>
+        {[1,2,3,4,5].map(n => (
+          <div key={n}
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(skillId,"level",n)}
+            style={{ width:34, height:20, borderRadius:5, cursor:"pointer",
+              background: n<=active ? col : "#e5e7eb",
+              border:`1.5px solid ${n<=active ? col : "#d1d5db"}`,
+              transition:"all .15s" }}
+          />
+        ))}
+      </div>
+    );
+
+    if (ratingType === "emoji") return (
+      <div style={{ display:"flex", gap:5 }}>
+        {[1,2,3,4,5].map(n => (
+          <button key={n} type="button"
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(skillId,"level",n)}
+            style={{ background: n===active?"#ede9fe":"transparent",
+              border:`1.5px solid ${n===active ? col : "#e5e7eb"}`,
+              borderRadius:8, padding:"4px 6px", cursor:"pointer",
+              fontSize: n===active ? 22 : 17, transition:"all .15s",
+              transform: n===active ? "scale(1.2)" : "scale(1)" }}
+          ></button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div>
-      {safeData.map((s, i) => (
-        <div key={s.id} className="rb-card">
-          <div className="rb-card-head">
-            <span className="rb-card-title">Skill {i+1}</span>
-            {safeData.length > 1 && <button className="rb-rm" onClick={() => rem(s.id)}>×</button>}
-          </div>
-          <div className="rb-row">
-            <div className="rb-g"><label className="rb-lbl">Skill Name</label><input className="rb-in" placeholder="e.g. React.js, Figma…" value={s.name} onChange={e => upd(s.id,"name",e.target.value)}/></div>
-            <div className="rb-g"><label className="rb-lbl">Level</label><select className="rb-in" value={s.badge} onChange={e => upd(s.id,"badge",e.target.value)}>{SKILL_LEVELS.map(l => <option key={l}>{l}</option>)}</select></div>
-          </div>
-          <div className="rb-g">
-            <label className="rb-lbl">Rating <span className="opt">(1–5 stars)</span></label>
-            <StarRating value={s.level || 0} onChange={val => upd(s.id,"level",val)} hovered={hoveredMap[s.id] || 0} setHovered={val => setHoveredMap(prev => ({ ...prev, [s.id]:val }))}/>
+
+      {/* ── Top control bar ── */}
+      <div style={{ background:"#f8fafc", border:"1.5px solid #e2e8f0", borderRadius:12, padding:"12px 14px", marginBottom:16 }}>
+
+        {/* Mode switch row */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: mode==="rating" ? 12 : 0 }}>
+          <span style={{ fontSize:12, fontWeight:600, color:"#374151" }}>How do you want to rate skills?</span>
+          {/* Toggle pill */}
+          <div style={{ display:"flex", background:"#e2e8f0", borderRadius:99, padding:3, gap:2 }}>
+            {[
+              { id:"level",  label:"Level Badge" },
+              { id:"rating", label:"Rating Style" },
+            ].map(m => (
+              <button key={m.id} type="button"
+                onClick={() => setMode(m.id)}
+                style={{
+                  padding:"5px 14px", border:"none", borderRadius:99,
+                  background: mode===m.id ? "#fff" : "transparent",
+                  fontWeight: mode===m.id ? 700 : 500,
+                  color: mode===m.id ? "#6366f1" : "#64748b",
+                  fontSize:12, cursor:"pointer", fontFamily:"inherit",
+                  boxShadow: mode===m.id ? "0 1px 4px rgba(0,0,0,.12)" : "none",
+                  transition:"all .18s",
+                }}
+              >{m.label}</button>
+            ))}
           </div>
         </div>
-      ))}
-      <button className="rb-add" onClick={() => onChange([...safeData, makeSkill()])}>+ Add Another Skill</button>
+
+        {/* Rating type chips — only when rating mode */}
+        {mode === "rating" && (
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+            {RATING_TYPES.map(rt => (
+              <button key={rt.id} type="button"
+                onClick={() => setRatingType(rt.id)}
+                style={{
+                  padding:"5px 13px", borderRadius:7, cursor:"pointer",
+                  fontFamily:"inherit", fontSize:12, fontWeight:600,
+                  border:`1.5px solid ${ratingType===rt.id ? "#6366f1" : "#e5e7eb"}`,
+                  background: ratingType===rt.id ? "#ede9fe" : "#fff",
+                  color: ratingType===rt.id ? "#6366f1" : "#374151",
+                  transition:"all .15s",
+                }}
+              >{rt.label}</button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Skill cards ── */}
+      {safeData.map((s, i) => {
+        const selLvl = LEVELS.find(l => l.label === s.badge) || LEVELS[2];
+        return (
+          <div key={s.id} className="rb-card">
+            <div className="rb-card-head">
+              <span className="rb-card-title">Skill {i+1}</span>
+              {safeData.length > 1 && <button className="rb-rm" onClick={() => rem(s.id)}>×</button>}
+            </div>
+
+            <div className="rb-g">
+              <label className="rb-lbl">Skill Name</label>
+              <input className="rb-in" placeholder="e.g. React.js, Figma, Python…"
+                value={s.name} onChange={e => upd(s.id,"name",e.target.value)}/>
+            </div>
+
+            {/* LEVEL MODE */}
+            {mode === "level" && (
+              <div className="rb-g">
+                <label className="rb-lbl">Proficiency</label>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:6, marginBottom:8 }}>
+                  {LEVELS.map(lvl => {
+                    const isOn = s.badge === lvl.label;
+                    return (
+                      <div key={lvl.label}
+                        onClick={() => {
+  if (s.badge === lvl.label) return;
+  onChange(safeData.map(sk => 
+    sk.id === s.id 
+      ? { ...sk, badge: lvl.label, level: lvl.stars } 
+      : sk
+  ));
+}}
+                      >
+                        <div style={{ display:"flex", gap:2 }}>
+                          {[1,2,3,4,5].map(d => (
+                            <div key={d} style={{
+                              width: d<=lvl.stars?7:5, height: d<=lvl.stars?7:5,
+                              borderRadius:"50%",
+                              background: d<=lvl.stars ? lvl.color : "#e5e7eb",
+                              marginTop: d<=lvl.stars?0:1,
+                            }}/>
+                          ))}
+                        </div>
+                        <span style={{ fontSize:10, fontWeight:isOn?700:500,
+                          color:isOn?lvl.color:"#6b7280", lineHeight:1.2 }}>
+                          {lvl.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {s.badge && (
+                  <div style={{ padding:"6px 12px", background:selLvl.bg,
+                    border:`1.5px solid ${selLvl.border}`, borderRadius:8,
+                    display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:12, fontWeight:700, color:selLvl.color }}>{selLvl.label}</span>
+                    <span style={{ fontSize:11, color:"#6b7280" }}>· {selLvl.stars}/5</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* RATING MODE */}
+            {mode === "rating" && (
+              <div className="rb-g">
+                <label className="rb-lbl">Rating</label>
+                <RatingWidget skillId={s.id} value={s.level || 0}/>
+                {s.level > 0 && (
+                  <div style={{ marginTop:8, fontSize:12, fontWeight:600,
+                    color: LEVELS[(s.level||1)-1]?.color || "#6366f1" }}>
+                    {LEVELS[(s.level||1)-1]?.label}
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+        );
+      })}
+
+      <button className="rb-add" onClick={() => onChange([...safeData, makeSkill()])}>
+        + Add Another Skill
+      </button>
     </div>
   );
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // PROJECTS SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
-function ProjCard({ proj, index, total, onUpd, onRem }) {
-  const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading]         = useState(false);
 
-  const buildSuggestions = (p) => {
-    const name = p.name?.trim() || ""; const stack = p.stack?.trim() || "";
-    if (!name && !stack) { setSuggestions([]); return; }
-    const title = name || "the project"; const techCtx = stack ? ` using ${stack}` : "";
-    setSuggestions([
-      { tag:"Impact-Led",     text:`Designed and developed ${title}${techCtx}, delivering a seamless user experience with optimized performance. Implemented core features end-to-end, integrated APIs, and ensured cross-platform compatibility. Resulted in measurable improvements in efficiency and user engagement.` },
-      { tag:"Technical-Deep", text:`Built ${title}${techCtx} with a focus on scalability and clean architecture. Engineered reusable components, managed state effectively, and applied best practices in code quality and testing. Deployed and maintained the application with zero critical downtime.` },
-    ]);
-  };
-
-  const handleAISuggest = () => { if (!proj.name && !proj.stack) return; setLoading(true); setTimeout(() => { buildSuggestions(proj); setLoading(false); }, 380); };
-  const hasContext = proj.name || proj.stack;
-
-  return (
-    <div className="rb-card">
-      <div className="rb-card-head"><span className="rb-card-title">Project {index+1}</span>{total > 1 && <button className="rb-rm" onClick={() => onRem(proj.id)}>×</button>}</div>
-      <div className="rb-row">
-        <div className="rb-g"><label className="rb-lbl">Name</label><input className="rb-in" placeholder="Project Name" value={proj.name} onChange={e => onUpd(proj.id,"name",e.target.value)}/></div>
-        <div className="rb-g"><label className="rb-lbl">Stack</label><input className="rb-in" placeholder="React, Node" value={proj.stack} onChange={e => onUpd(proj.id,"stack",e.target.value)}/></div>
-      </div>
-      <div className="rb-g"><label className="rb-lbl">Date <span className="opt">(optional)</span></label><input className="rb-in" placeholder="2024 / Jan 2024" value={proj.date || ""} onChange={e => onUpd(proj.id,"date",e.target.value)}/></div>
-      <div className="rb-g">
-        <div className="cert-field-header">
-          <span className="cert-field-label">Key Highlights<span className="cert-field-sub">(optional)</span></span>
-          <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!hasContext || loading} style={{ opacity:(!hasContext || loading) ? 0.5 : 1, cursor:(!hasContext || loading) ? "not-allowed" : "pointer" }}>
-            {loading ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
-            {loading ? "Generating…" : "AI Suggest"}
-          </button>
-        </div>
-        <textarea className="rb-in rb-ta" placeholder={hasContext ? "Click ✨ AI Suggest to generate…" : "Fill Name & Stack above first…"} value={proj.description} onChange={e => onUpd(proj.id,"description",e.target.value)}/>
-        {suggestions.length > 0 && (<div className="sum-suggestions" style={{ marginTop:8 }}>{suggestions.map((s, i) => (<div key={i} className="sum-suggestion-card" onClick={() => onUpd(proj.id,"description",s.text)}><div className="sum-sug-tag">Option {i+1} · {s.tag}</div><div className="sum-sug-text">{s.text}</div><div className="sum-sug-use"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Click to use this</div></div>))}</div>)}
-        {suggestions.length === 0 && (<div className="sum-chips-hint">{hasContext ? "Click ✨ AI Suggest to generate tailored suggestions" : "Fill Name & Stack fields to unlock AI suggestions"}</div>)}
-      </div>
-      <div className="rb-g"><label className="rb-lbl">Link <span className="opt">(optional)</span></label><input className="rb-in" placeholder="github.com/you/project" value={proj.link} onChange={e => onUpd(proj.id,"link",e.target.value)}/></div>
-    </div>
-  );
-}
 
 function ProjectsSection({ data, onChange }) {
   const safeData = Array.isArray(data) ? data : [makeProj()];
   const upd = (id, k, v) => onChange(safeData.map(p => p.id === id ? { ...p, [k]:v } : p));
   const rem = id => onChange(safeData.filter(p => p.id !== id));
-  return (<div>{safeData.map((p, i) => (<ProjCard key={p.id} proj={p} index={i} total={safeData.length} onUpd={upd} onRem={rem}/>))}<button className="rb-add" onClick={() => onChange([...safeData, makeProj()])}>+ Add Another Project</button></div>);
+  return (
+    <div>
+      {safeData.map((p, i) => (
+        <ProjCard key={p.id} proj={p} index={i} total={safeData.length} onUpd={upd} onRem={rem}/>
+      ))}
+      <button className="rb-add" onClick={() => onChange([...safeData, makeProj()])}>+ Add Another Project</button>
+    </div>
+  );
+}
+function ProjCard({ proj, index, total, onUpd, onRem }) {
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading]         = useState(false);
+  
+
+  const wordCount = proj.description.trim() === "" ? 0 : proj.description.trim().split(/\s+/).length;
+  const MIN = 200, MAX = 300;
+  const isUnder = wordCount > 0 && wordCount < MIN;
+  const isOver  = wordCount > MAX;
+  const isGood  = wordCount >= MIN && wordCount <= MAX;
+  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
+  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
+  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
+  const counterMsg    = isGood ? "✓ Great length" : isOver ? `${wordCount - MAX} words over` : isUnder ? `${MIN - wordCount} more needed` : "200–300 words recommended";
+
+  const handleAISuggest = () => {
+    const hasCtx = proj.name || proj.tech || proj.keywords;
+    if (!hasCtx) return;
+    setLoading(true);
+    setTimeout(() => {
+      const title  = proj.name?.trim()     || "the project";
+      const tech   = proj.tech?.trim()     || "";
+      const kw     = proj.keywords?.trim() || "";
+      const techCtx = tech ? ` using ${tech}` : "";
+      const kwCtx   = kw   ? ` with a focus on ${kw}` : "";
+      setSuggestions([
+        { tag:"Impact-Led",     text:`Designed and developed ${title}${techCtx}${kwCtx}, delivering a seamless user experience with optimized performance. Implemented core features end-to-end, integrated APIs, and ensured cross-platform compatibility. Resulted in measurable improvements in efficiency and user engagement.` },
+        { tag:"Technical-Deep", text:`Built ${title}${techCtx}${kwCtx} with a focus on scalability and clean architecture. Engineered reusable components, managed state effectively, and applied best practices in code quality and testing. Deployed and maintained the application with zero critical downtime.` },
+      ]);
+      setLoading(false);
+    }, 380);
+  };
+
+  const hasContext = proj.name || proj.tech || proj.keywords;
+
+  return (
+    <div className="rb-card">
+      <div className="rb-card-head">
+        <span className="rb-card-title">Project {index + 1}</span>
+        {total > 1 && <button className="rb-rm" onClick={() => onRem(proj.id)}>×</button>}
+      </div>
+
+      {/* Title + Tech stack */}
+      <div className="rb-row">
+        <div className="rb-g">
+          <label className="rb-lbl">Project Title</label>
+          <input className="rb-in" placeholder="e.g. Portfolio Website" value={proj.name} onChange={e => onUpd(proj.id,"name",e.target.value)}/>
+        </div>
+        <div className="rb-g">
+          <label className="rb-lbl">Tech Stack</label>
+          <input className="rb-in" placeholder="React, Node, MongoDB…" value={proj.tech || ""} onChange={e => onUpd(proj.id,"tech",e.target.value)}/>
+        </div>
+      </div>
+
+      {/* Keywords */}
+      <div className="rb-g">
+        <label className="rb-lbl">Keywords <span className="opt">(for AI suggestions)</span></label>
+        <input className="rb-in" placeholder="e.g. performance, REST API, real-time, scalability…" value={proj.keywords || ""} onChange={e => onUpd(proj.id,"keywords",e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
+      </div>
+
+      {/* Duration: Built On + Valid Till */}
+      
+      <div className="rb-row">
+        <div className="rb-g">
+          <label className="rb-lbl">Built On <span className="opt">(optional)</span></label>
+          
+          <DurationPicker
+            value={proj.date || ""}
+            onChange={v => onUpd(proj.id, "date", v)}
+            singleDate
+          />
+        </div>
+        <div className="rb-g">
+          <label className="rb-lbl">Valid Till <span className="opt">(optional)</span></label>
+          <DurationPicker
+            value={proj.validTill || ""}
+            onChange={v => onUpd(proj.id, "validTill", v)}
+            singleDate
+          />
+        </div>
+      </div>
+
+      {/* Key Highlights */}
+      <div className="rb-g">
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+          <label className="rb-lbl" style={{ margin:0 }}>Key Highlights</label>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", borderRadius:99, background:counterBg, border:`1.5px solid ${counterBorder}`, transition:"all .25s" }}>
+              <span style={{ fontSize:11, fontWeight:700, color:counterColor }}>{wordCount}</span>
+              <span style={{ fontSize:10, color:counterColor, opacity:.75 }}>/ {MAX} words</span>
+              {wordCount > 0 && <span style={{ fontSize:10, fontWeight:600, color:counterColor, borderLeft:`1px solid ${counterBorder}`, paddingLeft:6, marginLeft:2 }}>{counterMsg}</span>}
+            </div>
+            <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!hasContext || loading} style={{ opacity:(!hasContext || loading) ? 0.5 : 1, cursor:(!hasContext || loading) ? "not-allowed" : "pointer" }}>
+              {loading
+                ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
+              {loading ? "Generating…" : "AI Suggest"}
+            </button>
+          </div>
+        </div>
+        <div style={{ width:"100%", height:3, background:"#f1f5f9", borderRadius:99, marginBottom:6, overflow:"hidden" }}>
+          <div style={{ height:"100%", width:`${Math.min(100,(wordCount/MAX)*100)}%`, background: isGood ? "#16a34a" : isOver ? "#dc2626" : "#f59e0b", borderRadius:99, transition:"width .3s, background .3s" }}/>
+        </div>
+        <textarea
+          className="rb-in rb-ta"
+          style={{ minHeight:110, borderColor: isOver ? "#fca5a5" : isGood ? "#86efac" : undefined, transition:"border-color .25s" }}
+          placeholder={hasContext ? "Type keywords above and click AI Suggest, or write directly…" : "Fill Project Title & Tech Stack above first…"}
+          value={proj.description}
+          onChange={e => onUpd(proj.id,"description",e.target.value)}
+        />
+      </div>
+
+      {suggestions.length > 0 && (
+        <div className="sum-suggestions">
+          {suggestions.map((s, i) => (
+            <div key={i} className="sum-suggestion-card" onClick={() => onUpd(proj.id,"description",s.text)}>
+              <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
+              <div className="sum-sug-text">{s.text}</div>
+              <div className="sum-sug-use">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Click to use this
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {suggestions.length === 0 && (
+        <div className="sum-chips-hint">
+          {hasContext ? "Type keywords → click ✨ AI Suggest to generate 2 options" : "Fill Title & Stack fields to unlock AI suggestions"}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1127,10 +2163,280 @@ function ProjectsSection({ data, onChange }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function CertificationsSection({ data, onChange }) {
   const safeData = Array.isArray(data) ? data : [makeCert()];
-  const upd = (id, k, v) => onChange(safeData.map(c => c.id === id ? { ...c, [k]:v } : c));
+  const upd = (id, k, v) => onChange(safeData.map(c => c.id === id ? { ...c, [k]: v } : c));
   const rem = id => onChange(safeData.filter(c => c.id !== id));
-  const genAI = (cert) => { const name = cert.name || "the certification"; const issuer = cert.issuer || "the issuing body"; const date = cert.date ? ` in ${cert.date}` : ""; return `Earned ${name} from ${issuer}${date}. ${AI.certification}`; };
-  return (<div>{safeData.map((c, i) => (<div key={c.id} className="rb-card"><div className="rb-card-head"><span className="rb-card-title">Certification {i+1}</span>{safeData.length > 1 && <button className="rb-rm" onClick={() => rem(c.id)}>×</button>}</div><div className="rb-row"><div className="rb-g"><label className="rb-lbl">Name</label><input className="rb-in" placeholder="AWS Solutions Architect" value={c.name} onChange={e => upd(c.id,"name",e.target.value)}/></div><div className="rb-g"><label className="rb-lbl">Issuer</label><input className="rb-in" placeholder="Amazon Web Services" value={c.issuer} onChange={e => upd(c.id,"issuer",e.target.value)}/></div></div><div className="rb-g"><label className="rb-lbl">Date</label><input className="rb-in" placeholder="March 2024" value={c.date} onChange={e => upd(c.id,"date",e.target.value)}/></div><div className="rb-g"><div className="cert-field-header"><span className="cert-field-label">Key Highlights<span className="cert-field-sub">(optional)</span></span><button className="sum-ai-btn-top" onClick={() => upd(c.id,"description",genAI(c))}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>AI Suggest</button></div><textarea className="rb-in rb-ta" placeholder="What this certification covers, skills validated, key topics…" value={c.description} onChange={e => upd(c.id,"description",e.target.value)}/></div></div>))}<button className="rb-add" onClick={() => onChange([...safeData, makeCert()])}>+ Add Another Certification</button></div>);
+
+  return (
+    <div>
+      {safeData.map((c, i) => (
+        <CertCard key={c.id} cert={c} index={i} total={safeData.length} onUpd={upd} onRem={rem} />
+      ))}
+      <button className="rb-add" onClick={() => onChange([...safeData, makeCert()])}>
+        + Add Another Certification
+      </button>
+    </div>
+  );
+}
+
+function CertCard({ cert, index, total, onUpd, onRem }) {
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading]         = useState(false);
+  const [keywords, setKeywords]       = useState("");
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const wordCount = cert.description?.trim() === "" ? 0 : (cert.description?.trim().split(/\s+/).length || 0);
+  const MIN = 80, MAX = 150;
+  const isUnder = wordCount > 0 && wordCount < MIN;
+  const isOver  = wordCount > MAX;
+  const isGood  = wordCount >= MIN && wordCount <= MAX;
+  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
+  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
+  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
+  const counterMsg    = isGood ? "✓ Great length" : isOver ? `${wordCount - MAX} words over` : isUnder ? `${MIN - wordCount} more needed` : "80–150 words recommended";
+
+  const handleAISuggest = () => {
+    const hasCtx = cert.name || cert.issuer || keywords.trim();
+    if (!hasCtx) return;
+    setLoading(true);
+    setTimeout(() => {
+      const name   = cert.name?.trim()   || "this certification";
+      const issuer = cert.issuer?.trim() || "the issuing body";
+      const date   = cert.date?.trim()   ? ` earned in ${cert.date}` : "";
+      const kw     = keywords.trim();
+      const kwCtx  = kw ? ` covering ${kw}` : "";
+      setSuggestions([
+        {
+          tag: "Competency-Led",
+          text: `Earned ${name} from ${issuer}${date}${kwCtx}. Demonstrated strong proficiency across core competency areas including architecture, security, and optimization strategies. Successfully completed rigorous assessments and hands-on labs that validated real-world expertise and readiness for industry challenges.`,
+        },
+        {
+          tag: "Achievement-Led",
+          text: `Achieved ${name} issued by ${issuer}${date}${kwCtx}. This credential reflects a thorough understanding of best practices, advanced concepts, and practical application. Prepared through intensive study and applied projects, reinforcing both theoretical knowledge and hands-on implementation skills in professional environments.`,
+        },
+      ]);
+      setLoading(false);
+    }, 380);
+  };
+
+  const hasContext = cert.name || cert.issuer || keywords.trim();
+
+  // Card accent color based on index
+  const ACCENTS = [
+    { border: "#c7d2fe", top: "#6366f1", bg: "#f5f3ff" },
+    { border: "#a7f3d0", top: "#059669", bg: "#f0fdf4" },
+    { border: "#fde68a", top: "#d97706", bg: "#fffbeb" },
+    { border: "#fca5a5", top: "#dc2626", bg: "#fef2f2" },
+  ];
+  const accent = ACCENTS[index % ACCENTS.length];
+
+  return (
+    <div style={{
+      background: "#fff",
+      border: `1.5px solid ${accent.border}`,
+      borderRadius: 12,
+      marginBottom: 12,
+      overflow: "hidden",
+      boxShadow: "0 2px 8px rgba(0,0,0,.04)",
+    }}>
+      {/* Card top strip */}
+      <div style={{
+        background: `linear-gradient(135deg, ${accent.bg}, #fff)`,
+        borderBottom: `1.5px solid ${accent.border}`,
+        padding: "11px 15px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <div style={{
+            width: 28, height: 28,
+            background: accent.top,
+            borderRadius: 8,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 14, flexShrink: 0,
+          }}>🏆</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
+              {cert.name || `Certification ${index + 1}`}
+            </div>
+            <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 1 }}>
+              {cert.issuer ? `Issued by ${cert.issuer}` : "Add certification details below"}
+              {cert.date ? ` · ${cert.date}` : ""}
+            </div>
+          </div>
+        </div>
+        {total > 1 && (
+          <button className="rb-rm" onClick={() => onRem(cert.id)}>×</button>
+        )}
+      </div>
+
+      <div style={{ padding: "14px 15px" }}>
+
+        {/* Name + Issuer row */}
+        <div className="rb-row">
+          <div className="rb-g">
+            <label className="rb-lbl">Certification Name</label>
+            <input className="rb-in" placeholder="e.g. AWS Solutions Architect"
+              value={cert.name}
+              onChange={e => onUpd(cert.id, "name", e.target.value)}
+            />
+          </div>
+          <div className="rb-g">
+            <label className="rb-lbl">Issuing Authority</label>
+            <input className="rb-in" placeholder="e.g. Amazon Web Services"
+              value={cert.issuer}
+              onChange={e => onUpd(cert.id, "issuer", e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Date + Credential ID row */}
+        <div className="rb-row">
+          <div className="rb-g">
+            <label className="rb-lbl">Issued On</label>
+            <DurationPicker
+              value={cert.date || ""}
+              onChange={v => onUpd(cert.id, "date", v)}
+              singleDate
+            />
+          </div>
+          <div className="rb-g">
+            <label className="rb-lbl">Credential ID <span className="opt">(optional)</span></label>
+            <input className="rb-in" placeholder="e.g. ABC-123-XYZ"
+              value={cert.credentialId || ""}
+              onChange={e => onUpd(cert.id, "credentialId", e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Keywords row */}
+        <div className="rb-g">
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+            <label className="rb-lbl" style={{ margin: 0 }}>Keywords</label>
+            <div style={{ marginLeft: "auto" }}>
+              <button className="sum-ai-btn-top"
+                onClick={handleAISuggest}
+                disabled={!hasContext || loading}
+                style={{ opacity: (!hasContext || loading) ? 0.5 : 1, cursor: (!hasContext || loading) ? "not-allowed" : "pointer" }}
+              >
+                {loading
+                  ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                  : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
+                {loading ? "Generating…" : "AI Suggest"}
+              </button>
+            </div>
+          </div>
+          <input className="rb-in"
+            placeholder="e.g. cloud architecture, IAM, cost optimization, security…"
+            value={keywords}
+            onChange={e => setKeywords(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleAISuggest()}
+          />
+        </div>
+
+        {/* Key Highlights with word counter + tooltip */}
+        <div className="rb-g">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+
+            {/* Label + info tooltip */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <label className="rb-lbl" style={{ margin: 0 }}>
+                Key Highlights
+                <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: 11, marginLeft: 4 }}>(optional)</span>
+              </label>
+              <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+                <button
+                  className="sum-info-btn"
+                  onMouseEnter={() => setShowTooltip(true)}
+                  onMouseLeave={() => setShowTooltip(false)}
+                >i</button>
+                {showTooltip && (
+                  <div className="sum-tooltip" style={{ left: 0, right: "auto", top: "calc(100% + 8px)", width: 230 }}>
+                    <strong>✍️ What to write here:</strong><br/>
+                    • Topics & modules covered<br/>
+                    • Skills this cert validates<br/>
+                    • Exam format or difficulty<br/>
+                    • How it helps your career<br/><br/>
+                    <em>💡 Tip: 80–150 words is the sweet spot for ATS scanners.</em>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Word counter */}
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              padding: "3px 10px", borderRadius: 99,
+              background: counterBg, border: `1.5px solid ${counterBorder}`,
+              transition: "all .25s",
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: counterColor }}>{wordCount}</span>
+              <span style={{ fontSize: 10, color: counterColor, opacity: .75 }}>/ {MAX} words</span>
+              {wordCount > 0 && (
+                <span style={{
+                  fontSize: 10, fontWeight: 600, color: counterColor,
+                  borderLeft: `1px solid ${counterBorder}`,
+                  paddingLeft: 6, marginLeft: 2,
+                }}>{counterMsg}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div style={{ width: "100%", height: 3, background: "#f1f5f9", borderRadius: 99, marginBottom: 6, overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${Math.min(100, (wordCount / MAX) * 100)}%`,
+              background: isGood ? "#16a34a" : isOver ? "#dc2626" : "#f59e0b",
+              borderRadius: 99,
+              transition: "width .3s, background .3s",
+            }}/>
+          </div>
+
+          <textarea
+            className="rb-in rb-ta"
+            style={{
+              minHeight: 100,
+              borderColor: isOver ? "#fca5a5" : isGood ? "#86efac" : undefined,
+              transition: "border-color .25s",
+            }}
+            placeholder={hasContext
+              ? "Type keywords above → click ✨ AI Suggest, or write directly…"
+              : "Fill Certification Name & Issuer above first…"}
+            value={cert.description}
+            onChange={e => onUpd(cert.id, "description", e.target.value)}
+          />
+        </div>
+
+        {/* AI Suggestion cards */}
+        {suggestions.length > 0 && (
+          <div className="sum-suggestions">
+            {suggestions.map((s, i) => (
+              <div key={i} className="sum-suggestion-card"
+                onClick={() => onUpd(cert.id, "description", s.text)}>
+                <div className="sum-sug-tag">Option {i + 1} · {s.tag}</div>
+                <div className="sum-sug-text">{s.text}</div>
+                <div className="sum-sug-use">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Click to use this
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {suggestions.length === 0 && (
+          <div className="sum-chips-hint">
+            {hasContext
+              ? "Type keywords → click ✨ AI Suggest to generate 2 options"
+              : "Fill Certification Name & Issuer to unlock AI suggestions"}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1138,20 +2444,265 @@ function CertificationsSection({ data, onChange }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function LanguagesSection({ data, onChange }) {
   const safeData = Array.isArray(data) ? data : [makeLang()];
-  const upd = (id, k, v) => onChange(safeData.map(l => l.id === id ? { ...l, [k]:v } : l));
+  const [mode, setMode] = useState("level");
+  const [ratingType, setRatingType] = useState("stars");
+
+  const upd = (id, k, v) => onChange(safeData.map(l => l.id === id ? { ...l, [k]: v } : l));
   const rem = id => onChange(safeData.filter(l => l.id !== id));
-  const [hoveredMap, setHoveredMap] = useState({});
+
+  const LEVELS = [
+    { label: "Basic",        stars: 1, color: "#16a34a", bg: "#f0fdf4", border: "#86efac" },
+    { label: "Elementary",   stars: 2, color: "#0284c7", bg: "#f0f9ff", border: "#7dd3fc" },
+    { label: "Intermediate", stars: 3, color: "#7c3aed", bg: "#f5f3ff", border: "#c4b5fd" },
+    { label: "Advanced",     stars: 4, color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+    { label: "Native",       stars: 5, color: "#dc2626", bg: "#fef2f2", border: "#fca5a5" },
+  ];
+
+  const RATING_TYPES = [
+    { id: "stars",  label: "Stars"  },
+    { id: "dots",   label: "Dots"   },
+    { id: "bars",   label: "Bars"   },
+    { id: "blocks", label: "Blocks" },
+  ];
+
+  function RatingWidget({ langId, value }) {
+    const [hov, setHov] = useState(0);
+    const active = hov || value || 0;
+    const col = "#6366f1";
+
+    if (ratingType === "stars") return (
+      <div style={{ display: "flex", gap: 4 }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <button key={n} type="button"
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(langId, "stars", n)}
+            style={{
+              background: "none", border: "none", cursor: "pointer", fontSize: 26,
+              color: n <= active ? "#f59e0b" : "#e2e8f0",
+              transform: n <= active ? "scale(1.12)" : "scale(1)",
+              transition: "all .1s", padding: "2px",
+            }}
+          >★</button>
+        ))}
+      </div>
+    );
+
+    if (ratingType === "dots") return (
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <div key={n}
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(langId, "stars", n)}
+            style={{
+              width: n <= active ? 22 : 16, height: n <= active ? 22 : 16,
+              borderRadius: "50%", cursor: "pointer",
+              background: n <= active ? col : "#e5e7eb",
+              border: `2px solid ${n <= active ? col : "#d1d5db"}`,
+              transition: "all .15s",
+            }}
+          />
+        ))}
+      </div>
+    );
+
+    if (ratingType === "bars") return (
+      <div style={{ display: "flex", gap: 5, alignItems: "flex-end", height: 34 }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <div key={n}
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(langId, "stars", n)}
+            style={{
+              width: 26, height: 8 + n * 4, borderRadius: "3px 3px 0 0", cursor: "pointer",
+              background: n <= active ? col : "#e5e7eb",
+              border: `1.5px solid ${n <= active ? col : "#d1d5db"}`,
+              transition: "all .15s",
+            }}
+          />
+        ))}
+      </div>
+    );
+
+    if (ratingType === "blocks") return (
+      <div style={{ display: "flex", gap: 5 }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <div key={n}
+            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
+            onClick={() => upd(langId, "stars", n)}
+            style={{
+              width: 34, height: 20, borderRadius: 5, cursor: "pointer",
+              background: n <= active ? col : "#e5e7eb",
+              border: `1.5px solid ${n <= active ? col : "#d1d5db"}`,
+              transition: "all .15s",
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div>
-      {safeData.map((l, i) => (
-        <div key={l.id} className="rb-card">
-          <div className="rb-card-head"><span className="rb-card-title">Language {i+1}</span>{safeData.length > 1 && <button className="rb-rm" onClick={() => rem(l.id)}>×</button>}</div>
-          <div className="rb-g"><label className="rb-lbl">Language</label><input className="rb-in" placeholder="Tamil" value={l.language} onChange={e => upd(l.id,"language",e.target.value)}/></div>
-          <div className="rb-g"><label className="rb-lbl">Proficiency</label><select className="rb-in" value={l.proficiency} onChange={e => upd(l.id,"proficiency",e.target.value)}>{PROF_LEVELS.map(p => <option key={p}>{p}</option>)}</select></div>
-          <div className="rb-g"><label className="rb-lbl">Rating <span className="opt">(1–5 stars)</span></label><StarRating value={l.stars || 0} onChange={val => upd(l.id,"stars",val)} hovered={hoveredMap[l.id] || 0} setHovered={val => setHoveredMap(prev => ({ ...prev, [l.id]:val }))}/></div>
+
+      {/* ── Top control bar (same as Skills) ── */}
+      <div style={{
+        background: "#f8fafc", border: "1.5px solid #e2e8f0",
+        borderRadius: 12, padding: "12px 14px", marginBottom: 16,
+      }}>
+        <div style={{
+          display: "flex", alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: mode === "rating" ? 12 : 0,
+        }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
+            How do you want to rate languages?
+          </span>
+          {/* Toggle pill */}
+          <div style={{ display: "flex", background: "#e2e8f0", borderRadius: 99, padding: 3, gap: 2 }}>
+            {[
+              { id: "level",  label: "Level Badge"  },
+              { id: "rating", label: "Rating Style" },
+            ].map(m => (
+              <button key={m.id} type="button"
+                onClick={() => setMode(m.id)}
+                style={{
+                  padding: "5px 14px", border: "none", borderRadius: 99,
+                  background: mode === m.id ? "#fff" : "transparent",
+                  fontWeight: mode === m.id ? 700 : 500,
+                  color: mode === m.id ? "#6366f1" : "#64748b",
+                  fontSize: 12, cursor: "pointer", fontFamily: "inherit",
+                  boxShadow: mode === m.id ? "0 1px 4px rgba(0,0,0,.12)" : "none",
+                  transition: "all .18s",
+                }}
+              >{m.label}</button>
+            ))}
+          </div>
         </div>
-      ))}
-      <button className="rb-add" onClick={() => onChange([...safeData, makeLang()])}>+ Add Another Language</button>
+
+        {/* Rating type chips */}
+        {mode === "rating" && (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {RATING_TYPES.map(rt => (
+              <button key={rt.id} type="button"
+                onClick={() => setRatingType(rt.id)}
+                style={{
+                  padding: "5px 13px", borderRadius: 7, cursor: "pointer",
+                  fontFamily: "inherit", fontSize: 12, fontWeight: 600,
+                  border: `1.5px solid ${ratingType === rt.id ? "#6366f1" : "#e5e7eb"}`,
+                  background: ratingType === rt.id ? "#ede9fe" : "#fff",
+                  color: ratingType === rt.id ? "#6366f1" : "#374151",
+                  transition: "all .15s",
+                }}
+              >{rt.label}</button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Language cards ── */}
+      {safeData.map((l, i) => {
+        const selLvl = LEVELS.find(lv => lv.label === l.proficiency) || LEVELS[2];
+        return (
+          <div key={l.id} className="rb-card">
+            <div className="rb-card-head">
+              <span className="rb-card-title">Language {i + 1}</span>
+              {safeData.length > 1 &&
+                <button className="rb-rm" onClick={() => rem(l.id)}>×</button>}
+            </div>
+
+            {/* Language name */}
+            <div className="rb-g">
+              <label className="rb-lbl">Language</label>
+              <input className="rb-in" placeholder="e.g. Tamil, English, French…"
+                value={l.language}
+                onChange={e => upd(l.id, "language", e.target.value)}
+              />
+            </div>
+
+            {/* LEVEL MODE */}
+            {mode === "level" && (
+              <div className="rb-g">
+                <label className="rb-lbl">Proficiency</label>
+                <div style={{
+                  display: "grid", gridTemplateColumns: "repeat(5,1fr)",
+                  gap: 6, marginBottom: 8,
+                }}>
+                  {LEVELS.map(lvl => {
+                    const isOn = l.proficiency === lvl.label;
+                    return (
+                      <div key={lvl.label}
+                        onClick={() => onChange(safeData.map(sk =>
+                          sk.id === l.id
+                            ? { ...sk, proficiency: lvl.label, stars: lvl.stars }
+                            : sk
+                        ))}
+                        style={{ cursor: "pointer", textAlign: "center" }}
+                      >
+                        <div style={{ display: "flex", gap: 2, justifyContent: "center", marginBottom: 4 }}>
+                          {[1, 2, 3, 4, 5].map(d => (
+                            <div key={d} style={{
+                              width: d <= lvl.stars ? 7 : 5,
+                              height: d <= lvl.stars ? 7 : 5,
+                              borderRadius: "50%",
+                              background: d <= lvl.stars ? lvl.color : "#e5e7eb",
+                              marginTop: d <= lvl.stars ? 0 : 1,
+                            }} />
+                          ))}
+                        </div>
+                        <span style={{
+                          fontSize: 10, fontWeight: isOn ? 700 : 500,
+                          color: isOn ? lvl.color : "#6b7280", lineHeight: 1.2,
+                        }}>
+                          {lvl.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Selected badge preview */}
+                {l.proficiency && (
+                  <div style={{
+                    padding: "6px 12px",
+                    background: selLvl.bg,
+                    border: `1.5px solid ${selLvl.border}`,
+                    borderRadius: 8,
+                    display: "flex", alignItems: "center", gap: 8,
+                  }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: selLvl.color }}>
+                      {selLvl.label}
+                    </span>
+                    <span style={{ fontSize: 11, color: "#6b7280" }}>
+                      · {selLvl.stars}/5
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* RATING MODE */}
+            {mode === "rating" && (
+              <div className="rb-g">
+                <label className="rb-lbl">Rating</label>
+                <RatingWidget langId={l.id} value={l.stars || 0} />
+                {l.stars > 0 && (
+                  <div style={{
+                    marginTop: 8, fontSize: 12, fontWeight: 600,
+                    color: LEVELS[(l.stars || 1) - 1]?.color || "#6366f1",
+                  }}>
+                    {LEVELS[(l.stars || 1) - 1]?.label}
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+        );
+      })}
+
+      <button className="rb-add"
+        onClick={() => onChange([...safeData, makeLang()])}>
+        + Add Another Language
+      </button>
     </div>
   );
 }
