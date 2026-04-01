@@ -717,6 +717,7 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
   const dragRef = useRef(null);
   const [dragging, setDragging]   = useState(null);
   const [dragOverId, setDragOver] = useState(null);
+
   const onDragStart = (e, id) => { dragRef.current = id; setDragging(id); e.dataTransfer.effectAllowed = "move"; };
   const onDragOver  = (e, id) => { e.preventDefault(); setDragOver(id); };
   const onDragEnd   = () => { setDragging(null); setDragOver(null); };
@@ -733,105 +734,451 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
   const fontStyle = { fontFamily: `'${font}',sans-serif` };
   const pxSize = PHOTO_SIZES[photoSize] || 72;
   const photo = personal.photo;
-  const name  = personal.name || "";
+  const name  = personal.name  || "";
   const title = personal.title || "";
 
-  const safeExp    = Array.isArray(experience)     ? experience     : [];
-  const safeUG     = Array.isArray(education?.ug)  ? education.ug  : [];
-  const safeSchool = Array.isArray(education?.school) ? education.school : [];
-  const safeSk     = Array.isArray(skills)         ? skills         : [];
-  const safeProj   = Array.isArray(projects)       ? projects       : [];
-  const safeCert   = Array.isArray(certifications) ? certifications : [];
-  const safeLang   = Array.isArray(languages)      ? languages      : [];
+  // ── safe arrays ──────────────────────────────────────────────────────────────
+  const safeExp    = Array.isArray(experience)          ? experience          : [];
+  const safeUG     = Array.isArray(education?.ug)       ? education.ug       : [];
+  const safeSchool = Array.isArray(education?.school)   ? education.school   : [];
+  const safeSk     = Array.isArray(skills)              ? skills              : [];
+  const safeProj   = Array.isArray(projects)            ? projects            : [];
+  const safeCert   = Array.isArray(certifications)      ? certifications      : [];
+  const safeLang   = Array.isArray(languages)           ? languages           : [];
 
-  const PhotoEl  = ({ extraStyle = {} }) => !photo ? null : (
-    <img src={photo} alt="profile" style={{ width:pxSize, height:pxSize, borderRadius:"50%", objectFit:"cover", border:`2px solid ${col}33`, flexShrink:0, ...extraStyle }} />
+  // ── sub-components (defined inside LivePreview so they close over col) ──────
+  const PhotoEl = ({ extraStyle = {} }) => !photo ? null : (
+    <img src={photo} alt="profile" style={{
+      width:pxSize, height:pxSize, borderRadius:"50%",
+      objectFit:"cover", border:`2px solid ${col}33`,
+      flexShrink:0, ...extraStyle,
+    }}/>
   );
-  const Heading  = ({ label, dark = false }) => (
+
+  const Heading = ({ label, dark = false }) => (
     <div style={{ borderBottom:`2px solid ${dark ? "rgba(255,255,255,.4)" : col}`, paddingBottom:2, marginBottom:7 }}>
-      <h2 style={{ fontSize:10, fontWeight:800, margin:0, color: dark ? "#fff" : col, textTransform:"uppercase", letterSpacing:0.5 }}>{label}</h2>
+      <h2 style={{ fontSize:10, fontWeight:800, margin:0,
+        color: dark ? "#fff" : col, textTransform:"uppercase", letterSpacing:0.5 }}>
+        {label}
+      </h2>
     </div>
   );
+
   const MiniStars = ({ level }) => (
     <span style={{ fontSize:8, letterSpacing:1 }}>
-      {[1,2,3,4,5].map(s => (<span key={s} style={{ color: s <= level ? "#f59e0b" : "#d1d5db" }}>★</span>))}
+      {[1,2,3,4,5].map(s => (
+        <span key={s} style={{ color: s <= level ? "#f59e0b" : "#d1d5db" }}>★</span>
+      ))}
     </span>
   );
 
+  // ── Header ───────────────────────────────────────────────────────────────────
+  const Header = ({ center = false }) => {
+    const contacts = [
+      personal.location,
+      personal.phone,
+      personal.email,
+      personal.linkedin && `in: ${personal.linkedin}`,
+      personal.github   && `gh: ${personal.github}`,
+    ].filter(Boolean);
+
+    return (
+      <div style={{
+        display:"flex",
+        flexDirection: photoPosition === "center" || center ? "column" : "row",
+        alignItems:    photoPosition === "center" || center ? "center" : "flex-start",
+        gap:12, marginBottom:10,
+      }}>
+        {photoPosition === "left"   && <PhotoEl/>}
+        {photoPosition === "center" && <PhotoEl extraStyle={{ margin:"0 auto 6px" }}/>}
+        <div style={{ flex:1, textAlign: photoPosition === "center" || center ? "center" : "left" }}>
+          {name  && <h1 style={{ fontSize:20, fontWeight:900, color:"#111", margin:0,
+            textTransform:"uppercase", letterSpacing:0.4 }}>{name}</h1>}
+          {title && <h2 style={{ fontSize:12, fontWeight:600, color:col, margin:"3px 0 4px" }}>{title}</h2>}
+          {contacts.length > 0 && (
+            <p style={{ fontSize:8, color:"#555", lineHeight:1.6 }}>
+              {contacts.join("  |  ")}
+            </p>
+          )}
+        </div>
+        {photoPosition === "right" && <PhotoEl/>}
+      </div>
+    );
+  };
+
+  // ── renderBlock ───────────────────────────────────────────────────────────────
   const renderBlock = (id, dark = false) => {
     const t  = (w = 400) => ({ fontSize:8.5, color: dark ? "rgba(255,255,255,.85)" : "#333", fontWeight:w });
     const sm = ()        => ({ fontSize:8,   color: dark ? "rgba(255,255,255,.6)"  : "#777" });
+
     switch (id) {
+
       case "summary":
-        if (!summary.text) return null;
-        return <><Heading label="Professional Summary" dark={dark}/><p style={{ ...t(), lineHeight:1.65 }}>{summary.text}</p></>;
-      case "experience":
-        if (safeExp.every(e => !e.company && !e.role)) return null;
-        return (<><Heading label="Work Experience" dark={dark}/>{safeExp.filter(e => e.company || e.role).map(e => (<div key={e.id} style={{ marginBottom:9 }}><div style={{ display:"flex", justifyContent:"space-between" }}><div><strong style={t(700)}>{e.role}</strong>{e.company && <p style={sm()}>{e.company}</p>}</div><div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:1 }}>{e.duration && <span style={sm()}>{e.duration}</span>}</div></div>{e.location && <p style={sm()}>{e.location}</p>}{e.description && e.description.split("\n").filter(Boolean).map((l, i) => (<p key={i} style={{ ...t(), paddingLeft:8, marginTop:2 }}>• {l}</p>))}</div>))}</>);
-      case "education":
+        if (!summary?.text) return null;
+        return (
+          <>
+            <Heading label="Professional Summary" dark={dark}/>
+            <p style={{ ...t(), lineHeight:1.65 }}>{summary.text}</p>
+          </>
+        );
+
+      case "experience": {
+        const filled = safeExp.filter(e => e.company || e.role);
+        if (!filled.length) return null;
+        return (
+          <>
+            <Heading label="Work Experience" dark={dark}/>
+            {filled.map(e => (
+              <div key={e.id} style={{ marginBottom:9 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  <div>
+                    {e.role    && <strong style={t(700)}>{e.role}</strong>}
+                    {e.company && (
+                      <p style={{ ...sm(), marginTop:1 }}>
+                        {e.company}{e.location ? ` · ${e.location}` : ""}
+                      </p>
+                    )}
+                  </div>
+                  {e.duration && (
+                    <span style={{ ...sm(), flexShrink:0, marginLeft:8 }}>{e.duration}</span>
+                  )}
+                </div>
+                {e.description && e.description.split("\n").filter(Boolean).map((l, i) => (
+                  <p key={i} style={{ ...t(), paddingLeft:8, marginTop:2 }}>• {l}</p>
+                ))}
+              </div>
+            ))}
+          </>
+        );
+      }
+
+      case "education": {
         const hasUG     = safeUG.some(e => e.degree || e.college);
         const hasSchool = safeSchool.some(e => e.schoolName);
         if (!hasUG && !hasSchool) return null;
-        return (<><Heading label="Education" dark={dark}/>{safeUG.filter(e => e.degree || e.college).map(e => (<div key={e.id} style={{ marginBottom:12 }}><div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}><div><strong style={t(700)}>{e.degree}{e.branch ? ` — ${e.branch}` : ""}</strong>{e.college && <p style={{ ...sm(), fontStyle:"italic", marginTop:1 }}>{e.college}</p>}</div>{(e.startYear || e.endYear) && (<span style={sm()}>{e.startYear}{e.startYear && e.endYear ? " – " : ""}{e.endYear}</span>)}</div>{e.gpa && <p style={sm()}>CGPA: {e.gpa}</p>}{e.highlights && <p style={{ ...t(), marginTop:2, lineHeight:1.55 }}>{e.highlights}</p>}</div>))}{safeSchool.filter(e => e.schoolName).map(e => (<div key={e.id} style={{ marginBottom:12 }}><div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}><div><strong style={t(700)}>{e.schoolName}</strong>{e.board && <span style={{ ...sm(), marginLeft:4 }}>· {e.board}</span>}{e.stream && <p style={{ ...sm(), fontStyle:"italic", marginTop:1 }}>{e.stream}</p>}</div><span style={sm()}>{e.passingYear}{e.percentage ? ` · ${e.percentage}` : ""}</span></div>{e.highlights && <p style={{ ...t(), marginTop:2, lineHeight:1.55 }}>{e.highlights}</p>}</div>))}</>);
-      case "skills":
-        if (!safeSk.some(s => s.name)) return null;
-        return (<><Heading label="Skills" dark={dark}/><div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 10px" }}>{safeSk.filter(s => s.name).map(s => { const badgeColor = s.badge === "Beginner" ? "#16a34a" : s.badge === "Intermediate" ? "#2563eb" : s.badge === "Advanced" ? "#7c3aed" : "#dc2626"; return (<div key={s.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:4 }}><p style={t()}>• {s.name}</p><div style={{ display:"flex", alignItems:"center", gap:4 }}><MiniStars level={typeof s.level === "number" ? s.level : 3}/>{s.badge && <span style={{ fontSize:7, fontWeight:700, color:badgeColor, background:`${badgeColor}15`, padding:"2px 5px", borderRadius:99 }}>{s.badge}</span>}</div></div>); })}</div></>);
-      case "projects":
-        if (!safeProj.some(p => p.name)) return null;
-        return (<><Heading label="Projects" dark={dark}/>{safeProj.filter(p => p.name).map(p => (<div key={p.id} style={{ marginBottom:8 }}><div style={{ display:"flex", justifyContent:"space-between" }}><strong style={t(700)}>{p.name}</strong>{p.stack && <span style={sm()}>{p.stack}</span>}</div>{p.description && <p style={{ ...t(), marginTop:2 }}>{p.description}</p>}{p.link && <p style={{ fontSize:8, color: dark ? "#a5b4fc" : col, marginTop:2 }}>🔗 {p.link}</p>}</div>))}</>);
-      case "certifications":
-        if (!safeCert.some(c => c.name)) return null;
-        return (<><Heading label="Certifications" dark={dark}/>{safeCert.filter(c => c.name).map(c => (<div key={c.id} style={{ marginBottom:6 }}><div style={{ display:"flex", justifyContent:"space-between" }}><strong style={t(700)}>{c.name}</strong>{c.date && <span style={sm()}>{c.date}</span>}</div>{c.issuer && <p style={{ ...sm(), fontStyle:"italic" }}>{c.issuer}</p>}{c.description && <p style={{ ...t(), marginTop:2, lineHeight:1.55 }}>{c.description}</p>}</div>))}</>);
-      case "languages":
-        if (!safeLang.some(l => l.language)) return null;
-        return (<><Heading label="Languages" dark={dark}/><div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 14px" }}>{safeLang.filter(l => l.language).map(l => (<p key={l.id} style={t()}><strong>{l.language}</strong> — {l.proficiency}</p>))}</div></>);
+        return (
+          <>
+            <Heading label="Education" dark={dark}/>
+            {safeUG.filter(e => e.degree || e.college).map(e => (
+              <div key={e.id} style={{ marginBottom:9 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  <div>
+                    <strong style={t(700)}>
+                      {e.degree}{e.branch ? ` — ${e.branch}` : ""}
+                    </strong>
+                    {e.college && (
+                      <p style={{ ...sm(), fontStyle:"italic", marginTop:1 }}>{e.college}</p>
+                    )}
+                  </div>
+                  <div style={{ textAlign:"right", flexShrink:0, marginLeft:8 }}>
+                    {(e.startYear || e.endYear) && (
+                      <span style={sm()}>
+                        {e.startYear}{e.startYear && e.endYear ? " – " : ""}{e.endYear}
+                      </span>
+                    )}
+                    {e.gpa && <p style={sm()}>CGPA: {e.gpa}</p>}
+                  </div>
+                </div>
+                {e.highlights && (
+                  <p style={{ ...t(), marginTop:2, lineHeight:1.55 }}>{e.highlights}</p>
+                )}
+              </div>
+            ))}
+            {safeSchool.filter(e => e.schoolName).map(e => (
+              <div key={e.id} style={{ marginBottom:9 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  <div>
+                    <strong style={t(700)}>{e.schoolName}</strong>
+                    {(e.board || e.stream) && (
+                      <p style={{ ...sm(), marginTop:1 }}>
+                        {e.board}{e.board && e.stream ? " · " : ""}{e.stream}
+                      </p>
+                    )}
+                  </div>
+                  <div style={{ textAlign:"right", flexShrink:0, marginLeft:8 }}>
+                    {e.passingYear && <span style={sm()}>{e.passingYear}</span>}
+                    {e.percentage  && <p style={sm()}>{e.percentage}</p>}
+                  </div>
+                </div>
+                {e.highlights && (
+                  <p style={{ ...t(), marginTop:2, lineHeight:1.55 }}>{e.highlights}</p>
+                )}
+              </div>
+            ))}
+          </>
+        );
+      }
+
+      case "skills": {
+        const filled = safeSk.filter(s => s.name);
+        if (!filled.length) return null;
+        const BADGE_COLORS = {
+          Beginner:"#16a34a", Elementary:"#0284c7", Intermediate:"#7c3aed",
+          Advanced:"#d97706", Expert:"#dc2626",
+          Basic:"#16a34a",    Native:"#dc2626",
+        };
+        return (
+          <>
+            <Heading label="Skills" dark={dark}/>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 10px" }}>
+              {filled.map(s => {
+                const badgeColor = BADGE_COLORS[s.badge] || "#6366f1";
+                const lvl = typeof s.level === "number" ? s.level : 3;
+                return (
+                  <div key={s.id} style={{ display:"flex", alignItems:"center",
+                    justifyContent:"space-between", gap:4 }}>
+                    <p style={t()}>• {s.name}</p>
+                    <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
+                      <MiniStars level={lvl}/>
+                      {s.badge && (
+                        <span style={{
+                          fontSize:7, fontWeight:700, color:badgeColor,
+                          background:`${badgeColor}18`, padding:"2px 5px", borderRadius:99,
+                        }}>{s.badge}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        );
+      }
+
+      case "projects": {
+        const filled = safeProj.filter(p => p.name);
+        if (!filled.length) return null;
+        return (
+          <>
+            <Heading label="Projects" dark={dark}/>
+            {filled.map(p => (
+              <div key={p.id} style={{ marginBottom:8 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  <strong style={t(700)}>{p.name}</strong>
+                  {(p.tech || p.date) && (
+                    <span style={{ ...sm(), flexShrink:0, marginLeft:8 }}>
+                      {p.tech}{p.tech && p.date ? " · " : ""}{p.date}
+                    </span>
+                  )}
+                </div>
+                {p.description && (
+                  <p style={{ ...t(), marginTop:2, lineHeight:1.55 }}>
+                    {p.description.length > 200
+                      ? p.description.slice(0, 200) + "…"
+                      : p.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </>
+        );
+      }
+
+      case "certifications": {
+        const filled = safeCert.filter(c => c.name);
+        if (!filled.length) return null;
+        return (
+          <>
+            <Heading label="Certifications" dark={dark}/>
+            {filled.map(c => (
+              <div key={c.id} style={{ marginBottom:6 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  <strong style={t(700)}>{c.name}</strong>
+                  {c.date && (
+                    <span style={{ ...sm(), flexShrink:0, marginLeft:8 }}>{c.date}</span>
+                  )}
+                </div>
+                {c.issuer && (
+                  <p style={{ ...sm(), fontStyle:"italic", marginTop:1 }}>{c.issuer}</p>
+                )}
+                {c.credentialId && (
+                  <p style={sm()}>ID: {c.credentialId}</p>
+                )}
+                {c.description && (
+                  <p style={{ ...t(), marginTop:2, lineHeight:1.55 }}>
+                    {c.description.length > 120
+                      ? c.description.slice(0, 120) + "…"
+                      : c.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </>
+        );
+      }
+
+      case "languages": {
+        const filled = safeLang.filter(l => l.language);
+        if (!filled.length) return null;
+        const LANG_COLORS = {
+          Basic:"#16a34a", Elementary:"#0284c7", Intermediate:"#7c3aed",
+          Advanced:"#d97706", Native:"#dc2626",
+        };
+        return (
+          <>
+            <Heading label="Languages" dark={dark}/>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 14px" }}>
+              {filled.map(l => {
+                const lvlColor = LANG_COLORS[l.proficiency] || "#6b7280";
+                return (
+                  <div key={l.id} style={{ display:"flex", alignItems:"center",
+                    justifyContent:"space-between", gap:4 }}>
+                    <p style={t()}><strong>{l.language}</strong></p>
+                    <span style={{
+                      fontSize:7, fontWeight:700, color:lvlColor,
+                      background:`${lvlColor}18`, padding:"2px 6px", borderRadius:99, flexShrink:0,
+                    }}>{l.proficiency}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        );
+      }
+
       default: return null;
     }
   };
 
+  // ── DragSection ───────────────────────────────────────────────────────────────
   const DragSection = ({ id, dark = false, style = {} }) => {
     const block = renderBlock(id, dark);
     if (!block) return null;
-    return (<div className={`rb-drag${dragging === id ? " dragging" : ""}${dragOverId === id ? " drag-over" : ""}`} draggable onDragStart={e => onDragStart(e, id)} onDragOver={e => onDragOver(e, id)} onDrop={e => onDrop(e, id)} onDragEnd={onDragEnd} style={{ marginBottom:10, ...style }}><div className="rb-drag-handle"><span/><span/><span/></div>{block}</div>);
+    return (
+      <div
+        className={`rb-drag${dragging === id ? " dragging" : ""}${dragOverId === id ? " drag-over" : ""}`}
+        draggable
+        onDragStart={e => onDragStart(e, id)}
+        onDragOver={e  => onDragOver(e, id)}
+        onDrop={e      => onDrop(e, id)}
+        onDragEnd={onDragEnd}
+        style={{ marginBottom:10, ...style }}
+      >
+        <div className="rb-drag-handle"><span/><span/><span/></div>
+        {block}
+      </div>
+    );
   };
 
   const hasHeader = name || title || personal.email || personal.phone || personal.location;
   const hasAny    = hasHeader || sectionOrder.some(id => renderBlock(id) !== null);
 
-  const Header = ({ center = false }) => (
-    <div style={{ display:"flex", flexDirection: photoPosition === "center" || center ? "column" : "row", alignItems: photoPosition === "center" || center ? "center" : "flex-start", gap:12, marginBottom:10 }}>
-      {photoPosition === "left"   && <PhotoEl/>}
-      {photoPosition === "center" && <PhotoEl extraStyle={{ margin:"0 auto 6px" }}/>}
-      <div style={{ flex:1, textAlign: photoPosition === "center" || center ? "center" : "left" }}>
-        {name  && <h1 style={{ fontSize:20, fontWeight:900, color:"#111", margin:0, textTransform:"uppercase", letterSpacing:0.4 }}>{name}</h1>}
-        {title && <h2 style={{ fontSize:12, fontWeight:600, color:col, margin:"3px 0 4px" }}>{title}</h2>}
-        <p style={{ fontSize:8, color:"#555" }}>{[personal.location, personal.phone, personal.email, personal.linkedin && `in: ${personal.linkedin}`, personal.github && `gh: ${personal.github}`].filter(Boolean).join(" | ")}</p>
-      </div>
-      {photoPosition === "right" && <PhotoEl/>}
-    </div>
-  );
-
+  // ── Layouts ───────────────────────────────────────────────────────────────────
   if (layout === "one-col") return (
     <div style={{ ...fontStyle, background:"#fff", padding:"20px 22px", minHeight:500 }}>
-      {!hasAny ? (<div className="rb-empty"><div className="rb-empty-icon">📝</div><div className="rb-empty-text">Start filling your details</div><div className="rb-empty-sub">Your resume will appear here as you type</div></div>)
-        : (<>{hasHeader && <><Header/><div style={{ height:2, background:col, marginBottom:12 }}/></>}{sectionOrder.map(id => <DragSection key={id} id={id}/>)}</>)}
+      {!hasAny
+        ? (
+          <div className="rb-empty">
+            <div className="rb-empty-icon">📝</div>
+            <div className="rb-empty-text">Start filling your details</div>
+            <div className="rb-empty-sub">Your resume will appear here as you type</div>
+          </div>
+        ) : (
+          <>
+            {hasHeader && (
+              <>
+                <Header/>
+                <div style={{ height:2, background:col, marginBottom:12 }}/>
+              </>
+            )}
+            {sectionOrder.map(id => <DragSection key={id} id={id}/>)}
+          </>
+        )}
     </div>
   );
 
   if (layout === "two-col") {
-    const visible = sectionOrder.filter(id => renderBlock(id) !== null);
-    const mid = Math.ceil(visible.length / 2);
-    const leftSecs = visible.slice(0, mid); const rightSecs = visible.slice(mid);
-    return (<div style={{ ...fontStyle, background:"#fff", minHeight:500 }}>{hasHeader && (<div style={{ padding:"16px 18px 10px", borderBottom:`2px solid ${col}` }}><Header/></div>)}{!hasAny ? (<div className="rb-empty"><div className="rb-empty-icon">📝</div><div className="rb-empty-text">Start filling your details</div><div className="rb-empty-sub">Your resume will appear here as you type</div></div>) : (<div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", minHeight:400 }}><div style={{ padding:"12px 14px 12px 18px", borderRight:"1px solid #e5e7eb" }}>{leftSecs.map(id => <DragSection key={id} id={id}/>)}</div><div style={{ padding:"12px 18px 12px 14px" }}>{rightSecs.map(id => <DragSection key={id} id={id}/>)}</div></div>)}</div>);
+    const visible   = sectionOrder.filter(id => renderBlock(id) !== null);
+    const mid       = Math.ceil(visible.length / 2);
+    const leftSecs  = visible.slice(0, mid);
+    const rightSecs = visible.slice(mid);
+    return (
+      <div style={{ ...fontStyle, background:"#fff", minHeight:500 }}>
+        {hasHeader && (
+          <div style={{ padding:"16px 18px 10px", borderBottom:`2px solid ${col}` }}>
+            <Header/>
+          </div>
+        )}
+        {!hasAny
+          ? (
+            <div className="rb-empty">
+              <div className="rb-empty-icon">📝</div>
+              <div className="rb-empty-text">Start filling your details</div>
+              <div className="rb-empty-sub">Your resume will appear here as you type</div>
+            </div>
+          ) : (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", minHeight:400 }}>
+              <div style={{ padding:"12px 14px 12px 18px", borderRight:"1px solid #e5e7eb" }}>
+                {leftSecs.map(id => <DragSection key={id} id={id}/>)}
+              </div>
+              <div style={{ padding:"12px 18px 12px 14px" }}>
+                {rightSecs.map(id => <DragSection key={id} id={id}/>)}
+              </div>
+            </div>
+          )}
+      </div>
+    );
   }
 
   if (layout === "sidebar-left") {
     const sideIds = sectionOrder.filter(id => ["skills","languages","certifications"].includes(id));
     const mainIds = sectionOrder.filter(id => !["skills","languages","certifications"].includes(id));
-    return (<div style={{ ...fontStyle, background:"#fff", display:"flex", minHeight:500 }}><div style={{ width:168, flexShrink:0, background:col, padding:"16px 13px", display:"flex", flexDirection:"column", gap:12 }}>{photo && (<div style={{ display:"flex", justifyContent: photoPosition === "right" ? "flex-end" : photoPosition === "center" ? "center" : "flex-start" }}><PhotoEl extraStyle={{ border:"2px solid rgba(255,255,255,.3)" }}/></div>)}{(name || title) && (<div>{name && <h2 style={{ fontSize:13, fontWeight:900, color:"#fff", margin:0, lineHeight:1.2 }}>{name}</h2>}{title && <p style={{ fontSize:8.5, color:"rgba(255,255,255,.75)", marginTop:3, fontStyle:"italic" }}>{title}</p>}</div>)}{(personal.email || personal.phone || personal.location) && (<div><div style={{ borderBottom:"1px solid rgba(255,255,255,.25)", paddingBottom:4, marginBottom:7 }}><span style={{ fontSize:9, fontWeight:800, color:"rgba(255,255,255,.6)", textTransform:"uppercase", letterSpacing:.8 }}>Contact</span></div>{personal.location && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)", marginBottom:4 }}>📍 {personal.location}</p>}{personal.phone && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)", marginBottom:4 }}>📞 {personal.phone}</p>}{personal.email && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)", marginBottom:4, wordBreak:"break-all" }}>✉ {personal.email}</p>}{personal.linkedin && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)", marginBottom:4 }}>in {personal.linkedin}</p>}{personal.github && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)" }}>⌥ {personal.github}</p>}</div>)}{sideIds.map(id => (<div key={id} className={`rb-drag${dragging === id ? " dragging" : ""}${dragOverId === id ? " drag-over" : ""}`} draggable onDragStart={e => onDragStart(e, id)} onDragOver={e => onDragOver(e, id)} onDrop={e => onDrop(e, id)} onDragEnd={onDragEnd}>{renderBlock(id, true)}</div>))}</div><div style={{ flex:1, padding:"16px 16px" }}>{mainIds.map(id => <DragSection key={id} id={id}/>)}</div></div>);
+    return (
+      <div style={{ ...fontStyle, background:"#fff", display:"flex", minHeight:500 }}>
+        <div style={{ width:168, flexShrink:0, background:col, padding:"16px 13px",
+          display:"flex", flexDirection:"column", gap:12 }}>
+          {photo && (
+            <div style={{ display:"flex", justifyContent:
+              photoPosition === "right"  ? "flex-end" :
+              photoPosition === "center" ? "center"   : "flex-start" }}>
+              <PhotoEl extraStyle={{ border:"2px solid rgba(255,255,255,.3)" }}/>
+            </div>
+          )}
+          {(name || title) && (
+            <div>
+              {name  && <h2 style={{ fontSize:13, fontWeight:900, color:"#fff",
+                margin:0, lineHeight:1.2 }}>{name}</h2>}
+              {title && <p style={{ fontSize:8.5, color:"rgba(255,255,255,.75)",
+                marginTop:3, fontStyle:"italic" }}>{title}</p>}
+            </div>
+          )}
+          {(personal.email || personal.phone || personal.location) && (
+            <div>
+              <div style={{ borderBottom:"1px solid rgba(255,255,255,.25)",
+                paddingBottom:4, marginBottom:7 }}>
+                <span style={{ fontSize:9, fontWeight:800, color:"rgba(255,255,255,.6)",
+                  textTransform:"uppercase", letterSpacing:.8 }}>Contact</span>
+              </div>
+              {personal.location && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)", marginBottom:4 }}>📍 {personal.location}</p>}
+              {personal.phone    && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)", marginBottom:4 }}>📞 {personal.phone}</p>}
+              {personal.email    && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)", marginBottom:4, wordBreak:"break-all" }}>✉ {personal.email}</p>}
+              {personal.linkedin && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)", marginBottom:4 }}>in {personal.linkedin}</p>}
+              {personal.github   && <p style={{ fontSize:8, color:"rgba(255,255,255,.8)" }}>⌥ {personal.github}</p>}
+            </div>
+          )}
+          {sideIds.map(id => (
+            <div key={id}
+              className={`rb-drag${dragging===id?" dragging":""}${dragOverId===id?" drag-over":""}`}
+              draggable
+              onDragStart={e => onDragStart(e, id)}
+              onDragOver={e  => onDragOver(e, id)}
+              onDrop={e      => onDrop(e, id)}
+              onDragEnd={onDragEnd}
+            >
+              {renderBlock(id, true)}
+            </div>
+          ))}
+        </div>
+        <div style={{ flex:1, padding:"16px 16px" }}>
+          {mainIds.map(id => <DragSection key={id} id={id}/>)}
+        </div>
+      </div>
+    );
   }
+
   return null;
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PERSONAL SECTION
