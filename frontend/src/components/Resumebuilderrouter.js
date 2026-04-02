@@ -6,6 +6,10 @@
 // 4) Fixed live preview for Education and all sections
 // 5) DatePicker: Beautiful calendar-style UI with month grid, year scroller, Present toggle
 //    Supports: Year only | Month+Year | Full Date (Day+Month+Year)
+// 6) Education UG: Replaced Start/End with single "Graduated Year" calendar picker
+// 7) Education: AI Suggest btn next to Highlights label (like Summary/Experience)
+// 8) Education: Word count shown simply (no progress bar)
+// 9) Experience: Calendar view for duration (same InlineDatePicker style)
 
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { useLocation } from "react-router-dom";
@@ -75,7 +79,7 @@ const makeProj = () => ({ id:uid(), name:"", tech:"", keywords:"", date:"", vali
 const makeCert = () => ({ id:uid(), name:"", issuer:"", date:"", description:"" });
 const makeLang = () => ({ id:uid(), language:"", proficiency:"Intermediate", stars:0 });
 const makeSkill= () => ({ id:uid(), name:"", level:3, badge:"Intermediate" });
-const makeUG     = () => ({ id:uid(), type:"ug",     college:"", degree:"",  branch:"",  startYear:"", endYear:"", gpa:"", highlights:"" });
+const makeUG     = () => ({ id:uid(), type:"ug",     college:"", degree:"",  branch:"",  graduatedYear:"", gpa:"", highlights:"" });
 const makeSchool = () => ({ id:uid(), type:"school", schoolName:"", board:"", stream:"", passingYear:"", percentage:"", highlights:"" });
 
 const INIT = {
@@ -154,160 +158,6 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;}
 .rb-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:5px 10px 5px 10px;font-size:12px;color:#374151;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .rb-chip-x{background:none;border:none;cursor:pointer;color:#d1d5db;font-size:14px;padding:0;line-height:1;margin-left:2px;}
 .rb-chip-x:hover{color:#ef4444;}
-
-/* ══════════════════════════════════════════════════════
-   CALENDAR DATE PICKER
-   ══════════════════════════════════════════════════════ */
-.dp-wrap{
-  background:#fff;border:1.5px solid #e2e8f0;
-  border-radius:12px;overflow:hidden;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);
-}
-.dp-header{
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);
-  padding:12px 14px;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.dp-header-label{
-  font-size:12px;font-weight:700;color:#fff;
-  display:flex;align-items:center;gap:6px;
-}
-.dp-present-pill{
-  display:flex;align-items:center;gap:6px;
-  padding:4px 12px;border-radius:99px;
-  border:1.5px solid rgba(255,255,255,.4);
-  background:rgba(255,255,255,.15);
-  color:#fff;font-size:11px;font-weight:700;
-  cursor:pointer;font-family:inherit;
-  transition:all .18s;
-}
-.dp-present-pill.active{
-  background:#fff;color:#6366f1;
-  border-color:#fff;
-}
-.dp-present-pill:hover:not(.active){background:rgba(255,255,255,.25);}
-
-.dp-format-bar{
-  display:flex;border-bottom:1.5px solid #f1f5f9;
-  background:#fafbff;
-}
-.dp-format-btn{
-  flex:1;padding:9px 4px;border:none;
-  background:transparent;font-size:11px;font-weight:600;
-  color:#64748b;cursor:pointer;font-family:inherit;
-  border-bottom:2.5px solid transparent;transition:all .15s;
-}
-.dp-format-btn.on{color:#6366f1;border-bottom-color:#6366f1;background:#fff;}
-.dp-format-btn:hover:not(.on){background:#f5f3ff;color:#6366f1;}
-
-.dp-body{padding:14px;}
-
-/* Year scroller */
-.dp-year-scroll{
-  display:flex;align-items:center;gap:6px;
-  background:#f8fafc;border:1.5px solid #e2e8f0;
-  border-radius:9px;padding:8px 10px;margin-bottom:12px;
-}
-.dp-year-nav{
-  width:28px;height:28px;border-radius:7px;border:1.5px solid #e2e8f0;
-  background:#fff;color:#6366f1;font-size:14px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;flex-shrink:0;font-family:inherit;
-  transition:all .15s;font-weight:700;
-}
-.dp-year-nav:hover{background:#eff6ff;border-color:#a5b4fc;}
-.dp-year-list{
-  display:flex;gap:5px;overflow-x:auto;flex:1;
-  scrollbar-width:none;padding:1px 0;
-}
-.dp-year-list::-webkit-scrollbar{display:none;}
-.dp-year-chip{
-  flex-shrink:0;padding:5px 12px;border-radius:7px;
-  border:1.5px solid #e2e8f0;background:#fff;
-  font-size:12px;font-weight:600;color:#374151;
-  cursor:pointer;font-family:inherit;transition:all .15s;
-  white-space:nowrap;
-}
-.dp-year-chip.selected{
-  background:#6366f1;color:#fff;
-  border-color:#6366f1;
-  box-shadow:0 2px 8px rgba(99,102,241,.35);
-}
-.dp-year-chip:hover:not(.selected){background:#f5f3ff;border-color:#a5b4fc;color:#6366f1;}
-
-/* Month grid */
-.dp-month-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
-  margin-bottom:12px;
-}
-.dp-month-btn{
-  padding:8px 4px;border-radius:8px;
-  border:1.5px solid #e2e8f0;background:#fff;
-  font-size:12px;font-weight:600;color:#374151;
-  cursor:pointer;font-family:inherit;transition:all .15s;
-  text-align:center;
-}
-.dp-month-btn.selected{
-  background:#6366f1;color:#fff;border-color:#6366f1;
-  box-shadow:0 2px 8px rgba(99,102,241,.3);
-}
-.dp-month-btn:hover:not(.selected){background:#f5f3ff;border-color:#a5b4fc;color:#6366f1;}
-
-/* Day grid */
-.dp-day-label-row{
-  display:grid;grid-template-columns:repeat(7,1fr);
-  gap:3px;margin-bottom:5px;
-}
-.dp-day-label{
-  text-align:center;font-size:9px;font-weight:700;
-  color:#94a3b8;padding:3px 0;text-transform:uppercase;
-}
-.dp-day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
-.dp-day-btn{
-  aspect-ratio:1;border-radius:7px;border:1.5px solid transparent;
-  background:transparent;font-size:11px;font-weight:600;
-  color:#374151;cursor:pointer;font-family:inherit;transition:all .15s;
-  display:flex;align-items:center;justify-content:center;
-}
-.dp-day-btn.empty{cursor:default;}
-.dp-day-btn:not(.empty):hover{background:#f5f3ff;border-color:#a5b4fc;color:#6366f1;}
-.dp-day-btn.selected{
-  background:#6366f1;color:#fff;border-color:#6366f1;
-  box-shadow:0 1px 6px rgba(99,102,241,.4);
-}
-.dp-day-btn.today{border-color:#fbbf24 !important;}
-
-/* Selected preview chip */
-.dp-preview{
-  display:flex;align-items:center;gap:6px;
-  margin-top:10px;padding:7px 12px;
-  background:linear-gradient(135deg,#f5f3ff,#eff6ff);
-  border:1.5px solid #c7d2fe;border-radius:8px;
-}
-.dp-preview-icon{font-size:13px;}
-.dp-preview-val{font-size:12px;font-weight:700;color:#4f46e5;}
-.dp-preview-clear{
-  margin-left:auto;padding:2px 8px;border-radius:6px;
-  border:1px solid #c7d2fe;background:#fff;
-  color:#6366f1;font-size:10px;font-weight:700;
-  cursor:pointer;font-family:inherit;
-}
-.dp-preview-clear:hover{background:#eff6ff;}
-
-/* Present overlay */
-.dp-present-overlay{
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:8px;
-  padding:24px 14px;text-align:center;
-}
-.dp-present-badge{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:10px 20px;border-radius:99px;
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);
-  color:#fff;font-size:14px;font-weight:800;
-  box-shadow:0 4px 14px rgba(99,102,241,.38);
-}
-.dp-present-sub{font-size:11px;color:#9ca3af;}
 
 /* Duration wrapper */
 .dur-wrap{
@@ -537,8 +387,6 @@ function StarRating({ value, onChange, hovered, setHovered }) {
   );
 }
 
-
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // DURATION PICKER — Start + End with tab UI
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -598,7 +446,7 @@ function DurationPicker({ value, onChange, singleDate = false }) {
   const labelStyle = { fontSize: 11, fontWeight: 600, color: "#6b7280", marginBottom: 5, display: "block" };
   const groupStyle = { display: "flex", flexDirection: "column", flex: 1 };
 
-if (singleDate) {
+  if (singleDate) {
     const parts = value ? value.split(" ") : [];
     const sMo = parts.length === 2 ? parts[0] : "";
     const sYr = parts.length === 2 ? parts[1] : (parts.length === 1 ? parts[0] : "");
@@ -625,7 +473,7 @@ if (singleDate) {
       </div>
     );
   }
-return (
+  return (
     <div style={{ background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
       {/* Summary bar */}
       <div style={{
@@ -737,7 +585,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
   const name  = personal.name  || "";
   const title = personal.title || "";
 
-  // ── safe arrays ──────────────────────────────────────────────────────────────
   const safeExp    = Array.isArray(experience)          ? experience          : [];
   const safeUG     = Array.isArray(education?.ug)       ? education.ug       : [];
   const safeSchool = Array.isArray(education?.school)   ? education.school   : [];
@@ -746,7 +593,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
   const safeCert   = Array.isArray(certifications)      ? certifications      : [];
   const safeLang   = Array.isArray(languages)           ? languages           : [];
 
-  // ── sub-components (defined inside LivePreview so they close over col) ──────
   const PhotoEl = ({ extraStyle = {} }) => !photo ? null : (
     <img src={photo} alt="profile" style={{
       width:pxSize, height:pxSize, borderRadius:"50%",
@@ -772,7 +618,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     </span>
   );
 
-  // ── Header ───────────────────────────────────────────────────────────────────
   const Header = ({ center = false }) => {
     const contacts = [
       personal.location,
@@ -806,7 +651,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     );
   };
 
-  // ── renderBlock ───────────────────────────────────────────────────────────────
   const renderBlock = (id, dark = false) => {
     const t  = (w = 400) => ({ fontSize:8.5, color: dark ? "rgba(255,255,255,.85)" : "#333", fontWeight:w });
     const sm = ()        => ({ fontSize:8,   color: dark ? "rgba(255,255,255,.6)"  : "#777" });
@@ -871,10 +715,8 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
                     )}
                   </div>
                   <div style={{ textAlign:"right", flexShrink:0, marginLeft:8 }}>
-                    {(e.startYear || e.endYear) && (
-                      <span style={sm()}>
-                        {e.startYear}{e.startYear && e.endYear ? " – " : ""}{e.endYear}
-                      </span>
+                    {e.graduatedYear && (
+                      <span style={sm()}>Graduated: {e.graduatedYear}</span>
                     )}
                     {e.gpa && <p style={sm()}>CGPA: {e.gpa}</p>}
                   </div>
@@ -1040,7 +882,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
     }
   };
 
-  // ── DragSection ───────────────────────────────────────────────────────────────
   const DragSection = ({ id, dark = false, style = {} }) => {
     const block = renderBlock(id, dark);
     if (!block) return null;
@@ -1063,7 +904,6 @@ function LivePreview({ data, styling, sectionOrder, onReorder }) {
   const hasHeader = name || title || personal.email || personal.phone || personal.location;
   const hasAny    = hasHeader || sectionOrder.some(id => renderBlock(id) !== null);
 
-  // ── Layouts ───────────────────────────────────────────────────────────────────
   if (layout === "one-col") return (
     <div style={{ ...fontStyle, background:"#fff", padding:"20px 22px", minHeight:500 }}>
       {!hasAny
@@ -1204,10 +1044,8 @@ function SummarySection({ data, onChange, personalData }) {
   const isUnder = wordCount > 0 && wordCount < MIN;
   const isOver  = wordCount > MAX;
   const isGood  = wordCount >= MIN && wordCount <= MAX;
-  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
-  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
-  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
-  const counterMsg    = isGood ? "✓ Great length" : isOver ? `${wordCount - MAX} words over limit` : isUnder ? `${MIN - wordCount} more words needed` : "100–200 words recommended";
+
+  const textareaBorder = isGood ? "#86efac" : isOver ? "#fca5a5" : "#e5e7eb";
 
   const handleAISuggest = () => {
     if (!keywords.trim()) return;
@@ -1216,8 +1054,14 @@ function SummarySection({ data, onChange, personalData }) {
       const role = jobTitle.trim() || "Professional";
       const kw   = keywords.trim();
       setSuggestions([
-        { tag:"Achievement-Led", text:`Results-driven ${role} with expertise in ${kw}, known for delivering high-impact solutions on time and within budget. Adept at leading cross-functional teams, translating complex requirements into scalable systems, and continuously improving processes that drive measurable business outcomes. Passionate about leveraging ${kw} to solve real-world challenges and create lasting organisational value.` },
-        { tag:"Skills-Forward",  text:`Versatile ${role} with hands-on experience in ${kw}, collaborating across disciplines to build robust, user-focused applications. Known for strong problem-solving instincts, clear technical communication, and a commitment to clean, maintainable work that stands up in production. Dedicated to continuous learning and applying ${kw} expertise to drive meaningful product outcomes.` },
+        {
+          tag: "Achievement-Led",
+          text: `Results-driven ${role} with expertise in ${kw}, known for delivering high-impact solutions on time and within budget. Adept at leading cross-functional teams, translating complex requirements into scalable systems, and continuously improving processes that drive measurable business outcomes. Passionate about leveraging ${kw} to solve real-world challenges and create lasting organisational value.`,
+        },
+        {
+          tag: "Skills-Forward",
+          text: `Versatile ${role} with hands-on experience in ${kw}, collaborating across disciplines to build robust, user-focused applications. Known for strong problem-solving instincts, clear technical communication, and a commitment to clean, maintainable work that stands up in production. Dedicated to continuous learning and applying ${kw} expertise to drive meaningful product outcomes.`,
+        },
       ]);
       setLoading(false);
     }, 380);
@@ -1226,50 +1070,114 @@ function SummarySection({ data, onChange, personalData }) {
   return (
     <div>
       <div className="rb-g">
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
-          <label className="rb-lbl" style={{ margin:0 }}>Keywords</label>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+          <label className="rb-lbl" style={{ margin: 0 }}>Keywords</label>
           <div className="sum-info-wrap">
-            <button className="sum-info-btn" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>i</button>
-            {showTooltip && (<div className="sum-tooltip" style={{ right:"auto", left:0, top:"calc(100% + 8px)" }}><strong>How it works:</strong><br/>1️⃣ Type your skills or keywords<br/>2️⃣ Click <strong>AI Suggest</strong><br/>3️⃣ Pick one of the 2 options below<br/><br/><em>Tip: Keep your summary between 100–200 words for best ATS results.</em></div>)}
-          </div>
-          <div style={{ marginLeft:"auto" }}>
-            <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!keywords.trim() || loading} style={{ opacity:(!keywords.trim() || loading) ? 0.5 : 1, cursor:(!keywords.trim() || loading) ? "not-allowed" : "pointer" }}>
-              {loading ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
-              {loading ? "Generating…" : "AI Suggest"}
-            </button>
+            <button
+              className="sum-info-btn"
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            >i</button>
+            {showTooltip && (
+              <div className="sum-tooltip" style={{ right: "auto", left: 0, top: "calc(100% + 8px)" }}>
+                <strong>How it works:</strong><br/>
+                1️⃣ Type your skills or keywords<br/>
+                2️⃣ Click <strong>AI Suggest</strong> next to the summary label<br/>
+                3️⃣ Pick one of the 2 options below<br/><br/>
+                <em>Tip: Aim for 100–200 words for best ATS results.</em>
+              </div>
+            )}
           </div>
         </div>
-        <input className="rb-in" placeholder="e.g. React, team leadership, agile, AWS…" value={keywords} onChange={e => setKeywords(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
+
+        <input
+          className="rb-in"
+          placeholder="e.g. React, team leadership, agile, AWS…"
+          value={keywords}
+          onChange={e => setKeywords(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && handleAISuggest()}
+        />
       </div>
 
       <div className="rb-g">
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
-          <label className="rb-lbl" style={{ margin:0 }}>Professional Summary</label>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", borderRadius:99, background:counterBg, border:`1.5px solid ${counterBorder}`, transition:"all .25s" }}>
-            <span style={{ fontSize:11, fontWeight:700, color:counterColor, transition:"color .25s" }}>{wordCount}</span>
-            <span style={{ fontSize:10, color:counterColor, opacity:.75, transition:"color .25s" }}>/ {MAX} words</span>
-            {wordCount > 0 && (<span style={{ fontSize:10, fontWeight:600, color:counterColor, borderLeft:`1px solid ${counterBorder}`, paddingLeft:6, marginLeft:2, transition:"all .25s" }}>{counterMsg}</span>)}
-          </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+          <label className="rb-lbl" style={{ margin: 0 }}>Professional Summary</label>
+          <button
+            className="sum-ai-btn-top"
+            onClick={handleAISuggest}
+            disabled={!keywords.trim() || loading}
+            style={{
+              opacity: (!keywords.trim() || loading) ? 0.5 : 1,
+              cursor:  (!keywords.trim() || loading) ? "not-allowed" : "pointer",
+            }}
+          >
+            {loading
+              ? (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5"
+                  style={{ animation: "exp-spin 0.7s linear infinite" }}>
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              ) : (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
+              )}
+            {loading ? "Generating…" : " AI Suggest"}
+          </button>
         </div>
-        <div style={{ width:"100%", height:3, background:"#f1f5f9", borderRadius:99, marginBottom:6, overflow:"hidden" }}>
-          <div style={{ height:"100%", width:`${Math.min(100,(wordCount/MAX)*100)}%`, background: isGood ? "#16a34a" : isOver ? "#dc2626" : "#f59e0b", borderRadius:99, transition:"width .3s, background .3s" }}/>
-        </div>
-        <textarea className="rb-in rb-ta" style={{ minHeight:130, borderColor: isOver ? "#fca5a5" : isGood ? "#86efac" : undefined, transition:"border-color .25s" }} placeholder="Write a 2–3 sentence overview… or type keywords above and click AI Suggest." value={data.text} onChange={e => onChange({ ...data, text:e.target.value })}/>
+
+        <textarea
+          className="rb-in rb-ta"
+          style={{
+            minHeight: 130,
+            borderColor: textareaBorder,
+            transition: "border-color .25s",
+          }}
+          placeholder="Write a 2–3 sentence overview… or type keywords above and click ✦ AI Suggest."
+          value={data.text}
+          onChange={e => onChange({ ...data, text: e.target.value })}
+        />
+
+        <p style={{
+          fontSize: 11,
+          color: isGood ? "#16a34a" : isOver ? "#ef4444" : "#9ca3af",
+          fontStyle: "italic",
+          marginTop: 5,
+          transition: "color .25s",
+        }}>
+          {isGood
+            ? "✓ Looks great — perfect length for ATS scanners."
+            : isOver
+            ? "A little long — try trimming for better readability."
+            : "Aim for 100–200 words for the best ATS results."}
+        </p>
       </div>
 
       {suggestions.length > 0 && (
         <div className="sum-suggestions">
           {suggestions.map((s, i) => (
-            <div key={i} className="sum-suggestion-card" onClick={() => onChange({ ...data, text:s.text })}>
-              <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
+            <div key={i} className="sum-suggestion-card"
+              onClick={() => onChange({ ...data, text: s.text })}>
+              <div className="sum-sug-tag">Option {i + 1} · {s.tag}</div>
               <div className="sum-sug-text">{s.text}</div>
-              <div className="sum-sug-use"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Click to use this</div>
+              <div className="sum-sug-use">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Click to use this
+              </div>
             </div>
           ))}
         </div>
       )}
+
       {suggestions.length === 0 && keywords.trim() === "" && (
-        <div className="sum-chips-hint">Type keywords above → click ✨ AI Suggest to generate 2 summary options</div>
+        <div className="sum-chips-hint">
+          Type keywords above → click ✦ AI Suggest to generate 2 summary options
+        </div>
       )}
     </div>
   );
@@ -1289,10 +1197,6 @@ function ExpCard({ exp, index, total, onUpd, onRem }) {
   const isUnder = wordCount > 0 && wordCount < MIN;
   const isOver  = wordCount > MAX;
   const isGood  = wordCount >= MIN && wordCount <= MAX;
-  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
-  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
-  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
-  const counterMsg    = isGood ? "✓ Great length" : isOver ? `${wordCount - MAX} words over` : isUnder ? `${MIN - wordCount} more needed` : "200–300 words recommended";
 
   const handleAISuggest = () => {
     if (!keywords.trim() && !exp.company && !exp.role) return;
@@ -1335,28 +1239,40 @@ function ExpCard({ exp, index, total, onUpd, onRem }) {
             <button className="sum-info-btn" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>i</button>
             {showTooltip && (<div className="sum-tooltip" style={{ right:"auto", left:0, top:"calc(100% + 8px)" }}><strong>How it works:</strong><br/>1️⃣ Type skills or tools you used in this role<br/>2️⃣ Click <strong>AI Suggest</strong><br/>3️⃣ Pick one of the 2 options below<br/><br/><em>Tip: Aim for 200–300 words for best ATS visibility.</em></div>)}
           </div>
-          <div style={{ marginLeft:"auto" }}>
-            <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!hasContext || loading} style={{ opacity:(!hasContext || loading) ? 0.5 : 1, cursor:(!hasContext || loading) ? "not-allowed" : "pointer" }}>
-              {loading ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
-              {loading ? "Generating…" : "AI Suggest"}
-            </button>
-          </div>
         </div>
         <input className="rb-in" placeholder="e.g. React, Node.js, agile, REST APIs, team lead…" value={keywords} onChange={e => setKeywords(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
       </div>
       <div className="rb-g">
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
           <label className="rb-lbl" style={{ margin:0 }}>Responsibilities</label>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", borderRadius:99, background:counterBg, border:`1.5px solid ${counterBorder}`, transition:"all .25s" }}>
-            <span style={{ fontSize:11, fontWeight:700, color:counterColor }}>{wordCount}</span>
-            <span style={{ fontSize:10, color:counterColor, opacity:.75 }}>/ {MAX} words</span>
-            {wordCount > 0 && (<span style={{ fontSize:10, fontWeight:600, color:counterColor, borderLeft:`1px solid ${counterBorder}`, paddingLeft:6, marginLeft:2 }}>{counterMsg}</span>)}
-          </div>
+          <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!hasContext || loading} style={{ opacity:(!hasContext || loading) ? 0.5 : 1, cursor:(!hasContext || loading) ? "not-allowed" : "pointer" }}>
+            {loading
+              ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
+            {loading ? "Generating…" : "AI Suggest"}
+          </button>
         </div>
-        <div style={{ width:"100%", height:3, background:"#f1f5f9", borderRadius:99, marginBottom:6, overflow:"hidden" }}>
-          <div style={{ height:"100%", width:`${Math.min(100,(wordCount/MAX)*100)}%`, background: isGood ? "#16a34a" : isOver ? "#dc2626" : "#f59e0b", borderRadius:99, transition:"width .3s, background .3s" }}/>
-        </div>
-        <textarea className="rb-in rb-ta" style={{ minHeight:110, borderColor: isOver ? "#fca5a5" : isGood ? "#86efac" : undefined, transition:"border-color .25s" }} placeholder={hasContext ? "Type keywords above and click AI Suggest, or write directly…" : "Fill Company & Role above first…"} value={exp.description} onChange={e => onUpd(exp.id,"description",e.target.value)}/>
+        <textarea
+          className="rb-in rb-ta"
+          style={{
+            minHeight:110,
+            borderColor: isOver ? "#fca5a5" : isGood ? "#86efac" : undefined,
+            transition:"border-color .25s",
+          }}
+          placeholder={hasContext ? "Write directly or click ✦ AI Suggest above…" : "Fill Company & Role above first…"}
+          value={exp.description}
+          onChange={e => onUpd(exp.id,"description",e.target.value)}
+        />
+        <p style={{
+          fontSize:11, marginTop:5, fontStyle:"italic", transition:"color .25s",
+          color: isGood ? "#16a34a" : isOver ? "#ef4444" : "#9ca3af",
+        }}>
+          {isGood
+            ? "✓ Looks great — perfect length for ATS scanners."
+            : isOver
+            ? "A little long — try trimming for better readability."
+            : "Aim for 200–300 words for the best ATS results."}
+        </p>
       </div>
       {suggestions.length > 0 && (
         <div className="sum-suggestions">
@@ -1382,7 +1298,7 @@ function ExperienceSection({ data, onChange }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// EDUCATION SECTION
+// INLINE DATE PICKER — Calendar-style dropdown with year grid + month grid
 // ═══════════════════════════════════════════════════════════════════════════════
 function InlineDatePicker({ value, onChange, placeholder = "Select year" }) {
   const currentYear = new Date().getFullYear();
@@ -1518,8 +1434,7 @@ function InlineDatePicker({ value, onChange, placeholder = "Select year" }) {
           </div>
 
           <div style={{ padding: 8 }}>
-
-            {/* Year grid — 4 columns, compact */}
+            {/* Year grid — 4 columns */}
             {view === "year" && (
               <>
                 <div
@@ -1628,6 +1543,12 @@ function InlineDatePicker({ value, onChange, placeholder = "Select year" }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// EDUCATION — DEGREE ENTRY CARD
+// Changes: Start/End removed → single "Graduated Year" (InlineDatePicker)
+//          AI Suggest btn next to Highlights label
+//          Word count shown simply (no progress bar)
+// ═══════════════════════════════════════════════════════════════════════════════
 function DegreeEntryCard({ edu, index, total, upd, rem }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading]         = useState(false);
@@ -1635,14 +1556,9 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const wordCount = edu.highlights?.trim() === "" ? 0 : (edu.highlights?.trim().split(/\s+/).length || 0);
-  const MIN = 100, MAX = 200;
-  const isUnder = wordCount > 0 && wordCount < MIN;
-  const isOver  = wordCount > MAX;
-  const isGood  = wordCount >= MIN && wordCount <= MAX;
-  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
-  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
-  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
-  const counterMsg    = isGood ? "✓ Great" : isOver ? `${wordCount-MAX} over` : isUnder ? `${MIN-wordCount} more` : "100–200 words";
+  const MAX = 200;
+  const isOver = wordCount > MAX;
+  const isGood = wordCount >= 100 && wordCount <= MAX;
 
   const handleAI = () => {
     setLoading(true);
@@ -1653,7 +1569,7 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
       const kw     = keywords.trim();
       const kwCtx  = kw ? ` with focus on ${kw}` : "";
       setSuggestions([
-        { tag:"Academic", text:`Completed ${degree}${branch} at ${inst}${kwCtx}. Gained in-depth knowledge through rigorous coursework, hands-on projects, and collaborative learning. Built a strong foundation in core concepts while developing practical skills through real-world applications and academic research.` },
+        { tag:"Academic",    text:`Completed ${degree}${branch} at ${inst}${kwCtx}. Gained in-depth knowledge through rigorous coursework, hands-on projects, and collaborative learning. Built a strong foundation in core concepts while developing practical skills through real-world applications and academic research.` },
         { tag:"Achievement", text:`Pursued ${degree}${branch} at ${inst}${kwCtx}, consistently maintaining strong academic performance. Engaged in project-based learning, industry-relevant coursework, and extracurricular activities that shaped both technical acumen and professional readiness for the workforce.` },
       ]);
       setLoading(false);
@@ -1672,9 +1588,7 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
                 : `Education Entry ${index+1}`}
             </div>
             <div className="edu-degree-card-sub">
-              {edu.startYear || edu.endYear
-                ? `${edu.startYear||""}${edu.startYear&&edu.endYear?" – ":""}${edu.endYear||""}`
-                : "Add college & degree below"}
+              {edu.graduatedYear ? `Graduated: ${edu.graduatedYear}` : "Add college & degree below"}
             </div>
           </div>
         </div>
@@ -1700,16 +1614,14 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
         </div>
       </div>
 
-      <div className="edu-three-col">
+      <div className="edu-two-col">
         <div className="rb-g">
-          <label className="rb-lbl">Start</label>
-          <InlineDatePicker value={edu.startYear}
-            onChange={v => upd(edu.id,"startYear",v)} placeholder="Start year"/>
-        </div>
-        <div className="rb-g">
-          <label className="rb-lbl">End</label>
-          <InlineDatePicker value={edu.endYear}
-            onChange={v => upd(edu.id,"endYear",v)} placeholder="End year"/>
+          <label className="rb-lbl">Graduated Year</label>
+          <DurationPicker
+            value={edu.graduatedYear || ""}
+            onChange={v => upd(edu.id, "graduatedYear", v)}
+            singleDate
+          />
         </div>
         <div className="rb-g">
           <label className="rb-lbl">CGPA / % <span className="opt">opt</span></label>
@@ -1718,84 +1630,46 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
         </div>
       </div>
 
-      {/* Keywords */}
       <div className="rb-g">
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
-          <label className="rb-lbl" style={{ margin:0 }}>Keywords</label>
-          <div style={{ marginLeft:"auto" }}>
-            <button className="sum-ai-btn-top" onClick={handleAI} disabled={loading}
-              style={{ opacity:loading?0.5:1, cursor:loading?"not-allowed":"pointer" }}>
-              {loading
-                ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
-              {loading ? "Generating…" : "AI Suggest"}
-            </button>
-          </div>
-        </div>
+        <label className="rb-lbl" style={{ marginBottom: 5 }}>Keywords <span className="opt">(for AI suggestions)</span></label>
         <input className="rb-in"
           placeholder="e.g. machine learning, data structures, capstone project…"
           value={keywords} onChange={e => setKeywords(e.target.value)}
           onKeyDown={e => e.key==="Enter" && handleAI()}/>
       </div>
 
-      {/* Highlights with tooltip */}
       <div className="rb-g">
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
-
-          {/* Label + i tooltip */}
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             <label className="rb-lbl" style={{ margin:0 }}>
               Highlights
               <span style={{ color:"#9ca3af", fontWeight:400, fontSize:11, marginLeft:4 }}>opt</span>
             </label>
             <div style={{ position:"relative", display:"inline-flex", alignItems:"center" }}>
-              <button
-                className="sum-info-btn"
+              <button className="sum-info-btn"
                 onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-              >i</button>
+                onMouseLeave={() => setShowTooltip(false)}>i</button>
               {showTooltip && (
-                <div className="sum-tooltip"
-                  style={{ left:0, right:"auto", top:"calc(100% + 8px)", width:240 }}>
+                <div className="sum-tooltip" style={{ left:0, right:"auto", top:"calc(100% + 8px)", width:240 }}>
                   <strong>📚 What to write here:</strong><br/>
                   • Notable academic projects or thesis<br/>
                   • Awards, scholarships & honours<br/>
                   • Relevant coursework & electives<br/>
                   • Club activities or leadership roles<br/>
                   • Research papers or publications<br/><br/>
-                  <em>💡 Tip: 100–200 words keeps it ATS-friendly and scannable.</em>
+                  <em>💡 Tip: 100–200 words keeps it ATS-friendly.</em>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Word counter */}
-          <div style={{
-            display:"inline-flex", alignItems:"center", gap:5,
-            padding:"3px 10px", borderRadius:99,
-            background:counterBg, border:`1.5px solid ${counterBorder}`,
-            transition:"all .25s",
-          }}>
-            <span style={{ fontSize:11, fontWeight:700, color:counterColor }}>{wordCount}</span>
-            <span style={{ fontSize:10, color:counterColor, opacity:.75 }}>/ {MAX}</span>
-            {wordCount > 0 && (
-              <span style={{
-                fontSize:10, fontWeight:600, color:counterColor,
-                borderLeft:`1px solid ${counterBorder}`,
-                paddingLeft:6, marginLeft:2,
-              }}>{counterMsg}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ width:"100%", height:3, background:"#f1f5f9", borderRadius:99, marginBottom:6, overflow:"hidden" }}>
-          <div style={{
-            height:"100%",
-            width:`${Math.min(100,(wordCount/MAX)*100)}%`,
-            background: isGood?"#16a34a":isOver?"#dc2626":"#f59e0b",
-            borderRadius:99, transition:"width .3s, background .3s",
-          }}/>
+          <button className="sum-ai-btn-top" onClick={handleAI} disabled={loading}
+            style={{ opacity:loading?0.5:1, cursor:loading?"not-allowed":"pointer" }}>
+            {loading
+              ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
+            {loading ? "Generating…" : "AI Suggest"}
+          </button>
         </div>
 
         <textarea className="rb-in rb-ta"
@@ -1807,20 +1681,20 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
           placeholder="Key projects, awards, relevant coursework… (optional)"
           value={edu.highlights}
           onChange={e => upd(edu.id,"highlights",e.target.value)}/>
+
+        <p style={{ fontSize:11, color: isGood?"#16a34a":isOver?"#ef4444":"#9ca3af", fontStyle:"italic", marginTop:4 }}>
+          {isGood ? "✓ Great length for ATS." : isOver ? "Too long — try trimming." : "Aim for 100–200 words."}
+        </p>
       </div>
 
       {suggestions.length > 0 && (
         <div className="sum-suggestions">
           {suggestions.map((s,i) => (
-            <div key={i} className="sum-suggestion-card"
-              onClick={() => upd(edu.id,"highlights",s.text)}>
+            <div key={i} className="sum-suggestion-card" onClick={() => upd(edu.id,"highlights",s.text)}>
               <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
               <div className="sum-sug-text">{s.text}</div>
               <div className="sum-sug-use">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Click to use
               </div>
             </div>
@@ -1831,6 +1705,10 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// EDUCATION — SCHOOL ENTRY CARD
+// Changes: AI Suggest btn beside Highlights label, simple word count
+// ═══════════════════════════════════════════════════════════════════════════════
 function SchoolEntryCard({ edu, index, total, upd, rem }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading]         = useState(false);
@@ -1838,14 +1716,9 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const wordCount = edu.highlights?.trim() === "" ? 0 : (edu.highlights?.trim().split(/\s+/).length || 0);
-  const MIN = 100, MAX = 200;
-  const isUnder = wordCount > 0 && wordCount < MIN;
-  const isOver  = wordCount > MAX;
-  const isGood  = wordCount >= MIN && wordCount <= MAX;
-  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
-  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
-  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
-  const counterMsg    = isGood ? "✓ Great" : isOver ? `${wordCount-MAX} over` : isUnder ? `${MIN-wordCount} more` : "100–200 words";
+  const MAX = 200;
+  const isOver = wordCount > MAX;
+  const isGood = wordCount >= 100 && wordCount <= MAX;
 
   const handleAI = () => {
     setLoading(true);
@@ -1856,8 +1729,8 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
       const kw     = keywords.trim();
       const kwCtx  = kw ? ` with strengths in ${kw}` : "";
       setSuggestions([
-        { tag:"Academic",  text:`Completed schooling at ${school}${year}.${pct} Built a strong academic foundation${kwCtx} through focused coursework and consistent performance across core subjects.` },
-        { tag:"Holistic",  text:`Pursued schooling at ${school}${year}.${pct} Actively participated in academics and extracurricular activities${kwCtx}, developing discipline, teamwork, and a passion for continuous learning.` },
+        { tag:"Academic", text:`Completed schooling at ${school}${year}.${pct} Built a strong academic foundation${kwCtx} through focused coursework and consistent performance across core subjects.` },
+        { tag:"Holistic", text:`Pursued schooling at ${school}${year}.${pct} Actively participated in academics and extracurricular activities${kwCtx}, developing discipline, teamwork, and a passion for continuous learning.` },
       ]);
       setLoading(false);
     }, 380);
@@ -1889,8 +1762,11 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
       <div className="edu-two-col">
         <div className="rb-g">
           <label className="rb-lbl">Passing Year</label>
-          <InlineDatePicker value={edu.passingYear}
-            onChange={v => upd(edu.id,"passingYear",v)} placeholder="Passing year"/>
+          <DurationPicker
+            value={edu.passingYear || ""}
+            onChange={v => upd(edu.id,"passingYear",v)}
+            singleDate
+          />
         </div>
         <div className="rb-g">
           <label className="rb-lbl">Percentage / Grade <span className="opt">opt</span></label>
@@ -1899,44 +1775,26 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
         </div>
       </div>
 
-      {/* Keywords */}
       <div className="rb-g">
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
-          <label className="rb-lbl" style={{ margin:0 }}>Keywords</label>
-          <div style={{ marginLeft:"auto" }}>
-            <button className="sum-ai-btn-top" onClick={handleAI} disabled={loading}
-              style={{ opacity:loading?0.5:1, cursor:loading?"not-allowed":"pointer" }}>
-              {loading
-                ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
-              {loading ? "Generating…" : "AI Suggest"}
-            </button>
-          </div>
-        </div>
+        <label className="rb-lbl" style={{ marginBottom:5 }}>Keywords <span className="opt">(for AI suggestions)</span></label>
         <input className="rb-in" placeholder="e.g. science, mathematics, debate, sports…"
           value={keywords} onChange={e => setKeywords(e.target.value)}
           onKeyDown={e => e.key==="Enter" && handleAI()}/>
       </div>
 
-      {/* Highlights with tooltip */}
       <div className="rb-g">
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
-
-          {/* Label + i tooltip */}
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             <label className="rb-lbl" style={{ margin:0 }}>
               Highlights
               <span style={{ color:"#9ca3af", fontWeight:400, fontSize:11, marginLeft:4 }}>opt</span>
             </label>
             <div style={{ position:"relative", display:"inline-flex", alignItems:"center" }}>
-              <button
-                className="sum-info-btn"
+              <button className="sum-info-btn"
                 onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-              >i</button>
+                onMouseLeave={() => setShowTooltip(false)}>i</button>
               {showTooltip && (
-                <div className="sum-tooltip"
-                  style={{ left:0, right:"auto", top:"calc(100% + 8px)", width:240 }}>
+                <div className="sum-tooltip" style={{ left:0, right:"auto", top:"calc(100% + 8px)", width:240 }}>
                   <strong>🏫 What to write here:</strong><br/>
                   • Board exam scores or distinctions<br/>
                   • Subject toppers or class rank<br/>
@@ -1949,33 +1807,13 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
             </div>
           </div>
 
-          {/* Word counter */}
-          <div style={{
-            display:"inline-flex", alignItems:"center", gap:5,
-            padding:"3px 10px", borderRadius:99,
-            background:counterBg, border:`1.5px solid ${counterBorder}`,
-            transition:"all .25s",
-          }}>
-            <span style={{ fontSize:11, fontWeight:700, color:counterColor }}>{wordCount}</span>
-            <span style={{ fontSize:10, color:counterColor, opacity:.75 }}>/ {MAX}</span>
-            {wordCount > 0 && (
-              <span style={{
-                fontSize:10, fontWeight:600, color:counterColor,
-                borderLeft:`1px solid ${counterBorder}`,
-                paddingLeft:6, marginLeft:2,
-              }}>{counterMsg}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ width:"100%", height:3, background:"#f1f5f9", borderRadius:99, marginBottom:6, overflow:"hidden" }}>
-          <div style={{
-            height:"100%",
-            width:`${Math.min(100,(wordCount/MAX)*100)}%`,
-            background: isGood?"#16a34a":isOver?"#dc2626":"#f59e0b",
-            borderRadius:99, transition:"width .3s, background .3s",
-          }}/>
+          <button className="sum-ai-btn-top" onClick={handleAI} disabled={loading}
+            style={{ opacity:loading?0.5:1, cursor:loading?"not-allowed":"pointer" }}>
+            {loading
+              ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
+            {loading ? "Generating…" : "AI Suggest"}
+          </button>
         </div>
 
         <textarea className="rb-in rb-ta"
@@ -1987,20 +1825,20 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
           placeholder="Achievements, awards, co-curricular activities… (optional)"
           value={edu.highlights}
           onChange={e => upd(edu.id,"highlights",e.target.value)}/>
+
+        <p style={{ fontSize:11, color: isGood?"#16a34a":isOver?"#ef4444":"#9ca3af", fontStyle:"italic", marginTop:4 }}>
+          {isGood ? "✓ Great length for ATS." : isOver ? "Too long — try trimming." : "Aim for 100–200 words."}
+        </p>
       </div>
 
       {suggestions.length > 0 && (
         <div className="sum-suggestions">
           {suggestions.map((s,i) => (
-            <div key={i} className="sum-suggestion-card"
-              onClick={() => upd(edu.id,"highlights",s.text)}>
+            <div key={i} className="sum-suggestion-card" onClick={() => upd(edu.id,"highlights",s.text)}>
               <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
               <div className="sum-sug-text">{s.text}</div>
               <div className="sum-sug-use">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Click to use
               </div>
             </div>
@@ -2030,32 +1868,31 @@ function EducationSection({ data, onChange }) {
 
   return (
     <div>
-    
-<div style={{ display:"flex", gap:8, marginBottom:20 }}>
-  {tabs.map(t => (
-    <button key={t.id} type="button" onClick={() => setActiveTab(t.id)}
-      style={{
-        flex:1, display:"flex", alignItems:"center", gap:8,
-        padding:"10px 14px", borderRadius:10, cursor:"pointer",
-        border:`1.5px solid ${activeTab===t.id ? "#1e293b" : "#e5e7eb"}`,
-        background: activeTab===t.id ? "#1e293b" : "#fff",
-        fontFamily:"inherit", transition:"all .15s",
-      }}
-    >
-      <span style={{ fontSize:15 }}>{t.icon}</span>
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:1 }}>
-        <span style={{ fontSize:12, fontWeight:700, color: activeTab===t.id ? "#fff" : "#374151" }}>
-          {t.label}
-        </span>
-        <span style={{
-          fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99,
-          background: activeTab===t.id ? "rgba(255,255,255,.18)" : "#f1f5f9",
-          color: activeTab===t.id ? "#fff" : "#6b7280",
-        }}>{t.count} entry</span>
+      <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+        {tabs.map(t => (
+          <button key={t.id} type="button" onClick={() => setActiveTab(t.id)}
+            style={{
+              flex:1, display:"flex", alignItems:"center", gap:8,
+              padding:"10px 14px", borderRadius:10, cursor:"pointer",
+              border:`1.5px solid ${activeTab===t.id ? "#1e293b" : "#e5e7eb"}`,
+              background: activeTab===t.id ? "#1e293b" : "#fff",
+              fontFamily:"inherit", transition:"all .15s",
+            }}
+          >
+            <span style={{ fontSize:15 }}>{t.icon}</span>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:1 }}>
+              <span style={{ fontSize:12, fontWeight:700, color: activeTab===t.id ? "#fff" : "#374151" }}>
+                {t.label}
+              </span>
+              <span style={{
+                fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99,
+                background: activeTab===t.id ? "rgba(255,255,255,.18)" : "#f1f5f9",
+                color: activeTab===t.id ? "#fff" : "#6b7280",
+              }}>{t.count} entry</span>
+            </div>
+          </button>
+        ))}
       </div>
-    </button>
-  ))}
-</div>
 
       {activeTab === "ug" && (
         <div style={{ animation:"edu-fade-in .18s ease" }}>
@@ -2068,8 +1905,6 @@ function EducationSection({ data, onChange }) {
           </button>
         </div>
       )}
-
-      
 
       {activeTab === "school" && (
         <div style={{ animation:"edu-fade-in .18s ease" }}>
@@ -2085,6 +1920,7 @@ function EducationSection({ data, onChange }) {
     </div>
   );
 }
+
 function normaliseEducation(raw) {
   if (raw && !Array.isArray(raw) && (Array.isArray(raw.ug) || Array.isArray(raw.school))) {
     return {
@@ -2108,8 +1944,8 @@ function normaliseEducation(raw) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function SkillsSection({ data, onChange }) {
   const safeData = Array.isArray(data) ? data : [makeSkill()];
-  const [mode, setMode]           = useState("level");   // "level" | "rating"
-  const [ratingType, setRatingType] = useState("stars"); // stars | dots | bars | blocks | emoji
+  const [mode, setMode]           = useState("level");
+  const [ratingType, setRatingType] = useState("stars");
   const upd = (id, k, v) => onChange(safeData.map(s => s.id === id ? { ...s, [k]:v } : s));
   const rem = id => onChange(safeData.filter(s => s.id !== id));
 
@@ -2126,10 +1962,7 @@ function SkillsSection({ data, onChange }) {
     { id:"dots",   label:"Dots" },
     { id:"bars",   label:"Bars" },
     { id:"blocks", label:"Blocks" },
-   
   ];
-
- 
 
   function RatingWidget({ skillId, value }) {
     const [hov, setHov] = useState(0);
@@ -2196,34 +2029,13 @@ function SkillsSection({ data, onChange }) {
         ))}
       </div>
     );
-
-    if (ratingType === "emoji") return (
-      <div style={{ display:"flex", gap:5 }}>
-        {[1,2,3,4,5].map(n => (
-          <button key={n} type="button"
-            onMouseEnter={() => setHov(n)} onMouseLeave={() => setHov(0)}
-            onClick={() => upd(skillId,"level",n)}
-            style={{ background: n===active?"#ede9fe":"transparent",
-              border:`1.5px solid ${n===active ? col : "#e5e7eb"}`,
-              borderRadius:8, padding:"4px 6px", cursor:"pointer",
-              fontSize: n===active ? 22 : 17, transition:"all .15s",
-              transform: n===active ? "scale(1.2)" : "scale(1)" }}
-          ></button>
-        ))}
-      </div>
-    );
   }
 
   return (
     <div>
-
-      {/* ── Top control bar ── */}
       <div style={{ background:"#f8fafc", border:"1.5px solid #e2e8f0", borderRadius:12, padding:"12px 14px", marginBottom:16 }}>
-
-        {/* Mode switch row */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: mode==="rating" ? 12 : 0 }}>
           <span style={{ fontSize:12, fontWeight:600, color:"#374151" }}>How do you want to rate skills?</span>
-          {/* Toggle pill */}
           <div style={{ display:"flex", background:"#e2e8f0", borderRadius:99, padding:3, gap:2 }}>
             {[
               { id:"level",  label:"Level Badge" },
@@ -2245,7 +2057,6 @@ function SkillsSection({ data, onChange }) {
           </div>
         </div>
 
-        {/* Rating type chips — only when rating mode */}
         {mode === "rating" && (
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {RATING_TYPES.map(rt => (
@@ -2265,7 +2076,6 @@ function SkillsSection({ data, onChange }) {
         )}
       </div>
 
-      {/* ── Skill cards ── */}
       {safeData.map((s, i) => {
         const selLvl = LEVELS.find(l => l.label === s.badge) || LEVELS[2];
         return (
@@ -2281,7 +2091,6 @@ function SkillsSection({ data, onChange }) {
                 value={s.name} onChange={e => upd(s.id,"name",e.target.value)}/>
             </div>
 
-            {/* LEVEL MODE */}
             {mode === "level" && (
               <div className="rb-g">
                 <label className="rb-lbl">Proficiency</label>
@@ -2291,13 +2100,14 @@ function SkillsSection({ data, onChange }) {
                     return (
                       <div key={lvl.label}
                         onClick={() => {
-  if (s.badge === lvl.label) return;
-  onChange(safeData.map(sk => 
-    sk.id === s.id 
-      ? { ...sk, badge: lvl.label, level: lvl.stars } 
-      : sk
-  ));
-}}
+                          if (s.badge === lvl.label) return;
+                          onChange(safeData.map(sk =>
+                            sk.id === s.id
+                              ? { ...sk, badge: lvl.label, level: lvl.stars }
+                              : sk
+                          ));
+                        }}
+                        style={{ cursor:"pointer", textAlign:"center" }}
                       >
                         <div style={{ display:"flex", gap:2 }}>
                           {[1,2,3,4,5].map(d => (
@@ -2328,7 +2138,6 @@ function SkillsSection({ data, onChange }) {
               </div>
             )}
 
-            {/* RATING MODE */}
             {mode === "rating" && (
               <div className="rb-g">
                 <label className="rb-lbl">Rating</label>
@@ -2341,7 +2150,6 @@ function SkillsSection({ data, onChange }) {
                 )}
               </div>
             )}
-
           </div>
         );
       })}
@@ -2352,11 +2160,10 @@ function SkillsSection({ data, onChange }) {
     </div>
   );
 }
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // PROJECTS SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
-
-
 function ProjectsSection({ data, onChange }) {
   const safeData = Array.isArray(data) ? data : [makeProj()];
   const upd = (id, k, v) => onChange(safeData.map(p => p.id === id ? { ...p, [k]:v } : p));
@@ -2370,10 +2177,10 @@ function ProjectsSection({ data, onChange }) {
     </div>
   );
 }
+
 function ProjCard({ proj, index, total, onUpd, onRem }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading]         = useState(false);
-  
 
   const wordCount = proj.description.trim() === "" ? 0 : proj.description.trim().split(/\s+/).length;
   const MIN = 200, MAX = 300;
@@ -2412,57 +2219,33 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
         {total > 1 && <button className="rb-rm" onClick={() => onRem(proj.id)}>×</button>}
       </div>
 
-      {/* Title + Tech stack */}
-      <div className="rb-row">
+     <div className="rb-row">
         <div className="rb-g">
           <label className="rb-lbl">Project Title</label>
           <input className="rb-in" placeholder="e.g. Portfolio Website" value={proj.name} onChange={e => onUpd(proj.id,"name",e.target.value)}/>
         </div>
         <div className="rb-g">
-          <label className="rb-lbl">Tech Stack</label>
-          <input className="rb-in" placeholder="React, Node, MongoDB…" value={proj.tech || ""} onChange={e => onUpd(proj.id,"tech",e.target.value)}/>
+          <label className="rb-lbl">Tools / Technologies</label>
+          <input className="rb-in" placeholder="React, Figma, Python, Excel…" value={proj.tech || ""} onChange={e => onUpd(proj.id,"tech",e.target.value)}/>
         </div>
       </div>
 
-      {/* Keywords */}
-      <div className="rb-g">
-        <label className="rb-lbl">Keywords <span className="opt">(for AI suggestions)</span></label>
-        <input className="rb-in" placeholder="e.g. performance, REST API, real-time, scalability…" value={proj.keywords || ""} onChange={e => onUpd(proj.id,"keywords",e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
-      </div>
-
-      {/* Duration: Built On + Valid Till */}
-      
       <div className="rb-row">
         <div className="rb-g">
-          <label className="rb-lbl">Built On <span className="opt">(optional)</span></label>
-          
-          <DurationPicker
-            value={proj.date || ""}
-            onChange={v => onUpd(proj.id, "date", v)}
-            singleDate
-          />
+          <label className="rb-lbl">Project Date <span className="opt">(optional)</span></label>
+          <DurationPicker value={proj.date || ""} onChange={v => onUpd(proj.id, "date", v)} singleDate/>
         </div>
         <div className="rb-g">
-          <label className="rb-lbl">Valid Till <span className="opt">(optional)</span></label>
-          <DurationPicker
-            value={proj.validTill || ""}
-            onChange={v => onUpd(proj.id, "validTill", v)}
-            singleDate
-          />
+          <label className="rb-lbl">Keywords <span className="opt">(for AI)</span></label>
+          <input className="rb-in" placeholder="e.g. REST API, real-time…" value={proj.keywords || ""} onChange={e => onUpd(proj.id,"keywords",e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
         </div>
       </div>
 
-      {/* Key Highlights */}
-      <div className="rb-g">
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
-          <label className="rb-lbl" style={{ margin:0 }}>Key Highlights</label>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", borderRadius:99, background:counterBg, border:`1.5px solid ${counterBorder}`, transition:"all .25s" }}>
-              <span style={{ fontSize:11, fontWeight:700, color:counterColor }}>{wordCount}</span>
-              <span style={{ fontSize:10, color:counterColor, opacity:.75 }}>/ {MAX} words</span>
-              {wordCount > 0 && <span style={{ fontSize:10, fontWeight:600, color:counterColor, borderLeft:`1px solid ${counterBorder}`, paddingLeft:6, marginLeft:2 }}>{counterMsg}</span>}
-            </div>
-            <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!hasContext || loading} style={{ opacity:(!hasContext || loading) ? 0.5 : 1, cursor:(!hasContext || loading) ? "not-allowed" : "pointer" }}>
+    <div className="rb-g">
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+            <label className="rb-lbl" style={{ margin:0 }}>Key Highlights</label>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!hasContext || loading} style={{ opacity:(!hasContext || loading) ? 0.5 : 1, cursor:(!hasContext || loading) ? "not-allowed" : "pointer" }}>
               {loading
                 ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
                 : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
@@ -2470,13 +2253,11 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
             </button>
           </div>
         </div>
-        <div style={{ width:"100%", height:3, background:"#f1f5f9", borderRadius:99, marginBottom:6, overflow:"hidden" }}>
-          <div style={{ height:"100%", width:`${Math.min(100,(wordCount/MAX)*100)}%`, background: isGood ? "#16a34a" : isOver ? "#dc2626" : "#f59e0b", borderRadius:99, transition:"width .3s, background .3s" }}/>
-        </div>
-        <textarea
+        
+       <textarea
           className="rb-in rb-ta"
           style={{ minHeight:110, borderColor: isOver ? "#fca5a5" : isGood ? "#86efac" : undefined, transition:"border-color .25s" }}
-          placeholder={hasContext ? "Type keywords above and click AI Suggest, or write directly…" : "Fill Project Title & Tech Stack above first…"}
+          placeholder={hasContext ? "Describe what you built, your role, impact, and key outcomes…" : "Fill Project Title & Tools above to unlock AI suggestions…"}
           value={proj.description}
           onChange={e => onUpd(proj.id,"description",e.target.value)}
         />
@@ -2496,9 +2277,19 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
           ))}
         </div>
       )}
-      {suggestions.length === 0 && (
-        <div className="sum-chips-hint">
-          {hasContext ? "Type keywords → click ✨ AI Suggest to generate 2 options" : "Fill Title & Stack fields to unlock AI suggestions"}
+     {suggestions.length === 0 && (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"6px 2px 0" }}>
+          <span className="sum-chips-hint" style={{ padding:0, textAlign:"left" }}>
+            {hasContext ? "Type keywords → click ✨ AI Suggest to generate 2 options" : "Fill Title & Stack fields to unlock AI suggestions"}
+          </span>
+          <span style={{
+            fontSize:11, fontWeight:600, color:"#9ca3af",
+            background:"#f8fafc", border:"1px solid #e5e7eb",
+            padding:"3px 10px", borderRadius:99, flexShrink:0, marginLeft:10,
+            letterSpacing:".2px",
+          }}>
+            Aim for 200–300 words
+          </span>
         </div>
       )}
     </div>
@@ -2508,23 +2299,6 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // CERTIFICATIONS SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
-function CertificationsSection({ data, onChange }) {
-  const safeData = Array.isArray(data) ? data : [makeCert()];
-  const upd = (id, k, v) => onChange(safeData.map(c => c.id === id ? { ...c, [k]: v } : c));
-  const rem = id => onChange(safeData.filter(c => c.id !== id));
-
-  return (
-    <div>
-      {safeData.map((c, i) => (
-        <CertCard key={c.id} cert={c} index={i} total={safeData.length} onUpd={upd} onRem={rem} />
-      ))}
-      <button className="rb-add" onClick={() => onChange([...safeData, makeCert()])}>
-        + Add Another Certification
-      </button>
-    </div>
-  );
-}
-
 function CertCard({ cert, index, total, onUpd, onRem }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading]         = useState(false);
@@ -2533,13 +2307,8 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
 
   const wordCount = cert.description?.trim() === "" ? 0 : (cert.description?.trim().split(/\s+/).length || 0);
   const MIN = 80, MAX = 150;
-  const isUnder = wordCount > 0 && wordCount < MIN;
-  const isOver  = wordCount > MAX;
-  const isGood  = wordCount >= MIN && wordCount <= MAX;
-  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
-  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
-  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
-  const counterMsg    = isGood ? "✓ Great length" : isOver ? `${wordCount - MAX} words over` : isUnder ? `${MIN - wordCount} more needed` : "80–150 words recommended";
+  const isOver = wordCount > MAX;
+  const isGood = wordCount >= MIN && wordCount <= MAX;
 
   const handleAISuggest = () => {
     const hasCtx = cert.name || cert.issuer || keywords.trim();
@@ -2567,7 +2336,6 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
 
   const hasContext = cert.name || cert.issuer || keywords.trim();
 
-  // Card accent color based on index
   const ACCENTS = [
     { border: "#c7d2fe", top: "#6366f1", bg: "#f5f3ff" },
     { border: "#a7f3d0", top: "#059669", bg: "#f0fdf4" },
@@ -2585,7 +2353,6 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
       overflow: "hidden",
       boxShadow: "0 2px 8px rgba(0,0,0,.04)",
     }}>
-      {/* Card top strip */}
       <div style={{
         background: `linear-gradient(135deg, ${accent.bg}, #fff)`,
         borderBottom: `1.5px solid ${accent.border}`,
@@ -2618,8 +2385,6 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
       </div>
 
       <div style={{ padding: "14px 15px" }}>
-
-        {/* Name + Issuer row */}
         <div className="rb-row">
           <div className="rb-g">
             <label className="rb-lbl">Certification Name</label>
@@ -2637,42 +2402,19 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
           </div>
         </div>
 
-        {/* Date + Credential ID row */}
         <div className="rb-row">
           <div className="rb-g">
             <label className="rb-lbl">Issued On</label>
-            <DurationPicker
-              value={cert.date || ""}
-              onChange={v => onUpd(cert.id, "date", v)}
-              singleDate
-            />
+            <DurationPicker value={cert.date || ""} onChange={v => onUpd(cert.id, "date", v)} singleDate/>
           </div>
           <div className="rb-g">
-            <label className="rb-lbl">Credential ID <span className="opt">(optional)</span></label>
-            <input className="rb-in" placeholder="e.g. ABC-123-XYZ"
-              value={cert.credentialId || ""}
-              onChange={e => onUpd(cert.id, "credentialId", e.target.value)}
-            />
+            <label className="rb-lbl">Valid Till <span className="opt">(optional)</span></label>
+            <DurationPicker value={cert.validTill || ""} onChange={v => onUpd(cert.id, "validTill", v)} singleDate/>
           </div>
         </div>
 
-        {/* Keywords row */}
         <div className="rb-g">
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
-            <label className="rb-lbl" style={{ margin: 0 }}>Keywords</label>
-            <div style={{ marginLeft: "auto" }}>
-              <button className="sum-ai-btn-top"
-                onClick={handleAISuggest}
-                disabled={!hasContext || loading}
-                style={{ opacity: (!hasContext || loading) ? 0.5 : 1, cursor: (!hasContext || loading) ? "not-allowed" : "pointer" }}
-              >
-                {loading
-                  ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                  : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
-                {loading ? "Generating…" : "AI Suggest"}
-              </button>
-            </div>
-          </div>
+          <label className="rb-lbl">Keywords <span className="opt">(for AI suggestions)</span></label>
           <input className="rb-in"
             placeholder="e.g. cloud architecture, IAM, cost optimization, security…"
             value={keywords}
@@ -2681,19 +2423,15 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
           />
         </div>
 
-        {/* Key Highlights with word counter + tooltip */}
         <div className="rb-g">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-
-            {/* Label + info tooltip */}
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <label className="rb-lbl" style={{ margin: 0 }}>
                 Key Highlights
                 <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: 11, marginLeft: 4 }}>(optional)</span>
               </label>
               <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
-                <button
-                  className="sum-info-btn"
+                <button className="sum-info-btn"
                   onMouseEnter={() => setShowTooltip(true)}
                   onMouseLeave={() => setShowTooltip(false)}
                 >i</button>
@@ -2710,34 +2448,17 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
               </div>
             </div>
 
-            {/* Word counter */}
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              padding: "3px 10px", borderRadius: 99,
-              background: counterBg, border: `1.5px solid ${counterBorder}`,
-              transition: "all .25s",
-            }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: counterColor }}>{wordCount}</span>
-              <span style={{ fontSize: 10, color: counterColor, opacity: .75 }}>/ {MAX} words</span>
-              {wordCount > 0 && (
-                <span style={{
-                  fontSize: 10, fontWeight: 600, color: counterColor,
-                  borderLeft: `1px solid ${counterBorder}`,
-                  paddingLeft: 6, marginLeft: 2,
-                }}>{counterMsg}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div style={{ width: "100%", height: 3, background: "#f1f5f9", borderRadius: 99, marginBottom: 6, overflow: "hidden" }}>
-            <div style={{
-              height: "100%",
-              width: `${Math.min(100, (wordCount / MAX) * 100)}%`,
-              background: isGood ? "#16a34a" : isOver ? "#dc2626" : "#f59e0b",
-              borderRadius: 99,
-              transition: "width .3s, background .3s",
-            }}/>
+            {/* Only AI Suggest button — no word count pill */}
+            <button className="sum-ai-btn-top"
+              onClick={handleAISuggest}
+              disabled={!hasContext || loading}
+              style={{ opacity: (!hasContext || loading) ? 0.5 : 1, cursor: (!hasContext || loading) ? "not-allowed" : "pointer" }}
+            >
+              {loading
+                ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
+              {loading ? "Generating…" : "AI Suggest"}
+            </button>
           </div>
 
           <textarea
@@ -2753,9 +2474,22 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
             value={cert.description}
             onChange={e => onUpd(cert.id, "description", e.target.value)}
           />
+
+          {/* Hint text below textarea — matches other tabs style */}
+          <p style={{
+            fontSize: 11,
+            color: isGood ? "#16a34a" : isOver ? "#ef4444" : "#9ca3af",
+            fontStyle: "italic",
+            marginTop: 4,
+          }}>
+            {isGood
+              ? "✓ Great length for ATS."
+              : isOver
+              ? "Too long — try trimming."
+              : "Aim for 80–150 words."}
+          </p>
         </div>
 
-        {/* AI Suggestion cards */}
         {suggestions.length > 0 && (
           <div className="sum-suggestions">
             {suggestions.map((s, i) => (
@@ -2780,8 +2514,23 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
               : "Fill Certification Name & Issuer to unlock AI suggestions"}
           </div>
         )}
-
       </div>
+    </div>
+  );
+}
+function CertificationsSection({ data, onChange }) {
+  const safeData = Array.isArray(data) ? data : [makeCert()];
+  const upd = (id, k, v) => onChange(safeData.map(c => c.id === id ? { ...c, [k]: v } : c));
+  const rem = id => onChange(safeData.filter(c => c.id !== id));
+
+  return (
+    <div>
+      {safeData.map((c, i) => (
+        <CertCard key={c.id} cert={c} index={i} total={safeData.length} onUpd={upd} onRem={rem} />
+      ))}
+      <button className="rb-add" onClick={() => onChange([...safeData, makeCert()])}>
+        + Add Another Certification
+      </button>
     </div>
   );
 }
@@ -2889,8 +2638,6 @@ function LanguagesSection({ data, onChange }) {
 
   return (
     <div>
-
-      {/* ── Top control bar (same as Skills) ── */}
       <div style={{
         background: "#f8fafc", border: "1.5px solid #e2e8f0",
         borderRadius: 12, padding: "12px 14px", marginBottom: 16,
@@ -2903,7 +2650,6 @@ function LanguagesSection({ data, onChange }) {
           <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
             How do you want to rate languages?
           </span>
-          {/* Toggle pill */}
           <div style={{ display: "flex", background: "#e2e8f0", borderRadius: 99, padding: 3, gap: 2 }}>
             {[
               { id: "level",  label: "Level Badge"  },
@@ -2925,7 +2671,6 @@ function LanguagesSection({ data, onChange }) {
           </div>
         </div>
 
-        {/* Rating type chips */}
         {mode === "rating" && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {RATING_TYPES.map(rt => (
@@ -2945,7 +2690,6 @@ function LanguagesSection({ data, onChange }) {
         )}
       </div>
 
-      {/* ── Language cards ── */}
       {safeData.map((l, i) => {
         const selLvl = LEVELS.find(lv => lv.label === l.proficiency) || LEVELS[2];
         return (
@@ -2956,7 +2700,6 @@ function LanguagesSection({ data, onChange }) {
                 <button className="rb-rm" onClick={() => rem(l.id)}>×</button>}
             </div>
 
-            {/* Language name */}
             <div className="rb-g">
               <label className="rb-lbl">Language</label>
               <input className="rb-in" placeholder="e.g. Tamil, English, French…"
@@ -2965,7 +2708,6 @@ function LanguagesSection({ data, onChange }) {
               />
             </div>
 
-            {/* LEVEL MODE */}
             {mode === "level" && (
               <div className="rb-g">
                 <label className="rb-lbl">Proficiency</label>
@@ -3006,7 +2748,6 @@ function LanguagesSection({ data, onChange }) {
                   })}
                 </div>
 
-                {/* Selected badge preview */}
                 {l.proficiency && (
                   <div style={{
                     padding: "6px 12px",
@@ -3026,7 +2767,6 @@ function LanguagesSection({ data, onChange }) {
               </div>
             )}
 
-            {/* RATING MODE */}
             {mode === "rating" && (
               <div className="rb-g">
                 <label className="rb-lbl">Rating</label>
@@ -3041,13 +2781,11 @@ function LanguagesSection({ data, onChange }) {
                 )}
               </div>
             )}
-
           </div>
         );
       })}
 
-      <button className="rb-add"
-        onClick={() => onChange([...safeData, makeLang()])}>
+      <button className="rb-add" onClick={() => onChange([...safeData, makeLang()])}>
         + Add Another Language
       </button>
     </div>
