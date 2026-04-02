@@ -1,4 +1,4 @@
-// BlankCanvasBuilder.js – Complete with Undo/Redo, Layouts, Additional Sections, Resizable Elements
+// BlankCanvasBuilder.js – Complete with Undo/Redo, Layouts, Additional Sections, Resizable Elements + Content Alignment in "More" Section
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Draggable from "react-draggable";
 
@@ -55,7 +55,6 @@ const LAYOUTS = [
   { id: "sidebar-left", label: "Modern Sidebar", icon: "▌▬", desc: "Left sidebar + Main" },
   { id: "creative", label: "Creative", icon: "🎨", desc: "Asymmetric stylish design" },
   { id: "technical", label: "Tech Focused", icon: "💻", desc: "Highlighting skills and stack" },
-  
   { id: "academic", label: "Academic CV", icon: "🎓", desc: "Detailed for research/edu" },
 ];
 
@@ -78,7 +77,7 @@ const INIT = {
   projects:       [makeProj()],
   certifications: [makeCert()],
   languages:      [makeLang()],
-  styling: { font:"Inter", accentColor:"#2563eb", layout:"one-col", photoPosition:"left", photoSize:"medium" },
+  styling: { font:"Inter", accentColor:"#2563eb", layout:"one-col", photoPosition:"left", photoSize:"medium", contentAlign:"left" },
   optionalSections: [],
 };
 
@@ -706,8 +705,8 @@ function StylingSection({ data, onChange, onAddTable, onAddLine }) {
   );
 }
 
-// ─── Additional Sections Panel (empty placeholder) ──────────────────────────
-function AdditionalSectionsPanel({ optionalSections, onAdd, onRemove, onUpdate }) {
+// ─── Additional Sections Panel (with Content Alignment) ──────────────────────────
+function AdditionalSectionsPanel({ optionalSections, onAdd, onRemove, onUpdate, contentAlign, onContentAlignChange }) {
   const [customTitle, setCustomTitle] = useState("");
   const [customContent, setCustomContent] = useState("");
   const [showCustomForm, setShowCustomForm] = useState(false);
@@ -724,7 +723,7 @@ function AdditionalSectionsPanel({ optionalSections, onAdd, onRemove, onUpdate }
     onAdd({
       id: newId,
       title,
-      content: content || "Click to edit...",
+      content: content || "",
       type: "predefined",
     });
   };
@@ -745,6 +744,68 @@ function AdditionalSectionsPanel({ optionalSections, onAdd, onRemove, onUpdate }
 
   return (
     <div style={{ padding: "8px 0" }}>
+      {/* NEW: Content Alignment Controls */}
+      <div className="rb-style-lbl">📐 Content Alignment</div>
+      <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
+        <button
+          onClick={() => onContentAlignChange("left")}
+          style={{
+            flex: 1,
+            padding: "8px",
+            background: contentAlign === "left" ? "#2563eb" : "#f8fafc",
+            color: contentAlign === "left" ? "white" : "#1f2937",
+            border: "1px solid #e2e8f0",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+          }}
+        >
+          ◀ Left
+        </button>
+        <button
+          onClick={() => onContentAlignChange("center")}
+          style={{
+            flex: 1,
+            padding: "8px",
+            background: contentAlign === "center" ? "#2563eb" : "#f8fafc",
+            color: contentAlign === "center" ? "white" : "#1f2937",
+            border: "1px solid #e2e8f0",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+          }}
+        >
+          ⬤ Center
+        </button>
+        <button
+          onClick={() => onContentAlignChange("right")}
+          style={{
+            flex: 1,
+            padding: "8px",
+            background: contentAlign === "right" ? "#2563eb" : "#f8fafc",
+            color: contentAlign === "right" ? "white" : "#1f2937",
+            border: "1px solid #e2e8f0",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+          }}
+        >
+          Right ▶
+        </button>
+      </div>
+
       <p style={{ fontSize: "13px", color: "#4b5563", marginBottom: "16px" }}>
         Add extra sections like awards, references, hobbies, or create your own.
       </p>
@@ -1228,8 +1289,6 @@ function getAllDraggableItems(state, styling) {
   return items;
 }
 
-// ─── Layout repositioning engine (enhanced for all layouts) ─────────────────
-// ─── DYNAMIC LAYOUT ENGINE (FIXED & DISTINCT) ────────────────────────────────
 // ─── DYNAMIC LAYOUT ENGINE (FIXED & HIGHLY DISTINCT) ─────────────────────────
 function repositionItemsForLayout(items, layoutId, state, canvasWidth = 600) {
   const margin = 40;
@@ -1460,6 +1519,12 @@ const cloneState = (structured, freeform, itemProps, photoPosition) => ({
 // ─── MAIN COMPONENT with Undo/Redo ──────────────────────────────────────────
 export default function BlankCanvasBuilderPro() {
   const [st, setSt] = useState(INIT);
+ 
+  const [pages, setPages] = useState([
+    { id: Date.now(), elements: [] }
+  ]);
+  const [currentPage, setCurrentPage] = useState(0);
+  
   const [freeformElements, setFreeformElements] = useState([]);
   const [itemProps, setItemProps] = useState(() => {
     const initialItems = getAllDraggableItems(INIT, INIT.styling);
@@ -1472,7 +1537,36 @@ export default function BlankCanvasBuilderPro() {
   const nodeRefs = useRef({});
   const canvasContainerRef = useRef(null);
   const photoRef = useRef(null);
+  const handleAddPage = () => {
+    const newPage = {
+      id: Date.now(),
+      elements: []
+    };
 
+    setPages(prev => [...prev, newPage]);
+    setCurrentPage(pages.length);
+  };
+
+  // ✅ ADD ELEMENT
+  const addElement = (newElement) => {
+    const updatedPages = [...pages];
+    updatedPages[currentPage].elements.push(newElement);
+    setPages(updatedPages);
+  };
+
+  // ✅ UPDATE ELEMENT
+  const updateElement = (id, newData) => {
+    const updatedPages = [...pages];
+
+    updatedPages[currentPage].elements =
+      updatedPages[currentPage].elements.map(el =>
+        el.id === id ? { ...el, ...newData } : el
+      );
+
+    setPages(updatedPages);
+  };
+
+  const [previewLayout, setPreviewLayout] = useState(st.styling.layout);
   // History state
   const [history, setHistory] = useState(() => {
     const initialSnapshot = cloneState(INIT, [], {}, { x: 300, y: 40 });
@@ -1481,7 +1575,128 @@ export default function BlankCanvasBuilderPro() {
   const [historyIndex, setHistoryIndex] = useState(0);
   const MAX_HISTORY = 50;
   const isRestoringRef = useRef(false);
+const [hoveredLayout, setHoveredLayout] = useState(null);
+const LayoutPreviewCanvas = ({ layoutId }) => {
+  const canvasRef = useRef(null);
+  const [previewItems, setPreviewItems] = useState([]);
+  const [positions, setPositions] = useState({});
 
+  useEffect(() => {
+    // Build dummy state for preview
+    const dummyState = {
+      personal: {
+        name: "John Doe",
+        title: "Senior Software Engineer",
+        email: "john@example.com",
+        phone: "+1 234 567 8900",
+        location: "New York, NY",
+        linkedin: "linkedin.com/in/johndoe",
+        github: "github.com/johndoe",
+        photo: null,
+      },
+      summary: {
+        text: "Experienced software engineer with 5+ years in full-stack development. Proven track record of delivering high-quality software solutions.",
+      },
+      experience: [
+        {
+          id: "exp1",
+          company: "ABC Corp",
+          role: "Software Engineer",
+          duration: "2021 – Present",
+          location: "New York",
+          description: "Developed and maintained scalable web applications. Led a team of 3 developers and improved performance by 30%.",
+        },
+      ],
+      education: {
+        degree: "B.Sc. Computer Science",
+        college: "University of Technology",
+        year: "2020",
+        gpa: "3.8/4.0",
+      },
+      skills: [
+        { id: "skill1", name: "React", level: "Advanced" },
+        { id: "skill2", name: "Node.js", level: "Advanced" },
+        { id: "skill3", name: "Python", level: "Intermediate" },
+      ],
+      projects: [
+        {
+          id: "proj1",
+          name: "E-commerce Platform",
+          stack: "React, Node, MongoDB",
+          description: "Built a full-stack e-commerce platform with real-time inventory.",
+          link: "",
+        },
+      ],
+      certifications: [
+        {
+          id: "cert1",
+          name: "AWS Solutions Architect",
+          issuer: "Amazon",
+          date: "2023",
+          description: "Certified for designing distributed systems.",
+        },
+      ],
+      languages: [
+        { id: "lang1", language: "English", proficiency: "Native" },
+        { id: "lang2", language: "Spanish", proficiency: "Intermediate" },
+      ],
+      optionalSections: [],
+      styling: { font: "Inter", accentColor: "#2563eb", layout: layoutId, photoPosition: "left", photoSize: "medium", contentAlign: "left" },
+    };
+
+    const items = getAllDraggableItems(dummyState, dummyState.styling);
+    const pos = repositionItemsForLayout(items, layoutId, dummyState, 600);
+    setPreviewItems(items);
+    setPositions(pos);
+  }, [layoutId]);
+
+  useEffect(() => {
+    if (!canvasRef.current || previewItems.length === 0) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const width = 600;
+    const height = 800;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Clear canvas
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw each item as a rectangle + label
+    previewItems.forEach(item => {
+      const pos = positions[item.id];
+      if (!pos) return;
+      const { x, y, width: w, height: h, fontSize, textAlign } = pos;
+
+      // Light background for the block
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.strokeRect(x, y, w, h);
+
+      // Draw the first line of text as a label
+      ctx.fillStyle = '#1e293b';
+      ctx.font = `11px "Inter", sans-serif`;
+      const shortText = item.text.split('\n')[0].substring(0, 20);
+      ctx.fillText(shortText, x + 4, y + 14);
+    });
+  }, [previewItems, positions]);
+
+  return (
+    <div style={{ marginTop: 20, borderTop: '1px solid #e5e7eb', paddingTop: 16 }}>
+      <div className="rb-style-lbl" style={{ marginBottom: 8 }}>Preview (hover over a layout)</div>
+      <canvas
+        ref={canvasRef}
+        style={{ width: '100%', maxWidth: 600, height: 'auto', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff' }}
+      />
+      <p style={{ fontSize: 11, color: '#6b7280', marginTop: 8, textAlign: 'center' }}>
+        How your resume would look with the <strong>{LAYOUTS.find(l => l.id === layoutId)?.label}</strong> layout<br />
+        (sample content – actual data will replace these blocks)
+      </p>
+    </div>
+  );
+};
   const pushSnapshot = useCallback(() => {
     if (isRestoringRef.current) return;
     const newSnapshot = cloneState(st, freeformElements, itemProps, photoPosition);
@@ -1591,6 +1806,88 @@ export default function BlankCanvasBuilderPro() {
     pushSnapshot();
   };
 
+  // Content alignment handler
+  const alignContent = (align) => {
+    // Update styling
+    setSt(prev => ({
+      ...prev,
+      styling: { ...prev.styling, contentAlign: align }
+    }));
+    
+    // Recalculate X positions for all draggable items based on alignment
+    const newProps = { ...itemProps };
+    const canvasWidth = 600;
+    const margin = 40;
+    
+    Object.keys(newProps).forEach(id => {
+      const prop = newProps[id];
+      if (!prop) return;
+      
+      // Estimate width: use stored width if available, otherwise default
+      let estimatedWidth = prop.width;
+      if (estimatedWidth === 'auto' || !estimatedWidth) {
+        // Find the corresponding draggable item to estimate width
+        const item = getAllDraggableItems(st, st.styling).find(i => i.id === id);
+        if (item) {
+          // Rough estimate based on text length and font size
+          const fontSize = prop.fontSize || 14;
+          const textLength = item.text.length;
+          estimatedWidth = Math.min(520, Math.max(100, textLength * (fontSize * 0.6)));
+        } else {
+          estimatedWidth = 200;
+        }
+      }
+      
+      let newX = prop.x;
+      if (align === 'center') {
+        newX = (canvasWidth - estimatedWidth) / 2;
+      } else if (align === 'right') {
+        newX = canvasWidth - estimatedWidth - margin;
+      } else { // left
+        newX = margin;
+      }
+      newProps[id] = { ...prop, x: newX };
+    });
+    
+    setItemPropsAndPush(newProps);
+  };
+
+  // AUTO-APPLY LAYOUT: Updates the styling and repositions all items based on the selected layout
+  const applyLayout = useCallback((newLayoutId) => {
+    // Update styling layout
+    setSt(prev => ({
+      ...prev,
+      styling: { ...prev.styling, layout: newLayoutId }
+    }));
+    
+    // Get all current draggable items based on current state
+    const currentItems = getAllDraggableItems(st, { ...st.styling, layout: newLayoutId });
+    
+    // Compute new positions using the reposition engine
+    const newPositions = repositionItemsForLayout(currentItems, newLayoutId, st, 600);
+    
+    // Merge with existing itemProps to preserve custom font sizes, text alignment, etc.
+    const updatedProps = { ...itemProps };
+    Object.keys(newPositions).forEach(id => {
+      if (updatedProps[id]) {
+        // Keep existing font size and text alignment, update position and layout-derived properties
+        updatedProps[id] = {
+          ...updatedProps[id],
+          x: newPositions[id].x,
+          y: newPositions[id].y,
+          width: newPositions[id].width,
+          fontSize: newPositions[id].fontSize,
+          textAlign: newPositions[id].textAlign
+        };
+      } else {
+        updatedProps[id] = newPositions[id];
+      }
+    });
+    
+    setItemPropsAndPush(updatedProps);
+    setPreviewLayout(newLayoutId);
+  }, [st, itemProps]);
+
   const sec = id => setSt(prev => ({ ...prev, activeSection: id }));
   const handleAIGenerate = (generatedText, sectionId) => {
     if (sectionId === "summary") {
@@ -1618,33 +1915,24 @@ export default function BlankCanvasBuilderPro() {
 
   const renderForm = () => {
     switch(st.activeSection){
-   case "layout":
+case "layout":
   return (
     <div>
       <div className="rb-style-lbl">Choose a Base Layout</div>
       <div className="rb-layout-grid">
         {LAYOUTS.map(l => (
-          <div key={l.id} className={`rb-layout-card${st.styling.layout === l.id ? " on" : ""}`}
-            onClick={() => {
-              // 1. Update the layout style state
-              const newStyling = { ...st.styling, layout: l.id };
-              setFld("styling", newStyling);
-              
-              // 2. Refresh the items list to get absolute latest data
-              const freshItems = getAllDraggableItems(st, newStyling);
-              
-              // 3. Force calculation using the NEW layout ID
-              const newPositions = repositionItemsForLayout(freshItems, l.id, st, 600);
-              
-              // 4. Update the actual positions on the canvas
-              setItemPropsAndPush(newPositions);
-            }}>
+          <div
+            key={l.id}
+            className={`rb-layout-card${previewLayout === l.id ? " on" : ""}`}
+            onClick={() => applyLayout(l.id)}  // INSTANTLY APPLY LAYOUT ON CLICK
+          >
             <span className="rb-layout-icon">{l.icon}</span>
             <span className="rb-layout-name">{l.label}</span>
             <span className="rb-layout-desc">{l.desc}</span>
           </div>
         ))}
       </div>
+      <LayoutPreviewCanvas layoutId={previewLayout} />
     </div>
   );
       case "personal":       return <PersonalSection data={st.personal} onChange={v=>setFld("personal",v)} styling={st.styling} onStylingChange={v=>setFld("styling",v)}/>;
@@ -1656,7 +1944,15 @@ export default function BlankCanvasBuilderPro() {
       case "certifications": return <CertificationsSection data={st.certifications} onChange={v=>setFld("certifications",v)}/>;
       case "languages":      return <LanguagesSection data={st.languages} onChange={v=>setFld("languages",v)}/>;
       case "styling":        return <StylingSection data={st.styling} onChange={v=>setFld("styling",v)} onAddTable={addTable} onAddLine={addLine} />;
-      case "additional":     return <AdditionalSectionsPanel optionalSections={st.optionalSections} onAdd={addOptionalSection} onRemove={removeOptionalSection} onUpdate={updateOptionalSection} />;
+      case "additional":     
+        return <AdditionalSectionsPanel 
+          optionalSections={st.optionalSections} 
+          onAdd={addOptionalSection} 
+          onRemove={removeOptionalSection} 
+          onUpdate={updateOptionalSection}
+          contentAlign={st.styling.contentAlign}
+          onContentAlignChange={alignContent}
+        />;
       default: return null;
     }
   };
@@ -1677,9 +1973,6 @@ export default function BlankCanvasBuilderPro() {
   const idx = ALL_SECTIONS.findIndex(n => n.id === st.activeSection);
   const meta = SECTION_META[st.activeSection];
 
-  // Layout change effect – now fully replaces itemProps for all draggable items
-  
-
   // Dynamic canvas height effect – no snapshot needed
   useEffect(() => {
     if (!canvasContainerRef.current) return;
@@ -1696,36 +1989,50 @@ export default function BlankCanvasBuilderPro() {
   }, [itemProps, freeformElements, photoPosition]);
 
   // Auto-add missing props for draggable items
+ // ✅ FIX: Intha UseEffect ippo unga data (st) change aana odane 
+  // layout-ah automatic-ah align pannum.
   useEffect(() => {
-    const newProps = { ...itemProps };
-    const currentIds = new Set(draggableItems.map(i => i.id));
+    const currentLayout = st.styling.layout;
+    const currentItems = getAllDraggableItems(st, st.styling);
     
-    // Clean up old IDs
-    Object.keys(newProps).forEach(id => {
-      if (!currentIds.has(id)) delete newProps[id];
+    // Layout logic-ah kooptu pudhu positions-ah calculate panrom
+    const newPositions = repositionItemsForLayout(currentItems, currentLayout, st, 600);
+    
+    const updatedProps = { ...itemProps };
+    let hasChanged = false;
+
+    Object.keys(newPositions).forEach(id => {
+      // Position-la change iruntha mattum update pannuvom
+      if (!updatedProps[id] || 
+          updatedProps[id].x !== newPositions[id].x || 
+          updatedProps[id].y !== newPositions[id].y) {
+        
+        updatedProps[id] = {
+          ...(updatedProps[id] || {}),
+          x: newPositions[id].x,
+          y: newPositions[id].y,
+          width: newPositions[id].width,
+          fontSize: updatedProps[id]?.fontSize || newPositions[id].fontSize,
+          textAlign: updatedProps[id]?.textAlign || newPositions[id].textAlign
+        };
+        hasChanged = true;
+      }
     });
 
-    const missing = draggableItems.filter(item => !newProps[item.id]);
-    if (missing.length) {
-      let maxYUsed = 20;
-      Object.values(newProps).forEach(prop => {
-        if (prop.y > maxYUsed) maxYUsed = prop.y;
-      });
+    // Delete aana items-ah remove panrom
+    const currentIds = new Set(currentItems.map(i => i.id));
+    Object.keys(updatedProps).forEach(id => {
+      if (!currentIds.has(id)) {
+        delete updatedProps[id];
+        hasChanged = true;
+      }
+    });
 
-      missing.forEach((item, index) => {
-        const defaultFontSize = item.style.fontSize ? parseInt(item.style.fontSize) : 14;
-        newProps[item.id] = {
-          x: 40,
-          y: maxYUsed + (20 * (index + 1)), // small gap to prevent overlapping
-          width: 'auto',
-          height: 'auto',
-          fontSize: defaultFontSize,
-          textAlign: 'left',
-        };
-      });
-      setItemPropsAndPush(newProps);
+    if (hasChanged) {
+      setItemProps(updatedProps); 
     }
-  }, [draggableItems]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [st.personal, st.experience, st.summary, st.education, st.skills, st.projects, st.styling.layout, st.optionalSections]);
 
   // Sync photo position with styling – push snapshot only if position changed
   useEffect(() => {
@@ -1783,127 +2090,134 @@ export default function BlankCanvasBuilderPro() {
           <button onClick={(e) => { e.stopPropagation(); undo(); }} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↩️ Undo</button>
           <button onClick={(e) => { e.stopPropagation(); redo(); }} style={{ background: "#fff", border: "1px solid #ccc", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" }}>↪️ Redo</button>
         </div>
+<div style={{ marginBottom: "10px", display: "flex", gap: "10px" }}>
+          
+          <button onClick={handleAddPage}>
+            ➕ Add Page
+          </button>
 
-        <div
-          ref={canvasContainerRef}
-          onDragOver={e => e.preventDefault()}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setSelectedDraggableId(null);
-              setSelectedFreeformId(null);
-            }
-          }}
-          style={{
-            position: "relative",
-            width: "600px",
-            minHeight: "800px",
-            background: "white",
-            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-            borderRadius: "4px",
-            paddingBottom: "150px",
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column"
+        
+
+        </div>
+
+      {pages.map((page, pageIndex) => (
+  <div
+    key={page.id}
+    ref={pageIndex === 0 ? canvasContainerRef : null}
+    style={{
+      width: "600px",
+      minHeight: "800px",
+      background: "white",
+      marginBottom: "20px",
+      boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+      borderRadius: "4px",
+      position: "relative",
+      paddingBottom: "150px"
+    }}
+  >
+
+    {/* PAGE LABEL */}
+    <div style={{
+      position: "absolute",
+      top: "-20px",
+      right: "0",
+      fontSize: "12px",
+      color: "#666"
+    }}>
+      Page {pageIndex + 1}
+    </div>
+
+    {/* 🔥 DRAGGABLE TEXT (ONLY FIRST PAGE OPTIONAL) */}
+    {pageIndex === 0 && draggableItems.map(item => {
+      const props = itemProps[item.id] || { x: 40, y: 20 };
+
+      return (
+        <DraggableTextBlock
+          key={item.id}
+          id={item.id}
+          text={item.text}
+          baseStyle={item.style}
+          defaultPos={{ x: props.x, y: props.y }}
+          defaultSize={{ width: props.width, height: props.height }}
+          defaultFontSize={props.fontSize}
+          defaultTextAlign={props.textAlign}
+          onDragStop={(e, data) =>
+            updateItemProp(item.id, { x: data.x, y: data.y })
+          }
+          isSelected={selectedDraggableId === item.id}
+          onSelect={handleSelectDraggable}
+        />
+      );
+    })}
+
+    {/* 🔥 PHOTO */}
+    {pageIndex === 0 && st.personal.photo && (
+      <Draggable
+        nodeRef={photoRef}
+        bounds="parent"
+        position={photoPosition}
+        onStop={(e, data) =>
+          setPhotoPositionAndSnapshot({ x: data.x, y: data.y })
+        }
+      >
+        <div ref={photoRef} style={{ position: "absolute" }}>
+          <img
+            src={st.personal.photo}
+            alt="profile"
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: "50%"
+            }}
+          />
+        </div>
+      </Draggable>
+    )}
+
+    {/* 🔥 FREEFORM ELEMENTS (PER PAGE) */}
+    {page.elements.map(el => {
+      if (!nodeRefs.current[el.id])
+        nodeRefs.current[el.id] = { current: null };
+
+      const isSelected = selectedFreeformId === el.id;
+
+      return (
+        <Draggable
+          key={el.id}
+          nodeRef={nodeRefs.current[el.id]}
+          bounds="parent"
+          position={{ x: el.x, y: el.y }}
+          onStop={(e, data) => {
+            const updatedPages = [...pages];
+            updatedPages[pageIndex].elements =
+              updatedPages[pageIndex].elements.map(item =>
+                item.id === el.id
+                  ? { ...item, x: data.x, y: data.y }
+                  : item
+              );
+            setPages(updatedPages);
           }}
         >
-          {draggableItems.map(item => {
-            const props = itemProps[item.id] || { x: 40, y: 20, width: 'auto', height: 'auto', fontSize: 14, textAlign: 'left' };
-            const customMinWidth = item.id === "personal-name" ? 30 : 50;
-            return (
-              <DraggableTextBlock
-                key={item.id}
-                id={item.id}
-                text={item.text}
-                baseStyle={item.style}
-                defaultPos={{ x: props.x, y: props.y }}
-                defaultSize={{ width: props.width, height: props.height }}
-                defaultFontSize={props.fontSize}
-                defaultTextAlign={props.textAlign}
-                onDragStop={(e, data) => updateItemProp(item.id, { x: data.x, y: data.y })}
-                onResize={(newSize) => updateItemProp(item.id, { width: newSize.width, height: newSize.height })}
-                onFontSizeChange={(newSize) => updateItemProp(item.id, { fontSize: newSize })}
-                onTextAlignChange={(newAlign) => updateItemProp(item.id, { textAlign: newAlign })}
-                isSelected={selectedDraggableId === item.id}
-                onSelect={handleSelectDraggable}
-                minWidth={customMinWidth}
-                minHeight={30}
-              />
-            );
-          })}
+          <div
+            ref={nodeRefs.current[el.id]}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedFreeformId(el.id);
+            }}
+            style={{
+              position: "absolute",
+              outline: isSelected ? "2px solid blue" : "none"
+            }}
+          >
+            <FreeformElement element={el} />
+          </div>
+        </Draggable>
+      );
+    })}
 
-          {st.personal.photo && (
-            <Draggable
-              nodeRef={photoRef}
-              bounds="parent"
-              position={photoPosition}
-              onStop={(e, data) => setPhotoPositionAndSnapshot({ x: data.x, y: data.y })}
-            >
-              <div ref={photoRef} style={{ position: "absolute", cursor: "move", zIndex: 10 }}>
-                <img
-                  src={st.personal.photo}
-                  alt="profile"
-                  style={{
-                    width: PHOTO_SIZES[st.styling.photoSize] || 72,
-                    height: PHOTO_SIZES[st.styling.photoSize] || 72,
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: `2px solid ${st.styling.accentColor}`,
-                  }}
-                />
-              </div>
-            </Draggable>
-          )}
-
-          {freeformElements.map(el => {
-            if (!nodeRefs.current[el.id]) nodeRefs.current[el.id] = { current: null };
-            const isDesign = ["shape", "line", "sticker", "table"].includes(el.type);
-            const isSelected = selectedFreeformId === el.id;
-
-            return (
-              <Draggable
-                key={el.id}
-                nodeRef={nodeRefs.current[el.id]}
-                bounds="parent"
-                position={{ x: el.x, y: el.y }}
-                onStop={(e, data) => updateFreeform(el.id, { x: data.x, y: data.y })}
-              >
-                <div
-                  ref={nodeRefs.current[el.id]}
-                  className="freeform-element"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectFreeform(el.id);
-                  }}
-                  style={{
-                    position: "absolute",
-                    cursor: "move",
-                    background: isDesign ? "transparent" : "white",
-                    borderRadius: el.type === "table" ? "0px" : "20px",
-                    outline: isSelected ? "2px solid #3b82f6" : "none",
-                    outlineOffset: "2px",
-                    padding: el.type === "table" ? 0 : (isDesign ? 0 : "12px 16px"),
-                    zIndex: isSelected ? 50 : 5,
-                  }}
-                >
-                  <ResizableWithHandles
-                    width={el.width}
-                    height={el.height}
-                    onResize={(w, h, x, y) => onFreeformResize(el.id, w, h, x, y)}
-                    minWidth={isDesign ? 20 : 150}
-                    minHeight={isDesign ? 20 : 100}
-                    maxWidth={600}
-                  >
-                    <FreeformElement 
-                      element={el} 
-                      isSelected={isSelected} 
-                      onUpdate={(newData) => updateFreeform(el.id, newData)} 
-                    />
-                  </ResizableWithHandles>
-                </div>
-              </Draggable>
-            );
-          })}
-        </div>
+  </div>
+))}
+         
       </div>
 
       <AIModal
@@ -1971,6 +2285,7 @@ export default function BlankCanvasBuilderPro() {
         .rb-layout-icon{font-size:20px;margin-bottom:4px;display:block;}
         .rb-layout-name{font-size:11px;font-weight:700;color:#374151;display:block;}
         .rb-layout-desc{font-size:9px;color:#94a3b8;display:block;margin-top:2px;}
+        
         [contentEditable][data-placeholder]:empty:before {
           content: attr(data-placeholder);
           color: #9ca3af;
