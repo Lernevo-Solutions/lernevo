@@ -15,7 +15,9 @@ import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import GalleryPreview from "./GalleryPreview";
 import BlankCanvasBuilder from "./BlankCanvasBuilder";
-
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import axios from 'axios';
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const ALL_SECTIONS = [
   { id: "personal",       label: "Personal",       icon: "👤" },
@@ -94,7 +96,95 @@ const INIT = {
   languages:      [makeLang()],
   styling: { font:"Inter", accentColor:"#2563eb", layout:"one-col", photoPosition:"left", photoSize:"medium" },
 };
+// BACKEND SAVE LOGIC
+const saveResumeToBackend = async (st, order, pages) => {
+  const API_BASE_URL = 'http://localhost:8000/api';
+  const token = localStorage.getItem('token'); 
 
+  const payload = {
+    title: st.personal.name ? `${st.personal.name} Resume` : "My Resume",
+    font: st.styling.font,
+    theme_color: st.styling.accentColor,
+    layout: st.styling.layout,
+    photo_position: st.styling.photoPosition,
+    photo_size: st.styling.photoSize,
+    
+    canvas_states: { order, pages },
+
+    personal_info: {
+      full_name: st.personal.name,
+      job_title: st.personal.title,
+      email: st.personal.email,
+      phone: st.personal.phone,
+      location: st.personal.location,
+      linkedin: st.personal.linkedin,
+      github: st.personal.github,
+      photo: st.personal.photo 
+    },
+
+    experiences: st.experience.map(exp => ({
+      company: exp.company,
+      role: exp.role,
+      duration: exp.duration,
+      location: exp.location,
+      description: exp.description
+    })),
+
+    educations: [
+      ...(st.education.ug || []).map(edu => ({
+        institution: edu.college,
+        degree: edu.degree,
+        branch: edu.branch,
+        graduated_year: edu.graduatedYear,
+        gpa: edu.gpa,
+        highlights: edu.highlights,
+        edu_type: 'ug'
+      })),
+      ...(st.education.school || []).map(edu => ({
+        institution: edu.schoolName,
+        degree: edu.board, 
+        branch: edu.stream,
+        graduated_year: edu.passingYear,
+        gpa: edu.percentage,
+        highlights: edu.highlights,
+        edu_type: 'school'
+      }))
+    ],
+
+    skills: st.skills.map(sk => ({
+      name: sk.name,
+      level: sk.level,
+      badge: sk.badge
+    })),
+
+    projects: st.projects.map(pj => ({
+      name: pj.name,
+      tech_stack: pj.tech,
+      description: pj.description,
+      date: pj.date
+    })),
+
+    certifications: st.certifications.map(cert => ({
+      name: cert.name,
+      issuer: cert.issuer,
+      date: cert.date,
+      description: cert.description
+    })),
+
+    languages: st.languages.map(lang => ({
+      language: lang.language,
+      proficiency: lang.proficiency,
+      stars: lang.stars
+    }))
+  };
+
+  return await axios.post(`${API_BASE_URL}/resumes/`, payload, {
+    headers: {
+      'Authorization': `Token ${token}`, 
+      'Content-Type': 'application/json'
+    }
+  });
+};
 // ═══════════════════════════════════════════════════════════════════════════════
 // CSS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -321,6 +411,15 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;}
 
 .cert-field-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .cert-field-label{font-size:12px;font-weight:600;color:#374151;}
+.rb-sheet {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+  .rb-sheet {
+  margin: 0 auto;
+  background: white;
+}
+  
 .cert-field-sub{font-size:10px;color:#9ca3af;font-weight:400;margin-left:4px;}
 `;
 
@@ -1743,7 +1842,7 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
           <div className="edu-school-number">{index+1}</div>
           <div>
             <div className="edu-degree-card-title">
-              {edu.schoolName || `School Entry ${index+1}`}
+              {edu.schoolName}
             </div>
             <div className="edu-degree-card-sub">
               {edu.passingYear ? `Passing Year · ${edu.passingYear}` : "Add school details below"}
@@ -2795,96 +2894,348 @@ function LanguagesSection({ data, onChange }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // STYLING SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
-function StylingSection({ data, onChange }) {
+function StylingSection({ data, onChange, onSave }) {
   const s = k => v => onChange({ ...data, [k]:v });
-  return (<div><div className="rb-style-lbl">Font Family</div><div className="rb-font-grid">{FONTS.map(f => (<div key={f} className={`rb-font-opt${data.font === f ? " on" : ""}`} style={{ fontFamily:`'${f}',sans-serif` }} onClick={() => s("font")(f)}>{f}</div>))}</div><div className="rb-style-lbl" style={{ marginTop:20 }}>Theme Color</div><div className="rb-color-row">{COLORS.map(c => (<div key={c} className={`rb-swatch${data.accentColor === c ? " on" : ""}`} style={{ background:c }} onClick={() => s("accentColor")(c)}/>))}<input type="color" value={data.accentColor} onChange={e => s("accentColor")(e.target.value)} style={{ width:28, height:28, border:"none", borderRadius:"50%", cursor:"pointer", padding:0 }}/></div></div>);
+  return (
+    <div>
+      <div className="rb-style-lbl">Font Family</div>
+      <div className="rb-font-grid">
+        {FONTS.map(f => (
+          <div key={f} className={`rb-font-opt${data.font === f ? " on" : ""}`} 
+               style={{ fontFamily:`'${f}',sans-serif` }} 
+               onClick={() => s("font")(f)}>
+            {f}
+          </div>
+        ))}
+      </div>
+      
+      <div className="rb-style-lbl" style={{ marginTop:20 }}>Theme Color</div>
+      <div className="rb-color-row">
+        {COLORS.map(c => (
+          <div key={c} className={`rb-swatch${data.accentColor === c ? " on" : ""}`} 
+               style={{ background:c }} 
+               onClick={() => s("accentColor")(c)}/>
+        ))}
+        <input type="color" value={data.accentColor} onChange={e => s("accentColor")(e.target.value)} 
+               style={{ width:28, height:28, border:"none", borderRadius:"50%", cursor:"pointer", padding:0 }}/>
+      </div>
+
+     
+    </div>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BLANK BUILDER
 // ═══════════════════════════════════════════════════════════════════════════════
 function BlankBuilder({ galleryColor }) {
-  const [st, setSt]       = useState(() => ({ ...INIT, styling: { ...INIT.styling, accentColor: galleryColor || "#2563eb" } }));
+  // 1. Initialize State
+  const [st, setSt] = useState(() => ({ 
+    ...INIT, 
+    styling: { ...INIT.styling, accentColor: galleryColor || "#2563eb" } 
+  }));
   const [order, setOrder] = useState(() => [...DEFAULT_ORDER]);
-  const [pages, setPages] = useState(() => [{ id:uid() }]);
-  const previewRef        = useRef(null);
-  const sec    = id => setSt(s => ({ ...s, activeSection:id }));
-  const setFld = (k, v) => setSt(s => ({ ...s, [k]:v }));
-  const idx  = ALL_SECTIONS.findIndex(n => n.id === st.activeSection);
+  const [pages, setPages] = useState(() => [{ id: uid() }]);
+  const previewRef = useRef(null);
+
+  // 2. Navigation & Index Helpers (FIXES 'idx is not defined')
+  const filteredSidebar = ALL_SECTIONS; 
+  const currentIdx = filteredSidebar.findIndex(n => n.id === st.activeSection);
+  const idx = currentIdx; // 'idx' use panradhala inga map panniyachu
   const meta = SECTION_META[st.activeSection];
-  const addPage    = () => setPages(p => [...p, { id:uid() }]);
-  const removePage = id => { if (pages.length <= 1) return; setPages(p => p.filter(x => x.id !== id)); };
+ const [isSaved, setIsSaved] = useState(false);
+const [resumeId, setResumeId] = useState(null);
+ // Backend ID-ah store panna
+  // 3. Define Action Functions
+  const sec = id => setSt(s => ({ ...s, activeSection: id }));
+  const setFld = (k, v) => setSt(s => ({ ...s, [k]: v }));
+  const addPage = () => setPages(p => [...p, { id: uid() }]);
+  const removePage = id => { 
+    if (pages.length <= 1) return; 
+    setPages(p => p.filter(x => x.id !== id)); 
+  };
+const pageRef = useRef(null);
+  // 4. Handle Save Function (FIXES 'itemProps', 'freeformElements' errors)
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token'); 
+      
+      const payload = {
+        title: st.personal.name ? `${st.personal.name} Resume` : "My Resume",
+        styling: st.styling,
+        // BlankBuilder uses 'order' and 'pages' for canvas state
+        canvas_states: {
+          order: order,
+          pages: pages
+        },
+        personal_info: {
+          full_name: st.personal.name,
+          job_title: st.personal.title,
+          email: st.personal.email,
+          phone: st.personal.phone,
+          location: st.personal.location,
+          linkedin: st.personal.linkedin,
+          github: st.personal.github,
+          photo: st.personal.photo 
+        },
+        experiences: st.experience,
+        educations: [
+          ...(st.education.ug || []).map(e => ({ ...e, edu_type: 'ug' })),
+          ...(st.education.school || []).map(e => ({ ...e, edu_type: 'school' }))
+        ],
+        skills: st.skills,
+        projects: st.projects,
+        certifications: st.certifications,
+        languages: st.languages
+      };
+
+      const response = await fetch('http://127.0.0.1:8000/api/resumes/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        setIsSaved(true);
+        alert("Resume successfully saved to backend! ✅");
+      } else {
+        const errorData = await response.json();
+        alert("Failed to save: " + (errorData.detail || "Check your connection."));
+      }
+    } catch (error) {
+      console.error("Save error:", error);
+      alert("An error occurred while saving.");
+    }
+  };
+const handleDownload = async () => {
+  if (!pageRef.current) {
+    alert("Preview not ready. Please wait a moment.");
+    return;
+  }
+
+  try {
+    // Clone the resume element to avoid affecting the live preview
+    const originalElement = pageRef.current;
+    const clone = originalElement.cloneNode(true);
+    clone.style.position = "fixed";
+    clone.style.top = "-9999px";
+    clone.style.left = "-9999px";
+    clone.style.width = "595px";
+    clone.style.backgroundColor = "#fff";
+    clone.style.margin = "0";
+    clone.style.padding = "20px 22px";
+    clone.style.boxShadow = "none";
+    document.body.appendChild(clone);
+
+    // Wait for fonts
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 100));
+
+    // Capture the clone
+    const canvas = await html2canvas(clone, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      letterRendering: true,
+      logging: false,
+    });
+
+    // Remove clone
+    document.body.removeChild(clone);
+
+    // Generate PDF
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    pdf.save("resume.pdf");
+  } catch (error) {
+    console.error("PDF error:", error);
+    alert("Failed to generate PDF. Check console for details.");
+  }
+};
   const eduNorm = normaliseEducation(st.education);
   const resumeData = {
-    personal:       st.personal,
-    summary:        st.summary,
-    experience:     Array.isArray(st.experience)     ? st.experience     : [makeExp()],
-    education:      eduNorm,
-    skills:         Array.isArray(st.skills)         ? st.skills         : [makeSkill()],
-    projects:       Array.isArray(st.projects)       ? st.projects       : [makeProj()],
+    personal: st.personal,
+    summary: st.summary,
+    experience: Array.isArray(st.experience) ? st.experience : [makeExp()],
+    education: eduNorm,
+    skills: Array.isArray(st.skills) ? st.skills : [makeSkill()],
+    projects: Array.isArray(st.projects) ? st.projects : [makeProj()],
     certifications: Array.isArray(st.certifications) ? st.certifications : [makeCert()],
-    languages:      Array.isArray(st.languages)      ? st.languages      : [makeLang()],
+    languages: Array.isArray(st.languages) ? st.languages : [makeLang()],
   };
-  const renderForm = () => { switch (st.activeSection) { case "personal": return <PersonalSection data={st.personal} onChange={v => setFld("personal",v)} styling={st.styling} onStylingChange={v => setFld("styling",v)}/>; case "summary": return <SummarySection data={st.summary} onChange={v => setFld("summary",v)} personalData={st.personal}/>; case "experience": return <ExperienceSection data={resumeData.experience} onChange={v => setFld("experience",v)}/>; case "education": return <EducationSection data={eduNorm} onChange={v => setFld("education",v)}/>; case "skills": return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills",v)}/>; case "projects": return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects",v)}/>; case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications",v)}/>; case "languages": return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages",v)}/>; case "styling": return <StylingSection data={st.styling} onChange={v => setFld("styling",v)}/>; default: return null; } };
+
+  const renderForm = () => {
+    switch (st.activeSection) {
+      case "personal": return <PersonalSection data={st.personal} onChange={v => setFld("personal", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
+      case "summary": return <SummarySection data={st.summary} onChange={v => setFld("summary", v)} personalData={st.personal} />;
+      case "experience": return <ExperienceSection data={resumeData.experience} onChange={v => setFld("experience", v)} />;
+      case "education": return <EducationSection data={eduNorm} onChange={v => setFld("education", v)} />;
+      case "skills": return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills", v)} />;
+      case "projects": return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects", v)} />;
+      case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications", v)} />;
+      case "languages": return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages", v)} />;
+      case "styling": return <StylingSection data={st.styling} onChange={v => setFld("styling", v)} />;
+      default: return null;
+    }
+  };
+
   return (
-    <><style>{CSS}</style>
-    <div className="rb-bar">
-      <span className="rb-bar-title">Resume Builder</span>
-      <span className="rb-badge">📄 Blank Resume</span>
-      <div className="rb-sep"/>
-      <button className="rb-btn rb-btn-ghost" onClick={addPage}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Page</button>
-      <div className="rb-sep"/>
-      <button className="rb-btn">💾 Save</button>
-      <button className="rb-btn rb-btn-dark">⬇ Download PDF</button>
-    </div>
-    <div className="rb-layout">
-      <aside className="rb-sidebar">
-        {ALL_SECTIONS.map(n => (<button key={n.id} className={`rb-nav${st.activeSection === n.id ? " on" : ""}`} onClick={() => sec(n.id)}><span className="rb-nav-icon">{n.icon}</span><span className="rb-nav-lbl">{n.label}</span></button>))}
-      </aside>
-      <div className="rb-content">
-        <div className="rb-form">
-          <div className="rb-form-head"><h2>{meta.title}</h2><p>{meta.desc}</p></div>
-          <div className="rb-form-body">{renderForm()}</div>
-          <div className="rb-form-foot">
-            <button className="rb-back" disabled={idx === 0} onClick={() => sec(ALL_SECTIONS[idx-1].id)}>‹ Back</button>
-            <button className="rb-next" disabled={idx === ALL_SECTIONS.length-1} onClick={() => sec(ALL_SECTIONS[idx+1].id)}>Next ›</button>
-          </div>
-        </div>
-        <div className="rb-preview" ref={previewRef}>
-          <div className="rb-preview-bar">
-            <div className="rb-preview-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Live Preview</div>
-            <div className="rb-preview-hint"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Hover sections to drag &amp; reorder</div>
-          </div>
-          <div className="rb-pages">
-            {pages.map((page, pi) => (
-              <div key={page.id} className="rb-page-block">
-                <PreviewScaler containerRef={previewRef}>
-                  <div className="rb-sheet"><LivePreview data={resumeData} styling={st.styling} sectionOrder={order} onReorder={setOrder}/></div>
-                </PreviewScaler>
-                <div className="rb-page-num">Page {pi+1} of {pages.length}</div>
-                {pages.length > 1 && <button className="rb-rm-page" onClick={() => removePage(page.id)}>× Remove page</button>}
-              </div>
-            ))}
-            <button className="rb-add-page" onClick={addPage}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Another Page</button>
+    <>
+      <style>{CSS}</style>
+      <div className="rb-bar">
+        <span className="rb-bar-title">Resume Builder</span>
+        <span className="rb-badge">📄 Blank Resume</span>
+        <div className="rb-sep" />
+        <button className="rb-btn rb-btn-ghost" onClick={addPage}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add Page
+        </button>
+        <div className="rb-sep" />
+        <button className="rb-btn" onClick={handleSave}>💾 Save</button>
+     <button disabled={!isSaved} onClick={handleDownload}>
+  Download PDF
+</button>
+      </div>
+
+      <div className="rb-layout">
+        <aside className="rb-sidebar">
+          {filteredSidebar.map(n => (
+            <button key={n.id} className={`rb-nav${st.activeSection === n.id ? " on" : ""}`} onClick={() => sec(n.id)}>
+              <span className="rb-nav-icon">{n.icon}</span>
+              <span className="rb-nav-lbl">{n.label}</span>
+            </button>
+          ))}
+        </aside>
+
+        <div className="rb-content">
+          <div className="rb-form">
+            <div className="rb-form-head"><h2>{meta.title}</h2><p>{meta.desc}</p></div>
+            <div className="rb-form-body">{renderForm()}</div>
+            <div className="rb-form-foot" style={{ padding: "12px 22px", borderTop: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between" }}>
+  <button className="rb-back" disabled={idx === 0} onClick={() => sec(ALL_SECTIONS[idx - 1].id)}>‹ Back</button>
+  
+  {/* Ippo 'Styling' tab-la irukumbothu mattum Save kaattum */}
+  {st.activeSection === "styling" ? (
+    <button 
+      className="rb-next" 
+      style={{ background: "#2563eb", color: "white", fontWeight: "bold", width: "120px" }} 
+      onClick={handleSave}
+    >
+      💾 Save Resume
+    </button>
+  ) : (
+    <button className="rb-next" disabled={idx === ALL_SECTIONS.length - 1} onClick={() => sec(ALL_SECTIONS[idx + 1].id)}>
+      Next ›
+    </button>
+  )}
+</div>
+</div>
+
+          <div className="rb-preview" ref={previewRef}>
+            <div className="rb-preview-bar">
+              <div className="rb-preview-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /></svg>Live Preview</div>
+              <div className="rb-preview-hint"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>Hover sections to drag &amp; reorder</div>
+            </div>
+            <div className="rb-pages">
+              {pages.map((page, pi) => (
+                <div key={page.id} className="rb-page-block">
+                  <PreviewScaler containerRef={previewRef}>
+                    <div className="rb-sheet" ref={pageRef}><LivePreview data={resumeData} styling={st.styling} sectionOrder={order} onReorder={setOrder} /></div>
+                  </PreviewScaler>
+                  <div className="rb-page-num">Page {pi + 1} of {pages.length}</div>
+                  {pages.length > 1 && <button className="rb-rm-page" onClick={() => removePage(page.id)}>× Remove page</button>}
+                </div>
+              ))}
+              <button className="rb-add-page" onClick={addPage}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>Add Another Page</button>
+            </div>
           </div>
         </div>
       </div>
-    </div></>
+    </>
   );
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // TEMPLATE BUILDER
 // ═══════════════════════════════════════════════════════════════════════════════
 function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   const [st, setSt]       = useState(() => ({ ...INIT, activeSection:visibleIds[0], styling: { ...INIT.styling, accentColor: galleryColor || "#2563eb" } }));
-  const showAddPageStructures = ['clean-centered','classic-minimal','bold-two-col','minimalist-top','minimalist-pro','photo-ats','graphic-split'];
-  const showAddPage = showAddPageStructures.includes(galleryTemplate.structure);
   const [pages, setPages] = useState(() => [{ id:uid(), type:'template' }]);
   const [order, setOrder] = useState(() => [...DEFAULT_ORDER]);
+  
+  const showAddPageStructures = ['clean-centered','classic-minimal','bold-two-col','minimalist-top','minimalist-pro','photo-ats','graphic-split'];
+  const showAddPage = showAddPageStructures.includes(galleryTemplate.structure);
   const filteredSidebar   = ALL_SECTIONS.filter(s => visibleIds.includes(s.id));
   const currentIdx        = filteredSidebar.findIndex(s => s.id === st.activeSection);
   const previewRef        = useRef(null);
+ const [isSaved, setIsSaved] = useState(false);
+ const pageRef = useRef(null);
+  // ─── ADD THIS: handleSave function for Templates ───
+  const handleSave = async () => {
+    try {
+      await saveResumeToBackend(st, order, pages);
+      setIsSaved(true);
+      alert("Resume successfully saved! ✅");
+    } catch (error) {
+      console.error("Save error:", error);
+      alert("Error: Could not save resume. Check login.");
+    }
+  };
+const handleDownload = async () => {
+  if (!pageRef.current) {
+    alert("Preview not ready. Please wait a moment.");
+    return;
+  }
+
+  try {
+    // Clone the resume element to avoid affecting the live preview
+    const originalElement = pageRef.current;
+    const clone = originalElement.cloneNode(true);
+    clone.style.position = "fixed";
+    clone.style.top = "-9999px";
+    clone.style.left = "-9999px";
+    clone.style.width = "595px";
+    clone.style.backgroundColor = "#fff";
+    clone.style.margin = "0";
+    clone.style.padding = "20px 22px";
+    clone.style.boxShadow = "none";
+    document.body.appendChild(clone);
+
+    // Wait for fonts
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 100));
+
+    // Capture the clone
+    const canvas = await html2canvas(clone, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      letterRendering: true,
+      logging: false,
+    });
+
+    // Remove clone
+    document.body.removeChild(clone);
+
+    // Generate PDF
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    pdf.save("resume.pdf");
+  } catch (error) {
+    console.error("PDF error:", error);
+    alert("Failed to generate PDF. Check console for details.");
+  }
+};
   const sec    = id => setSt(s => ({ ...s, activeSection:id }));
   const setFld = (k, v) => setSt(s => ({ ...s, [k]:v }));
   const meta   = SECTION_META[st.activeSection];
@@ -2892,7 +3243,9 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   const resumeData = { personal:st.personal, summary:st.summary, experience: Array.isArray(st.experience) ? st.experience : [makeExp()], education:eduNorm, skills: Array.isArray(st.skills) ? st.skills : [makeSkill()], projects: Array.isArray(st.projects) ? st.projects : [makeProj()], certifications: Array.isArray(st.certifications) ? st.certifications : [makeCert()], languages: Array.isArray(st.languages) ? st.languages : [makeLang()] };
   const addPage    = () => setPages(p => [...p, { id:uid(), type:'blank' }]);
   const removePage = id => { if (pages[0].id === id) return; setPages(p => p.filter(x => x.id !== id)); };
+  
   const renderForm = () => { switch (st.activeSection) { case "personal": return <PersonalSection data={st.personal} onChange={v => setFld("personal",v)} styling={st.styling} onStylingChange={v => setFld("styling",v)}/>; case "summary": return <SummarySection data={st.summary} onChange={v => setFld("summary",v)} personalData={st.personal}/>; case "experience": return <ExperienceSection data={resumeData.experience} onChange={v => setFld("experience",v)}/>; case "education": return <EducationSection data={eduNorm} onChange={v => setFld("education",v)}/>; case "skills": return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills",v)}/>; case "projects": return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects",v)}/>; case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications",v)}/>; case "languages": return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages",v)}/>; case "styling": return <StylingSection data={st.styling} onChange={v => setFld("styling",v)}/>; default: return null; } };
+
   return (
     <><style>{CSS}</style>
     <div className="rb-bar">
@@ -2900,8 +3253,29 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
       <span className="rb-badge">📄 {galleryTemplate?.name}</span>
       <div className="rb-sep"/>
       {showAddPage && (<><button className="rb-btn rb-btn-ghost" onClick={addPage}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Page</button><div className="rb-sep"/></>)}
-      <button className="rb-btn">💾 Save</button>
-      <button className="rb-btn rb-btn-dark">⬇ Download PDF</button>
+      
+      
+     <button 
+  onClick={handleDownload}
+  disabled={!isSaved}
+  style={{
+    background: "#111827",
+    border: "none",
+    color: "#fff",
+    fontWeight: "bold",
+    padding: "7px 16px",
+    borderRadius: "8px",
+    cursor: !isSaved ? "not-allowed" : "pointer",
+    fontSize: "13px",
+    fontFamily: "inherit",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    opacity: !isSaved ? 0.5 : 1
+  }}
+>
+  ⬇️ Download PDF
+</button>
     </div>
     <div className="rb-layout">
       <aside className="rb-sidebar">
@@ -2911,12 +3285,27 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
         <div className="rb-form">
           <div className="rb-form-head"><h2>{meta.title}</h2><p>{meta.desc}</p></div>
           <div className="rb-form-body">{renderForm()}</div>
-          <div className="rb-form-foot">
+          
+          {/* ─── FOOTER FIX: "Save Progress" logic for Templates ─── */}
+          <div className="rb-form-foot" style={{ padding: "12px 22px", display: "flex", justifyContent: "space-between" }}>
             <button className="rb-back" disabled={currentIdx === 0} onClick={() => sec(filteredSidebar[currentIdx-1].id)}>‹ Back</button>
-            <button className="rb-next" disabled={currentIdx === filteredSidebar.length-1} onClick={() => sec(filteredSidebar[currentIdx+1].id)}>Next ›</button>
+            
+            {st.activeSection === "styling" ? (
+              <button 
+                className="rb-next" 
+                style={{ background: "#2563eb", color: "white", fontWeight: "bold" }} 
+                onClick={handleSave}
+              >
+                💾 Save Progress
+              </button>
+            ) : (
+              <button className="rb-next" disabled={currentIdx === filteredSidebar.length-1} onClick={() => sec(filteredSidebar[currentIdx+1].id)}>Next ›</button>
+            )}
           </div>
         </div>
+        
         <div className="rb-preview" ref={previewRef}>
+          {/* ... Preview area (same as before) ... */}
           <div className="rb-preview-bar">
             <div className="rb-preview-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Live Preview — {galleryTemplate?.name}</div>
           </div>
@@ -2924,7 +3313,7 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
             {pages.map((page, pi) => (
               <div key={page.id} className="rb-page-block">
                 <PreviewScaler containerRef={previewRef}>
-                  <div className="rb-sheet">
+                  <div className="rb-sheet" ref={pageRef}>
                     {page.type === 'template'
                       ? <GalleryPreview tpl={galleryTemplate} data={resumeData} accentColor={st.styling.accentColor} font={st.styling.font}/>
                       : <LivePreview data={resumeData} styling={st.styling} sectionOrder={order} onReorder={setOrder}/>}
