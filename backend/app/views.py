@@ -572,12 +572,19 @@ Questions:
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+from rest_framework.authentication import TokenAuthentication
 class ResumeViewSet(viewsets.ModelViewSet):
     serializer_class = ResumeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication] 
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Resume.objects.filter(user=self.request.user.lernevo_user)
+    
+        return Resume.objects.filter(
+            user__auth_user=self.request.user,
+            is_delete=False
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user.lernevo_user)

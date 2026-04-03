@@ -131,9 +131,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # ================= CORS =================
 
-CORS_ALLOWED_ORIGINS = [
-    "https://lernevo-frontend-771297649928.us-central1.run.app",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 
