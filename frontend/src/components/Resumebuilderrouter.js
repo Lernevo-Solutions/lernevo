@@ -98,7 +98,7 @@ const INIT = {
 };
 // BACKEND SAVE LOGIC
 const saveResumeToBackend = async (st, order, pages) => {
-  const API_BASE_URL = 'http://localhost:8000/api';
+  const API_BASE_URL = 'https://lernevo-backend-staging-771297649928.us-central1.run.app/api';
   const token = localStorage.getItem('token'); 
 
   const payload = {
@@ -2989,7 +2989,7 @@ const pageRef = useRef(null);
         languages: st.languages
       };
 
-      const response = await fetch('http://127.0.0.1:8000/api/resumes/', {
+      const response = await fetch('https://lernevo-backend-staging-771297649928.us-central1.run.app/api/resumes/', {
         method: 'POST',
         headers: {
           'Authorization': `Token ${token}`,
