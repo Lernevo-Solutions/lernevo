@@ -99,91 +99,99 @@ const INIT = {
 // BACKEND SAVE LOGIC
 const saveResumeToBackend = async (st, order, pages) => {
   const API_BASE_URL = 'https://lernevo-backend-staging-771297649928.us-central1.run.app/api';
-  const token = localStorage.getItem('token'); 
+  const token = localStorage.getItem('token');
+  const resumeId = localStorage.getItem('resumeId');
+
+  const clean = (val) => (val === undefined || val === null ? "" : val);
 
   const payload = {
-    title: st.personal.name ? `${st.personal.name} Resume` : "My Resume",
-    font: st.styling.font,
-    theme_color: st.styling.accentColor,
-    layout: st.styling.layout,
-    photo_position: st.styling.photoPosition,
-    photo_size: st.styling.photoSize,
-    
-    canvas_states: { order, pages },
-
-    personal_info: {
-      full_name: st.personal.name,
-      job_title: st.personal.title,
-      email: st.personal.email,
-      phone: st.personal.phone,
-      location: st.personal.location,
-      linkedin: st.personal.linkedin,
-      github: st.personal.github,
-      photo: st.personal.photo 
+    title: st.personal?.name ? `${st.personal.name} Resume` : "My Resume", // Fixed template literal
+    font: clean(st.styling?.font),
+    theme_color: clean(st.styling?.accentColor),
+    layout: clean(st.styling?.layout),
+    photo_position: st.styling?.photoPosition || "left",
+    photo_size: st.styling?.photoSize || "medium",
+    canvas_states: {
+      order: order || [],
+      pages: pages || []
     },
-
-    experiences: st.experience.map(exp => ({
-      company: exp.company,
-      role: exp.role,
-      duration: exp.duration,
-      location: exp.location,
-      description: exp.description
+    personal_info: {
+      full_name: clean(st.personal?.name),
+      job_title: clean(st.personal?.title),
+      email: clean(st.personal?.email),
+      phone: clean(st.personal?.phone),
+      location: clean(st.personal?.location),
+      linkedin: clean(st.personal?.linkedin),
+      github: clean(st.personal?.github),
+      photo: st.personal?.photo || null
+    },
+    summary: {
+      text: typeof st.summary === "string" ? st.summary : clean(st.summary?.text)
+    },
+    experiences: (st.experience || []).map(exp => ({
+      company: clean(exp.company),
+      role: clean(exp.role),
+      duration: clean(exp.duration),
+      location: clean(exp.location),
+      description: clean(exp.description)
     })),
-
-    educations: [
-      ...(st.education.ug || []).map(edu => ({
-        institution: edu.college,
-        degree: edu.degree,
-        branch: edu.branch,
-        graduated_year: edu.graduatedYear,
-        gpa: edu.gpa,
-        highlights: edu.highlights,
-        edu_type: 'ug'
-      })),
-      ...(st.education.school || []).map(edu => ({
-        institution: edu.schoolName,
-        degree: edu.board, 
-        branch: edu.stream,
-        graduated_year: edu.passingYear,
-        gpa: edu.percentage,
-        highlights: edu.highlights,
-        edu_type: 'school'
-      }))
-    ],
-
-    skills: st.skills.map(sk => ({
-      name: sk.name,
-      level: sk.level,
-      badge: sk.badge
+    ug_education: (st.education?.ug || []).map(e => ({
+      college: clean(e.college || e.institution),
+      degree: clean(e.degree),
+      branch: clean(e.branch),
+      graduatedYear: clean(e.graduatedYear || e.graduated_year),
+      gpa: clean(e.gpa),
+      highlights: clean(e.highlights)
     })),
-
-    projects: st.projects.map(pj => ({
-      name: pj.name,
-      tech_stack: pj.tech,
-      description: pj.description,
-      date: pj.date
+    school_education: (st.education?.school || []).map(e => ({
+      schoolName: clean(e.schoolName || e.institution),
+      board: clean(e.board),
+      stream: clean(e.stream),
+      passingYear: clean(e.passingYear || e.graduated_year),
+      percentage: clean(e.percentage || e.gpa),
+      highlights: clean(e.highlights)
     })),
-
-    certifications: st.certifications.map(cert => ({
-      name: cert.name,
-      issuer: cert.issuer,
-      date: cert.date,
-      description: cert.description
+    skills: (st.skills || []).map(sk => ({
+      name: clean(sk.name),
+      level: sk.level ?? 0,
+      badge: clean(sk.badge)
     })),
-
-    languages: st.languages.map(lang => ({
-      language: lang.language,
-      proficiency: lang.proficiency,
-      stars: lang.stars
+    projects: (st.projects || []).map(pj => ({
+      name: clean(pj.name),
+      tech: clean(pj.tech || pj.tech_stack),
+      description: clean(pj.description),
+      date: clean(pj.date)
+    })),
+    certifications: (st.certifications || []).map(cert => ({
+      name: clean(cert.name),
+      issuer: clean(cert.issuer),
+      date: clean(cert.date),
+      description: clean(cert.description)
+    })),
+    languages: (st.languages || []).map(lang => ({
+      language: clean(lang.language),
+      proficiency: clean(lang.proficiency),
+      stars: lang.stars ?? 0
     }))
   };
 
-  return await axios.post(`${API_BASE_URL}/resumes/`, payload, {
-    headers: {
-      'Authorization': `Token ${token}`, 
-      'Content-Type': 'application/json'
-    }
-  });
+  if (resumeId) {
+    return await axios.patch(`${API_BASE_URL}/resumes/${resumeId}/`, payload, { // Fixed template literal
+      headers: {
+        Authorization: `Token ${token}`, // Fixed token string
+        "Content-Type": "application/json"
+      }
+    });
+  } else {
+    const res = await axios.post(`${API_BASE_URL}/resumes/`, payload, { // Fixed template literal
+      headers: {
+        Authorization: `Token ${token}`, // Fixed token string
+        "Content-Type": "application/json"
+      }
+    });
+    localStorage.setItem("resumeId", res.data.id);
+    return res;
+  }
 };
 // ═══════════════════════════════════════════════════════════════════════════════
 // CSS
@@ -3162,25 +3170,105 @@ const handleDownload = async () => {
     </>
   );
 }
+
 // ═══════════════════════════════════════════════════════════════════════════════
-// TEMPLATE BUILDER
+// CONTINUATION PAGE — clean blank A4 sheet for page 2+
+// Must be defined OUTSIDE and BEFORE TemplateBuilder
+// ═══════════════════════════════════════════════════════════════════════════════
+function ContinuationPage({ tpl, accentColor, font, pageNumber }) {
+  const fontStyle = { fontFamily: `'${font || "Inter"}', sans-serif` };
+  return (
+    <div style={{
+      ...fontStyle,
+      background: "#fff",
+      minHeight: 841,
+      padding: "24px 28px",
+      display: "flex",
+      flexDirection: "column",
+    }}>
+      {/* Thin accent bar at top to match template branding */}
+      <div style={{
+        height: 3,
+        background: accentColor,
+        marginBottom: 18,
+        borderRadius: 2,
+      }} />
+
+      {/* Continuation area */}
+      <div style={{
+        flex: 1,
+        border: `1.5px dashed ${accentColor}44`,
+        borderRadius: 8,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        padding: "28px 20px",
+        gap: 12,
+        background: `${accentColor}06`,
+      }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: "50%",
+          background: `${accentColor}18`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 16, color: accentColor, fontWeight: 700,
+        }}>{pageNumber}</div>
+        <p style={{
+          fontSize: 12, color: "#9ca3af", fontStyle: "italic", textAlign: "center",
+        }}>
+          Page {pageNumber} — overflow content will appear here when your resume fills page 1
+        </p>
+      </div>
+
+      {/* Footer page number */}
+      <div style={{
+        marginTop: 16, textAlign: "center",
+        fontSize: 9, color: "#d1d5db",
+      }}>
+        Page {pageNumber}
+      </div>
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE BUILDER — FIXED
 // ═══════════════════════════════════════════════════════════════════════════════
 function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
-  const [st, setSt]       = useState(() => ({ ...INIT, activeSection:visibleIds[0], styling: { ...INIT.styling, accentColor: galleryColor || "#2563eb" } }));
-  const [pages, setPages] = useState(() => [{ id:uid(), type:'template' }]);
-  const [order, setOrder] = useState(() => [...DEFAULT_ORDER]);
-  
-  const showAddPageStructures = ['clean-centered','classic-minimal','bold-two-col','minimalist-top','minimalist-pro','photo-ats','graphic-split'];
+  const [st, setSt] = useState(() => ({
+    ...INIT,
+    activeSection: visibleIds[0],
+    styling: { ...INIT.styling, accentColor: galleryColor || "#2563eb" },
+  }));
+
+  // ── pages array: each entry = one independent A4 sheet
+  const [pages, setPages]     = useState(() => [{ id: uid() }]);
+  const [order, setOrder]     = useState(() => [...DEFAULT_ORDER]);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const showAddPageStructures = [
+    "clean-centered", "classic-minimal", "bold-two-col",
+    "minimalist-top", "minimalist-pro", "photo-ats", "graphic-split",
+  ];
   const showAddPage = showAddPageStructures.includes(galleryTemplate.structure);
-  const filteredSidebar   = ALL_SECTIONS.filter(s => visibleIds.includes(s.id));
-  const currentIdx        = filteredSidebar.findIndex(s => s.id === st.activeSection);
-  const previewRef        = useRef(null);
- const [isSaved, setIsSaved] = useState(false);
- const pageRef = useRef(null);
-  // ─── ADD THIS: handleSave function for Templates ───
+
+  const filteredSidebar = ALL_SECTIONS.filter(s => visibleIds.includes(s.id));
+  const currentIdx      = filteredSidebar.findIndex(s => s.id === st.activeSection);
+  const previewRef      = useRef(null);
+  const pageRef         = useRef(null);
+  const meta            = SECTION_META[st.activeSection];
+
+  const sec    = id => setSt(s => ({ ...s, activeSection: id }));
+  const setFld = (k, v) => setSt(s => ({ ...s, [k]: v }));
+
+  // ── Add / remove pages
+  const addPage    = () => setPages(p => [...p, { id: uid() }]);
+  const removePage = id => setPages(p => p.length > 1 ? p.filter(x => x.id !== id) : p);
+
   const handleSave = async () => {
     try {
-      await saveResumeToBackend(st, order, pages);
+      await saveResumeToBackend(st, order, pages.length - 1);
       setIsSaved(true);
       alert("Resume successfully saved! ✅");
     } catch (error) {
@@ -3188,145 +3276,206 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
       alert("Error: Could not save resume. Check login.");
     }
   };
-const handleDownload = async () => {
-  if (!pageRef.current) {
-    alert("Preview not ready. Please wait a moment.");
-    return;
-  }
 
-  try {
-    // Clone the resume element to avoid affecting the live preview
-    const originalElement = pageRef.current;
-    const clone = originalElement.cloneNode(true);
-    clone.style.position = "fixed";
-    clone.style.top = "-9999px";
-    clone.style.left = "-9999px";
-    clone.style.width = "595px";
-    clone.style.backgroundColor = "#fff";
-    clone.style.margin = "0";
-    clone.style.padding = "20px 22px";
-    clone.style.boxShadow = "none";
-    document.body.appendChild(clone);
+  const handleDownload = async () => {
+    if (!pageRef.current) {
+      alert("Preview not ready. Please wait a moment.");
+      return;
+    }
+    try {
+      const clone = pageRef.current.cloneNode(true);
+      clone.style.cssText =
+        "position:fixed;top:-9999px;left:-9999px;width:595px;background:#fff;margin:0;padding:0;box-shadow:none;";
+      document.body.appendChild(clone);
+      await document.fonts.ready;
+      await new Promise(r => setTimeout(r, 100));
+      const canvas = await html2canvas(clone, {
+        scale: 3, useCORS: true, backgroundColor: "#ffffff",
+        letterRendering: true, logging: false,
+      });
+      document.body.removeChild(clone);
+      const imgData   = canvas.toDataURL("image/png");
+      const pdf       = new jsPDF("p", "mm", "a4");
+      const imgWidth  = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      pdf.save("resume.pdf");
+    } catch (error) {
+      console.error("PDF error:", error);
+      alert("Failed to generate PDF.");
+    }
+  };
 
-    // Wait for fonts
-    await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 100));
+  const eduNorm    = normaliseEducation(st.education);
+  const resumeData = {
+    personal:       st.personal,
+    summary:        st.summary,
+    experience:     Array.isArray(st.experience)     ? st.experience     : [makeExp()],
+    education:      eduNorm,
+    skills:         Array.isArray(st.skills)         ? st.skills         : [makeSkill()],
+    projects:       Array.isArray(st.projects)       ? st.projects       : [makeProj()],
+    certifications: Array.isArray(st.certifications) ? st.certifications : [makeCert()],
+    languages:      Array.isArray(st.languages)      ? st.languages      : [makeLang()],
+  };
 
-    // Capture the clone
-    const canvas = await html2canvas(clone, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      letterRendering: true,
-      logging: false,
-    });
-
-    // Remove clone
-    document.body.removeChild(clone);
-
-    // Generate PDF
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    pdf.save("resume.pdf");
-  } catch (error) {
-    console.error("PDF error:", error);
-    alert("Failed to generate PDF. Check console for details.");
-  }
-};
-  const sec    = id => setSt(s => ({ ...s, activeSection:id }));
-  const setFld = (k, v) => setSt(s => ({ ...s, [k]:v }));
-  const meta   = SECTION_META[st.activeSection];
-  const eduNorm = normaliseEducation(st.education);
-  const resumeData = { personal:st.personal, summary:st.summary, experience: Array.isArray(st.experience) ? st.experience : [makeExp()], education:eduNorm, skills: Array.isArray(st.skills) ? st.skills : [makeSkill()], projects: Array.isArray(st.projects) ? st.projects : [makeProj()], certifications: Array.isArray(st.certifications) ? st.certifications : [makeCert()], languages: Array.isArray(st.languages) ? st.languages : [makeLang()] };
-  const addPage    = () => setPages(p => [...p, { id:uid(), type:'blank' }]);
-  const removePage = id => { if (pages[0].id === id) return; setPages(p => p.filter(x => x.id !== id)); };
-  
-  const renderForm = () => { switch (st.activeSection) { case "personal": return <PersonalSection data={st.personal} onChange={v => setFld("personal",v)} styling={st.styling} onStylingChange={v => setFld("styling",v)}/>; case "summary": return <SummarySection data={st.summary} onChange={v => setFld("summary",v)} personalData={st.personal}/>; case "experience": return <ExperienceSection data={resumeData.experience} onChange={v => setFld("experience",v)}/>; case "education": return <EducationSection data={eduNorm} onChange={v => setFld("education",v)}/>; case "skills": return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills",v)}/>; case "projects": return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects",v)}/>; case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications",v)}/>; case "languages": return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages",v)}/>; case "styling": return <StylingSection data={st.styling} onChange={v => setFld("styling",v)}/>; default: return null; } };
+  const renderForm = () => {
+    switch (st.activeSection) {
+      case "personal":       return <PersonalSection data={st.personal} onChange={v => setFld("personal", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
+      case "summary":        return <SummarySection data={st.summary} onChange={v => setFld("summary", v)} personalData={st.personal} />;
+      case "experience":     return <ExperienceSection data={resumeData.experience} onChange={v => setFld("experience", v)} />;
+      case "education":      return <EducationSection data={eduNorm} onChange={v => setFld("education", v)} />;
+      case "skills":         return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills", v)} />;
+      case "projects":       return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects", v)} />;
+      case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications", v)} />;
+      case "languages":      return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages", v)} />;
+      case "styling":        return <StylingSection data={st.styling} onChange={v => setFld("styling", v)} />;
+      default:               return null;
+    }
+  };
 
   return (
-    <><style>{CSS}</style>
-    <div className="rb-bar">
-      <span className="rb-bar-title">Resume Builder</span>
-      <span className="rb-badge">📄 {galleryTemplate?.name}</span>
-      <div className="rb-sep"/>
-      {showAddPage && (<><button className="rb-btn rb-btn-ghost" onClick={addPage}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Page</button><div className="rb-sep"/></>)}
-      
-      
-     <button 
-  onClick={handleDownload}
-  disabled={!isSaved}
-  style={{
-    background: "#111827",
-    border: "none",
-    color: "#fff",
-    fontWeight: "bold",
-    padding: "7px 16px",
-    borderRadius: "8px",
-    cursor: !isSaved ? "not-allowed" : "pointer",
-    fontSize: "13px",
-    fontFamily: "inherit",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "6px",
-    opacity: !isSaved ? 0.5 : 1
-  }}
->
-  ⬇️ Download PDF
-</button>
-    </div>
-    <div className="rb-layout">
-      <aside className="rb-sidebar">
-        {filteredSidebar.map(n => (<button key={n.id} className={`rb-nav${st.activeSection === n.id ? " on" : ""}`} onClick={() => sec(n.id)}><span className="rb-nav-icon">{n.icon}</span><span className="rb-nav-lbl">{n.label}</span></button>))}
-      </aside>
-      <div className="rb-content">
-        <div className="rb-form">
-          <div className="rb-form-head"><h2>{meta.title}</h2><p>{meta.desc}</p></div>
-          <div className="rb-form-body">{renderForm()}</div>
-          
-          {/* ─── FOOTER FIX: "Save Progress" logic for Templates ─── */}
-          <div className="rb-form-foot" style={{ padding: "12px 22px", display: "flex", justifyContent: "space-between" }}>
-            <button className="rb-back" disabled={currentIdx === 0} onClick={() => sec(filteredSidebar[currentIdx-1].id)}>‹ Back</button>
-            
-            {st.activeSection === "styling" ? (
-              <button 
-                className="rb-next" 
-                style={{ background: "#2563eb", color: "white", fontWeight: "bold" }} 
-                onClick={handleSave}
+    <>
+      <style>{CSS}</style>
+
+      {/* ── Top bar ── */}
+      <div className="rb-bar">
+        <span className="rb-bar-title">Resume Builder</span>
+        <span className="rb-badge">📄 {galleryTemplate?.name}</span>
+        <div className="rb-sep" />
+
+        {showAddPage && (
+          <>
+            <button className="rb-btn rb-btn-ghost" onClick={addPage}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Page
+            </button>
+            <div className="rb-sep" />
+          </>
+        )}
+
+        <button
+          onClick={handleDownload}
+          disabled={!isSaved}
+          style={{
+            background: "#111827", border: "none", color: "#fff", fontWeight: "bold",
+            padding: "7px 16px", borderRadius: "8px", fontSize: "13px",
+            fontFamily: "inherit", display: "inline-flex", alignItems: "center",
+            gap: "6px", cursor: !isSaved ? "not-allowed" : "pointer",
+            opacity: !isSaved ? 0.5 : 1,
+          }}
+        >
+          ⬇️ Download PDF
+        </button>
+      </div>
+
+      {/* ── Layout ── */}
+      <div className="rb-layout">
+        <aside className="rb-sidebar">
+          {filteredSidebar.map(n => (
+            <button
+              key={n.id}
+              className={`rb-nav${st.activeSection === n.id ? " on" : ""}`}
+              onClick={() => sec(n.id)}
+            >
+              <span className="rb-nav-icon">{n.icon}</span>
+              <span className="rb-nav-lbl">{n.label}</span>
+            </button>
+          ))}
+        </aside>
+
+        <div className="rb-content">
+          {/* ── Form panel ── */}
+          <div className="rb-form">
+            <div className="rb-form-head">
+              <h2>{meta.title}</h2>
+              <p>{meta.desc}</p>
+            </div>
+            <div className="rb-form-body">{renderForm()}</div>
+            <div className="rb-form-foot" style={{ padding: "12px 22px", display: "flex", justifyContent: "space-between" }}>
+              <button
+                className="rb-back"
+                disabled={currentIdx === 0}
+                onClick={() => sec(filteredSidebar[currentIdx - 1].id)}
               >
-                💾 Save Progress
+                ‹ Back
               </button>
-            ) : (
-              <button className="rb-next" disabled={currentIdx === filteredSidebar.length-1} onClick={() => sec(filteredSidebar[currentIdx+1].id)}>Next ›</button>
-            )}
+              {st.activeSection === "styling" ? (
+                <button className="rb-next" style={{ background: "#2563eb" }} onClick={handleSave}>
+                  💾 Save Progress
+                </button>
+              ) : (
+                <button
+                  className="rb-next"
+                  disabled={currentIdx === filteredSidebar.length - 1}
+                  onClick={() => sec(filteredSidebar[currentIdx + 1].id)}
+                >
+                  Next ›
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-        
-        <div className="rb-preview" ref={previewRef}>
-          {/* ... Preview area (same as before) ... */}
-          <div className="rb-preview-bar">
-            <div className="rb-preview-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Live Preview — {galleryTemplate?.name}</div>
-          </div>
-          <div className="rb-pages">
-            {pages.map((page, pi) => (
-              <div key={page.id} className="rb-page-block">
-                <PreviewScaler containerRef={previewRef}>
-                  <div className="rb-sheet" ref={pageRef}>
-                    {page.type === 'template'
-                      ? <GalleryPreview tpl={galleryTemplate} data={resumeData} accentColor={st.styling.accentColor} font={st.styling.font}/>
-                      : <LivePreview data={resumeData} styling={st.styling} sectionOrder={order} onReorder={setOrder}/>}
-                  </div>
-                </PreviewScaler>
-                <div className="rb-page-num">Page {pi+1} of {pages.length}</div>
-                {page.type !== 'template' && <button className="rb-rm-page" onClick={() => removePage(page.id)}>× Remove page</button>}
+
+          {/* ── Preview panel ── */}
+          <div className="rb-preview" ref={previewRef}>
+            <div className="rb-preview-bar">
+              <div className="rb-preview-lbl">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                </svg>
+                Live Preview — {galleryTemplate?.name}
               </div>
-            ))}
+              {pages.length > 1 && (
+                <button
+                  onClick={() => removePage(pages[pages.length - 1].id)}
+                  style={{
+                    padding: "4px 12px", border: "1px solid #fca5a5", borderRadius: 6,
+                    background: "#fff", color: "#ef4444", fontSize: 11,
+                    fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  × Remove Last Page
+                </button>
+              )}
+            </div>
+
+            {/* ── Each page = its own independent A4 sheet ── */}
+            <div className="rb-pages">
+              {pages.map((page, pi) => (
+                <div key={page.id} className="rb-page-block">
+                  <PreviewScaler containerRef={previewRef}>
+                    <div className="rb-sheet" ref={pi === 0 ? pageRef : null}>
+                      {pi === 0 ? (
+                        // Page 1: real resume content, no extraPages passed
+                        <GalleryPreview
+                          tpl={galleryTemplate}
+                          data={resumeData}
+                          accentColor={st.styling.accentColor}
+                          font={st.styling.font}
+                          extraPages={0}
+                        />
+                      ) : (
+                        // Page 2+: clean independent continuation sheet
+                        <ContinuationPage
+                          tpl={galleryTemplate}
+                          accentColor={st.styling.accentColor}
+                          font={st.styling.font}
+                          pageNumber={pi + 1}
+                        />
+                      )}
+                    </div>
+                  </PreviewScaler>
+                  <div className="rb-page-num">
+                    Page {pi + 1} of {pages.length}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div></>
+    </>
   );
 }
 

@@ -206,17 +206,32 @@ class UGEducationSerializer(serializers.ModelSerializer):
 
 class SchoolEducationSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+
+    # 🔥 Mapping frontend → backend
+    schoolName = serializers.CharField(source='school_name', required=False, allow_blank=True)
+    passingYear = serializers.CharField(source='passing_year', required=False, allow_blank=True)
+
     class Meta:
         model = ResumeSchoolEducation
         exclude = ['resume']
         extra_kwargs = {
-            'schoolName':  {'required': False, 'allow_null': True, 'allow_blank': True},
-            'board':       {'required': False, 'allow_null': True, 'allow_blank': True},
-            'stream':      {'required': False, 'allow_null': True, 'allow_blank': True},
-            'passingYear': {'required': False, 'allow_null': True, 'allow_blank': True},
-            'percentage':  {'required': False, 'allow_null': True, 'allow_blank': True},
-            'highlights':  {'required': False, 'allow_null': True, 'allow_blank': True},
+            # ❌ USE MODEL FIELD NAMES HERE (IMPORTANT)
+            'school_name': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'board': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'stream': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'passing_year': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'percentage': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'highlights': {'required': False, 'allow_null': True, 'allow_blank': True},
         }
+
+    # 🔥 REMOVE DUPLICATE FIELDS IN RESPONSE
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        data.pop('school_name', None)
+        data.pop('passing_year', None)
+
+        return data
 
 class SkillSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
@@ -231,6 +246,7 @@ class SkillSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+    tech_stack = serializers.CharField(source='tech', required=False, allow_blank=True)
     class Meta:
         model = ResumeProject
         exclude = ['resume']
