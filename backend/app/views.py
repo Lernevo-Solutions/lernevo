@@ -606,3 +606,339 @@ class ResumeViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print("ERROR creating resume:", str(e))
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+  # backend/app/views.py
+# Add these imports at the top of your existing views.py
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+from .vertex_ai_service import vertex_service
+from .models import Resume, ResumePersonalInfo, ResumeSkill, ResumeProject, ResumeExperience, ResumeCertification, ResumeSummary
+
+# ============================================================
+# VERTEX AI ENDPOINTS (Add these to your existing views.py)
+# ============================================================
+
+@api_view(['POST'])
+@csrf_exempt
+def ai_generate_summary(request):
+    """Generate or improve professional summary using AI"""
+    try:
+        resume_id = request.data.get('resume_id')
+        action = request.data.get('action', 'generate')  # 'generate' or 'improve'
+        
+        # Get resume data
+        resume = get_object_or_404(Resume, id=resume_id)
+        
+        # Get personal info
+        personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
+        
+        # Get skills
+        skills = ResumeSkill.objects.filter(resume=resume)
+        skills_text = ", ".join([s.name for s in skills])
+        
+        # Get current summary if improving
+        current_summary = ""
+        if action == 'improve':
+            summary_obj = ResumeSummary.objects.filter(resume=resume).first()
+            if summary_obj:
+                current_summary = summary_obj.text
+        
+        user_data = {
+            'title': personal_info.job_title if personal_info else '',
+            'skills': skills_text,
+            'experience_context': request.data.get('experience_context', '')
+        }
+        
+        result = vertex_service.generate_summary(user_data, action, current_summary)
+        
+        # Save to database
+        summary_obj, created = ResumeSummary.objects.get_or_create(resume=resume)
+        summary_obj.text = result
+        summary_obj.save()
+        
+        return Response({
+            'success': True,
+            'section': 'summary',
+            'result': result
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def ai_generate_projects(request):
+    """Generate or improve projects using AI"""
+    try:
+        resume_id = request.data.get('resume_id')
+        action = request.data.get('action', 'generate')
+        
+        resume = get_object_or_404(Resume, id=resume_id)
+        personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
+        
+        skills = ResumeSkill.objects.filter(resume=resume)
+        skills_text = ", ".join([s.name for s in skills])
+        
+        # Get existing projects if improving
+        current_projects_text = ""
+        if action == 'improve':
+            projects = ResumeProject.objects.filter(resume=resume)
+            current_projects_text = "\n\n".join([
+                f"Project: {p.name}\nTech: {p.tech}\nDescription: {p.description}"
+                for p in projects
+            ])
+        
+        user_data = {
+            'title': personal_info.job_title if personal_info else '',
+            'tech_stack': skills_text,
+            'context': request.data.get('context', ''),
+            'num_projects': request.data.get('num_projects', 3)
+        }
+        
+        result = vertex_service.generate_projects(user_data, action, current_projects_text)
+        
+        # Parse and save projects
+        # Clear existing if generating new
+        if action == 'generate':
+            ResumeProject.objects.filter(resume=resume).delete()
+            
+            # Parse projects from result (simple parsing)
+            import re
+            project_pattern = r'###\s*(.+?)\n\*\*Tech:\*\*\s*(.+?)\n(.+?)(?=\n###|$)'
+            matches = re.findall(project_pattern, result, re.DOTALL)
+            
+            for match in matches:
+                name, tech, desc = match
+                ResumeProject.objects.create(
+                    resume=resume,
+                    name=name.strip(),
+                    tech=tech.strip(),
+                    description=desc.strip()
+                )
+        
+        return Response({
+            'success': True,
+            'section': 'projects',
+            'result': result
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def ai_generate_experience(request):
+    """Generate or improve experience using AI"""
+    try:
+        resume_id = request.data.get('resume_id')
+        action = request.data.get('action', 'generate')
+        
+        resume = get_object_or_404(Resume, id=resume_id)
+        personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
+        
+        skills = ResumeSkill.objects.filter(resume=resume)
+        skills_text = ", ".join([s.name for s in skills])
+        
+        current_bullets = ""
+        if action == 'improve':
+            experiences = ResumeExperience.objects.filter(resume=resume)
+            current_bullets = "\n".join([exp.description for exp in experiences])
+        
+        user_data = {
+            'role': personal_info.job_title if personal_info else '',
+            'company': request.data.get('company', 'Current Company'),
+            'duration': request.data.get('duration', 'Present'),
+            'responsibilities': request.data.get('responsibilities', ''),
+            'tech_stack': skills_text
+        }
+        
+        result = vertex_service.generate_experience(user_data, action, current_bullets)
+        
+        # Save to database
+        if action == 'generate':
+            ResumeExperience.objects.filter(resume=resume).delete()
+            # Parse bullets and create experience entries
+            bullets = [b.strip() for b in result.split('\n') if b.strip().startswith('•')]
+            for bullet in bullets:
+                ResumeExperience.objects.create(
+                    resume=resume,
+                    company=user_data['company'],
+                    role=user_data['role'],
+                    duration=user_data['duration'],
+                    description=bullet
+                )
+        
+        return Response({
+            'success': True,
+            'section': 'experience',
+            'result': result
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def ai_generate_certifications(request):
+    """Generate or improve certifications using AI"""
+    try:
+        resume_id = request.data.get('resume_id')
+        action = request.data.get('action', 'generate')
+        
+        resume = get_object_or_404(Resume, id=resume_id)
+        personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
+        
+        skills = ResumeSkill.objects.filter(resume=resume)
+        skills_text = ", ".join([s.name for s in skills])
+        
+        current_certs = ""
+        if action == 'improve':
+            certs = ResumeCertification.objects.filter(resume=resume)
+            current_certs = "\n".join([f"{c.name} - {c.issuer}" for c in certs])
+        
+        user_data = {
+            'title': personal_info.job_title if personal_info else '',
+            'skills': skills_text,
+            'industry': request.data.get('industry', 'Technology')
+        }
+        
+        result = vertex_service.generate_certifications(user_data, action, current_certs)
+        
+        # Save to database
+        if action == 'generate' and isinstance(result, dict):
+            ResumeCertification.objects.filter(resume=resume).delete()
+            for cert in result.get('certifications', []):
+                ResumeCertification.objects.create(
+                    resume=resume,
+                    name=cert.get('name', ''),
+                    issuer=cert.get('issuer', ''),
+                    description=cert.get('description', '')
+                )
+        
+        return Response({
+            'success': True,
+            'section': 'certifications',
+            'result': result
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def ai_generate_education(request):
+    """Generate or improve education using AI"""
+    try:
+        resume_id = request.data.get('resume_id')
+        action = request.data.get('action', 'generate')
+        
+        resume = get_object_or_404(Resume, id=resume_id)
+        
+        current_education = ""
+        if action == 'improve':
+            ug_edu = ResumeUGEducation.objects.filter(resume=resume).first()
+            if ug_edu:
+                current_education = f"{ug_edu.degree} in {ug_edu.branch} from {ug_edu.college}, {ug_edu.graduated_year}"
+        
+        user_data = {
+            'degree': request.data.get('degree', "Bachelor's Degree"),
+            'field': request.data.get('field', 'Computer Science'),
+            'university': request.data.get('university', 'University'),
+            'year': request.data.get('year', '2024'),
+            'coursework': request.data.get('coursework', '')
+        }
+        
+        result = vertex_service.generate_education(user_data, action, current_education)
+        
+        return Response({
+            'success': True,
+            'section': 'education',
+            'result': result
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def ai_suggest_skills(request):
+    """Suggest skills using AI"""
+    try:
+        resume_id = request.data.get('resume_id')
+        
+        resume = get_object_or_404(Resume, id=resume_id)
+        personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
+        
+        existing_skills = ResumeSkill.objects.filter(resume=resume)
+        existing_skills_text = ", ".join([s.name for s in existing_skills])
+        
+        user_data = {
+            'title': personal_info.job_title if personal_info else '',
+            'current_skills': existing_skills_text,
+            'level': request.data.get('level', 'Intermediate')
+        }
+        
+        result = vertex_service.generate_skills(user_data)
+        
+        # Save suggested skills (don't delete existing, just add new)
+        for category, skills in result.items():
+            for skill_name in skills:
+                if not ResumeSkill.objects.filter(resume=resume, name__iexact=skill_name).exists():
+                    ResumeSkill.objects.create(
+                        resume=resume,
+                        name=skill_name,
+                        level=3,
+                        badge='Intermediate'
+                    )
+        
+        return Response({
+            'success': True,
+            'section': 'skills',
+            'result': result
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def ai_health_check(request):
+    """Health check for Vertex AI"""
+    try:
+        return Response({
+            'status': 'healthy',
+            'vertex_ai': 'configured',
+            'project': settings.VERTEX_PROJECT_ID
+        })
+    except Exception as e:
+        return Response({
+            'status': 'unhealthy',
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)          

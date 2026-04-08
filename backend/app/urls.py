@@ -39,6 +39,13 @@ urlpatterns = [
     path("contact/", ContactMessageCreateAPIView.as_view()),
     path("enquiry/", EnquiryCreateAPIView.as_view()),
     path("book-demo/", DemoBookingCreateAPIView.as_view()),
+    path('api/ai/summary/', views.ai_generate_summary, name='ai-summary'),
+    path('api/ai/projects/', views.ai_generate_projects, name='ai-projects'),
+    path('api/ai/experience/', views.ai_generate_experience, name='ai-experience'),
+    path('api/ai/certifications/', views.ai_generate_certifications, name='ai-certifications'),
+    path('api/ai/education/', views.ai_generate_education, name='ai-education'),
+    path('api/ai/skills/', views.ai_suggest_skills, name='ai-skills'),
+    path('api/ai/health/', views.ai_health_check, name='ai-health'),
 
     # 🔥 IMPORTANT (ADD THIS LINE)
     path('', include(router.urls)),

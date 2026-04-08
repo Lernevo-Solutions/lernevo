@@ -166,7 +166,9 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
+# Vertex AI Configuration
+VERTEX_PROJECT_ID = os.getenv('GOOGLE_CLOUD_PROJECT', 'your-project-id')
+VERTEX_LOCATION = os.getenv('VERTEX_LOCATION', 'us-central1')
 
 
 import psycopg2
@@ -205,3 +207,4 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
