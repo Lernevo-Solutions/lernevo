@@ -14,6 +14,11 @@ from .models import Resume
 from .serializers import ResumeSerializer
 from datetime import timedelta
 import uuid
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
 from .models import UserProfile
 from .models import User, UserOTP
 from .serializers import DemoBookingSerializer, RegisterSerializer, LoginSerializer
@@ -607,40 +612,41 @@ class ResumeViewSet(viewsets.ModelViewSet):
             print("ERROR creating resume:", str(e))
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-  # backend/app/views.py
-# Add these imports at the top of your existing views.py
+ # At the VERY END of your app/views.py - add this ONE TIME only
+
+# ============================================================
+# VERTEX AI ENDPOINTS - ONE COPY ONLY
+# ============================================================
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
-from .vertex_ai_service import vertex_service
-from .models import Resume, ResumePersonalInfo, ResumeSkill, ResumeProject, ResumeExperience, ResumeCertification, ResumeSummary
-
-# ============================================================
-# VERTEX AI ENDPOINTS (Add these to your existing views.py)
-# ============================================================
+from django.conf import settings
 
 @api_view(['POST'])
 @csrf_exempt
 def ai_generate_summary(request):
     """Generate or improve professional summary using AI"""
     try:
+        from .vertex_ai_service import vertex_service
+        from .models import Resume, ResumePersonalInfo, ResumeSkill, ResumeSummary
+        
         resume_id = request.data.get('resume_id')
-        action = request.data.get('action', 'generate')  # 'generate' or 'improve'
+        action = request.data.get('action', 'generate')
         
-        # Get resume data
+        if not resume_id:
+            return Response({
+                'success': False,
+                'error': 'resume_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         resume = get_object_or_404(Resume, id=resume_id)
-        
-        # Get personal info
         personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
-        
-        # Get skills
         skills = ResumeSkill.objects.filter(resume=resume)
         skills_text = ", ".join([s.name for s in skills])
         
-        # Get current summary if improving
         current_summary = ""
         if action == 'improve':
             summary_obj = ResumeSummary.objects.filter(resume=resume).first()
@@ -655,22 +661,14 @@ def ai_generate_summary(request):
         
         result = vertex_service.generate_summary(user_data, action, current_summary)
         
-        # Save to database
         summary_obj, created = ResumeSummary.objects.get_or_create(resume=resume)
         summary_obj.text = result
         summary_obj.save()
         
-        return Response({
-            'success': True,
-            'section': 'summary',
-            'result': result
-        })
+        return Response({'success': True, 'section': 'summary', 'result': result})
         
     except Exception as e:
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -678,23 +676,24 @@ def ai_generate_summary(request):
 def ai_generate_projects(request):
     """Generate or improve projects using AI"""
     try:
+        from .vertex_ai_service import vertex_service
+        from .models import Resume, ResumePersonalInfo, ResumeSkill, ResumeProject
+        
         resume_id = request.data.get('resume_id')
         action = request.data.get('action', 'generate')
         
+        if not resume_id:
+            return Response({'success': False, 'error': 'resume_id required'}, status=400)
+        
         resume = get_object_or_404(Resume, id=resume_id)
         personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
-        
         skills = ResumeSkill.objects.filter(resume=resume)
         skills_text = ", ".join([s.name for s in skills])
         
-        # Get existing projects if improving
         current_projects_text = ""
         if action == 'improve':
             projects = ResumeProject.objects.filter(resume=resume)
-            current_projects_text = "\n\n".join([
-                f"Project: {p.name}\nTech: {p.tech}\nDescription: {p.description}"
-                for p in projects
-            ])
+            current_projects_text = "\n\n".join([f"Project: {p.name}\nTech: {p.tech}\nDescription: {p.description}" for p in projects])
         
         user_data = {
             'title': personal_info.job_title if personal_info else '',
@@ -705,36 +704,10 @@ def ai_generate_projects(request):
         
         result = vertex_service.generate_projects(user_data, action, current_projects_text)
         
-        # Parse and save projects
-        # Clear existing if generating new
-        if action == 'generate':
-            ResumeProject.objects.filter(resume=resume).delete()
-            
-            # Parse projects from result (simple parsing)
-            import re
-            project_pattern = r'###\s*(.+?)\n\*\*Tech:\*\*\s*(.+?)\n(.+?)(?=\n###|$)'
-            matches = re.findall(project_pattern, result, re.DOTALL)
-            
-            for match in matches:
-                name, tech, desc = match
-                ResumeProject.objects.create(
-                    resume=resume,
-                    name=name.strip(),
-                    tech=tech.strip(),
-                    description=desc.strip()
-                )
-        
-        return Response({
-            'success': True,
-            'section': 'projects',
-            'result': result
-        })
+        return Response({'success': True, 'section': 'projects', 'result': result})
         
     except Exception as e:
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'success': False, 'error': str(e)}, status=500)
 
 
 @api_view(['POST'])
@@ -742,12 +715,17 @@ def ai_generate_projects(request):
 def ai_generate_experience(request):
     """Generate or improve experience using AI"""
     try:
+        from .vertex_ai_service import vertex_service
+        from .models import Resume, ResumePersonalInfo, ResumeSkill, ResumeExperience
+        
         resume_id = request.data.get('resume_id')
         action = request.data.get('action', 'generate')
         
+        if not resume_id:
+            return Response({'success': False, 'error': 'resume_id required'}, status=400)
+        
         resume = get_object_or_404(Resume, id=resume_id)
         personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
-        
         skills = ResumeSkill.objects.filter(resume=resume)
         skills_text = ", ".join([s.name for s in skills])
         
@@ -766,31 +744,10 @@ def ai_generate_experience(request):
         
         result = vertex_service.generate_experience(user_data, action, current_bullets)
         
-        # Save to database
-        if action == 'generate':
-            ResumeExperience.objects.filter(resume=resume).delete()
-            # Parse bullets and create experience entries
-            bullets = [b.strip() for b in result.split('\n') if b.strip().startswith('•')]
-            for bullet in bullets:
-                ResumeExperience.objects.create(
-                    resume=resume,
-                    company=user_data['company'],
-                    role=user_data['role'],
-                    duration=user_data['duration'],
-                    description=bullet
-                )
-        
-        return Response({
-            'success': True,
-            'section': 'experience',
-            'result': result
-        })
+        return Response({'success': True, 'section': 'experience', 'result': result})
         
     except Exception as e:
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'success': False, 'error': str(e)}, status=500)
 
 
 @api_view(['POST'])
@@ -798,12 +755,17 @@ def ai_generate_experience(request):
 def ai_generate_certifications(request):
     """Generate or improve certifications using AI"""
     try:
+        from .vertex_ai_service import vertex_service
+        from .models import Resume, ResumePersonalInfo, ResumeSkill, ResumeCertification
+        
         resume_id = request.data.get('resume_id')
         action = request.data.get('action', 'generate')
         
+        if not resume_id:
+            return Response({'success': False, 'error': 'resume_id required'}, status=400)
+        
         resume = get_object_or_404(Resume, id=resume_id)
         personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
-        
         skills = ResumeSkill.objects.filter(resume=resume)
         skills_text = ", ".join([s.name for s in skills])
         
@@ -820,28 +782,10 @@ def ai_generate_certifications(request):
         
         result = vertex_service.generate_certifications(user_data, action, current_certs)
         
-        # Save to database
-        if action == 'generate' and isinstance(result, dict):
-            ResumeCertification.objects.filter(resume=resume).delete()
-            for cert in result.get('certifications', []):
-                ResumeCertification.objects.create(
-                    resume=resume,
-                    name=cert.get('name', ''),
-                    issuer=cert.get('issuer', ''),
-                    description=cert.get('description', '')
-                )
-        
-        return Response({
-            'success': True,
-            'section': 'certifications',
-            'result': result
-        })
+        return Response({'success': True, 'section': 'certifications', 'result': result})
         
     except Exception as e:
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'success': False, 'error': str(e)}, status=500)
 
 
 @api_view(['POST'])
@@ -849,8 +793,14 @@ def ai_generate_certifications(request):
 def ai_generate_education(request):
     """Generate or improve education using AI"""
     try:
+        from .vertex_ai_service import vertex_service
+        from .models import Resume, ResumeUGEducation
+        
         resume_id = request.data.get('resume_id')
         action = request.data.get('action', 'generate')
+        
+        if not resume_id:
+            return Response({'success': False, 'error': 'resume_id required'}, status=400)
         
         resume = get_object_or_404(Resume, id=resume_id)
         
@@ -870,17 +820,10 @@ def ai_generate_education(request):
         
         result = vertex_service.generate_education(user_data, action, current_education)
         
-        return Response({
-            'success': True,
-            'section': 'education',
-            'result': result
-        })
+        return Response({'success': True, 'section': 'education', 'result': result})
         
     except Exception as e:
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'success': False, 'error': str(e)}, status=500)
 
 
 @api_view(['POST'])
@@ -888,7 +831,13 @@ def ai_generate_education(request):
 def ai_suggest_skills(request):
     """Suggest skills using AI"""
     try:
+        from .vertex_ai_service import vertex_service
+        from .models import Resume, ResumePersonalInfo, ResumeSkill
+        
         resume_id = request.data.get('resume_id')
+        
+        if not resume_id:
+            return Response({'success': False, 'error': 'resume_id required'}, status=400)
         
         resume = get_object_or_404(Resume, id=resume_id)
         personal_info = ResumePersonalInfo.objects.filter(resume=resume).first()
@@ -904,28 +853,10 @@ def ai_suggest_skills(request):
         
         result = vertex_service.generate_skills(user_data)
         
-        # Save suggested skills (don't delete existing, just add new)
-        for category, skills in result.items():
-            for skill_name in skills:
-                if not ResumeSkill.objects.filter(resume=resume, name__iexact=skill_name).exists():
-                    ResumeSkill.objects.create(
-                        resume=resume,
-                        name=skill_name,
-                        level=3,
-                        badge='Intermediate'
-                    )
-        
-        return Response({
-            'success': True,
-            'section': 'skills',
-            'result': result
-        })
+        return Response({'success': True, 'section': 'skills', 'result': result})
         
     except Exception as e:
-        return Response({
-            'success': False,
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'success': False, 'error': str(e)}, status=500)
 
 
 @api_view(['GET'])
@@ -938,7 +869,4 @@ def ai_health_check(request):
             'project': settings.VERTEX_PROJECT_ID
         })
     except Exception as e:
-        return Response({
-            'status': 'unhealthy',
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)          
+        return Response({'status': 'unhealthy', 'error': str(e)}, status=500)

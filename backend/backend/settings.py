@@ -166,9 +166,33 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Vertex AI Configuration
-VERTEX_PROJECT_ID = os.getenv('GOOGLE_CLOUD_PROJECT', 'your-project-id')
+# backend/backend/settings.py
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Try multiple ways to get project ID
+VERTEX_PROJECT_ID = os.getenv('GOOGLE_CLOUD_PROJECT')
+
+# Fallback to gcloud config
+if not VERTEX_PROJECT_ID:
+    import subprocess
+    try:
+        VERTEX_PROJECT_ID = subprocess.check_output(
+            ['gcloud', 'config', 'get-value', 'project'],
+            text=True
+        ).strip()
+    except:
+        pass
+
+# Final fallback for testing only
+if not VERTEX_PROJECT_ID:
+    VERTEX_PROJECT_ID = '771297649928'  # Your project number
+
 VERTEX_LOCATION = os.getenv('VERTEX_LOCATION', 'us-central1')
+
+print(f"Using Vertex AI Project: {VERTEX_PROJECT_ID}")
 
 
 import psycopg2

@@ -1,5 +1,9 @@
+# app/urls.py - UPDATE THIS
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+
+# Add this import for views
+from . import views  # ⬅️ ADD THIS LINE
 
 from .views import (
     ResumeViewSet,
@@ -39,6 +43,8 @@ urlpatterns = [
     path("contact/", ContactMessageCreateAPIView.as_view()),
     path("enquiry/", EnquiryCreateAPIView.as_view()),
     path("book-demo/", DemoBookingCreateAPIView.as_view()),
+    
+    # 🔥 VERTEX AI ENDPOINTS - Now views is defined
     path('api/ai/summary/', views.ai_generate_summary, name='ai-summary'),
     path('api/ai/projects/', views.ai_generate_projects, name='ai-projects'),
     path('api/ai/experience/', views.ai_generate_experience, name='ai-experience'),
