@@ -571,20 +571,38 @@ Questions:
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from .models import Resume
+from .serializers import ResumeSerializer
+
 class ResumeViewSet(viewsets.ModelViewSet):
     serializer_class = ResumeSerializer
-    authentication_classes = [TokenAuthentication] 
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def get_app_user(self):
+        """Return the app.User instance from the request user."""
+        user = self.request.user
+        # If it already is the correct model, return it
+        if hasattr(user, '_meta') and user._meta.model_name == 'User' and user.__class__.__name__ == 'User':
+            return user
+        # Otherwise try common relation names (adjust if different)
+        return getattr(user, 'lernevo_user', user)
+
     def get_queryset(self):
-    
-        return Resume.objects.filter(
-            user__auth_user=self.request.user,
-            is_delete=False
-        )
+        app_user = self.get_app_user()
+        return Resume.objects.filter(user=app_user, is_delete=False)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user.lernevo_user)
+        app_user = self.get_app_user()
+        serializer.save(user=app_user)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except Exception as e:
+            print("ERROR creating resume:", str(e))
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
