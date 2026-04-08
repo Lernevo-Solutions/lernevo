@@ -18,6 +18,8 @@ import BlankCanvasBuilder from "./BlankCanvasBuilder";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import axios from 'axios';
+import vertexAIService from '../services/vertexAIService';
+
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const ALL_SECTIONS = [
   { id: "personal",       label: "Personal",       icon: "👤" },
@@ -1139,43 +1141,65 @@ function PersonalSection({ data, onChange, styling, onStylingChange }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SUMMARY SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// SUMMARY SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function SummarySection({ data, onChange, personalData }) {
+  // ✅ ALL hooks MUST be here - inside the function
   const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading]         = useState(false);
-  const [keywords, setKeywords]       = useState("");
+  const [loading, setLoading] = useState(false);
+  const [keywords, setKeywords] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
+  
   const jobTitle = personalData?.title || "";
+  const resumeId = localStorage.getItem('resumeId');
 
-  const wordCount = data.text.trim() === "" ? 0 : data.text.trim().split(/\s+/).length;
+  const wordCount = data.text?.trim() === "" ? 0 : data.text?.trim().split(/\s+/).length || 0;
   const MIN = 100, MAX = 200;
-  const isUnder = wordCount > 0 && wordCount < MIN;
-  const isOver  = wordCount > MAX;
-  const isGood  = wordCount >= MIN && wordCount <= MAX;
+  const isGood = wordCount >= MIN && wordCount <= MAX;
+  const isOver = wordCount > MAX;
 
-  const textareaBorder = isGood ? "#86efac" : isOver ? "#fca5a5" : "#e5e7eb";
-
-  const handleAISuggest = () => {
-    if (!keywords.trim()) return;
+  const handleAISuggest = async () => {
+    if (!keywords.trim() && !jobTitle) {
+      alert("Please enter keywords or job title first");
+      return;
+    }
+    
     setLoading(true);
-    setTimeout(() => {
-      const role = jobTitle.trim() || "Professional";
-      const kw   = keywords.trim();
-      setSuggestions([
-        {
-          tag: "Achievement-Led",
-          text: `Results-driven ${role} with expertise in ${kw}, known for delivering high-impact solutions on time and within budget. Adept at leading cross-functional teams, translating complex requirements into scalable systems, and continuously improving processes that drive measurable business outcomes. Passionate about leveraging ${kw} to solve real-world challenges and create lasting organisational value.`,
-        },
-        {
-          tag: "Skills-Forward",
-          text: `Versatile ${role} with hands-on experience in ${kw}, collaborating across disciplines to build robust, user-focused applications. Known for strong problem-solving instincts, clear technical communication, and a commitment to clean, maintainable work that stands up in production. Dedicated to continuous learning and applying ${kw} expertise to drive meaningful product outcomes.`,
-        },
-      ]);
+    try {
+      const result = await vertexAIService.generateSummary(
+        resumeId, 
+        'generate', 
+        `${jobTitle} with skills in ${keywords}`
+      );
+      
+      if (result.success) {
+        const summaryText = result.result;
+        setSuggestions([
+          {
+            tag: "AI Generated - Achievement Led",
+            text: summaryText
+          },
+          {
+            tag: "AI Generated - Skills Forward", 
+            text: summaryText.replace(/professional/i, "experienced").replace(/results-driven/i, "goal-oriented")
+          }
+        ]);
+      } else {
+        alert("Failed to generate: " + (result.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("AI Error:", error);
+      alert("Failed to connect to AI service. Make sure backend is running on http://localhost:8000");
+    } finally {
       setLoading(false);
-    }, 380);
+    }
   };
 
   return (
     <div>
+      {/* Keywords input */}
       <div className="rb-g">
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
           <label className="rb-lbl" style={{ margin: 0 }}>Keywords</label>
@@ -1196,7 +1220,6 @@ function SummarySection({ data, onChange, personalData }) {
             )}
           </div>
         </div>
-
         <input
           className="rb-in"
           placeholder="e.g. React, team leadership, agile, AWS…"
@@ -1206,72 +1229,60 @@ function SummarySection({ data, onChange, personalData }) {
         />
       </div>
 
+      {/* Summary textarea with AI button */}
       <div className="rb-g">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
           <label className="rb-lbl" style={{ margin: 0 }}>Professional Summary</label>
           <button
             className="sum-ai-btn-top"
             onClick={handleAISuggest}
-            disabled={!keywords.trim() || loading}
+            disabled={(!keywords.trim() && !jobTitle) || loading}
             style={{
-              opacity: (!keywords.trim() || loading) ? 0.5 : 1,
-              cursor:  (!keywords.trim() || loading) ? "not-allowed" : "pointer",
+              opacity: ((!keywords.trim() && !jobTitle) || loading) ? 0.5 : 1,
+              cursor: ((!keywords.trim() && !jobTitle) || loading) ? "not-allowed" : "pointer",
             }}
           >
-            {loading
-              ? (
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5"
-                  style={{ animation: "exp-spin 0.7s linear infinite" }}>
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                </svg>
-              ) : (
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-              )}
-            {loading ? "Generating…" : " AI Suggest"}
+            {loading ? (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "exp-spin 0.7s linear infinite" }}>
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+            ) : (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            )}
+            {loading ? "Generating…" : "✨ AI Suggest"}
           </button>
         </div>
-
         <textarea
           className="rb-in rb-ta"
           style={{
             minHeight: 130,
-            borderColor: textareaBorder,
-            transition: "border-color .25s",
+            borderColor: isGood ? "#86efac" : isOver ? "#fca5a5" : "#e5e7eb",
           }}
-          placeholder="Write a 2–3 sentence overview… or type keywords above and click ✦ AI Suggest."
-          value={data.text}
+          placeholder="Write a 2–3 sentence overview… or type keywords above and click ✨ AI Suggest."
+          value={data.text || ""}
           onChange={e => onChange({ ...data, text: e.target.value })}
         />
-
         <p style={{
           fontSize: 11,
           color: isGood ? "#16a34a" : isOver ? "#ef4444" : "#9ca3af",
           fontStyle: "italic",
           marginTop: 5,
-          transition: "color .25s",
         }}>
-          {isGood
-            ? "✓ Looks great — perfect length for ATS scanners."
-            : isOver
-            ? "A little long — try trimming for better readability."
-            : "Aim for 100–200 words for the best ATS results."}
+          {isGood ? "✓ Looks great — perfect length for ATS scanners." : isOver ? "A little long — try trimming for better readability." : "Aim for 100–200 words for the best ATS results."}
         </p>
       </div>
 
+      {/* Suggestions */}
       {suggestions.length > 0 && (
         <div className="sum-suggestions">
           {suggestions.map((s, i) => (
-            <div key={i} className="sum-suggestion-card"
-              onClick={() => onChange({ ...data, text: s.text })}>
+            <div key={i} className="sum-suggestion-card" onClick={() => onChange({ ...data, text: s.text })}>
               <div className="sum-sug-tag">Option {i + 1} · {s.tag}</div>
-              <div className="sum-sug-text">{s.text}</div>
+              <div className="sum-sug-text">{s.text.length > 200 ? s.text.slice(0, 200) + "…" : s.text}</div>
               <div className="sum-sug-use">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
                 Click to use this
@@ -1280,10 +1291,9 @@ function SummarySection({ data, onChange, personalData }) {
           ))}
         </div>
       )}
-
       {suggestions.length === 0 && keywords.trim() === "" && (
         <div className="sum-chips-hint">
-          Type keywords above → click ✦ AI Suggest to generate 2 summary options
+          Type keywords above → click ✨ AI Suggest to generate 2 summary options
         </div>
       )}
     </div>
@@ -2641,6 +2651,7 @@ function CertificationsSection({ data, onChange }) {
     </div>
   );
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LANGUAGES SECTION
