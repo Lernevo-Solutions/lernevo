@@ -18,6 +18,8 @@ import BlankCanvasBuilder from "./BlankCanvasBuilder";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import axios from 'axios';
+import vertexAIService from '../services/vertexAIService';
+
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const ALL_SECTIONS = [
   { id: "personal",       label: "Personal",       icon: "👤" },
@@ -1139,43 +1141,65 @@ function PersonalSection({ data, onChange, styling, onStylingChange }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SUMMARY SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// SUMMARY SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function SummarySection({ data, onChange, personalData }) {
+  // ✅ ALL hooks MUST be here - inside the function
   const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading]         = useState(false);
-  const [keywords, setKeywords]       = useState("");
+  const [loading, setLoading] = useState(false);
+  const [keywords, setKeywords] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
+  
   const jobTitle = personalData?.title || "";
+  const resumeId = localStorage.getItem('resumeId');
 
-  const wordCount = data.text.trim() === "" ? 0 : data.text.trim().split(/\s+/).length;
+  const wordCount = data.text?.trim() === "" ? 0 : data.text?.trim().split(/\s+/).length || 0;
   const MIN = 100, MAX = 200;
-  const isUnder = wordCount > 0 && wordCount < MIN;
-  const isOver  = wordCount > MAX;
-  const isGood  = wordCount >= MIN && wordCount <= MAX;
+  const isGood = wordCount >= MIN && wordCount <= MAX;
+  const isOver = wordCount > MAX;
 
-  const textareaBorder = isGood ? "#86efac" : isOver ? "#fca5a5" : "#e5e7eb";
-
-  const handleAISuggest = () => {
-    if (!keywords.trim()) return;
+  const handleAISuggest = async () => {
+    if (!keywords.trim() && !jobTitle) {
+      alert("Please enter keywords or job title first");
+      return;
+    }
+    
     setLoading(true);
-    setTimeout(() => {
-      const role = jobTitle.trim() || "Professional";
-      const kw   = keywords.trim();
-      setSuggestions([
-        {
-          tag: "Achievement-Led",
-          text: `Results-driven ${role} with expertise in ${kw}, known for delivering high-impact solutions on time and within budget. Adept at leading cross-functional teams, translating complex requirements into scalable systems, and continuously improving processes that drive measurable business outcomes. Passionate about leveraging ${kw} to solve real-world challenges and create lasting organisational value.`,
-        },
-        {
-          tag: "Skills-Forward",
-          text: `Versatile ${role} with hands-on experience in ${kw}, collaborating across disciplines to build robust, user-focused applications. Known for strong problem-solving instincts, clear technical communication, and a commitment to clean, maintainable work that stands up in production. Dedicated to continuous learning and applying ${kw} expertise to drive meaningful product outcomes.`,
-        },
-      ]);
+    try {
+      const result = await vertexAIService.generateSummary(
+        resumeId, 
+        'generate', 
+        `${jobTitle} with skills in ${keywords}`
+      );
+      
+      if (result.success) {
+        const summaryText = result.result;
+        setSuggestions([
+          {
+            tag: "AI Generated - Achievement Led",
+            text: summaryText
+          },
+          {
+            tag: "AI Generated - Skills Forward", 
+            text: summaryText.replace(/professional/i, "experienced").replace(/results-driven/i, "goal-oriented")
+          }
+        ]);
+      } else {
+        alert("Failed to generate: " + (result.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("AI Error:", error);
+      alert("Failed to connect to AI service. Make sure backend is running on http://localhost:8000");
+    } finally {
       setLoading(false);
-    }, 380);
+    }
   };
 
   return (
     <div>
+      {/* Keywords input */}
       <div className="rb-g">
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
           <label className="rb-lbl" style={{ margin: 0 }}>Keywords</label>
@@ -1196,7 +1220,6 @@ function SummarySection({ data, onChange, personalData }) {
             )}
           </div>
         </div>
-
         <input
           className="rb-in"
           placeholder="e.g. React, team leadership, agile, AWS…"
@@ -1206,72 +1229,60 @@ function SummarySection({ data, onChange, personalData }) {
         />
       </div>
 
+      {/* Summary textarea with AI button */}
       <div className="rb-g">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
           <label className="rb-lbl" style={{ margin: 0 }}>Professional Summary</label>
           <button
             className="sum-ai-btn-top"
             onClick={handleAISuggest}
-            disabled={!keywords.trim() || loading}
+            disabled={(!keywords.trim() && !jobTitle) || loading}
             style={{
-              opacity: (!keywords.trim() || loading) ? 0.5 : 1,
-              cursor:  (!keywords.trim() || loading) ? "not-allowed" : "pointer",
+              opacity: ((!keywords.trim() && !jobTitle) || loading) ? 0.5 : 1,
+              cursor: ((!keywords.trim() && !jobTitle) || loading) ? "not-allowed" : "pointer",
             }}
           >
-            {loading
-              ? (
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5"
-                  style={{ animation: "exp-spin 0.7s linear infinite" }}>
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                </svg>
-              ) : (
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-              )}
-            {loading ? "Generating…" : " AI Suggest"}
+            {loading ? (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "exp-spin 0.7s linear infinite" }}>
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+            ) : (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+            )}
+            {loading ? "Generating…" : "✨ AI Suggest"}
           </button>
         </div>
-
         <textarea
           className="rb-in rb-ta"
           style={{
             minHeight: 130,
-            borderColor: textareaBorder,
-            transition: "border-color .25s",
+            borderColor: isGood ? "#86efac" : isOver ? "#fca5a5" : "#e5e7eb",
           }}
-          placeholder="Write a 2–3 sentence overview… or type keywords above and click ✦ AI Suggest."
-          value={data.text}
+          placeholder="Write a 2–3 sentence overview… or type keywords above and click ✨ AI Suggest."
+          value={data.text || ""}
           onChange={e => onChange({ ...data, text: e.target.value })}
         />
-
         <p style={{
           fontSize: 11,
           color: isGood ? "#16a34a" : isOver ? "#ef4444" : "#9ca3af",
           fontStyle: "italic",
           marginTop: 5,
-          transition: "color .25s",
         }}>
-          {isGood
-            ? "✓ Looks great — perfect length for ATS scanners."
-            : isOver
-            ? "A little long — try trimming for better readability."
-            : "Aim for 100–200 words for the best ATS results."}
+          {isGood ? "✓ Looks great — perfect length for ATS scanners." : isOver ? "A little long — try trimming for better readability." : "Aim for 100–200 words for the best ATS results."}
         </p>
       </div>
 
+      {/* Suggestions */}
       {suggestions.length > 0 && (
         <div className="sum-suggestions">
           {suggestions.map((s, i) => (
-            <div key={i} className="sum-suggestion-card"
-              onClick={() => onChange({ ...data, text: s.text })}>
+            <div key={i} className="sum-suggestion-card" onClick={() => onChange({ ...data, text: s.text })}>
               <div className="sum-sug-tag">Option {i + 1} · {s.tag}</div>
-              <div className="sum-sug-text">{s.text}</div>
+              <div className="sum-sug-text">{s.text.length > 200 ? s.text.slice(0, 200) + "…" : s.text}</div>
               <div className="sum-sug-use">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
                 Click to use this
@@ -1280,10 +1291,9 @@ function SummarySection({ data, onChange, personalData }) {
           ))}
         </div>
       )}
-
       {suggestions.length === 0 && keywords.trim() === "" && (
         <div className="sum-chips-hint">
-          Type keywords above → click ✦ AI Suggest to generate 2 summary options
+          Type keywords above → click ✨ AI Suggest to generate 2 summary options
         </div>
       )}
     </div>
@@ -2406,39 +2416,79 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // CERTIFICATIONS SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// CERTIFICATIONS CARD WITH AI SUGGEST
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function CertCard({ cert, index, total, onUpd, onRem }) {
   const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading]         = useState(false);
-  const [keywords, setKeywords]       = useState("");
+  const [loading, setLoading] = useState(false);
+  const [keywords, setKeywords] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
+  const resumeId = localStorage.getItem('resumeId');
 
   const wordCount = cert.description?.trim() === "" ? 0 : (cert.description?.trim().split(/\s+/).length || 0);
   const MIN = 80, MAX = 150;
   const isOver = wordCount > MAX;
   const isGood = wordCount >= MIN && wordCount <= MAX;
 
-  const handleAISuggest = () => {
+  const handleAISuggest = async () => {
     const hasCtx = cert.name || cert.issuer || keywords.trim();
-    if (!hasCtx) return;
+    if (!hasCtx) {
+      alert("Please fill Certification Name or Issuer first");
+      return;
+    }
+    
     setLoading(true);
-    setTimeout(() => {
-      const name   = cert.name?.trim()   || "this certification";
-      const issuer = cert.issuer?.trim() || "the issuing body";
-      const date   = cert.date?.trim()   ? ` earned in ${cert.date}` : "";
-      const kw     = keywords.trim();
-      const kwCtx  = kw ? ` covering ${kw}` : "";
-      setSuggestions([
-        {
-          tag: "Competency-Led",
-          text: `Earned ${name} from ${issuer}${date}${kwCtx}. Demonstrated strong proficiency across core competency areas including architecture, security, and optimization strategies. Successfully completed rigorous assessments and hands-on labs that validated real-world expertise and readiness for industry challenges.`,
-        },
-        {
-          tag: "Achievement-Led",
-          text: `Achieved ${name} issued by ${issuer}${date}${kwCtx}. This credential reflects a thorough understanding of best practices, advanced concepts, and practical application. Prepared through intensive study and applied projects, reinforcing both theoretical knowledge and hands-on implementation skills in professional environments.`,
-        },
-      ]);
+    try {
+      const result = await vertexAIService.generateCertifications(resumeId, 'generate');
+      
+      if (result.success && result.result) {
+        const newCerts = result.result.certifications || [];
+        // Find matching certification
+        const matchedCert = newCerts.find(c => 
+          c.name.toLowerCase().includes(cert.name?.toLowerCase()) || 
+          cert.name?.toLowerCase().includes(c.name.toLowerCase())
+        );
+        
+        if (matchedCert && matchedCert.description) {
+          setSuggestions([
+            {
+              tag: "Competency-Led",
+              text: matchedCert.description
+            },
+            {
+              tag: "Achievement-Led", 
+              text: matchedCert.description.replace(/Earned|Achieved/i, "Successfully completed").replace(/demonstrated|validated/i, "showcased")
+            }
+          ]);
+        } else {
+          // Generate dynamic description based on cert info
+          const name = cert.name?.trim() || "this certification";
+          const issuer = cert.issuer?.trim() || "the issuing body";
+          const kw = keywords.trim();
+          const kwCtx = kw ? ` covering ${kw}` : "";
+          
+          setSuggestions([
+            {
+              tag: "Competency-Led",
+              text: `Earned ${name} from ${issuer}${kwCtx}. Demonstrated strong proficiency across core competency areas including architecture, security, and optimization strategies. Successfully completed rigorous assessments and hands-on labs that validated real-world expertise and readiness for industry challenges.`
+            },
+            {
+              tag: "Achievement-Led",
+              text: `Achieved ${name} issued by ${issuer}${kwCtx}. This credential reflects a thorough understanding of best practices, advanced concepts, and practical application. Prepared through intensive study and applied projects, reinforcing both theoretical knowledge and hands-on implementation skills in professional environments.`
+            }
+          ]);
+        }
+      } else {
+        alert("Failed to generate: " + (result.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("AI Certifications error:", error);
+      alert("Failed to connect to AI service. Make sure backend is running.");
+    } finally {
       setLoading(false);
-    }, 380);
+    }
   };
 
   const hasContext = cert.name || cert.issuer || keywords.trim();
@@ -2555,7 +2605,6 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
               </div>
             </div>
 
-            {/* Only AI Suggest button — no word count pill */}
             <button className="sum-ai-btn-top"
               onClick={handleAISuggest}
               disabled={!hasContext || loading}
@@ -2564,7 +2613,7 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
               {loading
                 ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
                 : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
-              {loading ? "Generating…" : "AI Suggest"}
+              {loading ? "Generating…" : "✨ AI Suggest"}
             </button>
           </div>
 
@@ -2582,7 +2631,6 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
             onChange={e => onUpd(cert.id, "description", e.target.value)}
           />
 
-          {/* Hint text below textarea — matches other tabs style */}
           <p style={{
             fontSize: 11,
             color: isGood ? "#16a34a" : isOver ? "#ef4444" : "#9ca3af",
@@ -2603,7 +2651,7 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
               <div key={i} className="sum-suggestion-card"
                 onClick={() => onUpd(cert.id, "description", s.text)}>
                 <div className="sum-sug-tag">Option {i + 1} · {s.tag}</div>
-                <div className="sum-sug-text">{s.text}</div>
+                <div className="sum-sug-text">{s.text.length > 150 ? s.text.slice(0, 150) + "…" : s.text}</div>
                 <div className="sum-sug-use">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <polyline points="20 6 9 17 4 12"/>
@@ -2641,6 +2689,7 @@ function CertificationsSection({ data, onChange }) {
     </div>
   );
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LANGUAGES SECTION
