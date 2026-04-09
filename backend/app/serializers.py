@@ -142,154 +142,143 @@ class DemoBookingSerializer(serializers.ModelSerializer):
 
 
 
-
-
-
-
 from rest_framework import serializers
 from .models import *
 
-# ───────────── SIMPLE SERIALIZERS (ALL OPTIONAL) ─────────────
+# ---------------- SIMPLE SERIALIZERS ----------------
 
 class PersonalInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResumePersonalInfo
         exclude = ['resume']
-        extra_kwargs = {
-            'full_name': {'required': False, 'allow_null': True, 'allow_blank': True},
-            'job_title': {'required': False, 'allow_null': True, 'allow_blank': True},
-            'email':     {'required': False, 'allow_null': True, 'allow_blank': True},
-            'phone':     {'required': False, 'allow_null': True, 'allow_blank': True},
-            'location':  {'required': False, 'allow_null': True, 'allow_blank': True},
-            'linkedin':  {'required': False, 'allow_null': True, 'allow_blank': True},
-            'github':    {'required': False, 'allow_null': True, 'allow_blank': True},
-            'photo':     {'required': False, 'allow_null': True, 'allow_blank': True},  # TextField, allow_blank is fine
-        }
+        extra_kwargs = {field: {'required': False, 'allow_blank': True, 'allow_null': True}
+                        for field in ['full_name','job_title','email','phone','location','linkedin','github','photo']}
+
 
 class SummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = ResumeSummary
         exclude = ['resume']
         extra_kwargs = {
-            'text': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'text': {'required': False, 'allow_blank': True, 'allow_null': True}
         }
+
 
 class ExperienceSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+
     class Meta:
         model = ResumeExperience
         exclude = ['resume']
-        extra_kwargs = {
-            'company':     {'required': False, 'allow_null': True, 'allow_blank': True},
-            'role':        {'required': False, 'allow_null': True, 'allow_blank': True},
-            'duration':    {'required': False, 'allow_null': True, 'allow_blank': True},
-            'location':    {'required': False, 'allow_null': True, 'allow_blank': True},
-            'description': {'required': False, 'allow_null': True, 'allow_blank': True},
-        }
+        extra_kwargs = {field: {'required': False, 'allow_blank': True, 'allow_null': True}
+                        for field in ['company','role','duration','location','description']}
+
 
 class UGEducationSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+
+    graduatedYear = serializers.CharField(
+        source='graduated_year',
+        required=False,
+        allow_blank=True
+    )
+
     class Meta:
         model = ResumeUGEducation
         exclude = ['resume']
-        extra_kwargs = {
-            'college':        {'required': False, 'allow_null': True, 'allow_blank': True},
-            'degree':         {'required': False, 'allow_null': True, 'allow_blank': True},
-            'branch':         {'required': False, 'allow_null': True, 'allow_blank': True},
-            'graduatedYear':  {'required': False, 'allow_null': True, 'allow_blank': True},
-            'gpa':            {'required': False, 'allow_null': True, 'allow_blank': True},
-            'highlights':     {'required': False, 'allow_null': True, 'allow_blank': True},
-        }
+        extra_kwargs = {field: {'required': False, 'allow_blank': True, 'allow_null': True}
+                        for field in ['college','degree','branch','graduated_year','gpa','highlights']}
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['graduatedYear'] = data.pop('graduated_year', '')
+        return data
+
 
 class SchoolEducationSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
 
-    # Mapping frontend → backend
     schoolName = serializers.CharField(source='school_name', required=False, allow_blank=True)
     passingYear = serializers.CharField(source='passing_year', required=False, allow_blank=True)
 
     class Meta:
         model = ResumeSchoolEducation
         exclude = ['resume']
-        extra_kwargs = {
-            'school_name':   {'required': False, 'allow_null': True, 'allow_blank': True},
-            'board':         {'required': False, 'allow_null': True, 'allow_blank': True},
-            'stream':        {'required': False, 'allow_null': True, 'allow_blank': True},
-            'passing_year':  {'required': False, 'allow_null': True, 'allow_blank': True},
-            'percentage':    {'required': False, 'allow_null': True, 'allow_blank': True},
-            'highlights':    {'required': False, 'allow_null': True, 'allow_blank': True},
-        }
+        extra_kwargs = {field: {'required': False, 'allow_blank': True, 'allow_null': True}
+                        for field in ['school_name','board','stream','passing_year','percentage','highlights']}
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # rename back to frontend camelCase
         data['schoolName'] = data.pop('school_name', '')
         data['passingYear'] = data.pop('passing_year', '')
         return data
 
+
 class SkillSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+
     class Meta:
         model = ResumeSkill
         exclude = ['resume']
         extra_kwargs = {
-            'name':  {'required': False, 'allow_null': True, 'allow_blank': True},
-            'level': {'required': False, 'allow_null': True},          # Integer – no allow_blank
-            'badge': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'name': {'required': False, 'allow_blank': True, 'allow_null': True},
+            'level': {'required': False, 'allow_null': True},
+            'badge': {'required': False, 'allow_blank': True, 'allow_null': True},
         }
+
 
 class ProjectSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
-    tech_stack = serializers.CharField(source='tech', required=False, allow_blank=True)
+
     class Meta:
         model = ResumeProject
         exclude = ['resume']
-        extra_kwargs = {
-            'name':        {'required': False, 'allow_null': True, 'allow_blank': True},
-            'tech_stack':  {'required': False, 'allow_null': True, 'allow_blank': True},
-            'description': {'required': False, 'allow_null': True, 'allow_blank': True},
-            'date':        {'required': False, 'allow_null': True, 'allow_blank': True},
-        }
+        extra_kwargs = {field: {'required': False, 'allow_blank': True, 'allow_null': True}
+                        for field in ['name','tech','description','link','date']}
+
 
 class CertificationSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+
     class Meta:
         model = ResumeCertification
         exclude = ['resume']
-        extra_kwargs = {
-            'name':        {'required': False, 'allow_null': True, 'allow_blank': True},
-            'issuer':      {'required': False, 'allow_null': True, 'allow_blank': True},
-            'date':        {'required': False, 'allow_null': True, 'allow_blank': True},
-            'description': {'required': False, 'allow_null': True, 'allow_blank': True},
-        }
+        extra_kwargs = {field: {'required': False, 'allow_blank': True, 'allow_null': True}
+                        for field in ['name','issuer','date','credential_id','description']}
+
 
 class LanguageSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+
     class Meta:
         model = ResumeLanguage
         exclude = ['resume']
         extra_kwargs = {
-            'language':    {'required': False, 'allow_null': True, 'allow_blank': True},
-            'proficiency': {'required': False, 'allow_null': True, 'allow_blank': True},
-            'stars':       {'required': False, 'allow_null': True},    # Integer – no allow_blank
+            'language': {'required': False, 'allow_blank': True, 'allow_null': True},
+            'proficiency': {'required': False, 'allow_blank': True, 'allow_null': True},
+            'stars': {'required': False, 'allow_null': True},
         }
+
 
 class OptionalSectionSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+
     class Meta:
         model = ResumeOptionalSection
         exclude = ['resume']
         extra_kwargs = {
-            'title':   {'required': False, 'allow_null': True, 'allow_blank': True},
-            'content': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'title': {'required': False, 'allow_blank': True, 'allow_null': True},
+            'content': {'required': False, 'allow_blank': True, 'allow_null': True},
         }
 
-# ───────────── MAIN SERIALIZER (FIXED CREATE/UPDATE) ─────────────
+
+# ---------------- MAIN SERIALIZER ----------------
 
 class ResumeSerializer(serializers.ModelSerializer):
-    personal_info = PersonalInfoSerializer(required=False, allow_null=True)
-    summary = SummarySerializer(required=False, allow_null=True)
-    
+
+    personal_info = PersonalInfoSerializer(required=False)
+    summary = SummarySerializer(required=False)
+
     experiences = ExperienceSerializer(many=True, required=False)
     ug_education = UGEducationSerializer(many=True, required=False)
     school_education = SchoolEducationSerializer(many=True, required=False)
@@ -303,115 +292,119 @@ class ResumeSerializer(serializers.ModelSerializer):
         model = Resume
         fields = '__all__'
         read_only_fields = ['user']
-        extra_kwargs = {
-            # string fields → allow_blank + allow_null
-            'title':         {'required': False, 'allow_null': True, 'allow_blank': True},
-            'font':          {'required': False, 'allow_null': True, 'allow_blank': True},
-            'theme_color':   {'required': False, 'allow_null': True, 'allow_blank': True},
-            'layout':        {'required': False, 'allow_null': True, 'allow_blank': True},
-            'photo_position':{'required': False, 'allow_null': True, 'allow_blank': True},
-            'photo_size':    {'required': False, 'allow_null': True, 'allow_blank': True},
-            # JSONField – no allow_blank, only required=False
-            'canvas_states': {'required': False},
-        }
 
-    # Helper to strip 'id' from nested dicts (sent by frontend)
-    def _strip_ids(self, items):
+    # 🔥 CLEAN EMPTY DATA
+    def clean_items(self, items):
+        clean = []
         for item in items:
             item.pop('id', None)
-        return items
+            item = {k: v for k, v in item.items() if v not in ["", None]}
+            if item:
+                clean.append(item)
+        return clean
 
+    # 🔥 CREATE
     def create(self, validated_data):
+
+        user = validated_data.pop('user', None)
+        if not user:
+            raise serializers.ValidationError("User is required")
+
         personal_data = validated_data.pop('personal_info', None)
         summary_data = validated_data.pop('summary', None)
-        
-        exp_data = self._strip_ids(validated_data.pop('experiences', []))
-        ug_data = self._strip_ids(validated_data.pop('ug_education', []))
-        school_data = self._strip_ids(validated_data.pop('school_education', []))
-        skill_data = self._strip_ids(validated_data.pop('skills', []))
-        proj_data = self._strip_ids(validated_data.pop('projects', []))
-        cert_data = self._strip_ids(validated_data.pop('certifications', []))
-        lang_data = self._strip_ids(validated_data.pop('languages', []))
-        optional_data = self._strip_ids(validated_data.pop('optional_sections', []))
 
-        # Create main Resume
-        resume = Resume.objects.create(**validated_data)
+        exp_data = self.clean_items(validated_data.pop('experiences', []))
+        ug_data = self.clean_items(validated_data.pop('ug_education', []))
+        school_data = self.clean_items(validated_data.pop('school_education', []))
+        skill_data = self.clean_items(validated_data.pop('skills', []))
+        proj_data = self.clean_items(validated_data.pop('projects', []))
+        cert_data = self.clean_items(validated_data.pop('certifications', []))
+        lang_data = self.clean_items(validated_data.pop('languages', []))
+        optional_data = self.clean_items(validated_data.pop('optional_sections', []))
 
-        # Create related objects if they contain any data
-        if personal_data and any(personal_data.values()):
+        resume = Resume.objects.create(user=user, **validated_data)
+
+        if personal_data:
             ResumePersonalInfo.objects.create(resume=resume, **personal_data)
-        if summary_data and summary_data.get('text'):
+
+        if summary_data:
             ResumeSummary.objects.create(resume=resume, **summary_data)
 
         for item in exp_data:
-            if any(item.values()):
-                ResumeExperience.objects.create(resume=resume, **item)
+            ResumeExperience.objects.create(resume=resume, **item)
+
         for item in ug_data:
-            if any(item.values()):
-                ResumeUGEducation.objects.create(resume=resume, **item)
+            ResumeUGEducation.objects.create(resume=resume, **item)
+
         for item in school_data:
-            if any(item.values()):
-                ResumeSchoolEducation.objects.create(resume=resume, **item)
+            ResumeSchoolEducation.objects.create(resume=resume, **item)
+
         for item in skill_data:
-            if any(item.values()):
-                ResumeSkill.objects.create(resume=resume, **item)
+            ResumeSkill.objects.create(resume=resume, **item)
+
         for item in proj_data:
-            if any(item.values()):
-                ResumeProject.objects.create(resume=resume, **item)
+            ResumeProject.objects.create(resume=resume, **item)
+
         for item in cert_data:
-            if any(item.values()):
-                ResumeCertification.objects.create(resume=resume, **item)
+            ResumeCertification.objects.create(resume=resume, **item)
+
         for item in lang_data:
-            if any(item.values()):
-                ResumeLanguage.objects.create(resume=resume, **item)
+            ResumeLanguage.objects.create(resume=resume, **item)
+
         for item in optional_data:
-            if any(item.values()):
-                ResumeOptionalSection.objects.create(resume=resume, **item)
+            ResumeOptionalSection.objects.create(resume=resume, **item)
 
         return resume
 
+    # 🔥 UPDATE (FINAL FIX)
     def update(self, instance, validated_data):
-        # Update main resume fields
-        for attr in ['title', 'font', 'theme_color', 'layout', 'photo_position', 'photo_size', 'canvas_states']:
-            if attr in validated_data:
-                setattr(instance, attr, validated_data[attr])
+
+        validated_data.pop('user', None)
+
+        personal_data = validated_data.pop('personal_info', None)
+        summary_data = validated_data.pop('summary', None)
+
+        exp_data = self.clean_items(validated_data.pop('experiences', []))
+        ug_data = self.clean_items(validated_data.pop('ug_education', []))
+        school_data = self.clean_items(validated_data.pop('school_education', []))
+        skill_data = self.clean_items(validated_data.pop('skills', []))
+        proj_data = self.clean_items(validated_data.pop('projects', []))
+        cert_data = self.clean_items(validated_data.pop('certifications', []))
+        lang_data = self.clean_items(validated_data.pop('languages', []))
+        optional_data = self.clean_items(validated_data.pop('optional_sections', []))
+
+        # UPDATE MAIN
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
 
-        # Update or create personal_info safely
-        p_info = validated_data.get('personal_info')
-        if p_info:
-            try:
-                info = instance.personal_info
-                for k, v in p_info.items():
-                    setattr(info, k, v)
-                info.save()
-            except ResumePersonalInfo.DoesNotExist:
-                ResumePersonalInfo.objects.create(resume=instance, **p_info)
+        # PERSONAL INFO
+        if personal_data is not None:
+            ResumePersonalInfo.objects.update_or_create(
+                resume=instance,
+                defaults=personal_data
+            )
 
-        # Update or create summary safely
-        summ = validated_data.get('summary')
-        if summ:
-            try:
-                s = instance.summary
-                s.text = summ.get('text', s.text)
-                s.save()
-            except ResumeSummary.DoesNotExist:
-                ResumeSummary.objects.create(resume=instance, **summ)
+        # SUMMARY
+        if summary_data is not None:
+            ResumeSummary.objects.update_or_create(
+                resume=instance,
+                defaults=summary_data
+            )
 
-        # Helper to replace list of related objects (strip ids, delete old, create new)
-        def replace_items(manager, data_list, model_class):
-            manager.all().delete()
-            for item in self._strip_ids(data_list):
-                if any(item.values()):
-                    model_class.objects.create(resume=instance, **item)
+        # REPLACE FUNCTION
+        def replace(model, items):
+            model.objects.filter(resume=instance).delete()
+            for item in items:
+                model.objects.create(resume=instance, **item)
 
-        replace_items(instance.experiences, validated_data.get('experiences', []), ResumeExperience)
-        replace_items(instance.ug_education, validated_data.get('ug_education', []), ResumeUGEducation)
-        replace_items(instance.school_education, validated_data.get('school_education', []), ResumeSchoolEducation)
-        replace_items(instance.skills, validated_data.get('skills', []), ResumeSkill)
-        replace_items(instance.projects, validated_data.get('projects', []), ResumeProject)
-        replace_items(instance.certifications, validated_data.get('certifications', []), ResumeCertification)
-        replace_items(instance.languages, validated_data.get('languages', []), ResumeLanguage)
-        replace_items(instance.optional_sections, validated_data.get('optional_sections', []), ResumeOptionalSection)
+        replace(ResumeExperience, exp_data)
+        replace(ResumeUGEducation, ug_data)
+        replace(ResumeSchoolEducation, school_data)
+        replace(ResumeSkill, skill_data)
+        replace(ResumeProject, proj_data)
+        replace(ResumeCertification, cert_data)
+        replace(ResumeLanguage, lang_data)
+        replace(ResumeOptionalSection, optional_data)
 
         return instance

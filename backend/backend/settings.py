@@ -167,17 +167,13 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # backend/backend/settings.py
+# Vertex AI Configuration
 import os
-from dotenv import load_dotenv
+import subprocess
 
-load_dotenv()
-
-# Try multiple ways to get project ID
+# Get project ID – NEVER use project number
 VERTEX_PROJECT_ID = os.getenv('GOOGLE_CLOUD_PROJECT')
-
-# Fallback to gcloud config
 if not VERTEX_PROJECT_ID:
-    import subprocess
     try:
         VERTEX_PROJECT_ID = subprocess.check_output(
             ['gcloud', 'config', 'get-value', 'project'],
@@ -186,14 +182,15 @@ if not VERTEX_PROJECT_ID:
     except:
         pass
 
-# Final fallback for testing only
-if not VERTEX_PROJECT_ID:
-    VERTEX_PROJECT_ID = '771297649928'  # Your project number
+# ✅ FORCE your actual Project ID (remove the fallback number)
+if not VERTEX_PROJECT_ID or VERTEX_PROJECT_ID == '771297649928':
+    VERTEX_PROJECT_ID = 'lernevo-dev-1'   # <--- YOUR CORRECT PROJECT ID
 
-VERTEX_LOCATION = os.getenv('VERTEX_LOCATION', 'us-central1')
+VERTEX_LOCATION = os.getenv('VERTEX_LOCATION',  'us-central1')
+# Use a model version that definitely exists
+VERTEX_MODEL = os.getenv('VERTEX_MODEL', 'gemini-2.0-flash-exp')  # or 'gemini-1.0-pro'
 
-print(f"Using Vertex AI Project: {VERTEX_PROJECT_ID}")
-
+print(f"✅ Vertex AI using Project: {VERTEX_PROJECT_ID}, Model: {VERTEX_MODEL}")
 
 import psycopg2
 import os

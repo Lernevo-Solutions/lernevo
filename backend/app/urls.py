@@ -47,11 +47,11 @@ urlpatterns = [
     # 🔥 VERTEX AI ENDPOINTS - Now views is defined
     path("ai/summary/", views.ai_generate_summary, name='ai-summary'),
     path("ai/projects/", views.ai_generate_projects, name='ai-projects'),
-    path('ai/experience/', views.ai_generate_experience, name='ai-experience'),
-    path('ai/certifications/', views.ai_generate_certifications, name='ai-certifications'),
-    path('ai/education/', views.ai_generate_education, name='ai-education'),
-    path('ai/skills/', views.ai_suggest_skills, name='ai-skills'),
-    path('ai/health/', views.ai_health_check, name='ai-health'),
+    path("ai/experience/", views.ai_generate_experience, name='ai-experience'),
+    path("ai/certifications/", views.ai_generate_certifications, name='ai-certifications'),
+    path("ai/education/", views.ai_generate_education, name='ai-education'),
+    path("ai/skills/", views.ai_suggest_skills, name='ai-skills'),
+    path("ai/health/", views.ai_health_check, name='ai-health'),
 
     # 🔥 IMPORTANT (ADD THIS LINE)
     path('', include(router.urls)),
