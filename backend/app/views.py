@@ -927,3 +927,47 @@ def ai_health_check(request):
         "status": "ok",
         "vertex": "configured"
     })
+
+
+
+import requests
+from google.auth import default
+from google.auth.transport.requests import Request
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+
+@api_view(['GET'])
+def test_vertex_rest(request):
+    try:
+        # ✅ Get credentials automatically (ADC)
+        credentials, project = default()
+        credentials.refresh(Request())
+
+        token = credentials.token
+
+        url = "https://us-central1-aiplatform.googleapis.com/v1/projects/lernevo-dev-1/locations/us-central1/publishers/google/models/gemini-1.5-flash-002:generateContent"
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        data = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": "Write a resume summary"}]
+                }
+            ]
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+
+        return Response({
+            "status_code": response.status_code,
+            "response": response.json()
+        })
+
+    except Exception as e:
+        return Response({"error": str(e)})

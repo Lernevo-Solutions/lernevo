@@ -188,7 +188,7 @@ if not VERTEX_PROJECT_ID or VERTEX_PROJECT_ID == '771297649928':
 
 VERTEX_LOCATION = os.getenv('VERTEX_LOCATION',  'us-central1')
 # Use a model version that definitely exists
-VERTEX_MODEL = os.getenv('VERTEX_MODEL', 'gemini-2.0-flash-exp')  # or 'gemini-1.0-pro'
+VERTEX_MODEL = os.getenv('VERTEX_MODEL', 'gemini-1.5-flash-002')  # or 'gemini-1.0-pro'
 
 print(f"✅ Vertex AI using Project: {VERTEX_PROJECT_ID}, Model: {VERTEX_MODEL}")
 
