@@ -5,3 +5,5 @@ gunicorn
 psycopg2-binary
 pillow
 python-dotenv
+whitenoise==6.7.0
+google-cloud-aiplatform>=1.38.0
