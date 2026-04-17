@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Mail, Phone, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import './GetStartedFlow.css';
+import api from '../api';
 
 const GetStartedFlow = ({ isOpen, onClose }) => {
   const [step, setStep] = useState(1);
@@ -27,12 +28,19 @@ const GetStartedFlow = ({ isOpen, onClose }) => {
     setStep(2);
   };
 
-  const handleSendOTP = () => {
-    if (inputValue) {
-      setStep(3);
-      setTimer(30);
+const handleSendOTP = async () => {
+  if (!inputValue) return;
+
+  try {
+    const response = await api.post('/otp/', { email: inputValue });
+    if (response.status === 200) {
+      setStep(3); // OTP sent successfully — next step போ
     }
-  };
+  } catch (error) {
+    const msg = error.response?.data?.detail || 'Failed to send OTP';
+    alert(msg);
+  }
+};
 
   const handleOtpChange = (index, value) => {
     if (isNaN(value)) return;
@@ -52,15 +60,24 @@ const GetStartedFlow = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleVerify = () => {
-    if (otp.every(digit => digit !== '')) {
-      setStep(4);
-      setTimeout(() => {
-        // Redirect logic would go here
-        console.log("Redirecting to dashboard...");
-      }, 2000);
+const handleVerify = async () => {
+  if (!otp.every(digit => digit !== '')) return;
+
+  const otpCode = otp.join('');
+
+  try {
+    const response = await api.post('/otp/', {
+      email: inputValue,
+      otp: otpCode,
+    });
+    if (response.status === 200) {
+      setStep(4); // Verified — next step போ
     }
-  };
+  } catch (error) {
+    const msg = error.response?.data?.detail || 'Invalid OTP';
+    alert(msg);
+  }
+};
 
   const resetFlow = () => {
     setStep(1);

@@ -60,7 +60,7 @@ const AppLayout = () => {
 
   // 👉 Navbar hide panna routes
   const hideNavbarRoutes = [
-    "/resume",
+    "/my-resumes",
     "/builder",
     "/home",
     "/templates",
@@ -130,7 +130,7 @@ const AppLayout = () => {
         <Route path="/features" element={<Features />} />
 
         {/* Resume Pages (No Navbar) */}
-        <Route path="/resume" element={<MyResumes />} />
+        <Route path="/my-resumes" element={<MyResumes />} />
         <Route path="/builder" element={<ResumeBuilder />} />
         <Route path="/home" element={<Homepage />} />
         <Route path="/templates" element={<Templates />} />
