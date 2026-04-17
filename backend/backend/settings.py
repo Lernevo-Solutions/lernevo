@@ -146,7 +146,73 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+<<<<<<< HEAD
 VERTEX_PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "lernevo-dev-1")
 VERTEX_LOCATION = os.getenv("VERTEX_LOCATION", "us-central1")
 VERTEX_MODEL = os.getenv("VERTEX_MODEL", "gemini-2.0-flash-exp")
 CSRF_TRUSTED_ORIGINS = ['https://lernevo-backend-771297649928.us-central1.run.app', 'https://lernevo-frontend-771297649928.us-central1.run.app']
+=======
+# backend/backend/settings.py
+# Vertex AI Configuration
+import os
+import subprocess
+
+# Get project ID – NEVER use project number
+VERTEX_PROJECT_ID = os.getenv('GOOGLE_CLOUD_PROJECT')
+if not VERTEX_PROJECT_ID:
+    try:
+        VERTEX_PROJECT_ID = subprocess.check_output(
+            ['gcloud', 'config', 'get-value', 'project'],
+            text=True
+        ).strip()
+    except:
+        pass
+
+# ✅ FORCE your actual Project ID (remove the fallback number)
+if not VERTEX_PROJECT_ID or VERTEX_PROJECT_ID == '771297649928':
+    VERTEX_PROJECT_ID = 'lernevo-dev-1'   # <--- YOUR CORRECT PROJECT ID
+
+VERTEX_LOCATION = os.getenv('VERTEX_LOCATION',  'us-central1')
+# Use a model version that definitely exists
+VERTEX_MODEL = os.getenv('VERTEX_MODEL', 'gemini-1.5-flash-002')  # or 'gemini-1.0-pro'
+
+print(f"✅ Vertex AI using Project: {VERTEX_PROJECT_ID}, Model: {VERTEX_MODEL}")
+
+import psycopg2
+import os
+
+try:
+    conn = psycopg2.connect(
+        dbname=os.environ.get("DB_NAME"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
+        host=f"/cloudsql/{os.environ.get('INSTANCE_CONNECTION_NAME')}",
+        port=5432
+    )
+    print("Database connection OK")
+    conn.close()
+except Exception as e:
+    print("Database connection failed:", e)
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+>>>>>>> dde8c7862b5b3d9874c92f9aded176dad8186cd4

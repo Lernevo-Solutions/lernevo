@@ -52,6 +52,7 @@ urlpatterns = [
     path("ai/education/", views.ai_generate_education, name='ai-education'),
     path("ai/skills/", views.ai_suggest_skills, name='ai-skills'),
     path("ai/health/", views.ai_health_check, name='ai-health'),
+    path("test-vertex-rest/", views.test_vertex_rest),
 
     # 🔥 IMPORTANT (ADD THIS LINE)
     path('', include(router.urls)),

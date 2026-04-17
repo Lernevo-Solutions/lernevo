@@ -1,0 +1,6 @@
+db.sqlite3
+*.sql
+cloud_sql_proxy.exe
+.env
+__pycache__/
+*.pyc
