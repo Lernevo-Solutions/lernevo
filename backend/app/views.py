@@ -925,7 +925,12 @@ def ai_suggest_skills(request):
 def ai_health_check(request):
     return Response({
         "status": "ok",
-        "vertex": "configured"
+        "vertex": {
+            "configured": True,
+            "project": settings.VERTEX_PROJECT_ID,
+            "location": settings.VERTEX_LOCATION,
+            "model": settings.VERTEX_MODEL,
+        },
     })
 
 
@@ -946,7 +951,11 @@ def test_vertex_rest(request):
 
         token = credentials.token
 
-        url = "https://us-central1-aiplatform.googleapis.com/v1/projects/lernevo-dev-1/locations/us-central1/publishers/google/models/gemini-1.5-flash-002:generateContent"
+        model_path = (
+            f"projects/{settings.VERTEX_PROJECT_ID}/locations/{settings.VERTEX_LOCATION}/"
+            f"publishers/google/models/{settings.VERTEX_MODEL}"
+        )
+        url = f"https://aiplatform.googleapis.com/v1/{model_path}:generateContent"
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -971,3 +980,351 @@ def test_vertex_rest(request):
 
     except Exception as e:
         return Response({"error": str(e)})
+
+
+# ============================================================
+# Vertex AI endpoint overrides for clearer local debugging
+# ============================================================
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny
+
+
+def _vertex_error_response(exc, label: str):
+    return Response(
+        {
+            "success": False,
+            "error": f"{label} failed",
+            "detail": str(exc),
+        },
+        status=status.HTTP_502_BAD_GATEWAY,
+    )
+
+
+@api_view(["GET", "POST"])
+def ai_generate_summary(request):
+    if request.method == "GET":
+        return Response(
+            {
+                "success": False,
+                "message": "Use POST /api/ai/summary/ with resume_id and optional action.",
+                "authentication": "Token authentication required",
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    resume_id = request.data.get("resume_id")
+    action = request.data.get("action", "generate")
+
+    if not resume_id:
+        return Response({"error": "resume_id required"}, status=400)
+
+    resume = get_object_or_404(Resume, id=resume_id)
+    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+    skills = ResumeSkill.objects.filter(resume=resume)
+    skills_text = ", ".join([s.name for s in skills])
+
+    current = ""
+    if action == "improve":
+        obj = ResumeSummary.objects.filter(resume=resume).first()
+        if obj:
+            current = obj.text
+
+    user_data = {
+        "title": personal.job_title if personal else "",
+        "skills": skills_text,
+        "experience_context": request.data.get("experience_context", ""),
+    }
+
+    try:
+        result = vertex_service.generate_summary(user_data, action, current)
+    except Exception as exc:
+        return _vertex_error_response(exc, "Summary generation")
+
+    obj, _ = ResumeSummary.objects.get_or_create(resume=resume)
+    obj.text = result
+    obj.save()
+
+    return Response({"success": True, "result": result})
+
+
+@api_view(["POST"])
+def ai_generate_projects(request):
+    resume_id = request.data.get("resume_id")
+    action = request.data.get("action", "generate")
+
+    if not resume_id:
+        return Response({"error": "resume_id required"}, status=400)
+
+    resume = get_object_or_404(Resume, id=resume_id)
+    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+    skills = ResumeSkill.objects.filter(resume=resume)
+    skills_text = ", ".join([s.name for s in skills])
+
+    current = ""
+    if action == "improve":
+        projects = ResumeProject.objects.filter(resume=resume)
+        current = "\n".join([p.description for p in projects])
+
+    user_data = {
+        "title": personal.job_title if personal else "",
+        "tech_stack": skills_text,
+        "context": request.data.get("context", ""),
+        "num_projects": request.data.get("num_projects", 3),
+    }
+
+    try:
+        result = vertex_service.generate_projects(user_data, action, current)
+    except Exception as exc:
+        return _vertex_error_response(exc, "Project generation")
+
+    return Response({"success": True, "result": result})
+
+
+@api_view(["POST"])
+def ai_generate_experience(request):
+    resume_id = request.data.get("resume_id")
+    action = request.data.get("action", "generate")
+
+    if not resume_id:
+        return Response({"error": "resume_id required"}, status=400)
+
+    resume = get_object_or_404(Resume, id=resume_id)
+    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+    skills = ResumeSkill.objects.filter(resume=resume)
+    skills_text = ", ".join([s.name for s in skills])
+
+    current = ""
+    if action == "improve":
+        experiences = ResumeExperience.objects.filter(resume=resume)
+        current = "\n".join([e.description for e in experiences])
+
+    user_data = {
+        "role": personal.job_title if personal else "",
+        "company": request.data.get("company", "Company"),
+        "duration": request.data.get("duration", "Present"),
+        "responsibilities": request.data.get("responsibilities", ""),
+        "tech_stack": skills_text,
+    }
+
+    try:
+        result = vertex_service.generate_experience(user_data, action, current)
+    except Exception as exc:
+        return _vertex_error_response(exc, "Experience generation")
+
+    return Response({"success": True, "result": result})
+
+
+@api_view(["POST"])
+def ai_generate_certifications(request):
+    resume_id = request.data.get("resume_id")
+    action = request.data.get("action", "generate")
+
+    if not resume_id:
+        return Response({"error": "resume_id required"}, status=400)
+
+    resume = get_object_or_404(Resume, id=resume_id)
+    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+    skills = ResumeSkill.objects.filter(resume=resume)
+    skills_text = ", ".join([s.name for s in skills])
+
+    current = ""
+    if action == "improve":
+        certs = ResumeCertification.objects.filter(resume=resume)
+        current = "\n".join([c.name for c in certs])
+
+    user_data = {
+        "title": personal.job_title if personal else "",
+        "skills": skills_text,
+        "industry": request.data.get("industry", "Technology"),
+    }
+
+    try:
+        result = vertex_service.generate_certifications(user_data, action, current)
+    except Exception as exc:
+        return _vertex_error_response(exc, "Certification generation")
+
+    return Response({"success": True, "result": result})
+
+
+@api_view(["POST"])
+def ai_generate_education(request):
+    resume_id = request.data.get("resume_id")
+    action = request.data.get("action", "generate")
+
+    if not resume_id:
+        return Response({"error": "resume_id required"}, status=400)
+
+    resume = get_object_or_404(Resume, id=resume_id)
+
+    current = ""
+    if action == "improve":
+        edu = ResumeUGEducation.objects.filter(resume=resume).first()
+        if edu:
+            current = f"{edu.degree} {edu.branch}"
+
+    user_data = {
+        "degree": request.data.get("degree", "Bachelor's"),
+        "field": request.data.get("field", "CS"),
+        "university": request.data.get("university", "University"),
+        "year": request.data.get("year", "2024"),
+        "coursework": request.data.get("coursework", ""),
+    }
+
+    try:
+        result = vertex_service.generate_education(user_data, action, current)
+    except Exception as exc:
+        return _vertex_error_response(exc, "Education generation")
+
+    return Response({"success": True, "result": result})
+
+
+@api_view(["POST"])
+def ai_suggest_skills(request):
+    resume_id = request.data.get("resume_id")
+
+    if not resume_id:
+        return Response({"error": "resume_id required"}, status=400)
+
+    resume = get_object_or_404(Resume, id=resume_id)
+    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+    skills = ResumeSkill.objects.filter(resume=resume)
+    skills_text = ", ".join([s.name for s in skills])
+
+    user_data = {
+        "title": personal.job_title if personal else "",
+        "current_skills": skills_text,
+        "level": request.data.get("level", "Intermediate"),
+    }
+
+    try:
+        result = vertex_service.generate_skills(user_data)
+    except Exception as exc:
+        return _vertex_error_response(exc, "Skill suggestion")
+
+    return Response({"success": True, "result": result})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def ai_health_check(request):
+    return Response(
+        {
+            "status": "ok",
+            "vertex": {
+                "configured": True,
+                "project": settings.VERTEX_PROJECT_ID,
+                "location": settings.VERTEX_LOCATION,
+                "model": settings.VERTEX_MODEL,
+            },
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def test_vertex_rest(request):
+    try:
+        credentials, project = default()
+        credentials.refresh(Request())
+
+        model_path = (
+            f"projects/{settings.VERTEX_PROJECT_ID}/locations/{settings.VERTEX_LOCATION}/"
+            f"publishers/google/models/{settings.VERTEX_MODEL}"
+        )
+        url = f"https://aiplatform.googleapis.com/v1/{model_path}:generateContent"
+        headers = {
+            "Authorization": f"Bearer {credentials.token}",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": "Write a resume summary"}],
+                }
+            ]
+        }
+
+        response = requests.post(url, headers=headers, json=data, timeout=60)
+
+        return Response(
+            {
+                "status_code": response.status_code,
+                "response": response.json(),
+                "model_path": model_path,
+                "resolved_project": project,
+            },
+            status=response.status_code if response.status_code >= 400 else status.HTTP_200_OK,
+        )
+    except Exception as exc:
+        return Response(
+            {
+                "status_code": 500,
+                "error": str(exc),
+                "project": settings.VERTEX_PROJECT_ID,
+                "location": settings.VERTEX_LOCATION,
+                "model": settings.VERTEX_MODEL,
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def ai_generate_summary(request):
+    if request.method == "GET":
+        return Response(
+            {
+                "success": False,
+                "message": "Use POST /api/ai/summary/ with Authorization token, resume_id, and optional action.",
+                "example": {
+                    "resume_id": 1,
+                    "action": "generate",
+                    "experience_context": "Backend developer with Python and Django experience",
+                },
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    if not request.user or not request.user.is_authenticated:
+        return Response(
+            {
+                "success": False,
+                "error": "Authentication credentials were not provided.",
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    resume_id = request.data.get("resume_id")
+    action = request.data.get("action", "generate")
+
+    if not resume_id:
+        return Response({"error": "resume_id required"}, status=400)
+
+    resume = get_object_or_404(Resume, id=resume_id)
+    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+    skills = ResumeSkill.objects.filter(resume=resume)
+    skills_text = ", ".join([s.name for s in skills])
+
+    current = ""
+    if action == "improve":
+        obj = ResumeSummary.objects.filter(resume=resume).first()
+        if obj:
+            current = obj.text
+
+    user_data = {
+        "title": personal.job_title if personal else "",
+        "skills": skills_text,
+        "experience_context": request.data.get("experience_context", ""),
+    }
+
+    try:
+        result = vertex_service.generate_summary(user_data, action, current)
+    except Exception as exc:
+        return _vertex_error_response(exc, "Summary generation")
+
+    obj, _ = ResumeSummary.objects.get_or_create(resume=resume)
+    obj.text = result
+    obj.save()
+
+    return Response({"success": True, "result": result})

@@ -19,8 +19,11 @@ from django.urls import path, include
 
 from backend import settings
 from django.conf.urls.static import static 
+from app import views as app_views
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('test-vertex-rest/', app_views.test_vertex_rest),
+    path('ai/health/', app_views.ai_health_check),
     path('api/', include('app.urls')),
 ]
 if settings.DEBUG:
