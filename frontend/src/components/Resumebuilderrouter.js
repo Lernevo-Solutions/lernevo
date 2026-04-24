@@ -100,7 +100,7 @@ const INIT = {
 };
 // BACKEND SAVE LOGIC
 const saveResumeToBackend = async (st, order, pages) => {
-  const API_BASE_URL = 'https://lernevo-frontend-771297649928.us-central1.run.app/api';
+  const API_BASE_URL = 'https://lernevo-backend-771297649928.us-central1.run.app/api';
   const token = localStorage.getItem('token');
   const resumeId = localStorage.getItem('resumeId');
 
@@ -1314,23 +1314,31 @@ function ExpCard({ exp, index, total, onUpd, onRem }) {
   const isUnder = wordCount > 0 && wordCount < MIN;
   const isOver  = wordCount > MAX;
   const isGood  = wordCount >= MIN && wordCount <= MAX;
-
-  const handleAISuggest = () => {
-    if (!keywords.trim() && !exp.company && !exp.role) return;
-    setLoading(true);
-    setTimeout(() => {
-      const role = exp.role?.trim() || "Professional";
-      const company = exp.company?.trim() || "";
-      const kw = keywords.trim();
-      const atComp = company ? ` at ${company}` : "";
-      const kwCtx = kw ? ` with expertise in ${kw}` : "";
+const handleAISuggest = async () => {
+  if (!keywords.trim() && !exp.company && !exp.role) return;
+  setLoading(true);
+  try {
+    const resumeId = localStorage.getItem('resumeId');
+    const result = await vertexAIService.generateExperience(
+      resumeId,
+      'generate',
+      exp.company,
+      exp.role,
+      keywords
+    );
+    
+    if (result.success) {
       setSuggestions([
-        { tag:"Impact-Led",           text:`Served as ${role}${atComp}${kwCtx}, driving key initiatives that significantly improved team efficiency and product quality. Led end-to-end delivery of critical features, collaborated with cross-functional stakeholders to define requirements, and ensured on-time deployment with high reliability. Championed best practices in code quality, testing, and documentation, resulting in a measurable reduction in production incidents. Mentored junior team members and contributed to a culture of continuous improvement and technical excellence across the organisation.` },
-        { tag:"Responsibility-First", text:`Worked as ${role}${atComp}${kwCtx}, taking full ownership of core workflows and deliverables from planning through to production. Engaged directly with product and design teams to translate business requirements into scalable technical solutions. Maintained a strong focus on performance, security, and maintainability while adapting to shifting project priorities. Consistently delivered high-quality outcomes under tight deadlines and played an active role in sprint planning, code reviews, and technical decision-making within the team.` },
+        { tag: "AI Impact-Led", text: result.result },
+        { tag: "AI Professional", text: result.result.replace(/managed/i, "orchestrated") }
       ]);
-      setLoading(false);
-    }, 380);
-  };
+    }
+  } catch (error) {
+    alert("Experience API failed: " + error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const hasContext = exp.company || exp.role || keywords.trim();
 
@@ -1676,22 +1684,29 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
   const MAX = 200;
   const isOver = wordCount > MAX;
   const isGood = wordCount >= 100 && wordCount <= MAX;
-
-  const handleAI = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const degree = edu.degree || "the programme";
-      const branch = edu.branch ? ` in ${edu.branch}` : "";
-      const inst   = edu.college || "the institution";
-      const kw     = keywords.trim();
-      const kwCtx  = kw ? ` with focus on ${kw}` : "";
+const handleAI = async () => {
+  setLoading(true);
+  try {
+    const resumeId = localStorage.getItem('resumeId');
+    const result = await vertexAIService.generateEducation(
+      resumeId,
+      'generate',
+      edu.degree || edu.schoolName,
+      edu.branch || edu.stream,
+      edu.college || edu.schoolName
+    );
+    
+    if (result.success) {
       setSuggestions([
-        { tag:"Academic",    text:`Completed ${degree}${branch} at ${inst}${kwCtx}. Gained in-depth knowledge through rigorous coursework, hands-on projects, and collaborative learning. Built a strong foundation in core concepts while developing practical skills through real-world applications and academic research.` },
-        { tag:"Achievement", text:`Pursued ${degree}${branch} at ${inst}${kwCtx}, consistently maintaining strong academic performance. Engaged in project-based learning, industry-relevant coursework, and extracurricular activities that shaped both technical acumen and professional readiness for the workforce.` },
+        { tag: "AI Academic", text: result.result }
       ]);
-      setLoading(false);
-    }, 380);
-  };
+    }
+  } catch (error) {
+    alert("Education API failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="edu-degree-card">
@@ -2309,23 +2324,29 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
   const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
   const counterMsg    = isGood ? "✓ Great length" : isOver ? `${wordCount - MAX} words over` : isUnder ? `${MIN - wordCount} more needed` : "200–300 words recommended";
 
-  const handleAISuggest = () => {
-    const hasCtx = proj.name || proj.tech || proj.keywords;
-    if (!hasCtx) return;
-    setLoading(true);
-    setTimeout(() => {
-      const title  = proj.name?.trim()     || "the project";
-      const tech   = proj.tech?.trim()     || "";
-      const kw     = proj.keywords?.trim() || "";
-      const techCtx = tech ? ` using ${tech}` : "";
-      const kwCtx   = kw   ? ` with a focus on ${kw}` : "";
+ const handleAISuggest = async () => {
+  if (!proj.name && !proj.tech) return;
+  setLoading(true);
+  try {
+    const resumeId = localStorage.getItem('resumeId');
+    const result = await vertexAIService.generateProjects(
+      resumeId, 
+      'generate', 
+      `${proj.name} using ${proj.tech}. Keywords: ${proj.keywords}`
+    );
+    
+    if (result.success) {
       setSuggestions([
-        { tag:"Impact-Led",     text:`Designed and developed ${title}${techCtx}${kwCtx}, delivering a seamless user experience with optimized performance. Implemented core features end-to-end, integrated APIs, and ensured cross-platform compatibility. Resulted in measurable improvements in efficiency and user engagement.` },
-        { tag:"Technical-Deep", text:`Built ${title}${techCtx}${kwCtx} with a focus on scalability and clean architecture. Engineered reusable components, managed state effectively, and applied best practices in code quality and testing. Deployed and maintained the application with zero critical downtime.` },
+        { tag: "AI Technical", text: result.result },
+        { tag: "AI Overview", text: result.result.split('.')[0] + "." }
       ]);
-      setLoading(false);
-    }, 380);
-  };
+    }
+  } catch (error) {
+    alert("Project API failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const hasContext = proj.name || proj.tech || proj.keywords;
 
