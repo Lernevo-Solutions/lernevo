@@ -1191,7 +1191,7 @@ function SummarySection({ data, onChange, personalData }) {
       }
     } catch (error) {
       console.error("AI Error:", error);
-      alert("Failed to connect to AI service. Make sure backend is running on http://localhost:8000");
+      alert(error.message || "Failed to connect to AI service.");
     } finally {
       setLoading(false);
     }
@@ -2485,7 +2485,7 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
       }
     } catch (error) {
       console.error("AI Certifications error:", error);
-      alert("Failed to connect to AI service. Make sure backend is running.");
+      alert(error.message || "Failed to connect to AI service.");
     } finally {
       setLoading(false);
     }
