@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import google.auth
 import requests
@@ -129,54 +129,130 @@ class VertexAIService:
 
         return text
 
+    def _extract_json_payload(self, response_text: str):
+        try:
+            return json.loads(response_text)
+        except json.JSONDecodeError:
+            match = re.search(r"\{[\s\S]*\}", response_text)
+            if not match:
+                raise
+            return json.loads(match.group(0))
+
+    def _clean_text(self, value: Optional[str]) -> str:
+        return re.sub(r"\s+", " ", str(value or "")).strip()
+
+    def _fallback_options(self, primary_text: str, secondary_text: str) -> Dict:
+        first = self._clean_text(primary_text)
+        second = self._clean_text(secondary_text)
+        if not second or second == first:
+            second = f"{first} Tailored to emphasize complementary strengths and keywords."
+        return {
+            "options": [
+                {
+                    "label": "Keyword Matched",
+                    "focus": "Highlights the most relevant strengths from the provided context.",
+                    "text": first,
+                },
+                {
+                    "label": "Alternate Angle",
+                    "focus": "Presents the same profile through a different resume-ready emphasis.",
+                    "text": second,
+                },
+            ]
+        }
+
+    def _normalize_option_response(self, response_text: str, fallback_seed: str) -> Dict:
+        try:
+            payload = self._extract_json_payload(response_text)
+        except json.JSONDecodeError:
+            return self._fallback_options(fallback_seed, response_text)
+
+        raw_options = payload.get("options") if isinstance(payload, dict) else None
+        normalized: List[Dict[str, str]] = []
+        if isinstance(raw_options, list):
+            for idx, option in enumerate(raw_options[:2]):
+                if not isinstance(option, dict):
+                    continue
+                text = self._clean_text(option.get("text"))
+                if not text:
+                    continue
+                label = self._clean_text(option.get("label")) or f"Option {idx + 1}"
+                focus = self._clean_text(option.get("focus"))
+                normalized.append(
+                    {
+                        "label": label,
+                        "focus": focus,
+                        "text": text,
+                    }
+                )
+
+        if len(normalized) == 2 and normalized[0]["text"] != normalized[1]["text"]:
+            return {"options": normalized}
+
+        fallback_alt = normalized[0]["text"] if normalized else response_text
+        return self._fallback_options(fallback_seed, fallback_alt)
+
     def generate_summary(
         self,
         user_data: Dict,
         action: str,
         current_text: str = "",
-    ) -> str:
+    ) -> Dict:
         if action == "generate":
             prompt = SUMMARY_PROMPTS["generate"].format(
                 title=user_data.get("title", "Professional"),
                 skills=user_data.get("skills", ""),
+                keywords=user_data.get("keywords", ""),
                 experience_context=user_data.get("experience_context", ""),
+                current_text=current_text or user_data.get("current_text", ""),
             )
         else:
             prompt = SUMMARY_PROMPTS["improve"].format(
                 current_text=current_text,
                 title=user_data.get("title", "Professional"),
                 skills=user_data.get("skills", ""),
+                keywords=user_data.get("keywords", ""),
             )
 
-        return self._generate_text(prompt, "summary")
+        response_text = self._generate_text(prompt, "summary")
+        fallback_seed = current_text or user_data.get("current_text") or response_text
+        return self._normalize_option_response(response_text, fallback_seed)
 
     def generate_projects(
         self,
         user_data: Dict,
         action: str,
         current_projects: str = "",
-    ) -> str:
+    ) -> Dict:
         if action == "generate":
             prompt = PROJECTS_PROMPTS["generate"].format(
                 num_projects=user_data.get("num_projects", 3),
                 title=user_data.get("title", "Developer"),
+                project_name=user_data.get("project_name", ""),
                 tech_stack=user_data.get("tech_stack", ""),
+                keywords=user_data.get("keywords", ""),
                 context=user_data.get("context", ""),
+                current_text=current_projects or user_data.get("current_text", ""),
             )
         else:
             prompt = PROJECTS_PROMPTS["improve"].format(
-                current_projects=current_projects,
                 title=user_data.get("title", "Developer"),
+                project_name=user_data.get("project_name", ""),
+                tech_stack=user_data.get("tech_stack", ""),
+                keywords=user_data.get("keywords", ""),
+                current_text=current_projects,
             )
 
-        return self._generate_text(prompt, "projects")
+        response_text = self._generate_text(prompt, "projects")
+        fallback_seed = current_projects or user_data.get("current_text") or response_text
+        return self._normalize_option_response(response_text, fallback_seed)
 
     def generate_experience(
         self,
         user_data: Dict,
         action: str,
         current_bullets: str = "",
-    ) -> str:
+    ) -> Dict:
         if action == "generate":
             prompt = EXPERIENCE_PROMPTS["generate"].format(
                 role=user_data.get("role", "Professional"),
@@ -184,14 +260,22 @@ class VertexAIService:
                 duration=user_data.get("duration", "Present"),
                 responsibilities=user_data.get("responsibilities", ""),
                 tech=user_data.get("tech_stack", ""),
+                keywords=user_data.get("keywords", ""),
+                current_text=current_bullets or user_data.get("current_text", ""),
             )
         else:
             prompt = EXPERIENCE_PROMPTS["improve"].format(
-                current_bullets=current_bullets,
                 role=user_data.get("role", "Professional"),
+                company=user_data.get("company", "Company"),
+                responsibilities=user_data.get("responsibilities", ""),
+                tech=user_data.get("tech_stack", ""),
+                keywords=user_data.get("keywords", ""),
+                current_text=current_bullets,
             )
 
-        return self._generate_text(prompt, "experience")
+        response_text = self._generate_text(prompt, "experience")
+        fallback_seed = current_bullets or user_data.get("current_text") or response_text
+        return self._normalize_option_response(response_text, fallback_seed)
 
     def generate_certifications(
         self,
@@ -202,31 +286,31 @@ class VertexAIService:
         if action == "generate":
             prompt = CERTIFICATIONS_PROMPTS["generate"].format(
                 title=user_data.get("title", "Professional"),
+                certification_name=user_data.get("certification_name", ""),
+                issuer=user_data.get("issuer", ""),
                 skills=user_data.get("skills", ""),
                 industry=user_data.get("industry", "Technology"),
+                keywords=user_data.get("keywords", ""),
+                current_text=current_certs or user_data.get("current_text", ""),
             )
         else:
-            prompt = CERTIFICATIONS_PROMPTS["improve"].format(current_certs=current_certs)
+            prompt = CERTIFICATIONS_PROMPTS["improve"].format(
+                certification_name=user_data.get("certification_name", ""),
+                issuer=user_data.get("issuer", ""),
+                keywords=user_data.get("keywords", ""),
+                current_text=current_certs,
+            )
 
         response_text = self._generate_text(prompt, "certifications")
-
-        try:
-            return json.loads(response_text)
-        except json.JSONDecodeError:
-            return {
-                "certifications": [
-                    {"name": line}
-                    for line in response_text.splitlines()
-                    if line.strip()
-                ]
-            }
+        fallback_seed = current_certs or user_data.get("current_text") or response_text
+        return self._normalize_option_response(response_text, fallback_seed)
 
     def generate_education(
         self,
         user_data: Dict,
         action: str,
         current_education: str = "",
-    ) -> str:
+    ) -> Dict:
         if action == "generate":
             prompt = EDUCATION_PROMPTS["generate"].format(
                 degree=user_data.get("degree", "Bachelor's Degree"),
@@ -234,13 +318,21 @@ class VertexAIService:
                 university=user_data.get("university", "University"),
                 year=user_data.get("year", "2024"),
                 coursework=user_data.get("coursework", ""),
+                keywords=user_data.get("keywords", ""),
+                current_text=current_education or user_data.get("current_text", ""),
             )
         else:
             prompt = EDUCATION_PROMPTS["improve"].format(
-                current_education=current_education
+                degree=user_data.get("degree", "Bachelor's Degree"),
+                field=user_data.get("field", "Computer Science"),
+                university=user_data.get("university", "University"),
+                keywords=user_data.get("keywords", ""),
+                current_text=current_education,
             )
 
-        return self._generate_text(prompt, "education")
+        response_text = self._generate_text(prompt, "education")
+        fallback_seed = current_education or user_data.get("current_text") or response_text
+        return self._normalize_option_response(response_text, fallback_seed)
 
     def generate_skills(self, user_data: Dict) -> Dict:
         prompt = SKILLS_PROMPTS["generate"].format(

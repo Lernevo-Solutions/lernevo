@@ -841,39 +841,43 @@ from rest_framework.permissions import AllowAny
 def ai_generate_certifications(request):
     resume_id = request.data.get("resume_id")
     action = request.data.get("action", "generate")
-    
-    # 1. முன்பே சேமிக்கப்பட்ட டேட்டா இருந்தால் அதை எடுக்கும், இல்லையென்றால் காலியாக விடும்
     industry = request.data.get("industry", "Technology")
-    
+    certification_name = request.data.get("certification_name", "")
+    issuer = request.data.get("issuer", "")
+    keywords = request.data.get("keywords", "")
+    current_text = request.data.get("current_text", "")
+
     if not resume_id or resume_id == "null":
-        # PREVIEW MODE: ID இல்லையென்றால் நேரடியாக இன்புட்டில் இருந்து டேட்டா எடுக்கும்
         user_data = {
             "title": request.data.get("title", ""),
             "skills": request.data.get("skills", ""),
-            "industry": industry
+            "industry": industry,
+            "certification_name": certification_name,
+            "issuer": issuer,
+            "keywords": keywords,
+            "current_text": current_text,
         }
-        current = ""
+        mode = "preview"
     else:
-        # NORMAL MODE: ID இருந்தால் டேட்டாபேஸில் இருந்து எடுக்கும்
         resume = get_object_or_404(Resume, id=resume_id)
         personal = ResumePersonalInfo.objects.filter(resume=resume).first()
         skills = ResumeSkill.objects.filter(resume=resume)
         skills_text = ", ".join([s.name for s in skills])
-        
-        current = ""
-        if action == "improve":
-            certs = ResumeCertification.objects.filter(resume=resume)
-            current = "\n".join([c.name for c in certs])
 
         user_data = {
             "title": personal.job_title if personal else "",
             "skills": skills_text,
-            "industry": industry
+            "industry": industry,
+            "certification_name": certification_name,
+            "issuer": issuer,
+            "keywords": keywords,
+            "current_text": current_text,
         }
+        mode = "saved"
 
     try:
-        result = vertex_service.generate_certifications(user_data, action, current)
-        return Response({"success": True, "result": result})
+        result = vertex_service.generate_certifications(user_data, action, current_text)
+        return _vertex_success_response(result, mode=mode)
     except Exception as exc:
         return _vertex_error_response(exc, "Certification generation")
 
@@ -1051,47 +1055,58 @@ def _vertex_error_response(exc, label: str):
         status=status.HTTP_502_BAD_GATEWAY,
     )
 
+
+def _vertex_success_response(result, mode=None):
+    payload = {
+        "success": True,
+        "options": result.get("options", []),
+    }
+    if mode:
+        payload["mode"] = mode
+    return Response(payload)
+
 # ---------------- EXPERIENCE ----------------
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def ai_generate_experience(request):
     resume_id = request.data.get("resume_id")
     action = request.data.get("action", "generate")
-    
-    # 1. Get raw context from request
     company = request.data.get("company", "")
     role = request.data.get("role", "")
     responsibilities = request.data.get("responsibilities", "")
-    
-    # 2. Logic for Preview vs Saved Mode
+    keywords = request.data.get("keywords", "")
+    current_text = request.data.get("current_text", "")
+
     if not resume_id or resume_id == "null":
-        # PREVIEW MODE: Use only what's sent in the request
         user_data = {
             "role": role,
             "company": company,
             "duration": "Present",
             "responsibilities": responsibilities,
-            "tech_stack": "" # No skills available yet
+            "tech_stack": "",
+            "keywords": keywords,
+            "current_text": current_text,
         }
-        current = ""
+        mode = "preview"
     else:
-        # SAVED MODE: Pull extra context from DB
         resume = get_object_or_404(Resume, id=resume_id)
         skills = ResumeSkill.objects.filter(resume=resume)
         skills_text = ", ".join([s.name for s in skills])
-        
+
         user_data = {
-            "role": role or (resume.personal_info.job_title if hasattr(resume, 'personal_info') else ""),
+            "role": role or (resume.personal_info.job_title if hasattr(resume, "personal_info") else ""),
             "company": company or "Company",
             "duration": "Present",
             "responsibilities": responsibilities,
             "tech_stack": skills_text,
+            "keywords": keywords,
+            "current_text": current_text,
         }
-        current = "" # Handle 'improve' logic here if needed
+        mode = "saved"
 
     try:
-        result = vertex_service.generate_experience(user_data, action, current)
-        return Response({"success": True, "result": result, "mode": "preview" if not resume_id else "saved"})
+        result = vertex_service.generate_experience(user_data, action, current_text)
+        return _vertex_success_response(result, mode=mode)
     except Exception as exc:
         return _vertex_error_response(exc, "Experience generation")
 
@@ -1101,29 +1116,40 @@ def ai_generate_experience(request):
 def ai_generate_projects(request):
     resume_id = request.data.get("resume_id")
     action = request.data.get("action", "generate")
-    
     context = request.data.get("context", "")
-    
+    project_name = request.data.get("project_name", "")
+    tech_stack = request.data.get("tech_stack", "")
+    keywords = request.data.get("keywords", "")
+    current_text = request.data.get("current_text", "")
+
     if not resume_id or resume_id == "null":
         user_data = {
-            "title": "",
-            "tech_stack": "",
+            "title": request.data.get("title", ""),
+            "project_name": project_name,
+            "tech_stack": tech_stack,
+            "keywords": keywords,
             "context": context,
+            "current_text": current_text,
             "num_projects": request.data.get("num_projects", 3),
         }
+        mode = "preview"
     else:
         resume = get_object_or_404(Resume, id=resume_id)
         skills = ResumeSkill.objects.filter(resume=resume)
         user_data = {
-            "title": resume.personal_info.job_title if hasattr(resume, 'personal_info') else "",
-            "tech_stack": ", ".join([s.name for s in skills]),
+            "title": resume.personal_info.job_title if hasattr(resume, "personal_info") else "",
+            "project_name": project_name,
+            "tech_stack": tech_stack or ", ".join([s.name for s in skills]),
+            "keywords": keywords,
             "context": context,
+            "current_text": current_text,
             "num_projects": request.data.get("num_projects", 3),
         }
+        mode = "saved"
 
     try:
-        result = vertex_service.generate_projects(user_data, action, "")
-        return Response({"success": True, "result": result})
+        result = vertex_service.generate_projects(user_data, action, current_text)
+        return _vertex_success_response(result, mode=mode)
     except Exception as exc:
         return _vertex_error_response(exc, "Project generation")
 
@@ -1132,18 +1158,23 @@ def ai_generate_projects(request):
 @permission_classes([AllowAny])
 def ai_generate_education(request):
     resume_id = request.data.get("resume_id")
-    
     user_data = {
         "degree": request.data.get("degree", "Bachelor's"),
         "field": request.data.get("field", "CS"),
         "university": request.data.get("university", "University"),
         "year": request.data.get("year", "2024"),
         "coursework": request.data.get("coursework", ""),
+        "keywords": request.data.get("keywords", ""),
+        "current_text": request.data.get("current_text", ""),
     }
 
     try:
-        result = vertex_service.generate_education(user_data, "generate", "")
-        return Response({"success": True, "result": result})
+        result = vertex_service.generate_education(
+            user_data,
+            request.data.get("action", "generate"),
+            user_data["current_text"],
+        )
+        return _vertex_success_response(result, mode="preview" if not resume_id or resume_id == "null" else "saved")
     except Exception as exc:
         return _vertex_error_response(exc, "Education generation")
 
@@ -1258,6 +1289,8 @@ def ai_generate_summary(request):
 
     resume_id = request.data.get("resume_id")
     action = request.data.get("action", "generate")
+    keywords = request.data.get("keywords", "")
+    current_text = request.data.get("current_text", "")
 
 
 
@@ -1268,19 +1301,17 @@ def ai_generate_summary(request):
         user_data = {
             "title": request.data.get("title", ""),
             "skills": request.data.get("skills", ""),
+            "keywords": keywords,
             "experience_context": request.data.get("experience_context", ""),
+            "current_text": current_text,
         }
 
         try:
-            result = vertex_service.generate_summary(user_data, action, "")
+            result = vertex_service.generate_summary(user_data, action, current_text)
         except Exception as exc:
             return _vertex_error_response(exc, "Summary generation")
 
-        return Response({
-            "success": True,
-            "mode": "preview",
-            "result": result
-        })
+        return _vertex_success_response(result, mode="preview")
 
     # =========================================================
     # ✅ NORMAL MODE (WITH resume_id)
@@ -1291,8 +1322,8 @@ def ai_generate_summary(request):
     skills = ResumeSkill.objects.filter(resume=resume)
     skills_text = ", ".join([s.name for s in skills])
 
-    current = ""
-    if action == "improve":
+    current = current_text
+    if not current and action == "improve":
         obj = ResumeSummary.objects.filter(resume=resume).first()
         if obj:
             current = obj.text
@@ -1300,7 +1331,9 @@ def ai_generate_summary(request):
     user_data = {
         "title": personal.job_title if personal else "",
         "skills": skills_text,
+        "keywords": keywords,
         "experience_context": request.data.get("experience_context", ""),
+        "current_text": current_text,
     }
 
     try:
@@ -1308,12 +1341,4 @@ def ai_generate_summary(request):
     except Exception as exc:
         return _vertex_error_response(exc, "Summary generation")
 
-    obj, _ = ResumeSummary.objects.get_or_create(resume=resume)
-    obj.text = result
-    obj.save()
-
-    return Response({
-        "success": True,
-        "mode": "saved",
-        "result": result
-    })
+    return _vertex_success_response(result, mode="saved")

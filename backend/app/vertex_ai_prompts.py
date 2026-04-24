@@ -1,193 +1,263 @@
-# backend/app/vertex_ai_prompts.py
+JSON_RESPONSE_RULES = """
+Return valid JSON only. No markdown fences. No explanation outside JSON.
+Return exactly this shape:
+{{
+  "options": [
+    {{
+      "label": "short label",
+      "focus": "why this angle fits the user context",
+      "text": "full suggestion text"
+    }},
+    {{
+      "label": "short label",
+      "focus": "why this angle fits the user context",
+      "text": "full suggestion text"
+    }}
+  ]
+}}
 
-# Professional Summary Prompts
+Rules:
+- Always return exactly 2 options.
+- The two options must be meaningfully different in angle, not light rewrites.
+- Analyze the user's keywords and current section context before choosing the two angles.
+- Use concise labels of 2-4 words.
+- Do not use placeholder text.
+"""
+
+
 SUMMARY_PROMPTS = {
-    'generate': """
-You are an expert resume writer. Create a professional summary for a {title} professional.
+    "generate": f"""
+You are an expert resume writer creating professional summary suggestions.
 
-User Information:
-- Job Title: {title}
-- Skills: {skills}
-- Experience Context: {experience_context}
+Create 2 distinct summary options for this candidate.
+
+Candidate Context:
+- Job Title: {{title}}
+- Skills: {{skills}}
+- User Keywords: {{keywords}}
+- Experience Context: {{experience_context}}
+- Current Summary: {{current_text}}
 
 Requirements:
-1. 3-4 sentences maximum
-2. Highlight key achievements and skills
-3. Use professional, confident language
-4. Focus on value proposition
+- 3-4 sentences per option
+- ATS friendly
+- Focus on value, strengths, and role fit
+- Option 1 and Option 2 must take different strategic angles based on the keywords
+- If the keywords imply a strong specialization, reflect that in at least one option
 
-Return ONLY the summary text, no explanations.
+{JSON_RESPONSE_RULES}
 """,
-    
-    'improve': """
-Improve this professional summary to be more impactful.
+    "improve": f"""
+You are improving a resume summary.
 
-Current Summary: {current_text}
+Create 2 distinct improved summary options for this candidate.
 
-User's Role: {title}
-Skills: {skills}
+Candidate Context:
+- Job Title: {{title}}
+- Skills: {{skills}}
+- User Keywords: {{keywords}}
+- Current Summary: {{current_text}}
 
-Make it:
-1. More action-oriented
-2. Include quantifiable achievements
-3. Add relevant keywords for ATS
+Requirements:
+- Keep the meaning grounded in the original summary
+- Make it sharper, more ATS friendly, and more role-relevant
+- Use 2 clearly different positioning angles
 
-Return ONLY the improved summary text.
-"""
+{JSON_RESPONSE_RULES}
+""",
 }
 
-# Projects Section Prompts
+
 PROJECTS_PROMPTS = {
-    'generate': """
-Create {num_projects} impressive project descriptions for a {title} professional.
+    "generate": f"""
+You are an expert resume writer creating project description suggestions.
 
-Tech Stack: {tech_stack}
-Context: {context}
+Create 2 distinct resume-ready project highlight options for this project.
 
-For each project provide:
-- Project Name
-- Technologies Used
-- 2-3 bullet points with quantifiable achievements
+Project Context:
+- Candidate Title: {{title}}
+- Project Name: {{project_name}}
+- Tech Stack: {{tech_stack}}
+- User Keywords: {{keywords}}
+- Extra Context: {{context}}
+- Current Description: {{current_text}}
 
-Format:
-### Project Name
-**Tech:** technologies
-- achievement with metric
-- achievement with metric
+Requirements:
+- Each option should be 2-4 sentences
+- Mention what was built, stack, and impact
+- Make the options different in angle, such as technical depth, product impact, leadership, scale, or performance
+- Avoid bullet points
+
+{JSON_RESPONSE_RULES}
 """,
-    
-    'improve': """
-Improve these project descriptions with better metrics and impact.
+    "improve": f"""
+You are improving an existing project description for a resume.
 
-Current Projects:
-{current_projects}
+Create 2 stronger project description options.
 
-Role: {title}
+Project Context:
+- Candidate Title: {{title}}
+- Project Name: {{project_name}}
+- Tech Stack: {{tech_stack}}
+- User Keywords: {{keywords}}
+- Current Description: {{current_text}}
 
-Add metrics (%, users, performance improvements) where possible.
-Use stronger action verbs.
+Requirements:
+- Keep the original meaning intact where possible
+- Improve clarity, ATS relevance, and impact
+- Make the 2 options clearly different in emphasis
 
-Return improved projects with same format.
-"""
+{JSON_RESPONSE_RULES}
+""",
 }
 
-# Experience Prompts
+
 EXPERIENCE_PROMPTS = {
-    'generate': """
-Create professional experience bullet points for a {role} at {company}.
+    "generate": f"""
+You are an expert resume writer creating work experience suggestions.
 
-Company: {company}
-Role: {role}
-Duration: {duration}
-Key Responsibilities: {responsibilities}
-Tech Stack: {tech}
+Create 2 distinct experience description options for this role.
 
-Generate 4-5 bullet points:
-1. Start with strong action verbs
-2. Include quantifiable results
-3. Show business impact
+Role Context:
+- Company: {{company}}
+- Role: {{role}}
+- Duration: {{duration}}
+- Responsibilities: {{responsibilities}}
+- Tech Stack: {{tech}}
+- User Keywords: {{keywords}}
+- Current Description: {{current_text}}
 
-Return each bullet point on new line starting with •
+Requirements:
+- Each option should be 3-5 resume-ready sentences
+- Show ownership, tools, and business impact
+- Use strong action verbs
+- The 2 options must differ in emphasis based on the keywords and context
+- Avoid bullets
+
+{JSON_RESPONSE_RULES}
 """,
-    
-    'improve': """
-Improve these experience bullet points.
+    "improve": f"""
+You are improving an experience description for a resume.
 
-Current Bullets:
-{current_bullets}
+Create 2 distinct improved options.
 
-Role: {role}
+Role Context:
+- Company: {{company}}
+- Role: {{role}}
+- Responsibilities: {{responsibilities}}
+- Tech Stack: {{tech}}
+- User Keywords: {{keywords}}
+- Current Description: {{current_text}}
 
-For each bullet:
-1. Add metrics where possible
-2. Use stronger verbs (Led, Built, Optimized, Increased)
-3. Show results
+Requirements:
+- Preserve core meaning
+- Improve clarity, ATS keywords, and measurable impact
+- Use 2 clearly different emphasis angles
 
-Return improved bullets only.
-"""
+{JSON_RESPONSE_RULES}
+""",
 }
 
-# Certifications Prompts
+
 CERTIFICATIONS_PROMPTS = {
-    'generate': """
-Suggest relevant certifications for a {title} professional.
+    "generate": f"""
+You are an expert resume writer creating certification highlight suggestions.
 
-Current Skills: {skills}
-Industry: {industry}
+Create 2 distinct certification highlight options.
 
-Return as JSON:
-{{
-    "certifications": [
-        {{
-            "name": "Certification Name",
-            "issuer": "Provider",
-            "description": "Brief value description"
-        }}
-    ]
-}}
+Certification Context:
+- Candidate Title: {{title}}
+- Certification Name: {{certification_name}}
+- Issuer: {{issuer}}
+- Current Skills: {{skills}}
+- Industry: {{industry}}
+- User Keywords: {{keywords}}
+- Current Highlights: {{current_text}}
+
+Requirements:
+- Each option should be 2-4 sentences
+- Explain what the certification validates and why it matters
+- Make the 2 options different in angle, such as competency-led, applied impact, specialization, or career relevance
+
+{JSON_RESPONSE_RULES}
 """,
-    
-    'improve': """
-Format and improve these certifications.
+    "improve": f"""
+You are improving certification highlights for a resume.
 
-Current: {current_certs}
+Create 2 distinct improved options.
 
-For each certification:
-1. Add issuing authority if missing
-2. Use proper capitalization
-3. Add relevance note
+Certification Context:
+- Certification Name: {{certification_name}}
+- Issuer: {{issuer}}
+- User Keywords: {{keywords}}
+- Current Highlights: {{current_text}}
 
-Return formatted certifications.
-"""
+Requirements:
+- Keep the content professional and ATS friendly
+- Create 2 clearly distinct angles
+
+{JSON_RESPONSE_RULES}
+""",
 }
 
-# Education Prompts
+
 EDUCATION_PROMPTS = {
-    'generate': """
-Create a professional education section.
+    "generate": f"""
+You are an expert resume writer creating education highlight suggestions.
 
-Degree: {degree}
-Field: {field}
-University: {university}
-Year: {year}
-Coursework: {coursework}
+Create 2 distinct education highlight options.
 
-Include:
-- Degree and major
-- University name
-- Graduation year
-- Relevant coursework (3-4 subjects)
-- Academic achievements (if any)
+Education Context:
+- Degree: {{degree}}
+- Field: {{field}}
+- Institution: {{university}}
+- Year: {{year}}
+- Coursework / Extra Context: {{coursework}}
+- User Keywords: {{keywords}}
+- Current Highlights: {{current_text}}
 
-Return formatted education section.
+Requirements:
+- Each option should be 2-4 sentences
+- One option can lean academic/technical while the other can lean profile/achievement/holistic if the context supports it
+- Use the user's keywords to decide the best two angles
+- Keep it resume-ready and ATS friendly
+
+{JSON_RESPONSE_RULES}
 """,
-    
-    'improve': """
-Improve this education section formatting.
+    "improve": f"""
+You are improving education highlights for a resume.
 
-Current: {current_education}
+Create 2 distinct improved options.
 
-Make it more professional and ATS-friendly.
-Add relevant coursework if possible.
+Education Context:
+- Degree: {{degree}}
+- Field: {{field}}
+- Institution: {{university}}
+- User Keywords: {{keywords}}
+- Current Highlights: {{current_text}}
 
-Return improved education section.
-"""
+Requirements:
+- Preserve the original meaning where reasonable
+- Create 2 clearly different angles with polished wording
+
+{JSON_RESPONSE_RULES}
+""",
 }
 
-# Skills Prompts
+
 SKILLS_PROMPTS = {
-    'generate': """
+    "generate": """
 Suggest relevant skills for a {title} professional.
 
 Current skills mentioned: {current_skills}
 Experience level: {level}
 
 Return a JSON object with skills categorized:
-{{
+{
     "technical": ["skill1", "skill2", "skill3"],
     "soft": ["skill1", "skill2"],
     "tools": ["tool1", "tool2"]
-}}
+}
 
 Include 5-7 technical skills, 3-4 soft skills, 3-4 tools.
 """
