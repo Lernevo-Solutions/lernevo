@@ -1272,36 +1272,51 @@ def test_vertex_rest(request):
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def ai_generate_summary(request):
+
     if request.method == "GET":
         return Response(
             {
                 "success": False,
-                "message": "Use POST /api/ai/summary/ with Authorization token, resume_id, and optional action.",
-                "example": {
-                    "resume_id": 1,
-                    "action": "generate",
-                    "experience_context": "Backend developer with Python and Django experience",
-                },
+                "message": "Use POST /api/ai/summary/",
             },
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    if not request.user or not request.user.is_authenticated:
-        return Response(
-            {
-                "success": False,
-                "error": "Authentication credentials were not provided.",
-            },
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+    # ❌ REMOVE strict auth block (optional for preview)
+    # if not request.user or not request.user.is_authenticated:
+    #     return Response({"error": "Authentication required"}, status=401)
 
     resume_id = request.data.get("resume_id")
     action = request.data.get("action", "generate")
 
-    if not resume_id:
-        return Response({"error": "resume_id required"}, status=400)
 
+
+    # =========================================================
+    # ✅ PREVIEW MODE (NO resume_id)
+    # =========================================================
+    if not resume_id:
+        user_data = {
+            "title": request.data.get("title", ""),
+            "skills": request.data.get("skills", ""),
+            "experience_context": request.data.get("experience_context", ""),
+        }
+
+        try:
+            result = vertex_service.generate_summary(user_data, action, "")
+        except Exception as exc:
+            return _vertex_error_response(exc, "Summary generation")
+
+        return Response({
+            "success": True,
+            "mode": "preview",
+            "result": result
+        })
+
+    # =========================================================
+    # ✅ NORMAL MODE (WITH resume_id)
+    # =========================================================
     resume = get_object_or_404(Resume, id=resume_id)
+
     personal = ResumePersonalInfo.objects.filter(resume=resume).first()
     skills = ResumeSkill.objects.filter(resume=resume)
     skills_text = ", ".join([s.name for s in skills])
@@ -1327,4 +1342,8 @@ def ai_generate_summary(request):
     obj.text = result
     obj.save()
 
-    return Response({"success": True, "result": result})
+    return Response({
+        "success": True,
+        "mode": "saved",
+        "result": result
+    })
