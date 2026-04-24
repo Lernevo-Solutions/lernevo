@@ -832,38 +832,83 @@ def ai_generate_experience(request):
     result = vertex_service.generate_experience(user_data, action, current)
 
     return Response({"success": True, "result": result})
-
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny
 
 # ---------------- CERTIFICATIONS ----------------
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def ai_generate_certifications(request):
     resume_id = request.data.get("resume_id")
     action = request.data.get("action", "generate")
+    
+    # 1. முன்பே சேமிக்கப்பட்ட டேட்டா இருந்தால் அதை எடுக்கும், இல்லையென்றால் காலியாக விடும்
+    industry = request.data.get("industry", "Technology")
+    
+    if not resume_id or resume_id == "null":
+        # PREVIEW MODE: ID இல்லையென்றால் நேரடியாக இன்புட்டில் இருந்து டேட்டா எடுக்கும்
+        user_data = {
+            "title": request.data.get("title", ""),
+            "skills": request.data.get("skills", ""),
+            "industry": industry
+        }
+        current = ""
+    else:
+        # NORMAL MODE: ID இருந்தால் டேட்டாபேஸில் இருந்து எடுக்கும்
+        resume = get_object_or_404(Resume, id=resume_id)
+        personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+        skills = ResumeSkill.objects.filter(resume=resume)
+        skills_text = ", ".join([s.name for s in skills])
+        
+        current = ""
+        if action == "improve":
+            certs = ResumeCertification.objects.filter(resume=resume)
+            current = "\n".join([c.name for c in certs])
 
-    if not resume_id:
-        return Response({"error": "resume_id required"}, status=400)
+        user_data = {
+            "title": personal.job_title if personal else "",
+            "skills": skills_text,
+            "industry": industry
+        }
 
-    resume = get_object_or_404(Resume, id=resume_id)
+    try:
+        result = vertex_service.generate_certifications(user_data, action, current)
+        return Response({"success": True, "result": result})
+    except Exception as exc:
+        return _vertex_error_response(exc, "Certification generation")
 
-    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
-    skills = ResumeSkill.objects.filter(resume=resume)
-    skills_text = ", ".join([s.name for s in skills])
 
-    current = ""
-    if action == "improve":
-        certs = ResumeCertification.objects.filter(resume=resume)
-        current = "\n".join([c.name for c in certs])
+# ---------------- SKILLS ----------------
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def ai_suggest_skills(request):
+    resume_id = request.data.get("resume_id")
+    level = request.data.get("level", "Intermediate")
 
-    user_data = {
-        "title": personal.job_title if personal else "",
-        "skills": skills_text,
-        "industry": request.data.get("industry", "Technology")
-    }
+    if not resume_id or resume_id == "null":
+        # PREVIEW MODE
+        user_data = {
+            "title": request.data.get("title", ""),
+            "current_skills": request.data.get("current_skills", ""),
+            "level": level
+        }
+    else:
+        # NORMAL MODE
+        resume = get_object_or_404(Resume, id=resume_id)
+        personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+        skills = ResumeSkill.objects.filter(resume=resume)
+        
+        user_data = {
+            "title": personal.job_title if personal else "",
+            "current_skills": ", ".join([s.name for s in skills]),
+            "level": level
+        }
 
-    result = vertex_service.generate_certifications(user_data, action, current)
-
-    return Response({"success": True, "result": result})
-
+    try:
+        result = vertex_service.generate_skills(user_data)
+        return Response({"success": True, "result": result})
+    except Exception as exc:
+        return _vertex_error_response(exc, "Skill suggestion")
 
 # ---------------- EDUCATION ----------------
 @api_view(['POST'])
@@ -989,6 +1034,13 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from rest_framework.permissions import AllowAny
+
+# Helper for error responses
 def _vertex_error_response(exc, label: str):
     return Response(
         {
@@ -999,169 +1051,88 @@ def _vertex_error_response(exc, label: str):
         status=status.HTTP_502_BAD_GATEWAY,
     )
 
-
-@api_view(["GET", "POST"])
-def ai_generate_summary(request):
-    if request.method == "GET":
-        return Response(
-            {
-                "success": False,
-                "message": "Use POST /api/ai/summary/ with resume_id and optional action.",
-                "authentication": "Token authentication required",
-            },
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
-    resume_id = request.data.get("resume_id")
-    action = request.data.get("action", "generate")
-
-    if not resume_id:
-        return Response({"error": "resume_id required"}, status=400)
-
-    resume = get_object_or_404(Resume, id=resume_id)
-    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
-    skills = ResumeSkill.objects.filter(resume=resume)
-    skills_text = ", ".join([s.name for s in skills])
-
-    current = ""
-    if action == "improve":
-        obj = ResumeSummary.objects.filter(resume=resume).first()
-        if obj:
-            current = obj.text
-
-    user_data = {
-        "title": personal.job_title if personal else "",
-        "skills": skills_text,
-        "experience_context": request.data.get("experience_context", ""),
-    }
-
-    try:
-        result = vertex_service.generate_summary(user_data, action, current)
-    except Exception as exc:
-        return _vertex_error_response(exc, "Summary generation")
-
-    obj, _ = ResumeSummary.objects.get_or_create(resume=resume)
-    obj.text = result
-    obj.save()
-
-    return Response({"success": True, "result": result})
-
-
+# ---------------- EXPERIENCE ----------------
 @api_view(["POST"])
-def ai_generate_projects(request):
-    resume_id = request.data.get("resume_id")
-    action = request.data.get("action", "generate")
-
-    if not resume_id:
-        return Response({"error": "resume_id required"}, status=400)
-
-    resume = get_object_or_404(Resume, id=resume_id)
-    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
-    skills = ResumeSkill.objects.filter(resume=resume)
-    skills_text = ", ".join([s.name for s in skills])
-
-    current = ""
-    if action == "improve":
-        projects = ResumeProject.objects.filter(resume=resume)
-        current = "\n".join([p.description for p in projects])
-
-    user_data = {
-        "title": personal.job_title if personal else "",
-        "tech_stack": skills_text,
-        "context": request.data.get("context", ""),
-        "num_projects": request.data.get("num_projects", 3),
-    }
-
-    try:
-        result = vertex_service.generate_projects(user_data, action, current)
-    except Exception as exc:
-        return _vertex_error_response(exc, "Project generation")
-
-    return Response({"success": True, "result": result})
-
-
-@api_view(["POST"])
+@permission_classes([AllowAny])
 def ai_generate_experience(request):
     resume_id = request.data.get("resume_id")
     action = request.data.get("action", "generate")
-
-    if not resume_id:
-        return Response({"error": "resume_id required"}, status=400)
-
-    resume = get_object_or_404(Resume, id=resume_id)
-    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
-    skills = ResumeSkill.objects.filter(resume=resume)
-    skills_text = ", ".join([s.name for s in skills])
-
-    current = ""
-    if action == "improve":
-        experiences = ResumeExperience.objects.filter(resume=resume)
-        current = "\n".join([e.description for e in experiences])
-
-    user_data = {
-        "role": personal.job_title if personal else "",
-        "company": request.data.get("company", "Company"),
-        "duration": request.data.get("duration", "Present"),
-        "responsibilities": request.data.get("responsibilities", ""),
-        "tech_stack": skills_text,
-    }
+    
+    # 1. Get raw context from request
+    company = request.data.get("company", "")
+    role = request.data.get("role", "")
+    responsibilities = request.data.get("responsibilities", "")
+    
+    # 2. Logic for Preview vs Saved Mode
+    if not resume_id or resume_id == "null":
+        # PREVIEW MODE: Use only what's sent in the request
+        user_data = {
+            "role": role,
+            "company": company,
+            "duration": "Present",
+            "responsibilities": responsibilities,
+            "tech_stack": "" # No skills available yet
+        }
+        current = ""
+    else:
+        # SAVED MODE: Pull extra context from DB
+        resume = get_object_or_404(Resume, id=resume_id)
+        skills = ResumeSkill.objects.filter(resume=resume)
+        skills_text = ", ".join([s.name for s in skills])
+        
+        user_data = {
+            "role": role or (resume.personal_info.job_title if hasattr(resume, 'personal_info') else ""),
+            "company": company or "Company",
+            "duration": "Present",
+            "responsibilities": responsibilities,
+            "tech_stack": skills_text,
+        }
+        current = "" # Handle 'improve' logic here if needed
 
     try:
         result = vertex_service.generate_experience(user_data, action, current)
+        return Response({"success": True, "result": result, "mode": "preview" if not resume_id else "saved"})
     except Exception as exc:
         return _vertex_error_response(exc, "Experience generation")
 
-    return Response({"success": True, "result": result})
-
-
+# ---------------- PROJECTS ----------------
 @api_view(["POST"])
-def ai_generate_certifications(request):
+@permission_classes([AllowAny])
+def ai_generate_projects(request):
     resume_id = request.data.get("resume_id")
     action = request.data.get("action", "generate")
-
-    if not resume_id:
-        return Response({"error": "resume_id required"}, status=400)
-
-    resume = get_object_or_404(Resume, id=resume_id)
-    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
-    skills = ResumeSkill.objects.filter(resume=resume)
-    skills_text = ", ".join([s.name for s in skills])
-
-    current = ""
-    if action == "improve":
-        certs = ResumeCertification.objects.filter(resume=resume)
-        current = "\n".join([c.name for c in certs])
-
-    user_data = {
-        "title": personal.job_title if personal else "",
-        "skills": skills_text,
-        "industry": request.data.get("industry", "Technology"),
-    }
+    
+    context = request.data.get("context", "")
+    
+    if not resume_id or resume_id == "null":
+        user_data = {
+            "title": "",
+            "tech_stack": "",
+            "context": context,
+            "num_projects": request.data.get("num_projects", 3),
+        }
+    else:
+        resume = get_object_or_404(Resume, id=resume_id)
+        skills = ResumeSkill.objects.filter(resume=resume)
+        user_data = {
+            "title": resume.personal_info.job_title if hasattr(resume, 'personal_info') else "",
+            "tech_stack": ", ".join([s.name for s in skills]),
+            "context": context,
+            "num_projects": request.data.get("num_projects", 3),
+        }
 
     try:
-        result = vertex_service.generate_certifications(user_data, action, current)
+        result = vertex_service.generate_projects(user_data, action, "")
+        return Response({"success": True, "result": result})
     except Exception as exc:
-        return _vertex_error_response(exc, "Certification generation")
+        return _vertex_error_response(exc, "Project generation")
 
-    return Response({"success": True, "result": result})
-
-
+# ---------------- EDUCATION ----------------
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def ai_generate_education(request):
     resume_id = request.data.get("resume_id")
-    action = request.data.get("action", "generate")
-
-    if not resume_id:
-        return Response({"error": "resume_id required"}, status=400)
-
-    resume = get_object_or_404(Resume, id=resume_id)
-
-    current = ""
-    if action == "improve":
-        edu = ResumeUGEducation.objects.filter(resume=resume).first()
-        if edu:
-            current = f"{edu.degree} {edu.branch}"
-
+    
     user_data = {
         "degree": request.data.get("degree", "Bachelor's"),
         "field": request.data.get("field", "CS"),
@@ -1171,11 +1142,10 @@ def ai_generate_education(request):
     }
 
     try:
-        result = vertex_service.generate_education(user_data, action, current)
+        result = vertex_service.generate_education(user_data, "generate", "")
+        return Response({"success": True, "result": result})
     except Exception as exc:
         return _vertex_error_response(exc, "Education generation")
-
-    return Response({"success": True, "result": result})
 
 
 @api_view(["POST"])
