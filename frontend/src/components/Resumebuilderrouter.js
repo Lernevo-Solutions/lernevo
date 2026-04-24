@@ -1139,6 +1139,55 @@ function PersonalSection({ data, onChange, styling, onStylingChange }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+const normalizeSectionOptions = (response) => {
+  if (!response?.success || !Array.isArray(response.options)) return [];
+  return response.options
+    .filter(option => option && option.text)
+    .slice(0, 2)
+    .map((option, index) => ({
+      label: option.label || `Option ${index + 1}`,
+      focus: option.focus || "",
+      text: option.text,
+    }));
+};
+
+function SuggestionCards({ suggestions, onSelect, truncateAt = 0 }) {
+  if (!suggestions.length) return null;
+
+  return (
+    <div className="sum-suggestions">
+      {suggestions.map((suggestion, index) => {
+        const preview =
+          truncateAt > 0 && suggestion.text.length > truncateAt
+            ? suggestion.text.slice(0, truncateAt) + "…"
+            : suggestion.text;
+
+        return (
+          <div
+            key={`${suggestion.label}-${index}`}
+            className="sum-suggestion-card"
+            onClick={() => onSelect(suggestion.text)}
+          >
+            <div className="sum-sug-tag">Option {index + 1} · {suggestion.label}</div>
+            {suggestion.focus && (
+              <div style={{ fontSize: 11, color: "#6366f1", fontWeight: 600, marginBottom: 6 }}>
+                {suggestion.focus}
+              </div>
+            )}
+            <div className="sum-sug-text">{preview}</div>
+            <div className="sum-sug-use">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Click to use this
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // SUMMARY SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1169,23 +1218,18 @@ function SummarySection({ data, onChange, personalData }) {
     setLoading(true);
     try {
       const result = await vertexAIService.generateSummary(
-        resumeId, 
-        'generate', 
-        `${jobTitle} with skills in ${keywords}`
+        resumeId,
+        {
+          action: "generate",
+          title: jobTitle,
+          keywords,
+          currentText: data.text || "",
+          experienceContext: `${jobTitle} with skills in ${keywords}`.trim(),
+        }
       );
-      
+
       if (result.success) {
-        const summaryText = result.result;
-        setSuggestions([
-          {
-            tag: "AI Generated - Achievement Led",
-            text: summaryText
-          },
-          {
-            tag: "AI Generated - Skills Forward", 
-            text: summaryText.replace(/professional/i, "experienced").replace(/results-driven/i, "goal-oriented")
-          }
-        ]);
+        setSuggestions(normalizeSectionOptions(result));
       } else {
         alert("Failed to generate: " + (result.error || "Unknown error"));
       }
@@ -1275,22 +1319,11 @@ function SummarySection({ data, onChange, personalData }) {
       </div>
 
       {/* Suggestions */}
-      {suggestions.length > 0 && (
-        <div className="sum-suggestions">
-          {suggestions.map((s, i) => (
-            <div key={i} className="sum-suggestion-card" onClick={() => onChange({ ...data, text: s.text })}>
-              <div className="sum-sug-tag">Option {i + 1} · {s.tag}</div>
-              <div className="sum-sug-text">{s.text.length > 200 ? s.text.slice(0, 200) + "…" : s.text}</div>
-              <div className="sum-sug-use">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                Click to use this
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <SuggestionCards
+        suggestions={suggestions}
+        truncateAt={200}
+        onSelect={(text) => onChange({ ...data, text })}
+      />
       {suggestions.length === 0 && keywords.trim() === "" && (
         <div className="sum-chips-hint">
           Type keywords above → click ✨ AI Suggest to generate 2 summary options
@@ -1321,17 +1354,18 @@ const handleAISuggest = async () => {
     const resumeId = localStorage.getItem('resumeId');
     const result = await vertexAIService.generateExperience(
       resumeId,
-      'generate',
-      exp.company,
-      exp.role,
-      keywords
+      {
+        action: "generate",
+        company: exp.company,
+        role: exp.role,
+        responsibilities: keywords,
+        keywords,
+        currentText: exp.description || "",
+      }
     );
     
     if (result.success) {
-      setSuggestions([
-        { tag: "AI Impact-Led", text: result.result },
-        { tag: "AI Professional", text: result.result.replace(/managed/i, "orchestrated") }
-      ]);
+      setSuggestions(normalizeSectionOptions(result));
     }
   } catch (error) {
     alert("Experience API failed: " + error.message);
@@ -1399,17 +1433,10 @@ const handleAISuggest = async () => {
             : "Aim for 200–300 words for the best ATS results."}
         </p>
       </div>
-      {suggestions.length > 0 && (
-        <div className="sum-suggestions">
-          {suggestions.map((s, i) => (
-            <div key={i} className="sum-suggestion-card" onClick={() => onUpd(exp.id,"description",s.text)}>
-              <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
-              <div className="sum-sug-text">{s.text}</div>
-              <div className="sum-sug-use"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Click to use this</div>
-            </div>
-          ))}
-        </div>
-      )}
+      <SuggestionCards
+        suggestions={suggestions}
+        onSelect={(text) => onUpd(exp.id,"description",text)}
+      />
       {suggestions.length === 0 && (<div className="sum-chips-hint">{hasContext ? "Type keywords → click ✨ AI Suggest to generate 2 options" : "Fill Company & Role fields to unlock AI suggestions"}</div>)}
     </div>
   );
@@ -1685,21 +1712,26 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
   const isOver = wordCount > MAX;
   const isGood = wordCount >= 100 && wordCount <= MAX;
 const handleAI = async () => {
+  if (!keywords.trim() && !edu.degree && !edu.college) return;
   setLoading(true);
   try {
     const resumeId = localStorage.getItem('resumeId');
     const result = await vertexAIService.generateEducation(
       resumeId,
-      'generate',
-      edu.degree || edu.schoolName,
-      edu.branch || edu.stream,
-      edu.college || edu.schoolName
+      {
+        action: "generate",
+        degree: edu.degree || edu.schoolName,
+        field: edu.branch || edu.stream,
+        university: edu.college || edu.schoolName,
+        year: edu.graduatedYear || edu.passingYear || "",
+        coursework: keywords,
+        keywords,
+        currentText: edu.highlights || "",
+      }
     );
     
     if (result.success) {
-      setSuggestions([
-        { tag: "AI Academic", text: result.result }
-      ]);
+      setSuggestions(normalizeSectionOptions(result));
     }
   } catch (error) {
     alert("Education API failed");
@@ -1819,20 +1851,10 @@ const handleAI = async () => {
         </p>
       </div>
 
-      {suggestions.length > 0 && (
-        <div className="sum-suggestions">
-          {suggestions.map((s,i) => (
-            <div key={i} className="sum-suggestion-card" onClick={() => upd(edu.id,"highlights",s.text)}>
-              <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
-              <div className="sum-sug-text">{s.text}</div>
-              <div className="sum-sug-use">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Click to use
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <SuggestionCards
+        suggestions={suggestions}
+        onSelect={(text) => upd(edu.id,"highlights",text)}
+      />
     </div>
   );
 }
@@ -1852,20 +1874,30 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
   const isOver = wordCount > MAX;
   const isGood = wordCount >= 100 && wordCount <= MAX;
 
-  const handleAI = () => {
+  const handleAI = async () => {
+    if (!keywords.trim() && !edu.schoolName) return;
     setLoading(true);
-    setTimeout(() => {
-      const school = edu.schoolName || "the school";
-      const year   = edu.passingYear ? ` passing out in ${edu.passingYear}` : "";
-      const pct    = edu.percentage  ? ` Scored ${edu.percentage}.` : "";
-      const kw     = keywords.trim();
-      const kwCtx  = kw ? ` with strengths in ${kw}` : "";
-      setSuggestions([
-        { tag:"Academic", text:`Completed schooling at ${school}${year}.${pct} Built a strong academic foundation${kwCtx} through focused coursework and consistent performance across core subjects.` },
-        { tag:"Holistic", text:`Pursued schooling at ${school}${year}.${pct} Actively participated in academics and extracurricular activities${kwCtx}, developing discipline, teamwork, and a passion for continuous learning.` },
-      ]);
+    try {
+      const resumeId = localStorage.getItem("resumeId");
+      const result = await vertexAIService.generateEducation(resumeId, {
+        action: "generate",
+        degree: "School Education",
+        field: edu.stream || edu.board || "General Education",
+        university: edu.schoolName || "",
+        year: edu.passingYear || "",
+        coursework: keywords,
+        keywords,
+        currentText: edu.highlights || "",
+      });
+
+      if (result.success) {
+        setSuggestions(normalizeSectionOptions(result));
+      }
+    } catch (error) {
+      alert(error.message || "Education API failed");
+    } finally {
       setLoading(false);
-    }, 380);
+    }
   };
 
   return (
@@ -1963,20 +1995,10 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
         </p>
       </div>
 
-      {suggestions.length > 0 && (
-        <div className="sum-suggestions">
-          {suggestions.map((s,i) => (
-            <div key={i} className="sum-suggestion-card" onClick={() => upd(edu.id,"highlights",s.text)}>
-              <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
-              <div className="sum-sug-text">{s.text}</div>
-              <div className="sum-sug-use">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Click to use
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <SuggestionCards
+        suggestions={suggestions}
+        onSelect={(text) => upd(edu.id,"highlights",text)}
+      />
     </div>
   );
 }
@@ -2319,9 +2341,6 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
   const isUnder = wordCount > 0 && wordCount < MIN;
   const isOver  = wordCount > MAX;
   const isGood  = wordCount >= MIN && wordCount <= MAX;
-  const counterColor  = isGood ? "#16a34a" : isOver ? "#dc2626" : isUnder ? "#d97706" : "#9ca3af";
-  const counterBg     = isGood ? "#f0fdf4" : isOver ? "#fef2f2" : isUnder ? "#fffbeb" : "transparent";
-  const counterBorder = isGood ? "#bbf7d0" : isOver ? "#fecaca" : isUnder ? "#fde68a" : "transparent";
   const counterMsg    = isGood ? "✓ Great length" : isOver ? `${wordCount - MAX} words over` : isUnder ? `${MIN - wordCount} more needed` : "200–300 words recommended";
 
  const handleAISuggest = async () => {
@@ -2329,17 +2348,17 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
   setLoading(true);
   try {
     const resumeId = localStorage.getItem('resumeId');
-    const result = await vertexAIService.generateProjects(
-      resumeId, 
-      'generate', 
-      `${proj.name} using ${proj.tech}. Keywords: ${proj.keywords}`
-    );
+    const result = await vertexAIService.generateProjects(resumeId, {
+      action: "generate",
+      projectName: proj.name,
+      techStack: proj.tech || "",
+      keywords: proj.keywords || "",
+      context: `${proj.name} using ${proj.tech}. Keywords: ${proj.keywords}`.trim(),
+      currentText: proj.description || "",
+    });
     
     if (result.success) {
-      setSuggestions([
-        { tag: "AI Technical", text: result.result },
-        { tag: "AI Overview", text: result.result.split('.')[0] + "." }
-      ]);
+      setSuggestions(normalizeSectionOptions(result));
     }
   } catch (error) {
     alert("Project API failed");
@@ -2401,7 +2420,11 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
         />
       </div>
 
-      {suggestions.length > 0 && (
+      <SuggestionCards
+        suggestions={suggestions}
+        onSelect={(text) => onUpd(proj.id,"description",text)}
+      />
+      {false && suggestions.length > 0 && (
         <div className="sum-suggestions">
           {suggestions.map((s, i) => (
             <div key={i} className="sum-suggestion-card" onClick={() => onUpd(proj.id,"description",s.text)}>
@@ -2462,45 +2485,16 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
     
     setLoading(true);
     try {
-      const result = await vertexAIService.generateCertifications(resumeId, 'generate');
-      
-      if (result.success && result.result) {
-        const newCerts = result.result.certifications || [];
-        // Find matching certification
-        const matchedCert = newCerts.find(c => 
-          c.name.toLowerCase().includes(cert.name?.toLowerCase()) || 
-          cert.name?.toLowerCase().includes(c.name.toLowerCase())
-        );
-        
-        if (matchedCert && matchedCert.description) {
-          setSuggestions([
-            {
-              tag: "Competency-Led",
-              text: matchedCert.description
-            },
-            {
-              tag: "Achievement-Led", 
-              text: matchedCert.description.replace(/Earned|Achieved/i, "Successfully completed").replace(/demonstrated|validated/i, "showcased")
-            }
-          ]);
-        } else {
-          // Generate dynamic description based on cert info
-          const name = cert.name?.trim() || "this certification";
-          const issuer = cert.issuer?.trim() || "the issuing body";
-          const kw = keywords.trim();
-          const kwCtx = kw ? ` covering ${kw}` : "";
-          
-          setSuggestions([
-            {
-              tag: "Competency-Led",
-              text: `Earned ${name} from ${issuer}${kwCtx}. Demonstrated strong proficiency across core competency areas including architecture, security, and optimization strategies. Successfully completed rigorous assessments and hands-on labs that validated real-world expertise and readiness for industry challenges.`
-            },
-            {
-              tag: "Achievement-Led",
-              text: `Achieved ${name} issued by ${issuer}${kwCtx}. This credential reflects a thorough understanding of best practices, advanced concepts, and practical application. Prepared through intensive study and applied projects, reinforcing both theoretical knowledge and hands-on implementation skills in professional environments.`
-            }
-          ]);
-        }
+      const result = await vertexAIService.generateCertifications(resumeId, {
+        action: "generate",
+        certificationName: cert.name || "",
+        issuer: cert.issuer || "",
+        keywords,
+        currentText: cert.description || "",
+      });
+
+      if (result.success) {
+        setSuggestions(normalizeSectionOptions(result));
       } else {
         alert("Failed to generate: " + (result.error || "Unknown error"));
       }
@@ -2666,7 +2660,12 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
           </p>
         </div>
 
-        {suggestions.length > 0 && (
+        <SuggestionCards
+          suggestions={suggestions}
+          truncateAt={150}
+          onSelect={(text) => onUpd(cert.id, "description", text)}
+        />
+        {false && suggestions.length > 0 && (
           <div className="sum-suggestions">
             {suggestions.map((s, i) => (
               <div key={i} className="sum-suggestion-card"

@@ -31,6 +31,13 @@ class VertexAIService {
     return new Error(detail);
   }
 
+  async post(path, payload) {
+    const response = await axios.post(`${DEFAULT_AI_API_URL}/${path}/`, payload, {
+      headers: this.getHeaders(),
+    });
+    return response.data;
+  }
+
   async healthCheck() {
     try {
       const response = await axios.get(`${DEFAULT_AI_API_URL}/health/`);
@@ -41,41 +48,58 @@ class VertexAIService {
     }
   }
 
-  async generateSummary(resumeId, action = "generate", experienceContext = "") {
+  async generateSummary(
+    resumeId,
+    {
+      action = "generate",
+      title = "",
+      skills = "",
+      keywords = "",
+      experienceContext = "",
+      currentText = "",
+    } = {}
+  ) {
     try {
-      const response = await axios.post(
-        `${DEFAULT_AI_API_URL}/summary/`,
-        {
-          resume_id: this.getResumeId(resumeId),
-          action,
-          experience_context: experienceContext,
-        },
-        {
-          headers: this.getHeaders(),
-        }
-      );
-      return response.data;
+      return await this.post("summary", {
+        resume_id: this.getResumeId(resumeId),
+        action,
+        title,
+        skills,
+        keywords,
+        experience_context: experienceContext,
+        current_text: currentText,
+      });
     } catch (error) {
       console.error("Summary generation failed:", error);
       throw this.buildError(error, "Failed to generate summary.");
     }
   }
 
-  async generateProjects(resumeId, action = "generate", context = "", numProjects = 3) {
+  async generateProjects(
+    resumeId,
+    {
+      action = "generate",
+      title = "",
+      projectName = "",
+      techStack = "",
+      keywords = "",
+      context = "",
+      currentText = "",
+      numProjects = 3,
+    } = {}
+  ) {
     try {
-      const response = await axios.post(
-        `${DEFAULT_AI_API_URL}/projects/`,
-        {
-          resume_id: this.getResumeId(resumeId),
-          action,
-          context,
-          num_projects: numProjects,
-        },
-        {
-          headers: this.getHeaders(),
-        }
-      );
-      return response.data;
+      return await this.post("projects", {
+        resume_id: this.getResumeId(resumeId),
+        action,
+        title,
+        project_name: projectName,
+        tech_stack: techStack,
+        keywords,
+        context,
+        current_text: currentText,
+        num_projects: numProjects,
+      });
     } catch (error) {
       console.error("Projects generation failed:", error);
       throw this.buildError(error, "Failed to generate projects.");
@@ -84,68 +108,87 @@ class VertexAIService {
 
   async generateExperience(
     resumeId,
-    action = "generate",
-    company = "",
-    role = "",
-    responsibilities = ""
+    {
+      action = "generate",
+      company = "",
+      role = "",
+      responsibilities = "",
+      keywords = "",
+      currentText = "",
+    } = {}
   ) {
     try {
-      const response = await axios.post(
-        `${DEFAULT_AI_API_URL}/experience/`,
-        {
-          resume_id: this.getResumeId(resumeId),
-          action,
-          company,
-          role,
-          responsibilities,
-        },
-        {
-          headers: this.getHeaders(),
-        }
-      );
-      return response.data;
+      return await this.post("experience", {
+        resume_id: this.getResumeId(resumeId),
+        action,
+        company,
+        role,
+        responsibilities,
+        keywords,
+        current_text: currentText,
+      });
     } catch (error) {
       console.error("Experience generation failed:", error);
       throw this.buildError(error, "Failed to generate experience.");
     }
   }
 
-  async generateCertifications(resumeId, action = "generate", industry = "Technology") {
+  async generateCertifications(
+    resumeId,
+    {
+      action = "generate",
+      title = "",
+      skills = "",
+      certificationName = "",
+      issuer = "",
+      keywords = "",
+      currentText = "",
+      industry = "Technology",
+    } = {}
+  ) {
     try {
-      const response = await axios.post(
-        `${DEFAULT_AI_API_URL}/certifications/`,
-        {
-          resume_id: this.getResumeId(resumeId),
-          action,
-          industry,
-        },
-        {
-          headers: this.getHeaders(),
-        }
-      );
-      return response.data;
+      return await this.post("certifications", {
+        resume_id: this.getResumeId(resumeId),
+        action,
+        title,
+        skills,
+        certification_name: certificationName,
+        issuer,
+        keywords,
+        current_text: currentText,
+        industry,
+      });
     } catch (error) {
       console.error("Certifications generation failed:", error);
       throw this.buildError(error, "Failed to generate certifications.");
     }
   }
 
-  async generateEducation(resumeId, action = "generate", degree = "", field = "", university = "") {
+  async generateEducation(
+    resumeId,
+    {
+      action = "generate",
+      degree = "",
+      field = "",
+      university = "",
+      year = "",
+      coursework = "",
+      keywords = "",
+      currentText = "",
+    } = {}
+  ) {
     try {
-      const response = await axios.post(
-        `${DEFAULT_AI_API_URL}/education/`,
-        {
-          resume_id: this.getResumeId(resumeId),
-          action,
-          degree,
-          field,
-          university,
-        },
-        {
-          headers: this.getHeaders(),
-        }
-      );
-      return response.data;
+      return await this.post("education", {
+        resume_id: this.getResumeId(resumeId),
+        action,
+        degree,
+        field,
+        university,
+        year,
+        coursework,
+        keywords,
+        current_text: currentText,
+      });
     } catch (error) {
       console.error("Education generation failed:", error);
       throw this.buildError(error, "Failed to generate education.");
