@@ -13,6 +13,7 @@ import {
   Send,
 } from "lucide-react";
 import "./Enquire.css";
+import { API_BASE_URL } from "../config";
 
 const Enquire = () => {
   const [formData, setFormData] = useState({
@@ -39,7 +40,7 @@ const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
-    const response = await fetch("https://lernevo-backend-staging-771297649928.us-central1.run.app/api/enquiry/", {
+    const response = await fetch(`${API_BASE_URL}/enquiry/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

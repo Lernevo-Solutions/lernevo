@@ -15,6 +15,7 @@ import {
   Activity
 } from "lucide-react";
 import "./Contact.css";
+import { API_BASE_URL } from "../config";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -39,7 +40,7 @@ const Contact = () => {
   e.preventDefault();
 
   try {
-    const response = await fetch("https://lernevo-backend-staging-771297649928.us-central1.run.app/api/contact/", {
+    const response = await fetch(`${API_BASE_URL}/contact/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

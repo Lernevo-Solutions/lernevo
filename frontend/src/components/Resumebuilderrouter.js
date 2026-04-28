@@ -19,6 +19,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import axios from 'axios';
 import vertexAIService from '../services/vertexAIService';
+import { API_BASE_URL } from "../config";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const ALL_SECTIONS = [
@@ -96,11 +97,18 @@ const INIT = {
   projects:       [makeProj()],
   certifications: [makeCert()],
   languages:      [makeLang()],
-  styling: { font:"Inter", accentColor:"#2563eb", layout:"one-col", photoPosition:"left", photoSize:"medium" },
+  styling: {
+    font:"Inter",
+    accentColor:"#2563eb",
+    layout:"one-col",
+    photoPosition:"left",
+    photoSize:"medium",
+    skillsDisplayMode:"level",
+    skillsRatingStyle:"stars",
+  },
 };
 // BACKEND SAVE LOGIC
 const saveResumeToBackend = async (st, order, pages) => {
-  const API_BASE_URL = 'https://lernevo-backend-771297649928.us-central1.run.app/api';
   const token = localStorage.getItem('token');
   const resumeId = localStorage.getItem('resumeId');
 
@@ -2096,10 +2104,18 @@ function normaliseEducation(raw) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SKILLS SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
-function SkillsSection({ data, onChange }) {
+function SkillsSection({ data, onChange, styling, onStylingChange }) {
   const safeData = Array.isArray(data) ? data : [makeSkill()];
-  const [mode, setMode]           = useState("level");
-  const [ratingType, setRatingType] = useState("stars");
+  const mode = styling?.skillsDisplayMode || "level";
+  const ratingType = styling?.skillsRatingStyle || "stars";
+  const setMode = (nextMode) => onStylingChange?.({
+    ...(styling || {}),
+    skillsDisplayMode: nextMode,
+  });
+  const setRatingType = (nextRatingType) => onStylingChange?.({
+    ...(styling || {}),
+    skillsRatingStyle: nextRatingType,
+  });
   const upd = (id, k, v) => onChange(safeData.map(s => s.id === id ? { ...s, [k]:v } : s));
   const rem = id => onChange(safeData.filter(s => s.id !== id));
 
@@ -3066,7 +3082,7 @@ const pageRef = useRef(null);
         languages: st.languages
       };
 
-      const response = await fetch('http://127.0.0.1:8000/api/resumes/', {
+      const response = await fetch(`${API_BASE_URL}/resumes/`, {
         method: 'POST',
         headers: {
           'Authorization': `Token ${token}`,
@@ -3153,7 +3169,7 @@ const handleDownload = async () => {
       case "summary": return <SummarySection data={st.summary} onChange={v => setFld("summary", v)} personalData={st.personal} />;
       case "experience": return <ExperienceSection data={resumeData.experience} onChange={v => setFld("experience", v)} />;
       case "education": return <EducationSection data={eduNorm} onChange={v => setFld("education", v)} />;
-      case "skills": return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills", v)} />;
+      case "skills": return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
       case "projects": return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects", v)} />;
       case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications", v)} />;
       case "languages": return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages", v)} />;
@@ -3393,7 +3409,7 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
       case "summary":        return <SummarySection data={st.summary} onChange={v => setFld("summary", v)} personalData={st.personal} />;
       case "experience":     return <ExperienceSection data={resumeData.experience} onChange={v => setFld("experience", v)} />;
       case "education":      return <EducationSection data={eduNorm} onChange={v => setFld("education", v)} />;
-      case "skills":         return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills", v)} />;
+      case "skills":         return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
       case "projects":       return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects", v)} />;
       case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications", v)} />;
       case "languages":      return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages", v)} />;
@@ -3522,6 +3538,8 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
                           data={resumeData}
                           accentColor={st.styling.accentColor}
                           font={st.styling.font}
+                          skillsDisplayMode={st.styling.skillsDisplayMode}
+                          skillsRatingStyle={st.styling.skillsRatingStyle}
                           extraPages={0}
                         />
                       ) : (

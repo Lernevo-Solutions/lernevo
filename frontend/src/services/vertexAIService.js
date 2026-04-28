@@ -1,7 +1,7 @@
 import axios from "axios";
+import { AI_API_BASE_URL } from "../config";
 
-const DEFAULT_AI_API_URL =
-  process.env.REACT_APP_AI_API_URL || "http://127.0.0.1:8000/api/ai";
+const DEFAULT_AI_API_URL = AI_API_BASE_URL;
 
 class VertexAIService {
   getResumeId(resumeId) {

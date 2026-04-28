@@ -365,7 +365,15 @@ function normaliseData(data) {
 }
 
 // ─── GalleryPreview ───────────────────────────────────────────────────────────
-export default function GalleryPreview({ tpl, data, accentColor, font, extraPages = 0 }) {
+export default function GalleryPreview({
+  tpl,
+  data,
+  accentColor,
+  font,
+  skillsDisplayMode = 'level',
+  skillsRatingStyle = 'stars',
+  extraPages = 0,
+}) {
   // Normalise incoming data so all template renderers get a consistent shape
   const { personal, summary, experience, education, skills, projects, certifications, languages } = normaliseData(data);
 
@@ -374,6 +382,10 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
   const title = personal.title || 'Your Professional Title';
   const photo = personal.photo;
   const fontStyle = { fontFamily: `'${font}', sans-serif` };
+  const skillMode = skillsDisplayMode === 'rating' ? 'rating' : 'level';
+  const skillRating = ['stars', 'dots', 'bars', 'blocks'].includes(skillsRatingStyle)
+    ? skillsRatingStyle
+    : 'stars';
 
   // Only show extra pages for supported templates
   const supportsExtra   = MULTI_PAGE_OK.has(tpl.structure);
@@ -423,6 +435,81 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
   };
 
   const profDots = (p) => p === 'Native' ? 5 : p === 'Fluent' ? 4 : p === 'Advanced' ? 3 : 2;
+
+  const SkillRatingDisplay = ({
+    levelNum,
+    badge,
+    activeColor,
+    emptyColor = '#d1d5db',
+    badgeBg,
+    badgeTextColor,
+    badgeBorderColor,
+  }) => {
+    const filled = Math.max(0, Math.min(5, Number(levelNum) || 0));
+    const tone = activeColor || BADGE_COLORS[badge] || col;
+
+    if (skillMode !== 'rating') {
+      if (!badge) return null;
+      return (
+        <span
+          style={{
+            fontSize: 7,
+            fontWeight: 700,
+            color: badgeTextColor || tone,
+            background: badgeBg || `${tone}18`,
+            border: badgeBorderColor ? `1px solid ${badgeBorderColor}` : 'none',
+            padding: '1px 5px',
+            borderRadius: 99,
+            flexShrink: 0,
+          }}
+        >
+          {badge}
+        </span>
+      );
+    }
+
+    if (skillRating === 'dots') {
+      return <LevelDots filled={filled} dotCol={tone} emptyCol={emptyColor} size={6} />;
+    }
+
+    if (skillRating === 'bars') {
+      return (
+        <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', height: 12 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div
+              key={n}
+              style={{
+                width: 5,
+                height: 3 + (n * 2),
+                borderRadius: '2px 2px 0 0',
+                background: n <= filled ? tone : emptyColor,
+              }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (skillRating === 'blocks') {
+      return (
+        <div style={{ display: 'flex', gap: 2 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div
+              key={n}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 2,
+                background: n <= filled ? tone : emptyColor,
+              }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    return <MiniStars levelNum={filled} />;
+  };
 
   const ExpItems = ({ compact = false }) => (
     <div>
@@ -514,11 +601,7 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                   {skills.filter(s => s.name).map(s => (
                     <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <p style={{ fontSize: 8.5, color: '#333' }}>• {s.name}</p>
-                      {s.badge && (
-                        <span style={{ fontSize: 7, fontWeight: 700, color: BADGE_COLORS[s.badge] || '#6366f1', background: (BADGE_COLORS[s.badge] || '#6366f1') + '18', padding: '1px 5px', borderRadius: 99, flexShrink: 0, marginLeft: 4 }}>
-                          {s.badge}
-                        </span>
-                      )}
+                      <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                     </div>
                   ))}
                 </div>
@@ -557,12 +640,11 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                   <div style={{ marginBottom: 16 }}>
                     <h3 style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.5, color: '#111', marginBottom: 8, borderBottom: '2px solid #111', paddingBottom: 3 }}>Skills</h3>
                     {skills.filter(s => s.name).map(s => {
-                      const pct = s.levelNum >= 5 ? '90%' : s.levelNum === 4 ? '72%' : s.levelNum === 3 ? '55%' : '35%';
                       return (
                         <div key={s.id} style={{ marginBottom: 7 }}>
-                          <p style={{ fontSize: 8.5, color: '#111', marginBottom: 2 }}>{s.name}</p>
-                          <div style={{ height: 4, background: '#e5e7eb' }}>
-                            <div style={{ width: pct, height: 4, background: '#111' }} />
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                            <p style={{ fontSize: 8.5, color: '#111', marginBottom: 2 }}>{s.name}</p>
+                            <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} activeColor="#111" />
                           </div>
                         </div>
                       );
@@ -655,7 +737,7 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                   {skills.filter(s => s.name).map(s => (
                     <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <p style={{ fontSize: 8.5, color: '#333' }}>• {s.name}</p>
-                      <MiniStars levelNum={s.levelNum} />
+                      <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                     </div>
                   ))}
                 </div>
@@ -722,11 +804,11 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                     <div key={s.id} style={{ marginBottom: 7 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                         <p style={{ fontSize: 8.5, color: '#333' }}>{s.name}</p>
-                        {s.badge && <span style={{ fontSize: 7, color: BADGE_COLORS[s.badge] || '#6366f1', fontWeight: 700 }}>{s.badge}</span>}
+                        <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                       </div>
-                      <div style={{ height: 2, background: '#e5e7eb' }}>
-                        <div style={{ width: `${(s.levelNum / 5) * 100}%`, height: 2, background: col }} />
-                      </div>
+                      {skillMode === 'rating' ? (
+                        <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -790,9 +872,9 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                 <div style={{ borderBottom: '1.5px solid #333', paddingBottom: 2, marginBottom: 7 }}><strong style={{ fontSize: 10, letterSpacing: 0.5 }}>TECHNICAL EXPERTISE</strong></div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px' }}>
                   {skills.filter(s => s.name).map(s => (
-                    <span key={s.id} style={{ fontSize: 8, background: '#f1f5f9', padding: '2px 7px', borderRadius: 4, color: '#333', border: '1px solid #e5e7eb' }}>
-                      {s.name}
-                      {s.badge && <span style={{ marginLeft: 3, color: BADGE_COLORS[s.badge] || '#6366f1', fontWeight: 700 }}>· {s.badge}</span>}
+                    <span key={s.id} style={{ fontSize: 8, background: '#f1f5f9', padding: '2px 7px', borderRadius: 4, color: '#333', border: '1px solid #e5e7eb', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span>{s.name}</span>
+                      <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                     </span>
                   ))}
                 </div>
@@ -840,9 +922,7 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                   {skills.filter(s => s.name).map(s => (
                     <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <p style={{ fontSize: 8.5, color: '#333' }}>• {s.name}</p>
-                      <span style={{ fontSize: 7, fontWeight: 700, color: BADGE_COLORS[s.badge] || '#6366f1', background: (BADGE_COLORS[s.badge] || '#6366f1') + '18', padding: '1px 5px', borderRadius: 99 }}>
-                        {s.badge}
-                      </span>
+                      <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                     </div>
                   ))}
                 </div>
@@ -919,7 +999,7 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                       <div key={s.id} style={{ marginBottom: 5 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <p style={{ fontSize: 8.5, color: '#333' }}>{s.name}</p>
-                          <MiniStars levelNum={s.levelNum} />
+                          <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                         </div>
                       </div>
                     ))}
@@ -1016,7 +1096,7 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                     {skills.filter(s => s.name).map(s => (
                       <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <p style={{ fontSize: 8.5, color: '#333' }}>• {s.name}</p>
-                        <MiniStars levelNum={s.levelNum} />
+                        <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                       </div>
                     ))}
                   </div>
@@ -1091,11 +1171,13 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                     <div key={s.id} style={{ marginBottom: 5 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                         <p style={{ fontSize: 8, fontWeight: 600, color: '#333' }}>{s.name}</p>
-                        <span style={{ fontSize: 6.5, color: BADGE_COLORS[s.badge] || '#6366f1', fontWeight: 700 }}>{s.badge}</span>
+                        <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                       </div>
-                      <div style={{ height: 3, background: '#ddd', borderRadius: 1 }}>
-                        <div style={{ width: `${(s.levelNum / 5) * 100}%`, height: 3, background: col, borderRadius: 1 }} />
-                      </div>
+                      {skillMode === 'rating' ? (
+                        <div style={{ marginTop: 2 }}>
+                          <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -1186,7 +1268,7 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                     {skills.filter(s => s.name).map(s => (
                       <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <p style={{ fontSize: 8.5, color: '#333' }}>✏ {s.name}</p>
-                        <MiniStars levelNum={s.levelNum} />
+                        <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                       </div>
                     ))}
                   </div>
@@ -1267,7 +1349,7 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                     {skills.filter(s => s.name).map(s => (
                       <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                         <p style={{ fontSize: 8.5, color: '#333' }}>• {s.name}</p>
-                        <span style={{ fontSize: 7, color: BADGE_COLORS[s.badge] || '#6366f1', fontWeight: 700, background: (BADGE_COLORS[s.badge] || '#6366f1') + '15', padding: '1px 5px', borderRadius: 99 }}>{s.badge}</span>
+                        <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                       </div>
                     ))}
                   </div>
@@ -1323,9 +1405,9 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                   <div style={{ height: 3, background: '#e5e7eb', marginBottom: 6 }} />
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px' }}>
                     {skills.filter(s => s.name).map(s => (
-                      <span key={s.id} style={{ fontSize: 8, background: '#f8fafc', border: '1px solid #e5e7eb', padding: '2px 7px', borderRadius: 4, color: '#333' }}>
-                        {s.name}
-                        {s.badge && <span style={{ marginLeft: 3, color: BADGE_COLORS[s.badge] || '#6366f1', fontWeight: 700 }}>({s.badge})</span>}
+                      <span key={s.id} style={{ fontSize: 8, background: '#f8fafc', border: '1px solid #e5e7eb', padding: '2px 7px', borderRadius: 4, color: '#333', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span>{s.name}</span>
+                        <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                       </span>
                     ))}
                   </div>
@@ -1392,11 +1474,20 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                   <div key={s.id} style={{ marginBottom: 6 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                       <p style={{ fontSize: 8, fontWeight: 700, color: '#fff' }}>{s.name}</p>
-                      <span style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.7)', fontWeight: 700 }}>{s.badge}</span>
+                      <SkillRatingDisplay
+                        levelNum={s.levelNum}
+                        badge={s.badge}
+                        activeColor="#ffffff"
+                        emptyColor="rgba(255,255,255,0.3)"
+                        badgeBg="rgba(255,255,255,0.16)"
+                        badgeTextColor="#ffffff"
+                      />
                     </div>
-                    <div style={{ height: 2, background: 'rgba(255,255,255,0.2)' }}>
-                      <div style={{ width: `${(s.levelNum / 5) * 100}%`, height: 2, background: 'rgba(255,255,255,0.8)' }} />
-                    </div>
+                    {skillMode === 'rating' ? (
+                      <div style={{ marginTop: 2 }}>
+                        <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} activeColor="#ffffff" emptyColor="rgba(255,255,255,0.3)" />
+                      </div>
+                    ) : null}
                   </div>
                 ))}
                 {skills.every(s => !s.name) && <p style={{ fontSize: 7.5, color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>Skills here…</p>}
@@ -1451,8 +1542,9 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                     <h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '2px solid #111', paddingBottom: 2, marginBottom: 6 }}>Skills</h2>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                       {skills.filter(s => s.name).map(s => (
-                        <span key={s.id} style={{ background: '#f1f5f9', color: '#334155', fontSize: 8, fontWeight: 600, padding: '2px 7px', borderRadius: 4, border: `1px solid ${(BADGE_COLORS[s.badge] || '#6366f1')}33` }}>
-                          {s.name}
+                        <span key={s.id} style={{ background: '#f1f5f9', color: '#334155', fontSize: 8, fontWeight: 600, padding: '2px 7px', borderRadius: 4, border: `1px solid ${(BADGE_COLORS[s.badge] || '#6366f1')}33`, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span>{s.name}</span>
+                          <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                         </span>
                       ))}
                     </div>
@@ -1501,7 +1593,7 @@ export default function GalleryPreview({ tpl, data, accentColor, font, extraPage
                         <div key={s.id} style={{ marginBottom: 5 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <p style={{ fontSize: 8, color: '#333' }}><strong>{s.name}</strong></p>
-                            <span style={{ fontSize: 6.5, color: BADGE_COLORS[s.badge] || '#6366f1', fontWeight: 700 }}>{s.badge}</span>
+                            <SkillRatingDisplay levelNum={s.levelNum} badge={s.badge} />
                           </div>
                         </div>
                       ))

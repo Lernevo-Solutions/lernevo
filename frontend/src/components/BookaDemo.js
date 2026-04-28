@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import "./BookaDemo.css";
+import { API_BASE_URL } from "../config";
 
 const BookaDemo = () => {
 
@@ -36,7 +37,7 @@ const BookaDemo = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("https://lernevo-backend-staging-771297649928.us-central1.run.app/api/book-demo/", {
+      const response = await fetch(`${API_BASE_URL}/book-demo/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
