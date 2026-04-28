@@ -372,6 +372,8 @@ export default function GalleryPreview({
   font,
   skillsDisplayMode = 'level',
   skillsRatingStyle = 'stars',
+  languagesDisplayMode = 'level',
+  languagesRatingStyle = 'stars',
   extraPages = 0,
 }) {
   // Normalise incoming data so all template renderers get a consistent shape
@@ -385,6 +387,10 @@ export default function GalleryPreview({
   const skillMode = skillsDisplayMode === 'rating' ? 'rating' : 'level';
   const skillRating = ['stars', 'dots', 'bars', 'blocks'].includes(skillsRatingStyle)
     ? skillsRatingStyle
+    : 'stars';
+  const languageMode = languagesDisplayMode === 'rating' ? 'rating' : 'level';
+  const languageRating = ['stars', 'dots', 'bars', 'blocks'].includes(languagesRatingStyle)
+    ? languagesRatingStyle
     : 'stars';
 
   // Only show extra pages for supported templates
@@ -432,6 +438,14 @@ export default function GalleryPreview({
   const BADGE_COLORS = {
     Beginner: '#16a34a', Elementary: '#0284c7', Intermediate: '#7c3aed',
     Advanced: '#d97706', Expert: '#dc2626',
+  };
+  const LANGUAGE_BADGE_COLORS = {
+    Basic: '#16a34a',
+    Elementary: '#0284c7',
+    Intermediate: '#7c3aed',
+    Advanced: '#d97706',
+    Fluent: '#0f766e',
+    Native: '#dc2626',
   };
 
   const profDots = (p) => p === 'Native' ? 5 : p === 'Fluent' ? 4 : p === 'Advanced' ? 3 : 2;
@@ -491,6 +505,80 @@ export default function GalleryPreview({
     }
 
     if (skillRating === 'blocks') {
+      return (
+        <div style={{ display: 'flex', gap: 2 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div
+              key={n}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 2,
+                background: n <= filled ? tone : emptyColor,
+              }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    return <MiniStars levelNum={filled} />;
+  };
+
+  const LanguageRatingDisplay = ({
+    language,
+    activeColor,
+    emptyColor = '#d1d5db',
+    badgeBg,
+    badgeTextColor,
+    badgeBorderColor,
+  }) => {
+    const filled = Math.max(0, Math.min(5, Number(language?.stars) || profDots(language?.proficiency)));
+    const tone = activeColor || LANGUAGE_BADGE_COLORS[language?.proficiency] || col;
+
+    if (languageMode !== 'rating') {
+      if (!language?.proficiency) return null;
+      return (
+        <span
+          style={{
+            fontSize: 7,
+            fontWeight: 700,
+            color: badgeTextColor || tone,
+            background: badgeBg || `${tone}18`,
+            border: badgeBorderColor ? `1px solid ${badgeBorderColor}` : 'none',
+            padding: '1px 5px',
+            borderRadius: 99,
+            flexShrink: 0,
+          }}
+        >
+          {language.proficiency}
+        </span>
+      );
+    }
+
+    if (languageRating === 'dots') {
+      return <LevelDots filled={filled} dotCol={tone} emptyCol={emptyColor} size={6} />;
+    }
+
+    if (languageRating === 'bars') {
+      return (
+        <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', height: 12 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div
+              key={n}
+              style={{
+                width: 5,
+                height: 3 + (n * 2),
+                borderRadius: '2px 2px 0 0',
+                background: n <= filled ? tone : emptyColor,
+              }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (languageRating === 'blocks') {
       return (
         <div style={{ display: 'flex', gap: 2 }}>
           {[1, 2, 3, 4, 5].map((n) => (
@@ -610,7 +698,19 @@ export default function GalleryPreview({
             {(languages.some(l => l.language) || certifications.some(c => c.name)) && (
               <div>
                 <h2 style={{ fontSize: 10, fontWeight: 800, color: col, textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: `2px solid ${col}`, paddingBottom: 2, marginBottom: 6 }}>Additional Information</h2>
-                {languages.some(l => l.language) && <p style={{ fontSize: 8.5, color: '#333', marginBottom: 3 }}><strong>Languages:</strong> {languages.filter(l => l.language).map(l => `${l.language} (${l.proficiency})`).join(', ')}</p>}
+                {languages.some(l => l.language) && (
+                  <div style={{ marginBottom: 3 }}>
+                    <strong style={{ fontSize: 8.5, color: '#333' }}>Languages:</strong>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', marginTop: 4 }}>
+                      {languages.filter(l => l.language).map((l) => (
+                        <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <span style={{ fontSize: 8.5, color: '#333' }}>{l.language}</span>
+                          <LanguageRatingDisplay language={l} activeColor={col} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {certifications.some(c => c.name) && <p style={{ fontSize: 8.5, color: '#333', marginBottom: 3 }}><strong>Certificates:</strong> {certifications.filter(c => c.name).map(c => c.name).join(', ')}</p>}
               </div>
             )}
@@ -654,17 +754,12 @@ export default function GalleryPreview({
                 {languages.some(l => l.language) && (
                   <div>
                     <h3 style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.5, color: '#111', marginBottom: 8, borderBottom: '2px solid #111', paddingBottom: 3 }}>Languages</h3>
-                    {languages.filter(l => l.language).map(l => {
-                      const w = l.proficiency === 'Native' ? '100%' : l.proficiency === 'Fluent' ? '80%' : l.proficiency === 'Advanced' ? '62%' : '45%';
-                      return (
-                        <div key={l.id} style={{ marginBottom: 7 }}>
-                          <p style={{ fontSize: 8.5, color: '#111', marginBottom: 2 }}>{l.language}</p>
-                          <div style={{ height: 4, background: '#e5e7eb' }}>
-                            <div style={{ width: w, height: 4, background: '#111' }} />
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {languages.filter(l => l.language).map((l) => (
+                      <div key={l.id} style={{ marginBottom: 7, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <p style={{ fontSize: 8.5, color: '#111', marginBottom: 0 }}>{l.language}</p>
+                        <LanguageRatingDisplay language={l} activeColor="#111" />
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -750,7 +845,7 @@ export default function GalleryPreview({
                   {languages.filter(l => l.language).map(l => (
                     <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontSize: 8.5, color: '#333', minWidth: 45 }}>{l.language}</span>
-                      <LevelDots filled={profDots(l.proficiency)} dotCol='#111' emptyCol='#ddd' size={6} />
+                      <LanguageRatingDisplay language={l} activeColor="#111" emptyColor="#ddd" />
                     </div>
                   ))}
                 </div>
@@ -895,7 +990,14 @@ export default function GalleryPreview({
             {languages.some(l => l.language) && (
               <div>
                 <div style={{ borderBottom: '1.5px solid #333', paddingBottom: 2, marginBottom: 7 }}><strong style={{ fontSize: 10, letterSpacing: 0.5 }}>LANGUAGES</strong></div>
-                <p style={{ fontSize: 8.5, color: '#333' }}>{languages.filter(l => l.language).map(l => `${l.language} (${l.proficiency})`).join(' · ')}</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
+                  {languages.filter(l => l.language).map((l) => (
+                    <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 8.5, color: '#333' }}>{l.language}</span>
+                      <LanguageRatingDisplay language={l} activeColor="#333" emptyColor="#ddd" />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -956,8 +1058,11 @@ export default function GalleryPreview({
               <div>
                 <h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', borderBottom: '1.5px solid #111', paddingBottom: 2, marginBottom: 6, color: '#111' }}>Languages</h2>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px' }}>
-                  {languages.filter(l => l.language).map(l => (
-                    <span key={l.id} style={{ fontSize: 8.5, color: '#333' }}>{l.language} <span style={{ color: '#888', fontSize: 8 }}>({l.proficiency})</span></span>
+                  {languages.filter(l => l.language).map((l) => (
+                    <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 8.5, color: '#333' }}>{l.language}</span>
+                      <LanguageRatingDisplay language={l} activeColor="#111" />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -1010,8 +1115,10 @@ export default function GalleryPreview({
                     <h2 style={{ fontSize: 9, fontWeight: 800, color: col, textTransform: 'uppercase', marginBottom: 6 }}>🌐 Languages</h2>
                     {languages.filter(l => l.language).map(l => (
                       <div key={l.id} style={{ marginBottom: 4 }}>
-                        <strong style={{ fontSize: 8.5, color: '#111' }}>{l.language}:</strong>
-                        <span style={{ fontSize: 8, color: '#555' }}> {l.proficiency}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <strong style={{ fontSize: 8.5, color: '#111' }}>{l.language}:</strong>
+                          <LanguageRatingDisplay language={l} activeColor={col} />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1128,7 +1235,12 @@ export default function GalleryPreview({
                 label: 'Languages',
                 el: languages.some(l => l.language) ? (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 20px' }}>
-                    {languages.filter(l => l.language).map(l => <p key={l.id} style={{ fontSize: 8.5, color: '#333' }}>• {l.language} ({l.proficiency})</p>)}
+                    {languages.filter(l => l.language).map((l) => (
+                      <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <p style={{ fontSize: 8.5, color: '#333' }}>• {l.language}</p>
+                        <LanguageRatingDisplay language={l} activeColor={col} />
+                      </div>
+                    ))}
                   </div>
                 ) : null
               },
@@ -1196,18 +1308,12 @@ export default function GalleryPreview({
               {languages.some(l => l.language) && (
                 <div>
                   <h6 style={{ fontSize: 7.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: col, borderBottom: `1.5px solid ${col}`, paddingBottom: 2, marginBottom: 6 }}>Languages</h6>
-                  {languages.filter(l => l.language).map(l => {
-                    const pct = l.proficiency === 'Native' ? 100 : l.proficiency === 'Fluent' ? 78 : l.proficiency === 'Advanced' ? 62 : 45;
-                    return (
-                      <div key={l.id} style={{ marginBottom: 7 }}>
-                        <p style={{ fontSize: 8, fontWeight: 600, color: '#333' }}>{l.language}</p>
-                        <p style={{ fontSize: 7.5, color: '#888', fontStyle: 'italic' }}>{l.proficiency}</p>
-                        <div style={{ height: 3, background: '#ddd', borderRadius: 1, marginTop: 2 }}>
-                          <div style={{ width: `${pct}%`, height: 3, background: col, borderRadius: 1 }} />
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {languages.filter(l => l.language).map((l) => (
+                    <div key={l.id} style={{ marginBottom: 7, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <p style={{ fontSize: 8, fontWeight: 600, color: '#333' }}>{l.language}</p>
+                      <LanguageRatingDisplay language={l} activeColor={col} />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -1297,19 +1403,19 @@ export default function GalleryPreview({
                   ))}
                 </div>
               )}
-              {languages.some(l => l.language) && (
-                <div>
-                  <h2 style={{ fontSize: 10, fontWeight: 800, color: '#111', marginBottom: 8 }}>🌐 Languages</h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px 0' }}>
-                    {languages.filter(l => l.language).map(l => (
-                      <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 8.5, color: '#333', minWidth: 40 }}>{l.language}</span>
-                        <LevelDots filled={profDots(l.proficiency)} dotCol={col} emptyCol='#ddd' size={6} />
-                      </div>
-                    ))}
+                {languages.some(l => l.language) && (
+                  <div>
+                    <h2 style={{ fontSize: 10, fontWeight: 800, color: '#111', marginBottom: 8 }}>🌐 Languages</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px 0' }}>
+                      {languages.filter(l => l.language).map((l) => (
+                        <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 8.5, color: '#333', minWidth: 40 }}>{l.language}</span>
+                          <LanguageRatingDisplay language={l} activeColor={col} emptyColor="#ddd" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </div>
         );
@@ -1334,7 +1440,19 @@ export default function GalleryPreview({
                   <div style={{ background: '#f8f8f8', padding: '3px 8px', marginBottom: 5 }}><h2 style={{ fontSize: 9.5, fontWeight: 700, color: col, margin: 0, textAlign: 'center' }}>Education</h2></div>
                   <EduBlock />
                 </div>
-                {languages.some(l => l.language) && <div style={{ marginBottom: 9 }}><div style={{ background: '#f8f8f8', padding: '3px 8px', marginBottom: 5 }}><h2 style={{ fontSize: 9.5, fontWeight: 700, color: col, margin: 0, textAlign: 'center' }}>Languages</h2></div>{languages.filter(l => l.language).map(l => { const pct = l.proficiency === 'Native' ? 100 : l.proficiency === 'Fluent' ? 80 : l.proficiency === 'Advanced' ? 65 : 50; return <div key={l.id} style={{ marginBottom: 6 }}><p style={{ fontSize: 8.5, color: '#333', marginBottom: 2 }}>{l.language} <span style={{ fontSize: 7.5, color: '#888' }}>({l.proficiency})</span></p><div style={{ height: 3, background: '#eee', borderRadius: 2 }}><div style={{ width: `${pct}%`, height: 3, background: col, borderRadius: 2 }} /></div></div>; })}</div>}
+                {languages.some(l => l.language) && (
+                  <div style={{ marginBottom: 9 }}>
+                    <div style={{ background: '#f8f8f8', padding: '3px 8px', marginBottom: 5 }}>
+                      <h2 style={{ fontSize: 9.5, fontWeight: 700, color: col, margin: 0, textAlign: 'center' }}>Languages</h2>
+                    </div>
+                    {languages.filter(l => l.language).map((l) => (
+                      <div key={l.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <p style={{ fontSize: 8.5, color: '#333', marginBottom: 0 }}>{l.language}</p>
+                        <LanguageRatingDisplay language={l} activeColor={col} />
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {certifications.some(c => c.name) && <div><div style={{ background: '#f8f8f8', padding: '3px 8px', marginBottom: 5 }}><h2 style={{ fontSize: 9.5, fontWeight: 700, color: col, margin: 0, textAlign: 'center' }}>Certifications</h2></div>{certifications.filter(c => c.name).map(c => <div key={c.id} style={{ marginBottom: 5 }}><strong style={{ fontSize: 9 }}>{c.name}</strong>{c.issuer && <span style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}> · {c.issuer}</span>}</div>)}</div>}
               </div>
               <div style={{ padding: '10px 13px' }}>
@@ -1463,7 +1581,19 @@ export default function GalleryPreview({
                 <h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '1px solid #ddd', paddingBottom: 2, marginBottom: 6 }}>Education</h2>
                 <EduBlock />
               </div>
-              {languages.some(l => l.language) && <div style={{ marginBottom: 10 }}><h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '1px solid #ddd', paddingBottom: 2, marginBottom: 6 }}>Languages</h2><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px' }}>{languages.filter(l => l.language).map(l => <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ fontSize: 8, color: '#333', minWidth: 45 }}>{l.language}</span><span style={{ fontSize: 7.5, color: '#888', minWidth: 44 }}>{l.proficiency}</span><div style={{ display: 'flex', gap: 2 }}>{[1,2,3,4,5].map(d => <div key={d} style={{ width: 8, height: 4, background: d <= profDots(l.proficiency) ? col : '#e2e8f0', borderRadius: 2 }} />)}</div></div>)}</div></div>}
+              {languages.some(l => l.language) && (
+                <div style={{ marginBottom: 10 }}>
+                  <h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '1px solid #ddd', paddingBottom: 2, marginBottom: 6 }}>Languages</h2>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px' }}>
+                    {languages.filter(l => l.language).map((l) => (
+                      <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 8, color: '#333', minWidth: 45 }}>{l.language}</span>
+                        <LanguageRatingDisplay language={l} activeColor={col} emptyColor="#e2e8f0" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {projects.some(p => p.name) && <div><h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '1px solid #ddd', paddingBottom: 2, marginBottom: 6 }}>Projects</h2><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>{projects.filter(p => p.name).map(p => <div key={p.id} style={{ display: 'flex', gap: 5 }}><span style={{ fontSize: 11, flexShrink: 0 }}>🔹</span><div><strong style={{ fontSize: 8.5 }}>{p.name}</strong>{p.stack && <p style={{ fontSize: 8, color: '#555', marginTop: 1 }}>{p.stack}</p>}{p.description && <p style={{ fontSize: 8, color: '#555', marginTop: 2, lineHeight: 1.4 }}>{p.description}</p>}</div></div>)}</div></div>}
             </div>
             <div style={{ width: 145, background: col, flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
@@ -1534,7 +1664,19 @@ export default function GalleryPreview({
               <div style={{ padding: '11px 13px 11px 15px', borderRight: '1px solid #f1f5f9' }}>
                 {summary.text && <div style={{ marginBottom: 10 }}><h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '2px solid #111', paddingBottom: 2, marginBottom: 5 }}>Summary</h2><p style={{ fontSize: 8, color: '#333', lineHeight: 1.65 }}>{summary.text}</p></div>}
                 <div style={{ marginBottom: 10 }}><h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '2px solid #111', paddingBottom: 2, marginBottom: 6 }}>Experience</h2>{experience.filter(e => e.company || e.role).map(e => <div key={e.id} style={{ marginBottom: 8, borderBottom: '1px dashed #f1f5f9', paddingBottom: 6 }}><strong style={{ fontSize: 8.5, color: '#111' }}>{e.role}</strong><div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '2px 0' }}><p style={{ fontSize: 8, color: '#5b9bd5', fontWeight: 600 }}>{e.company}</p>{e.duration && <span style={{ fontSize: 7.5, color: '#888' }}>📅 {e.duration}</span>}{e.location && <span style={{ fontSize: 7.5, color: '#888' }}>📍 {e.location}</span>}</div>{e.description && e.description.split('\n').filter(Boolean).map((l, i) => <p key={i} style={{ fontSize: 8, color: '#444', paddingLeft: 6, marginTop: 2 }}>• {l}</p>)}</div>)}{experience.every(e => !e.company && !e.role) && <p style={{ color: '#ccc', fontStyle: 'italic', fontSize: 8 }}>Experience here…</p>}</div>
-                {languages.some(l => l.language) && <div><h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '2px solid #111', paddingBottom: 2, marginBottom: 6 }}>Languages</h2>{languages.filter(l => l.language).map(l => <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}><div style={{ minWidth: 60 }}><p style={{ fontSize: 8.5, fontWeight: 600, color: '#111' }}>{l.language}</p><p style={{ fontSize: 7.5, color: '#888' }}>{l.proficiency}</p></div><LevelDots filled={profDots(l.proficiency)} dotCol='#1e2d3d' emptyCol='#e2e8f0' /></div>)}</div>}
+                {languages.some(l => l.language) && (
+                  <div>
+                    <h2 style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: '#111', borderBottom: '2px solid #111', paddingBottom: 2, marginBottom: 6 }}>Languages</h2>
+                    {languages.filter(l => l.language).map((l) => (
+                      <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                        <div style={{ minWidth: 60 }}>
+                          <p style={{ fontSize: 8.5, fontWeight: 600, color: '#111' }}>{l.language}</p>
+                        </div>
+                        <LanguageRatingDisplay language={l} activeColor="#1e2d3d" emptyColor="#e2e8f0" />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div style={{ padding: '11px 13px 11px 11px' }}>
                 {skills.some(s => s.name) && (
@@ -1625,10 +1767,10 @@ export default function GalleryPreview({
                 {languages.some(l => l.language) && (
                   <div>
                     <h2 style={{ fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', color: col, borderBottom: `2px solid ${col}`, paddingBottom: 2, marginBottom: 6 }}>Languages</h2>
-                    {languages.filter(l => l.language).map(l => (
-                      <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    {languages.filter(l => l.language).map((l) => (
+                      <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                         <span style={{ fontSize: 8, color: '#333' }}>{l.language}</span>
-                        <span style={{ fontSize: 7.5, color: '#888', fontStyle: 'italic' }}>{l.proficiency}</span>
+                        <LanguageRatingDisplay language={l} activeColor={col} />
                       </div>
                     ))}
                   </div>

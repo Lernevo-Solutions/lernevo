@@ -105,6 +105,8 @@ const INIT = {
     photoSize:"medium",
     skillsDisplayMode:"level",
     skillsRatingStyle:"stars",
+    languagesDisplayMode:"level",
+    languagesRatingStyle:"stars",
   },
 };
 // BACKEND SAVE LOGIC
@@ -2730,10 +2732,18 @@ function CertificationsSection({ data, onChange }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // LANGUAGES SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
-function LanguagesSection({ data, onChange }) {
+function LanguagesSection({ data, onChange, styling, onStylingChange }) {
   const safeData = Array.isArray(data) ? data : [makeLang()];
-  const [mode, setMode] = useState("level");
-  const [ratingType, setRatingType] = useState("stars");
+  const mode = styling?.languagesDisplayMode || "level";
+  const ratingType = styling?.languagesRatingStyle || "stars";
+  const setMode = (nextMode) => onStylingChange?.({
+    ...(styling || {}),
+    languagesDisplayMode: nextMode,
+  });
+  const setRatingType = (nextRatingType) => onStylingChange?.({
+    ...(styling || {}),
+    languagesRatingStyle: nextRatingType,
+  });
 
   const upd = (id, k, v) => onChange(safeData.map(l => l.id === id ? { ...l, [k]: v } : l));
   const rem = id => onChange(safeData.filter(l => l.id !== id));
@@ -3172,7 +3182,7 @@ const handleDownload = async () => {
       case "skills": return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
       case "projects": return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects", v)} />;
       case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications", v)} />;
-      case "languages": return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages", v)} />;
+      case "languages": return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
       case "styling": return <StylingSection data={st.styling} onChange={v => setFld("styling", v)} />;
       default: return null;
     }
@@ -3412,7 +3422,7 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
       case "skills":         return <SkillsSection data={resumeData.skills} onChange={v => setFld("skills", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
       case "projects":       return <ProjectsSection data={resumeData.projects} onChange={v => setFld("projects", v)} />;
       case "certifications": return <CertificationsSection data={resumeData.certifications} onChange={v => setFld("certifications", v)} />;
-      case "languages":      return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages", v)} />;
+      case "languages":      return <LanguagesSection data={resumeData.languages} onChange={v => setFld("languages", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
       case "styling":        return <StylingSection data={st.styling} onChange={v => setFld("styling", v)} />;
       default:               return null;
     }
@@ -3540,6 +3550,8 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
                           font={st.styling.font}
                           skillsDisplayMode={st.styling.skillsDisplayMode}
                           skillsRatingStyle={st.styling.skillsRatingStyle}
+                          languagesDisplayMode={st.styling.languagesDisplayMode}
+                          languagesRatingStyle={st.styling.languagesRatingStyle}
                           extraPages={0}
                         />
                       ) : (
