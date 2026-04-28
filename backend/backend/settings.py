@@ -8,6 +8,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 ENV = os.environ.get("ENV", "DEV").strip().upper()
+PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "lernevo-dev1").strip()
+DB_ENGINE = os.environ.get("DB_ENGINE", "").strip().lower()
+DEFAULT_FRONTEND_URL = (
+    "https://lernevo.com" if ENV == "PROD" else "https://staging.lernevo.com"
+)
+DEFAULT_BACKEND_URL = (
+    "https://api.lernevo.com"
+    if ENV == "PROD"
+    else "https://staging-api.lernevo.com"
+)
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "local-secret-key")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
@@ -57,15 +67,20 @@ TEMPLATES = [
     },
 ]
 
-if ENV == "PROD":
+if ENV == "PROD" or DB_ENGINE == "postgres":
+    db_host = os.environ.get("DB_HOST")
+    instance_connection_name = os.environ.get("INSTANCE_CONNECTION_NAME")
+    if not db_host and instance_connection_name:
+        db_host = f"/cloudsql/{instance_connection_name}"
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ.get("DB_NAME"),
             "USER": os.environ.get("DB_USER"),
             "PASSWORD": os.environ.get("DB_PASSWORD"),
-            "HOST": f"/cloudsql/{os.environ.get('INSTANCE_CONNECTION_NAME')}",
-            "PORT": "5432",
+            "HOST": db_host or "",
+            "PORT": os.environ.get("DB_PORT", "5432"),
         }
     }
 else:
@@ -127,7 +142,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://lernevo.com")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", DEFAULT_FRONTEND_URL)
 
 if ENV == "PROD":
     SECURE_SSL_REDIRECT = True
@@ -151,15 +166,14 @@ def _clean_vertex_value(key: str, default: str) -> str:
     return match.group(0) if match else default
 
 
-VERTEX_PROJECT_ID = _clean_vertex_value("GOOGLE_CLOUD_PROJECT", "lernevo-dev-1")
+VERTEX_PROJECT_ID = _clean_vertex_value("GOOGLE_CLOUD_PROJECT", PROJECT_ID)
 VERTEX_LOCATION = _clean_vertex_value("VERTEX_LOCATION", "global")
 VERTEX_MODEL = _clean_vertex_value("VERTEX_MODEL", "gemini-3.1-flash-lite-preview")
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
     (
-        "https://lernevo-backend-771297649928.us-central1.run.app,"
-        "https://lernevo-frontend-771297649928.us-central1.run.app"
+        f"{DEFAULT_BACKEND_URL},{DEFAULT_FRONTEND_URL}"
     ),
 ).split(",")
 
