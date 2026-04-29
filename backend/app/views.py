@@ -8,6 +8,8 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User as AuthUser
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.core.exceptions import ImproperlyConfigured
+from smtplib import SMTPException
 from django.utils.timezone import now
 from rest_framework import viewsets, permissions
 from .models import Resume
@@ -21,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from .models import UserProfile
 from .models import User, UserOTP
-from .serializers import DemoBookingSerializer, RegisterSerializer, LoginSerializer
+from .serializers import DemoBookingSerializer, RegisterSerializer, LoginSerializer, OTPRequestSerializer
 from .serializers import ProfileSerializer, ProfileImageSerializer
 from .models import User as LernevoUser   
 import logging
@@ -31,25 +33,39 @@ class RegisterView(APIView):
 
     def post(self, request):
         try:
-            email = request.data.get("email")
+            email = (request.data.get("email") or "").strip().lower()
 
-            otp_verified = UserOTP.objects.filter(email=email, is_used=True).exists()
+            otp_verified = UserOTP.objects.filter(
+                email=email,
+                is_used=True,
+                used_at__isnull=False,
+                used_at__gte=now() - timedelta(minutes=15),
+                is_delete=False,
+            ).exists()
             if not otp_verified:
                 return Response({"detail": "Email not verified via OTP"}, status=400)
 
-            serializer = RegisterSerializer(data=request.data)
+            payload = request.data.copy()
+            payload["email"] = email
+
+            serializer = RegisterSerializer(data=payload)
             serializer.is_valid(raise_exception=True)
             auth_user = serializer.save()
 
-            # Get custom user
-            from .models import User as LernevoUser
+            UserOTP.objects.filter(
+                email=email,
+                is_used=True,
+                used_at__isnull=False,
+                is_delete=False,
+            ).update(is_delete=True, deleted_at=now())
+
             custom_user = LernevoUser.objects.get(auth_user=auth_user)
 
             token = None
             try:
-                token = Token.objects.get(user=auth_user)  # first try to get
+                token = Token.objects.get(user=auth_user)
             except Token.DoesNotExist:
-                token = Token.objects.create(user=auth_user)  # if not, create
+                token = Token.objects.create(user=auth_user)
 
             if not token:
                 return Response({"detail": "Token creation failed"}, status=500)
@@ -58,13 +74,11 @@ class RegisterView(APIView):
                 {
                     "message": "User registered successfully",
                     "token": token.key,
-                    "user_code": custom_user.user_code
+                    "user_code": custom_user.user_code,
                 },
-                status=201
+                status=201,
             )
         except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
             logger.error(f"RegisterView error: {str(e)}", exc_info=True)
             return Response({"detail": "Internal server error"}, status=500)
 # ---------------- OTP for registration only ----------------
@@ -72,41 +86,63 @@ class OTPView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        email = request.data.get("email")
-        otp_code = request.data.get("otp")
+        serializer = OTPRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if not email:
-            return Response({"detail": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        email = serializer.validated_data["email"]
+        otp_code = serializer.validated_data["otp"]
 
-        # ❌ Already registered email
-        if AuthUser.objects.filter(email=email).exists():
-            return Response({"detail": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # ================= SEND OTP =================
         if not otp_code:
-            # invalidate old OTPs
-            UserOTP.objects.filter(email=email, is_used=False).update(is_used=True)
+            if AuthUser.objects.filter(email__iexact=email).exists():
+                return Response({"detail": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
+
+            UserOTP.objects.filter(
+                email=email,
+                is_used=False,
+                is_delete=False,
+            ).update(is_used=True, used_at=now())
 
             otp = uuid.uuid4().hex[:6].upper()
 
-            UserOTP.objects.create(
+            otp_obj = UserOTP.objects.create(
                 email=email,
                 otp_code=otp,
                 expires_at=now() + timedelta(minutes=5)
             )
 
-            self.send_otp_email(email, otp)
-            return Response({"message": "OTP sent to email"}, status=status.HTTP_200_OK)
+            try:
+                self.send_otp_email(email, otp)
+            except ImproperlyConfigured as exc:
+                otp_obj.delete()
+                logger.error("OTP email configuration error for %s: %s", email, exc, exc_info=True)
+                return Response(
+                    {"detail": "OTP email service is not configured correctly"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            except SMTPException as exc:
+                otp_obj.delete()
+                logger.warning("SMTP delivery failed for %s: %s", email, exc, exc_info=True)
+                return Response(
+                    {"detail": "Unable to deliver OTP to this email address. Try a different email."},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
+            except Exception as exc:
+                otp_obj.delete()
+                logger.error("Unexpected OTP email failure for %s: %s", email, exc, exc_info=True)
+                return Response(
+                    {"detail": "Failed to send OTP email. Please try again."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
-        # ================= VERIFY OTP =================
-        otp_code = otp_code.upper()
+            return Response({"message": "OTP sent to email", "email": email}, status=status.HTTP_200_OK)
 
         otp_obj = UserOTP.objects.filter(
             email=email,
             otp_code=otp_code,
             is_used=False,
+            is_delete=False,
             expires_at__gte=now()
-        ).first()
+        ).order_by("-created_at").first()
 
         if not otp_obj:
             return Response({"detail": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
@@ -115,9 +151,11 @@ class OTPView(APIView):
         otp_obj.used_at = now()
         otp_obj.save()
 
-        return Response({"message": "Email verified"}, status=status.HTTP_200_OK)
+        return Response({"message": "Email verified", "email": email, "verified": True}, status=status.HTTP_200_OK)
 
     def send_otp_email(self, email, otp):
+        self._validate_email_settings()
+
         subject = "Your OTP Code"
         text = f"Your OTP is {otp}. It expires in 5 minutes."
         html = f"<p>Your OTP is <b>{otp}</b>. It expires in 5 minutes.</p>"
@@ -125,11 +163,31 @@ class OTPView(APIView):
         mail = EmailMultiAlternatives(
             subject,
             text,
-            "no-reply@example.com",
+            settings.DEFAULT_FROM_EMAIL,
             [email]
         )
         mail.attach_alternative(html, "text/html")
         mail.send()
+
+    def _validate_email_settings(self):
+        missing_fields = []
+        for field in (
+            "EMAIL_HOST",
+            "EMAIL_PORT",
+            "DEFAULT_FROM_EMAIL",
+            "EMAIL_HOST_USER",
+            "EMAIL_HOST_PASSWORD",
+        ):
+            if not getattr(settings, field, None):
+                missing_fields.append(field)
+
+        if not settings.EMAIL_USE_TLS:
+            missing_fields.append("EMAIL_USE_TLS")
+
+        if missing_fields:
+            raise ImproperlyConfigured(
+                "Email settings missing or invalid: " + ", ".join(missing_fields)
+            )
 
 from django.db.models import Q
 
