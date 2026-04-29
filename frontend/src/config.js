@@ -2,9 +2,11 @@ const trimTrailingSlash = (value) => value.replace(/\/+$/, "");
 
 const rawEnv = (process.env.REACT_APP_ENV || "").trim().toLowerCase();
 const isProductionEnv = rawEnv === "production";
+const productionApiBaseUrl =
+  "https://lernevo-backend-237359549871.us-central1.run.app/api";
 
 const defaultApiBaseUrl = isProductionEnv
-  ? "https://api.lernevo.com/api"
+  ? productionApiBaseUrl
   : "https://staging-api.lernevo.com/api";
 
 const defaultAiBaseUrl = `${defaultApiBaseUrl}/ai`;

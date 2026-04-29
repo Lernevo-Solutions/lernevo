@@ -105,17 +105,17 @@ const [loginData, setLoginData] = useState({
       // 1. Register user with the generated ID
       const res = await api.post('/register/', {
         name: formData.name,
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(),
         username: formData.username,
         password: formData.password,
         mobile: formData.phone,
         user_code: generatedId,
       });
 
-      const { token } = res.data;
+      const { token, user_code: issuedUserCode } = res.data;
       if (token) {
         localStorage.setItem('token', token);
-        localStorage.setItem('user_code', generatedId);
+        localStorage.setItem('user_code', issuedUserCode || generatedId);
         localStorage.setItem('user_name', formData.username);
         
         // onSignupSuccess
@@ -127,7 +127,7 @@ const [loginData, setLoginData] = useState({
       }
 
       // 2. Set ID in state to trigger UI update
-      setFormData(prev => ({ ...prev, userId: generatedId }));
+      setFormData(prev => ({ ...prev, userId: issuedUserCode || generatedId }));
 
       // 3. Smooth scroll to the ID section
       setTimeout(() => {
@@ -201,13 +201,13 @@ const nextStep = () => {
   const handleVerifyEmail = async () => {
   try {
     await api.post('/otp/', {
-      email: formData.email,
+      email: formData.email.trim().toLowerCase(),
       otp: formData.emailOtp, // backend will verify
     });
 
     setIsEmailVerified(true);
   } catch (err) {
-    alert('Invalid OTP');
+    alert(err.response?.data?.detail || 'Invalid OTP');
   }
 };
 
@@ -240,11 +240,11 @@ const handleLogin = async (e) => {
 const handleSendOtp = async () => {
   try {
     await api.post('/otp/', {
-      email: formData.email
+      email: formData.email.trim().toLowerCase()
     });
     alert('OTP sent to email');
   } catch (err) {
-    alert('Failed to send OTP');
+    alert(err.response?.data?.detail || 'Failed to send OTP');
   }
 };
 
@@ -411,9 +411,9 @@ const handleSendOtp = async () => {
                           />
                           {!isEmailVerified && (
                             <button 
-                              className={`verify-action ${formData.emailOtp.length >= 4 ? 'active' : ''}`} 
+                              className={`verify-action ${formData.emailOtp.length >= 6 ? 'active' : ''}`} 
                               onClick={handleVerifyEmail}
-                              disabled={formData.emailOtp.length < 4}
+                              disabled={formData.emailOtp.length < 6}
                             >
                               Verify
                             </button>

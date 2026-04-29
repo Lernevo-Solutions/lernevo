@@ -29,12 +29,13 @@ const GetStartedFlow = ({ isOpen, onClose }) => {
   };
 
 const handleSendOTP = async () => {
-  if (!inputValue) return;
+  if (!inputValue || method !== 'email') return;
 
   try {
-    const response = await api.post('/otp/', { email: inputValue });
+    const response = await api.post('/otp/', { email: inputValue.trim().toLowerCase() });
     if (response.status === 200) {
       setStep(3); // OTP sent successfully — next step போ
+      setTimer(30);
     }
   } catch (error) {
     const msg = error.response?.data?.detail || 'Failed to send OTP';
@@ -67,7 +68,7 @@ const handleVerify = async () => {
 
   try {
     const response = await api.post('/otp/', {
-      email: inputValue,
+      email: inputValue.trim().toLowerCase(),
       otp: otpCode,
     });
     if (response.status === 200) {
@@ -147,9 +148,9 @@ const handleVerify = async () => {
             <button 
               className="flow-cta-btn" 
               onClick={handleSendOTP}
-              disabled={!inputValue}
+              disabled={!inputValue || method !== 'email'}
             >
-              Send OTP
+              {method === 'email' ? 'Send OTP' : 'Phone OTP Coming Soon'}
             </button>
           </div>
         );
@@ -179,7 +180,7 @@ const handleVerify = async () => {
               {timer > 0 ? (
                 <p className="timer-text">Resend in {timer}s</p>
               ) : (
-                <button className="resend-btn" onClick={() => setTimer(30)}>
+                <button className="resend-btn" onClick={handleSendOTP}>
                   Resend OTP
                 </button>
               )}
