@@ -353,7 +353,13 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;}
 .rb-pages{display:flex;flex-direction:column;align-items:center;gap:20px;padding:0 20px;}
 .rb-page-block{display:flex;flex-direction:column;align-items:center;}
 .rb-page-num{font-size:10px;color:#94a3b8;margin-top:6px;}
-.rb-sheet{width:595px;min-height:842px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.14),0 20px 60px rgba(0,0,0,.10);}
+.rb-sheet {
+  width: 595px;
+  min-height: 842px;
+  background: #fff;
+  margin: auto;
+  page-break-after: always;
+}
 .rb-add-page{width:595px;height:52px;border:2px dashed #94a3b8;border-radius:8px;background:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;}
 .rb-add-page:hover{border-color:#6366f1;color:#6366f1;background:rgba(99,102,241,.05);}
 .rb-rm-page{margin-top:5px;padding:4px 12px;border:1px solid #fca5a5;border-radius:6px;background:#fff;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
@@ -449,27 +455,33 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;}
 function PreviewScaler({ children, containerRef }) {
   const wrapRef  = useRef(null);
   const innerRef = useRef(null);
+  
   useLayoutEffect(() => {
     const recalc = () => {
       const outer = wrapRef.current;
       const inner = innerRef.current;
       if (!outer || !inner) return;
-      const parent = containerRef?.current || outer.parentElement;
+      const parent = containerRef?.current || outer.parentElement?.parentElement;
       const availW = (parent?.clientWidth || 800) - 80;
-      const s = Math.min(1, availW / 595);
-      inner.style.transform       = `scale(${s})`;
+      const s = Math.min(1, Math.max(0.5, availW / 595));
+      inner.style.transform = `scale(${s})`;
       inner.style.transformOrigin = "top left";
-      outer.style.width  = `${595 * s}px`;
-      outer.style.height = `${inner.scrollHeight * s}px`;
+      outer.style.width = `${595 * s}px`;
+      // Don't set fixed height - let it auto-adjust
+      outer.style.height = "auto";
     };
+    
     recalc();
+    
     const ro = new ResizeObserver(recalc);
-    if (innerRef.current)      ro.observe(innerRef.current);
+    if (innerRef.current) ro.observe(innerRef.current);
     if (containerRef?.current) ro.observe(containerRef.current);
+    
     return () => ro.disconnect();
   }, [children]);
+  
   return (
-    <div ref={wrapRef} style={{ position:"relative", flexShrink:0 }}>
+    <div ref={wrapRef} style={{ position:"relative", flexShrink:0, minHeight: "auto" }}>
       <div ref={innerRef} style={{ position:"absolute", top:0, left:0, width:595 }}>
         {children}
       </div>
@@ -3135,15 +3147,16 @@ function BlankBuilder({ galleryColor }) {
   const [order, setOrder] = useState(() => [...DEFAULT_ORDER]);
   const [pages, setPages] = useState(() => [{ id: uid() }]);
   const previewRef = useRef(null);
+  const pageRef = useRef(null);
 
-  // 2. Navigation & Index Helpers (FIXES 'idx is not defined')
+  // 2. Navigation & Index Helpers
   const filteredSidebar = ALL_SECTIONS; 
   const currentIdx = filteredSidebar.findIndex(n => n.id === st.activeSection);
-  const idx = currentIdx; // 'idx' use panradhala inga map panniyachu
+  const idx = currentIdx;
   const meta = SECTION_META[st.activeSection];
- const [isSaved, setIsSaved] = useState(false);
-const [resumeId, setResumeId] = useState(null);
- // Backend ID-ah store panna
+  const [isSaved, setIsSaved] = useState(false);
+  const [resumeId, setResumeId] = useState(null);
+  
   // 3. Define Action Functions
   const sec = id => setSt(s => ({ ...s, activeSection: id }));
   const setFld = (k, v) => setSt(s => ({ ...s, [k]: v }));
@@ -3152,8 +3165,8 @@ const [resumeId, setResumeId] = useState(null);
     if (pages.length <= 1) return; 
     setPages(p => p.filter(x => x.id !== id)); 
   };
-const pageRef = useRef(null);
-  // 4. Handle Save Function (FIXES 'itemProps', 'freeformElements' errors)
+  
+  // 4. Handle Save Function
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token'); 
@@ -3161,7 +3174,6 @@ const pageRef = useRef(null);
       const payload = {
         title: st.personal.name ? `${st.personal.name} Resume` : "My Resume",
         styling: st.styling,
-        // BlankBuilder uses 'order' and 'pages' for canvas state
         canvas_states: {
           order: order,
           pages: pages
@@ -3208,54 +3220,141 @@ const pageRef = useRef(null);
       alert("An error occurred while saving.");
     }
   };
+  
+  // 5. Handle Download PDF - FIXED MULTI-PAGE VERSION
 const handleDownload = async () => {
-  if (!pageRef.current) {
+  if (!previewRef.current) {
     alert("Preview not ready. Please wait a moment.");
     return;
   }
 
   try {
-    // Clone the resume element to avoid affecting the live preview
-    const originalElement = pageRef.current;
-    const clone = originalElement.cloneNode(true);
-    clone.style.position = "fixed";
-    clone.style.top = "-9999px";
-    clone.style.left = "-9999px";
-    clone.style.width = "595px";
-    clone.style.backgroundColor = "#fff";
-    clone.style.margin = "0";
-    clone.style.padding = "20px 22px";
-    clone.style.boxShadow = "none";
-    document.body.appendChild(clone);
+    // Show loading indicator on download button
+    const downloadBtn = document.querySelector('.rb-btn.rb-btn-dark');
+    const originalText = downloadBtn?.innerHTML;
+    if (downloadBtn) downloadBtn.innerHTML = "⏳ Generating PDF...";
 
-    // Wait for fonts
-    await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 100));
+    // Get the pages container
+    const pagesContainer = previewRef.current.querySelector('.rb-pages');
+    
+    if (!pagesContainer) {
+      alert("Could not find resume pages. Please refresh and try again.");
+      return;
+    }
 
-    // Capture the clone
-    const canvas = await html2canvas(clone, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      letterRendering: true,
-      logging: false,
+    // Find all .rb-sheet elements (each page)
+    const sheetElements = pagesContainer.querySelectorAll('.rb-sheet');
+    
+    if (sheetElements.length === 0) {
+      alert("No resume pages found to export.");
+      return;
+    }
+
+    // Create PDF with proper page size
+    const pdf = new jsPDF({
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait"
     });
+    
+    const pageWidth = 210; // A4 width in mm
+    let isFirstPage = true;
 
-    // Remove clone
-    document.body.removeChild(clone);
+    for (let i = 0; i < sheetElements.length; i++) {
+      const sheet = sheetElements[i];
+      
+      // Find the actual resume content inside the sheet
+      // The content is inside the PreviewScaler's scaled div
+      const scaledContent = sheet.querySelector('[style*="transform: scale"]') || 
+                           sheet.querySelector('.rb-sheet > div');
+      
+      if (!scaledContent) continue;
 
-    // Generate PDF
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    pdf.save("resume.pdf");
+      // Get the original unscaled content by finding the LivePreview component
+      // The content is inside the inner div before transform is applied
+      let contentToCapture = scaledContent;
+      
+      // If scaledContent has a child with the actual content, use that
+      const innerContent = scaledContent.querySelector('[class*="LivePreview"]') || 
+                          scaledContent.children[0];
+      if (innerContent && innerContent.children.length > 0) {
+        contentToCapture = innerContent;
+      }
+
+      // Create a clone for capture
+      const clone = contentToCapture.cloneNode(true);
+      
+      // Apply fixed styling for accurate capture
+      clone.style.cssText = `
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        width: 595px;
+        background: white;
+        margin: 0;
+        padding: 20px 22px;
+        box-sizing: border-box;
+        font-family: inherit;
+      `;
+      
+      document.body.appendChild(clone);
+      
+      // Wait for fonts to load
+      await document.fonts.ready;
+      await new Promise(r => setTimeout(r, 200));
+      
+      // Capture with higher quality
+      const canvas = await html2canvas(clone, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        windowWidth: 595,
+        onclone: (clonedDoc, element) => {
+          // Ensure all text is visible
+          const allElements = element.querySelectorAll('*');
+          allElements.forEach(el => {
+            if (el.style) {
+              el.style.visibility = 'visible';
+              el.style.opacity = '1';
+            }
+          });
+        }
+      });
+      
+      // Clean up
+      document.body.removeChild(clone);
+      
+      // Calculate image dimensions
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Add new page if not first
+      if (!isFirstPage) {
+        pdf.addPage();
+      }
+      
+      // Add image to PDF
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
+      isFirstPage = false;
+    }
+    
+    // Save the PDF
+    const fileName = `${st.personal?.name?.trim() || "Resume"}.pdf`;
+    pdf.save(fileName);
+    
+    // Restore button
+    if (downloadBtn) downloadBtn.innerHTML = originalText;
+    alert("✅ PDF downloaded successfully!");
+    
   } catch (error) {
     console.error("PDF error:", error);
-    alert("Failed to generate PDF. Check console for details.");
+    alert("Failed to generate PDF. Error: " + error.message);
+    const downloadBtn = document.querySelector('.rb-btn.rb-btn-dark');
+    if (downloadBtn) downloadBtn.innerHTML = "💾 Save Progress";
   }
 };
+  
   const eduNorm = normaliseEducation(st.education);
   const resumeData = {
     personal: st.personal,
@@ -3298,9 +3397,14 @@ const handleDownload = async () => {
         </button>
         <div className="rb-sep" />
         <button className="rb-btn" onClick={handleSave}>💾 Save</button>
-     <button disabled={!isSaved} onClick={handleDownload}>
-  Download PDF
-</button>
+        <button 
+          className="rb-btn rb-btn-dark" 
+          disabled={!isSaved} 
+          onClick={handleDownload}
+          style={{ opacity: !isSaved ? 0.5 : 1, cursor: !isSaved ? "not-allowed" : "pointer" }}
+        >
+          ⬇️ Download PDF
+        </button>
       </div>
 
       <div className="rb-layout">
@@ -3315,44 +3419,84 @@ const handleDownload = async () => {
 
         <div className="rb-content">
           <div className="rb-form">
-            <div className="rb-form-head"><h2>{meta.title}</h2><p>{meta.desc}</p></div>
+            <div className="rb-form-head">
+              <h2>{meta.title}</h2>
+              <p>{meta.desc}</p>
+            </div>
             <div className="rb-form-body">{renderForm()}</div>
             <div className="rb-form-foot" style={{ padding: "12px 22px", borderTop: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between" }}>
-  <button className="rb-back" disabled={idx === 0} onClick={() => sec(ALL_SECTIONS[idx - 1].id)}>‹ Back</button>
-  
-  {/* Ippo 'Styling' tab-la irukumbothu mattum Save kaattum */}
-  {st.activeSection === "styling" ? (
-    <button 
-      className="rb-next" 
-      style={{ background: "#2563eb", color: "white", fontWeight: "bold", width: "120px" }} 
-      onClick={handleSave}
-    >
-      💾 Save Resume
-    </button>
-  ) : (
-    <button className="rb-next" disabled={idx === ALL_SECTIONS.length - 1} onClick={() => sec(ALL_SECTIONS[idx + 1].id)}>
-      Next ›
-    </button>
-  )}
-</div>
-</div>
+              <button className="rb-back" disabled={idx === 0} onClick={() => sec(ALL_SECTIONS[idx - 1].id)}>‹ Back</button>
+              
+              {st.activeSection === "styling" ? (
+                <button 
+                  className="rb-next" 
+                  style={{ background: "#2563eb", color: "white", fontWeight: "bold", width: "120px" }} 
+                  onClick={handleSave}
+                >
+                  💾 Save Resume
+                </button>
+              ) : (
+                <button className="rb-next" disabled={idx === ALL_SECTIONS.length - 1} onClick={() => sec(ALL_SECTIONS[idx + 1].id)}>
+                  Next ›
+                </button>
+              )}
+            </div>
+          </div>
 
+          {/* PREVIEW PANEL - FIXED VERSION */}
           <div className="rb-preview" ref={previewRef}>
             <div className="rb-preview-bar">
-              <div className="rb-preview-lbl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /></svg>Live Preview</div>
-              <div className="rb-preview-hint"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>Hover sections to drag &amp; reorder</div>
+              <div className="rb-preview-lbl">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                </svg>
+                Live Preview
+              </div>
+              <div className="rb-preview-hint">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                </svg>
+                {pages.length} page{pages.length === 1 ? "" : "s"} · Drag sections to reorder
+              </div>
             </div>
-            <div className="rb-pages">
+
+            {/* Pages container - scrollable */}
+            <div className="rb-pages" style={{ maxHeight: "calc(100vh - 120px)", overflowY: "auto" }}>
               {pages.map((page, pi) => (
-                <div key={page.id} className="rb-page-block">
+                <div key={page.id} className="rb-page-block" style={{ marginBottom: 24 }}>
                   <PreviewScaler containerRef={previewRef}>
-                    <div className="rb-sheet" ref={pageRef}><LivePreview data={resumeData} styling={st.styling} sectionOrder={order} onReorder={setOrder} /></div>
+                    <div className="rb-sheet" style={{ background: "#fff", minHeight: 842 }} ref={pageRef}>
+                      <LivePreview 
+                        data={resumeData} 
+                        styling={st.styling} 
+                        sectionOrder={order} 
+                        onReorder={setOrder} 
+                      />
+                    </div>
                   </PreviewScaler>
-                  <div className="rb-page-num">Page {pi + 1} of {pages.length}</div>
-                  {pages.length > 1 && <button className="rb-rm-page" onClick={() => removePage(page.id)}>× Remove page</button>}
+                  <div className="rb-page-num" style={{ marginTop: 8, textAlign: "center" }}>
+                    Page {pi + 1} of {pages.length}
+                  </div>
+                  {pages.length > 1 && (
+                    <button 
+                      className="rb-rm-page" 
+                      onClick={() => removePage(page.id)}
+                      style={{ marginTop: 6 }}
+                    >
+                      × Remove this page
+                    </button>
+                  )}
                 </div>
               ))}
-              <button className="rb-add-page" onClick={addPage}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>Add Another Page</button>
+              
+              {/* Add page button */}
+              <button className="rb-add-page" onClick={addPage} style={{ width: "100%", marginTop: 8 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add New Page
+              </button>
             </div>
           </div>
         </div>
@@ -3360,7 +3504,6 @@ const handleDownload = async () => {
     </>
   );
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONTINUATION PAGE — clean blank A4 sheet for page 2+
 // Must be defined OUTSIDE and BEFORE TemplateBuilder
@@ -3468,33 +3611,82 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   };
 
   const handleDownload = async () => {
-    if (!pageRef.current) {
-      alert("Preview not ready. Please wait a moment.");
+  if (!pageRef.current) {
+    alert("Preview not ready. Please wait a moment.");
+    return;
+  }
+  
+  try {
+    // Find the actual resume content
+    const previewContainer = document.querySelector('.rb-preview .rb-pages');
+    const sheetElements = previewContainer?.querySelectorAll('.rb-sheet');
+    
+    if (!sheetElements || sheetElements.length === 0) {
+      alert("No resume content found to export.");
       return;
     }
-    try {
-      const clone = pageRef.current.cloneNode(true);
-      clone.style.cssText =
-        "position:fixed;top:-9999px;left:-9999px;width:595px;background:#fff;margin:0;padding:0;box-shadow:none;";
+    
+    const pdf = new jsPDF({
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait"
+    });
+    
+    const pageWidth = 210;
+    let isFirstPage = true;
+    
+    for (let i = 0; i < sheetElements.length; i++) {
+      const sheet = sheetElements[i];
+      
+      // Find the GalleryPreview content inside
+      const previewContent = sheet.querySelector('[class*="GalleryPreview"]') ||
+                            sheet.querySelector('.rb-sheet > div');
+      
+      if (!previewContent) continue;
+      
+      // Clone for capture
+      const clone = previewContent.cloneNode(true);
+      clone.style.cssText = `
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        width: 595px;
+        background: white;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      `;
+      
       document.body.appendChild(clone);
       await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 200));
+      
       const canvas = await html2canvas(clone, {
-        scale: 3, useCORS: true, backgroundColor: "#ffffff",
-        letterRendering: true, logging: false,
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        windowWidth: 595,
       });
+      
       document.body.removeChild(clone);
-      const imgData   = canvas.toDataURL("image/png");
-      const pdf       = new jsPDF("p", "mm", "a4");
-      const imgWidth  = 210;
+      
+      const imgWidth = pageWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-      pdf.save("resume.pdf");
-    } catch (error) {
-      console.error("PDF error:", error);
-      alert("Failed to generate PDF.");
+      
+      if (!isFirstPage) pdf.addPage();
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
+      isFirstPage = false;
     }
-  };
+    
+    pdf.save("resume.pdf");
+    alert("✅ PDF downloaded successfully!");
+    
+  } catch (error) {
+    console.error("PDF error:", error);
+    alert("Failed to generate PDF: " + error.message);
+  }
+};
 
   const eduNorm    = normaliseEducation(st.education);
   const resumeData = {
