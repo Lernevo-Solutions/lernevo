@@ -35,6 +35,11 @@ const ALL_SECTIONS = [
 ];
 
 const DEFAULT_ORDER = ["summary","experience","education","skills","projects","certifications","languages"];
+const PAGE_SECTION_PRIORITY = [
+  ["experience", "projects", "skills"],
+  ["certifications", "languages", "education"],
+  ["summary", "projects", "experience"],
+];
 
 const SECTION_META = {
   personal:       { title:"Personal Information",   desc:"Your contact details and basic info" },
@@ -363,6 +368,43 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;}
 .rb-add-page{width:595px;height:52px;border:2px dashed #94a3b8;border-radius:8px;background:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;}
 .rb-add-page:hover{border-color:#6366f1;color:#6366f1;background:rgba(99,102,241,.05);}
 .rb-rm-page{margin-top:5px;padding:4px 12px;border:1px solid #fca5a5;border-radius:6px;background:#fff;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+.rb-page-planner{width:595px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.98));border:1px solid rgba(148,163,184,.25);border-radius:20px;padding:20px 22px;box-shadow:0 18px 40px rgba(15,23,42,.08);}
+.rb-page-planner-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;}
+.rb-page-planner-kicker{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(37,99,235,.08);color:#1d4ed8;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+.rb-page-planner-title{font-size:20px;font-weight:800;color:#0f172a;letter-spacing:-.02em;margin:10px 0 6px;}
+.rb-page-planner-copy{font-size:13px;line-height:1.65;color:#475569;max-width:420px;}
+.rb-page-planner-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.rb-page-planner-card{background:#fff;border:1px solid rgba(203,213,225,.9);border-radius:16px;padding:14px;min-height:112px;box-shadow:0 10px 24px rgba(15,23,42,.05);}
+.rb-page-planner-page{font-size:11px;font-weight:800;color:#2563eb;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.rb-page-planner-card-title{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:8px;}
+.rb-page-planner-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.rb-page-planner-tag{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;}
+.rb-cont-sheet{min-height:842px;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);padding:32px 34px 28px;display:flex;flex-direction:column;}
+.rb-cont-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(148,163,184,.28);margin-bottom:22px;}
+.rb-cont-kicker{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(15,23,42,.05);color:#334155;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.rb-cont-title{font-size:28px;font-weight:800;color:#0f172a;letter-spacing:-.03em;margin:12px 0 6px;}
+.rb-cont-copy{font-size:13px;line-height:1.65;color:#475569;max-width:330px;}
+.rb-cont-meta{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;max-width:210px;}
+.rb-cont-chip{display:inline-flex;align-items:center;justify-content:center;padding:7px 12px;border-radius:999px;background:#fff;border:1px solid rgba(203,213,225,.9);font-size:11px;font-weight:700;color:#334155;}
+.rb-cont-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;flex:1;}
+.rb-cont-col{display:flex;flex-direction:column;gap:16px;}
+.rb-cont-section{background:rgba(255,255,255,.94);border:1px solid rgba(203,213,225,.9);border-radius:18px;padding:16px 16px 14px;box-shadow:0 14px 30px rgba(15,23,42,.05);}
+.rb-cont-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(226,232,240,.9);}
+.rb-cont-section-title{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#0f172a;}
+.rb-cont-section-note{font-size:11px;font-weight:700;color:#64748b;}
+.rb-cont-list{display:flex;flex-direction:column;gap:10px;}
+.rb-cont-item{padding:12px;border-radius:14px;background:linear-gradient(180deg,#fff,#f8fafc);border:1px solid rgba(226,232,240,.95);}
+.rb-cont-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:5px;}
+.rb-cont-item-title{font-size:13px;font-weight:800;color:#0f172a;line-height:1.4;}
+.rb-cont-item-meta{font-size:11px;font-weight:700;color:#64748b;text-align:right;white-space:pre-line;}
+.rb-cont-item-sub{font-size:11px;font-weight:700;color:#475569;margin-bottom:5px;}
+.rb-cont-item-copy{font-size:11px;line-height:1.6;color:#475569;white-space:pre-line;}
+.rb-cont-pill-row{display:flex;flex-wrap:wrap;gap:8px;}
+.rb-cont-pill{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border-radius:12px;background:#fff;border:1px solid rgba(191,219,254,.95);font-size:11px;font-weight:700;color:#1e3a8a;}
+.rb-cont-pill-sub{font-size:10px;font-weight:700;color:#64748b;}
+.rb-cont-summary{font-size:12px;line-height:1.75;color:#334155;}
+.rb-cont-empty{padding:18px;border-radius:14px;border:1px dashed rgba(148,163,184,.5);font-size:12px;line-height:1.7;color:#64748b;background:rgba(248,250,252,.85);}
+.rb-cont-footer{margin-top:auto;padding-top:14px;text-align:right;font-size:11px;font-weight:700;color:#94a3b8;}
 
 .rb-drag{position:relative;}
 .rb-drag-handle{position:absolute;left:-26px;top:50%;transform:translateY(-50%);width:20px;height:26px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.28);border-radius:5px;cursor:grab;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5px;opacity:0;transition:opacity .18s;}
@@ -464,11 +506,11 @@ function PreviewScaler({ children, containerRef }) {
       const parent = containerRef?.current || outer.parentElement?.parentElement;
       const availW = (parent?.clientWidth || 800) - 80;
       const s = Math.min(1, Math.max(0.5, availW / 595));
+      const naturalH = inner.scrollHeight;
       inner.style.transform = `scale(${s})`;
       inner.style.transformOrigin = "top left";
       outer.style.width = `${595 * s}px`;
-      // Don't set fixed height - let it auto-adjust
-      outer.style.height = "auto";
+      outer.style.height = `${naturalH * s}px`;
     };
     
     recalc();
@@ -481,7 +523,7 @@ function PreviewScaler({ children, containerRef }) {
   }, [children]);
   
   return (
-    <div ref={wrapRef} style={{ position:"relative", flexShrink:0, minHeight: "auto" }}>
+    <div ref={wrapRef} style={{ position:"relative", flexShrink:0 }}>
       <div ref={innerRef} style={{ position:"absolute", top:0, left:0, width:595 }}>
         {children}
       </div>
@@ -3135,6 +3177,219 @@ function StylingSection({ data, onChange, onSave }) {
   );
 }
 
+function hasSectionContent(data, sectionId) {
+  switch (sectionId) {
+    case "summary":
+      return Boolean(data.summary?.text?.trim());
+    case "experience":
+      return (data.experience || []).some((item) => item.role || item.company || item.description);
+    case "education":
+      return (data.education?.items || []).some((item) => item.title || item.subtitle || item.highlights);
+    case "skills":
+      return (data.skills || []).some((item) => item.name);
+    case "projects":
+      return (data.projects || []).some((item) => item.name || item.description);
+    case "certifications":
+      return (data.certifications || []).some((item) => item.name || item.issuer || item.description);
+    case "languages":
+      return (data.languages || []).some((item) => item.language);
+    default:
+      return false;
+  }
+}
+
+function getContinuationPlan(data, visibleIds, pageIndex) {
+  const available = visibleIds.filter(
+    (id) => !["personal", "styling"].includes(id) && hasSectionContent(data, id)
+  );
+
+  if (available.length === 0) {
+    return [];
+  }
+
+  const preferred = (PAGE_SECTION_PRIORITY[pageIndex % PAGE_SECTION_PRIORITY.length] || []).filter(
+    (id) => available.includes(id)
+  );
+  const fallback = available.filter((id) => !preferred.includes(id));
+  return [...preferred, ...fallback].slice(0, 3);
+}
+
+function ContinuationSheet({ pageNumber, sectionIds, data, accentColor, font }) {
+  const fontStyle = { fontFamily: `'${font}', sans-serif` };
+  const personal = data.personal || {};
+  const accent = accentColor || "#2563eb";
+
+  const renderSection = (sectionId) => {
+    switch (sectionId) {
+      case "summary":
+        return (
+          <section key={sectionId} className="rb-cont-section">
+            <div className="rb-cont-section-head">
+              <span className="rb-cont-section-title">Professional Summary</span>
+              <span className="rb-cont-section-note">Live from form inputs</span>
+            </div>
+            <div className="rb-cont-summary">{data.summary.text}</div>
+          </section>
+        );
+      case "experience":
+        return (
+          <section key={sectionId} className="rb-cont-section">
+            <div className="rb-cont-section-head">
+              <span className="rb-cont-section-title">Experience Highlights</span>
+              <span className="rb-cont-section-note">{data.experience.filter((item) => item.role || item.company).length} entries</span>
+            </div>
+            <div className="rb-cont-list">
+              {data.experience.filter((item) => item.role || item.company).slice(0, 4).map((item) => (
+                <article key={item.id} className="rb-cont-item">
+                  <div className="rb-cont-item-head">
+                    <div className="rb-cont-item-title">{item.role || "Role"}{item.company ? ` at ${item.company}` : ""}</div>
+                    <div className="rb-cont-item-meta">{[item.duration, item.location].filter(Boolean).join("\n")}</div>
+                  </div>
+                  {item.company && !item.role && <div className="rb-cont-item-sub">{item.company}</div>}
+                  {item.description && <div className="rb-cont-item-copy">{item.description}</div>}
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      case "education":
+        return (
+          <section key={sectionId} className="rb-cont-section">
+            <div className="rb-cont-section-head">
+              <span className="rb-cont-section-title">Education</span>
+              <span className="rb-cont-section-note">{data.education.items.length} records</span>
+            </div>
+            <div className="rb-cont-list">
+              {data.education.items.slice(0, 4).map((item) => (
+                <article key={item.id || item.title} className="rb-cont-item">
+                  <div className="rb-cont-item-head">
+                    <div className="rb-cont-item-title">{item.title}</div>
+                    <div className="rb-cont-item-meta">{item.meta}</div>
+                  </div>
+                  {item.subtitle && <div className="rb-cont-item-sub">{item.subtitle}</div>}
+                  {item.highlights && <div className="rb-cont-item-copy">{item.highlights}</div>}
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      case "skills":
+        return (
+          <section key={sectionId} className="rb-cont-section">
+            <div className="rb-cont-section-head">
+              <span className="rb-cont-section-title">Skills</span>
+              <span className="rb-cont-section-note">Competitor-style quick scan</span>
+            </div>
+            <div className="rb-cont-pill-row">
+              {data.skills.filter((item) => item.name).slice(0, 12).map((item) => (
+                <div key={item.id} className="rb-cont-pill">
+                  <span>{item.name}</span>
+                  <span className="rb-cont-pill-sub">{item.badge || item.level}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      case "projects":
+        return (
+          <section key={sectionId} className="rb-cont-section">
+            <div className="rb-cont-section-head">
+              <span className="rb-cont-section-title">Projects</span>
+              <span className="rb-cont-section-note">{data.projects.filter((item) => item.name).length} items</span>
+            </div>
+            <div className="rb-cont-list">
+              {data.projects.filter((item) => item.name).slice(0, 4).map((item) => (
+                <article key={item.id} className="rb-cont-item">
+                  <div className="rb-cont-item-head">
+                    <div className="rb-cont-item-title">{item.name}</div>
+                    <div className="rb-cont-item-meta">{item.date || item.validTill || ""}</div>
+                  </div>
+                  {item.stack && <div className="rb-cont-item-sub">{item.stack}</div>}
+                  {item.description && <div className="rb-cont-item-copy">{item.description}</div>}
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      case "certifications":
+        return (
+          <section key={sectionId} className="rb-cont-section">
+            <div className="rb-cont-section-head">
+              <span className="rb-cont-section-title">Certifications</span>
+              <span className="rb-cont-section-note">Always synced</span>
+            </div>
+            <div className="rb-cont-list">
+              {data.certifications.filter((item) => item.name).slice(0, 4).map((item) => (
+                <article key={item.id} className="rb-cont-item">
+                  <div className="rb-cont-item-head">
+                    <div className="rb-cont-item-title">{item.name}</div>
+                    <div className="rb-cont-item-meta">{item.date || ""}</div>
+                  </div>
+                  {item.issuer && <div className="rb-cont-item-sub">{item.issuer}</div>}
+                  {item.description && <div className="rb-cont-item-copy">{item.description}</div>}
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      case "languages":
+        return (
+          <section key={sectionId} className="rb-cont-section">
+            <div className="rb-cont-section-head">
+              <span className="rb-cont-section-title">Languages</span>
+              <span className="rb-cont-section-note">Readable chip layout</span>
+            </div>
+            <div className="rb-cont-pill-row">
+              {data.languages.filter((item) => item.language).slice(0, 8).map((item) => (
+                <div key={item.id} className="rb-cont-pill">
+                  <span>{item.language}</span>
+                  <span className="rb-cont-pill-sub">{item.proficiency}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const leftColumn = sectionIds.filter((_, index) => index % 2 === 0);
+  const rightColumn = sectionIds.filter((_, index) => index % 2 === 1);
+
+  return (
+    <div className="rb-cont-sheet" style={fontStyle}>
+      <div className="rb-cont-head">
+        <div>
+          <span className="rb-cont-kicker" style={{ background: `${accent}14`, color: accent }}>Continuation Page</span>
+          <div className="rb-cont-title">Page {pageNumber}</div>
+          <div className="rb-cont-copy">
+            This page stays connected to the form panel, so edits in sections like experience, projects, certifications, and languages show here live.
+          </div>
+        </div>
+        <div className="rb-cont-meta">
+          {[personal.name || "Your Name", personal.title || "Resume details", personal.location || "Multi-page layout"].map((item) => (
+            <span key={item} className="rb-cont-chip">{item}</span>
+          ))}
+        </div>
+      </div>
+
+      {sectionIds.length === 0 ? (
+        <div className="rb-cont-empty">
+          Start filling the form sections to populate this page. Once you add experience, projects, certifications, or languages, the continuation preview will update automatically.
+        </div>
+      ) : (
+        <div className="rb-cont-grid">
+          <div className="rb-cont-col">{leftColumn.map(renderSection)}</div>
+          <div className="rb-cont-col">{rightColumn.map(renderSection)}</div>
+        </div>
+      )}
+
+      <div className="rb-cont-footer">Designed for cleaner multi-page exports and easier review in PDF preview.</div>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // BLANK BUILDER
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3585,6 +3840,11 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     "minimalist-top", "minimalist-pro", "photo-ats", "graphic-split",
   ];
   const showAddPage = showAddPageStructures.includes(galleryTemplate.structure);
+  const continuationPages = pages.slice(1).map((page, index) => ({
+    ...page,
+    pageNumber: index + 2,
+    sections: [],
+  }));
 
   const filteredSidebar = ALL_SECTIONS.filter(s => visibleIds.includes(s.id));
   const currentIdx      = filteredSidebar.findIndex(s => s.id === st.activeSection);
@@ -3618,8 +3878,8 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   
   try {
     // Find the actual resume content
-    const previewContainer = document.querySelector('.rb-preview .rb-pages');
-    const sheetElements = previewContainer?.querySelectorAll('.rb-sheet');
+    const previewContainer = previewRef.current?.querySelector('.rb-pages');
+    const sheetElements = previewContainer?.querySelectorAll('.rb-pdf-page');
     
     if (!sheetElements || sheetElements.length === 0) {
       alert("No resume content found to export.");
@@ -3633,19 +3893,13 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     });
     
     const pageWidth = 210;
+    const pageHeight = 297;
     let isFirstPage = true;
     
     for (let i = 0; i < sheetElements.length; i++) {
       const sheet = sheetElements[i];
-      
-      // Find the GalleryPreview content inside
-      const previewContent = sheet.querySelector('[class*="GalleryPreview"]') ||
-                            sheet.querySelector('.rb-sheet > div');
-      
-      if (!previewContent) continue;
-      
-      // Clone for capture
-      const clone = previewContent.cloneNode(true);
+
+      const clone = sheet.cloneNode(true);
       clone.style.cssText = `
         position: fixed;
         top: -9999px;
@@ -3655,6 +3909,8 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        box-shadow: none;
+        transform: none;
       `;
       
       document.body.appendChild(clone);
@@ -3671,12 +3927,34 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
       
       document.body.removeChild(clone);
       
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const sliceHeight = Math.floor((canvas.width * pageHeight) / pageWidth);
+      let yOffset = 0;
       
-      if (!isFirstPage) pdf.addPage();
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
-      isFirstPage = false;
+      while (yOffset < canvas.height) {
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = Math.min(sliceHeight, canvas.height - yOffset);
+        const ctx = pageCanvas.getContext("2d");
+        ctx.drawImage(
+          canvas,
+          0,
+          yOffset,
+          canvas.width,
+          pageCanvas.height,
+          0,
+          0,
+          canvas.width,
+          pageCanvas.height
+        );
+
+        const pageImgHeight = (pageCanvas.height * pageWidth) / pageCanvas.width;
+        if (!isFirstPage) {
+          pdf.addPage();
+        }
+        pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, pageImgHeight);
+        isFirstPage = false;
+        yOffset += sliceHeight;
+      }
     }
     
     pdf.save("resume.pdf");
@@ -3699,6 +3977,10 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     certifications: Array.isArray(st.certifications) ? st.certifications : [makeCert()],
     languages:      Array.isArray(st.languages)      ? st.languages      : [makeLang()],
   };
+  const plannedContinuationPages = continuationPages.map((page, index) => ({
+    ...page,
+    sections: getContinuationPlan(resumeData, visibleIds, index),
+  }));
 
   const renderForm = () => {
     switch (st.activeSection) {
@@ -3826,7 +4108,7 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
             <div className="rb-pages">
               <div className="rb-page-block">
                 <PreviewScaler containerRef={previewRef}>
-                  <div className="rb-sheet" ref={pageRef}>
+                  <div className="rb-sheet rb-pdf-page" ref={pageRef}>
                     <GalleryPreview
                       tpl={galleryTemplate}
                       data={resumeData}
@@ -3836,14 +4118,35 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
                       skillsRatingStyle={st.styling.skillsRatingStyle}
                       languagesDisplayMode={st.styling.languagesDisplayMode}
                       languagesRatingStyle={st.styling.languagesRatingStyle}
-                      extraPages={Math.max(0, pages.length - 1)}
+                      extraPages={0}
                     />
                   </div>
                 </PreviewScaler>
                 <div className="rb-page-num">
-                  {pages.length} page{pages.length === 1 ? "" : "s"} in preview
+                  Page 1 overview
                 </div>
               </div>
+
+              {plannedContinuationPages.map((page) => (
+                <div key={page.id} className="rb-page-block">
+                  <PreviewScaler containerRef={previewRef}>
+                    <div className="rb-sheet rb-pdf-page">
+                      <ContinuationSheet
+                        pageNumber={page.pageNumber}
+                        sectionIds={page.sections}
+                        data={resumeData}
+                        accentColor={st.styling.accentColor}
+                        font={st.styling.font}
+                      />
+                    </div>
+                  </PreviewScaler>
+                  <div className="rb-page-num">
+                    Page {page.pageNumber} continuation preview
+                  </div>
+                </div>
+              ))}
+
+              
             </div>
           </div>
         </div>
