@@ -37,6 +37,7 @@ Candidate Context:
 - User Keywords: {{keywords}}
 - Experience Context: {{experience_context}}
 - Current Summary: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - 3-4 sentences per option
@@ -44,6 +45,7 @@ Requirements:
 - Focus on value, strengths, and role fit
 - Option 1 and Option 2 must take different strategic angles based on the keywords
 - If the keywords imply a strong specialization, reflect that in at least one option
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -57,11 +59,13 @@ Candidate Context:
 - Skills: {{skills}}
 - User Keywords: {{keywords}}
 - Current Summary: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Keep the meaning grounded in the original summary
 - Make it sharper, more ATS friendly, and more role-relevant
 - Use 2 clearly different positioning angles
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -81,12 +85,14 @@ Project Context:
 - User Keywords: {{keywords}}
 - Extra Context: {{context}}
 - Current Description: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Each option should be 2-4 sentences
 - Mention what was built, stack, and impact
 - Make the options different in angle, such as technical depth, product impact, leadership, scale, or performance
 - Avoid bullet points
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -101,11 +107,13 @@ Project Context:
 - Tech Stack: {{tech_stack}}
 - User Keywords: {{keywords}}
 - Current Description: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Keep the original meaning intact where possible
 - Improve clarity, ATS relevance, and impact
 - Make the 2 options clearly different in emphasis
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -126,6 +134,7 @@ Role Context:
 - Tech Stack: {{tech}}
 - User Keywords: {{keywords}}
 - Current Description: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Each option should be 3-5 resume-ready sentences
@@ -133,6 +142,7 @@ Requirements:
 - Use strong action verbs
 - The 2 options must differ in emphasis based on the keywords and context
 - Avoid bullets
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -148,11 +158,13 @@ Role Context:
 - Tech Stack: {{tech}}
 - User Keywords: {{keywords}}
 - Current Description: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Preserve core meaning
 - Improve clarity, ATS keywords, and measurable impact
 - Use 2 clearly different emphasis angles
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -173,11 +185,13 @@ Certification Context:
 - Industry: {{industry}}
 - User Keywords: {{keywords}}
 - Current Highlights: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Each option should be 2-4 sentences
 - Explain what the certification validates and why it matters
 - Make the 2 options different in angle, such as competency-led, applied impact, specialization, or career relevance
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -191,10 +205,12 @@ Certification Context:
 - Issuer: {{issuer}}
 - User Keywords: {{keywords}}
 - Current Highlights: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Keep the content professional and ATS friendly
 - Create 2 clearly distinct angles
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -215,12 +231,14 @@ Education Context:
 - Coursework / Extra Context: {{coursework}}
 - User Keywords: {{keywords}}
 - Current Highlights: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Each option should be 2-4 sentences
 - One option can lean academic/technical while the other can lean profile/achievement/holistic if the context supports it
 - Use the user's keywords to decide the best two angles
 - Keep it resume-ready and ATS friendly
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -235,10 +253,12 @@ Education Context:
 - Institution: {{university}}
 - User Keywords: {{keywords}}
 - Current Highlights: {{current_text}}
+- Target Word Count: {{target_word_count}}
 
 Requirements:
 - Preserve the original meaning where reasonable
 - Create 2 clearly different angles with polished wording
+- Keep each option close to the target word count while staying natural
 
 {JSON_RESPONSE_RULES}
 """,
@@ -253,11 +273,11 @@ Current skills mentioned: {current_skills}
 Experience level: {level}
 
 Return a JSON object with skills categorized:
-{
+{{
     "technical": ["skill1", "skill2", "skill3"],
     "soft": ["skill1", "skill2"],
     "tools": ["tool1", "tool2"]
-}
+}}
 
 Include 5-7 technical skills, 3-4 soft skills, 3-4 tools.
 """

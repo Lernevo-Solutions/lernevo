@@ -205,6 +205,7 @@ class VertexAIService:
                 keywords=user_data.get("keywords", ""),
                 experience_context=user_data.get("experience_context", ""),
                 current_text=current_text or user_data.get("current_text", ""),
+                target_word_count=user_data.get("target_word_count", 100),
             )
         else:
             prompt = SUMMARY_PROMPTS["improve"].format(
@@ -212,6 +213,7 @@ class VertexAIService:
                 title=user_data.get("title", "Professional"),
                 skills=user_data.get("skills", ""),
                 keywords=user_data.get("keywords", ""),
+                target_word_count=user_data.get("target_word_count", 100),
             )
 
         response_text = self._generate_text(prompt, "summary")
@@ -233,6 +235,7 @@ class VertexAIService:
                 keywords=user_data.get("keywords", ""),
                 context=user_data.get("context", ""),
                 current_text=current_projects or user_data.get("current_text", ""),
+                target_word_count=user_data.get("target_word_count", 250),
             )
         else:
             prompt = PROJECTS_PROMPTS["improve"].format(
@@ -241,6 +244,7 @@ class VertexAIService:
                 tech_stack=user_data.get("tech_stack", ""),
                 keywords=user_data.get("keywords", ""),
                 current_text=current_projects,
+                target_word_count=user_data.get("target_word_count", 250),
             )
 
         response_text = self._generate_text(prompt, "projects")
@@ -262,6 +266,7 @@ class VertexAIService:
                 tech=user_data.get("tech_stack", ""),
                 keywords=user_data.get("keywords", ""),
                 current_text=current_bullets or user_data.get("current_text", ""),
+                target_word_count=user_data.get("target_word_count", 200),
             )
         else:
             prompt = EXPERIENCE_PROMPTS["improve"].format(
@@ -271,6 +276,7 @@ class VertexAIService:
                 tech=user_data.get("tech_stack", ""),
                 keywords=user_data.get("keywords", ""),
                 current_text=current_bullets,
+                target_word_count=user_data.get("target_word_count", 200),
             )
 
         response_text = self._generate_text(prompt, "experience")
@@ -292,6 +298,7 @@ class VertexAIService:
                 industry=user_data.get("industry", "Technology"),
                 keywords=user_data.get("keywords", ""),
                 current_text=current_certs or user_data.get("current_text", ""),
+                target_word_count=user_data.get("target_word_count", 100),
             )
         else:
             prompt = CERTIFICATIONS_PROMPTS["improve"].format(
@@ -299,6 +306,7 @@ class VertexAIService:
                 issuer=user_data.get("issuer", ""),
                 keywords=user_data.get("keywords", ""),
                 current_text=current_certs,
+                target_word_count=user_data.get("target_word_count", 100),
             )
 
         response_text = self._generate_text(prompt, "certifications")
@@ -320,6 +328,7 @@ class VertexAIService:
                 coursework=user_data.get("coursework", ""),
                 keywords=user_data.get("keywords", ""),
                 current_text=current_education or user_data.get("current_text", ""),
+                target_word_count=user_data.get("target_word_count", 150),
             )
         else:
             prompt = EDUCATION_PROMPTS["improve"].format(
@@ -328,6 +337,7 @@ class VertexAIService:
                 university=user_data.get("university", "University"),
                 keywords=user_data.get("keywords", ""),
                 current_text=current_education,
+                target_word_count=user_data.get("target_word_count", 150),
             )
 
         response_text = self._generate_text(prompt, "education")
@@ -344,9 +354,36 @@ class VertexAIService:
         response_text = self._generate_text(prompt, "skills")
 
         try:
-            return json.loads(response_text)
+            payload = self._extract_json_payload(response_text)
         except json.JSONDecodeError:
-            return {"raw": response_text}
+            payload = {}
+
+        def _normalize_list(value) -> List[str]:
+            if isinstance(value, list):
+                return [self._clean_text(item) for item in value if self._clean_text(item)]
+            return []
+
+        technical = _normalize_list(payload.get("technical") if isinstance(payload, dict) else None)
+        soft = _normalize_list(payload.get("soft") if isinstance(payload, dict) else None)
+        tools = _normalize_list(payload.get("tools") if isinstance(payload, dict) else None)
+
+        if technical or soft or tools:
+            return {
+                "technical": technical,
+                "soft": soft,
+                "tools": tools,
+            }
+
+        fallback_skills = [
+            self._clean_text(item)
+            for item in re.split(r"[\n,•-]+", response_text)
+            if self._clean_text(item)
+        ]
+        return {
+            "technical": fallback_skills[:7],
+            "soft": [],
+            "tools": [],
+        }
 
 
 vertex_service = VertexAIService()

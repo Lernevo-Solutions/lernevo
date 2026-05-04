@@ -1144,6 +1144,7 @@ def ai_generate_experience(request):
             "tech_stack": "",
             "keywords": keywords,
             "current_text": current_text,
+            "target_word_count": request.data.get("target_word_count", 200),
         }
         mode = "preview"
     else:
@@ -1159,6 +1160,7 @@ def ai_generate_experience(request):
             "tech_stack": skills_text,
             "keywords": keywords,
             "current_text": current_text,
+            "target_word_count": request.data.get("target_word_count", 200),
         }
         mode = "saved"
 
@@ -1189,6 +1191,7 @@ def ai_generate_projects(request):
             "context": context,
             "current_text": current_text,
             "num_projects": request.data.get("num_projects", 3),
+            "target_word_count": request.data.get("target_word_count", 250),
         }
         mode = "preview"
     else:
@@ -1202,6 +1205,7 @@ def ai_generate_projects(request):
             "context": context,
             "current_text": current_text,
             "num_projects": request.data.get("num_projects", 3),
+            "target_word_count": request.data.get("target_word_count", 250),
         }
         mode = "saved"
 
@@ -1224,6 +1228,7 @@ def ai_generate_education(request):
         "coursework": request.data.get("coursework", ""),
         "keywords": request.data.get("keywords", ""),
         "current_text": request.data.get("current_text", ""),
+        "target_word_count": request.data.get("target_word_count", 150),
     }
 
     try:
@@ -1238,29 +1243,36 @@ def ai_generate_education(request):
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def ai_suggest_skills(request):
     resume_id = request.data.get("resume_id")
+    level = request.data.get("level", "Intermediate")
 
-    if not resume_id:
-        return Response({"error": "resume_id required"}, status=400)
+    if not resume_id or resume_id == "null":
+        user_data = {
+            "title": request.data.get("title", ""),
+            "current_skills": request.data.get("current_skills", ""),
+            "level": level,
+        }
+        mode = "preview"
+    else:
+        resume = get_object_or_404(Resume, id=resume_id)
+        personal = ResumePersonalInfo.objects.filter(resume=resume).first()
+        skills = ResumeSkill.objects.filter(resume=resume)
 
-    resume = get_object_or_404(Resume, id=resume_id)
-    personal = ResumePersonalInfo.objects.filter(resume=resume).first()
-    skills = ResumeSkill.objects.filter(resume=resume)
-    skills_text = ", ".join([s.name for s in skills])
-
-    user_data = {
-        "title": personal.job_title if personal else "",
-        "current_skills": skills_text,
-        "level": request.data.get("level", "Intermediate"),
-    }
+        user_data = {
+            "title": personal.job_title if personal else "",
+            "current_skills": ", ".join([s.name for s in skills]),
+            "level": level,
+        }
+        mode = "saved"
 
     try:
         result = vertex_service.generate_skills(user_data)
     except Exception as exc:
         return _vertex_error_response(exc, "Skill suggestion")
 
-    return Response({"success": True, "result": result})
+    return Response({"success": True, "result": result, "mode": mode})
 
 
 @api_view(["GET"])
@@ -1362,6 +1374,7 @@ def ai_generate_summary(request):
             "keywords": keywords,
             "experience_context": request.data.get("experience_context", ""),
             "current_text": current_text,
+            "target_word_count": request.data.get("target_word_count", 100),
         }
 
         try:
@@ -1392,6 +1405,7 @@ def ai_generate_summary(request):
         "keywords": keywords,
         "experience_context": request.data.get("experience_context", ""),
         "current_text": current_text,
+        "target_word_count": request.data.get("target_word_count", 100),
     }
 
     try:
