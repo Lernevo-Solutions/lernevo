@@ -2,10 +2,17 @@ const trimTrailingSlash = (value) => value.replace(/\/+$/, "");
 
 const rawEnv = (process.env.REACT_APP_ENV || "").trim().toLowerCase();
 const isProductionEnv = rawEnv === "production";
+const hostname =
+  typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
+const isLocalHost =
+  hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+const localApiBaseUrl = "http://127.0.0.1:8000/api";
 const productionApiBaseUrl =
   "https://lernevo-backend-237359549871.us-central1.run.app/api";
 
-const defaultApiBaseUrl = isProductionEnv
+const defaultApiBaseUrl = isLocalHost
+  ? localApiBaseUrl
+  : isProductionEnv
   ? productionApiBaseUrl
   : "https://staging-api.lernevo.com/api";
 

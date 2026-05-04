@@ -353,7 +353,7 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;}
 .rb-pages{display:flex;flex-direction:column;align-items:center;gap:20px;padding:0 20px;}
 .rb-page-block{display:flex;flex-direction:column;align-items:center;}
 .rb-page-num{font-size:10px;color:#94a3b8;margin-top:6px;}
-.rb-sheet{width:595px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.14),0 20px 60px rgba(0,0,0,.10);}
+.rb-sheet{width:595px;min-height:842px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.14),0 20px 60px rgba(0,0,0,.10);}
 .rb-add-page{width:595px;height:52px;border:2px dashed #94a3b8;border-radius:8px;background:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;}
 .rb-add-page:hover{border-color:#6366f1;color:#6366f1;background:rgba(99,102,241,.05);}
 .rb-rm-page{margin-top:5px;padding:4px 12px;border:1px solid #fca5a5;border-radius:6px;background:#fff;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
@@ -1198,6 +1198,67 @@ function SuggestionCards({ suggestions, onSelect, truncateAt = 0 }) {
   );
 }
 
+function countWords(text = "") {
+  const trimmed = text.trim();
+  return trimmed ? trimmed.split(/\s+/).length : 0;
+}
+
+function getWordCountState(wordCount, targetWordCount, tolerance = 25) {
+  const min = Math.max(targetWordCount - tolerance, 0);
+  const max = targetWordCount + tolerance;
+  const isUnder = wordCount > 0 && wordCount < min;
+  const isOver = wordCount > max;
+  const isGood = wordCount >= min && wordCount <= max;
+  return { min, max, isUnder, isOver, isGood };
+}
+
+function WordCountSelector({ value, options, label = "Target words", onChange }) {
+  return (
+    <div style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "6px 10px",
+      borderRadius: 12,
+      border: "1px solid #dbe4f0",
+      background: "#f8fbff",
+      boxShadow: "inset 0 1px 0 rgba(255,255,255,.7)",
+    }}>
+      <span style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: ".08em",
+        textTransform: "uppercase",
+        color: "#64748b",
+        whiteSpace: "nowrap",
+      }}>
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={{
+          width: 76,
+          height: 28,
+          borderRadius: 999,
+          border: "1px solid #cbd5e1",
+          background: "#fff",
+          color: "#0f172a",
+          fontSize: 12,
+          fontWeight: 700,
+          padding: "0 10px",
+          outline: "none",
+          cursor: "pointer",
+        }}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>{option}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 // SUMMARY SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1210,14 +1271,13 @@ function SummarySection({ data, onChange, personalData }) {
   const [loading, setLoading] = useState(false);
   const [keywords, setKeywords] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
+  const [targetWordCount, setTargetWordCount] = useState(100);
   
   const jobTitle = personalData?.title || "";
   const resumeId = localStorage.getItem('resumeId');
 
-  const wordCount = data.text?.trim() === "" ? 0 : data.text?.trim().split(/\s+/).length || 0;
-  const MIN = 100, MAX = 200;
-  const isGood = wordCount >= MIN && wordCount <= MAX;
-  const isOver = wordCount > MAX;
+  const wordCount = countWords(data.text || "");
+  const { min: minWords, max: maxWords, isGood, isOver } = getWordCountState(wordCount, targetWordCount, 25);
 
   const handleAISuggest = async () => {
     if (!keywords.trim() && !jobTitle) {
@@ -1235,6 +1295,7 @@ function SummarySection({ data, onChange, personalData }) {
           keywords,
           currentText: data.text || "",
           experienceContext: `${jobTitle} with skills in ${keywords}`.trim(),
+          targetWordCount,
         }
       );
 
@@ -1285,6 +1346,13 @@ function SummarySection({ data, onChange, personalData }) {
 
       {/* Summary textarea with AI button */}
       <div className="rb-g">
+        <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 8 }}>
+          <WordCountSelector
+            value={targetWordCount}
+            options={[100, 150, 200]}
+            onChange={setTargetWordCount}
+          />
+        </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
           <label className="rb-lbl" style={{ margin: 0 }}>Professional Summary</label>
           <button
@@ -1351,12 +1419,10 @@ function ExpCard({ exp, index, total, onUpd, onRem }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading]         = useState(false);
   const [keywords, setKeywords]       = useState("");
+  const [targetWordCount, setTargetWordCount] = useState(200);
 
-  const wordCount = exp.description.trim() === "" ? 0 : exp.description.trim().split(/\s+/).length;
-  const MIN = 200, MAX = 300;
-  const isUnder = wordCount > 0 && wordCount < MIN;
-  const isOver  = wordCount > MAX;
-  const isGood  = wordCount >= MIN && wordCount <= MAX;
+  const wordCount = countWords(exp.description || "");
+  const { isOver, isGood } = getWordCountState(wordCount, targetWordCount, 50);
 const handleAISuggest = async () => {
   if (!keywords.trim() && !exp.company && !exp.role) return;
   setLoading(true);
@@ -1371,6 +1437,7 @@ const handleAISuggest = async () => {
         responsibilities: keywords,
         keywords,
         currentText: exp.description || "",
+        targetWordCount,
       }
     );
     
@@ -1412,6 +1479,13 @@ const handleAISuggest = async () => {
         <input className="rb-in" placeholder="e.g. React, Node.js, agile, REST APIs, team lead…" value={keywords} onChange={e => setKeywords(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
       </div>
       <div className="rb-g">
+        <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:8 }}>
+          <WordCountSelector
+            value={targetWordCount}
+            options={[200, 250, 300, 350]}
+            onChange={setTargetWordCount}
+          />
+        </div>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
           <label className="rb-lbl" style={{ margin:0 }}>Responsibilities</label>
           <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!hasContext || loading} style={{ opacity:(!hasContext || loading) ? 0.5 : 1, cursor:(!hasContext || loading) ? "not-allowed" : "pointer" }}>
@@ -1716,11 +1790,10 @@ function DegreeEntryCard({ edu, index, total, upd, rem }) {
   const [loading, setLoading]         = useState(false);
   const [keywords, setKeywords]       = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
+  const [targetWordCount, setTargetWordCount] = useState(150);
 
-  const wordCount = edu.highlights?.trim() === "" ? 0 : (edu.highlights?.trim().split(/\s+/).length || 0);
-  const MAX = 200;
-  const isOver = wordCount > MAX;
-  const isGood = wordCount >= 100 && wordCount <= MAX;
+  const wordCount = countWords(edu.highlights || "");
+  const { isOver, isGood } = getWordCountState(wordCount, targetWordCount, 25);
 const handleAI = async () => {
   if (!keywords.trim() && !edu.degree && !edu.college) return;
   setLoading(true);
@@ -1737,6 +1810,7 @@ const handleAI = async () => {
         coursework: keywords,
         keywords,
         currentText: edu.highlights || "",
+        targetWordCount,
       }
     );
     
@@ -1813,6 +1887,13 @@ const handleAI = async () => {
       </div>
 
       <div className="rb-g">
+        <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:8 }}>
+          <WordCountSelector
+            value={targetWordCount}
+            options={[100, 150, 200, 250]}
+            onChange={setTargetWordCount}
+          />
+        </div>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             <label className="rb-lbl" style={{ margin:0 }}>
@@ -1878,11 +1959,10 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
   const [loading, setLoading]         = useState(false);
   const [keywords, setKeywords]       = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
+  const [targetWordCount, setTargetWordCount] = useState(100);
 
-  const wordCount = edu.highlights?.trim() === "" ? 0 : (edu.highlights?.trim().split(/\s+/).length || 0);
-  const MAX = 200;
-  const isOver = wordCount > MAX;
-  const isGood = wordCount >= 100 && wordCount <= MAX;
+  const wordCount = countWords(edu.highlights || "");
+  const { isOver, isGood } = getWordCountState(wordCount, targetWordCount, 25);
 
   const handleAI = async () => {
     if (!keywords.trim() && !edu.schoolName) return;
@@ -1898,6 +1978,7 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
         coursework: keywords,
         keywords,
         currentText: edu.highlights || "",
+        targetWordCount,
       });
 
       if (result.success) {
@@ -1957,6 +2038,13 @@ function SchoolEntryCard({ edu, index, total, upd, rem }) {
       </div>
 
       <div className="rb-g">
+        <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:8 }}>
+          <WordCountSelector
+            value={targetWordCount}
+            options={[100, 150, 200]}
+            onChange={setTargetWordCount}
+          />
+        </div>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             <label className="rb-lbl" style={{ margin:0 }}>
@@ -2353,13 +2441,10 @@ function ProjectsSection({ data, onChange }) {
 function ProjCard({ proj, index, total, onUpd, onRem }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading]         = useState(false);
+  const [targetWordCount, setTargetWordCount] = useState(250);
 
-  const wordCount = proj.description.trim() === "" ? 0 : proj.description.trim().split(/\s+/).length;
-  const MIN = 200, MAX = 300;
-  const isUnder = wordCount > 0 && wordCount < MIN;
-  const isOver  = wordCount > MAX;
-  const isGood  = wordCount >= MIN && wordCount <= MAX;
-  const counterMsg    = isGood ? "✓ Great length" : isOver ? `${wordCount - MAX} words over` : isUnder ? `${MIN - wordCount} more needed` : "200–300 words recommended";
+  const wordCount = countWords(proj.description || "");
+  const { isOver, isGood } = getWordCountState(wordCount, targetWordCount, 50);
 
  const handleAISuggest = async () => {
   if (!proj.name && !proj.tech) return;
@@ -2373,6 +2458,7 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
       keywords: proj.keywords || "",
       context: `${proj.name} using ${proj.tech}. Keywords: ${proj.keywords}`.trim(),
       currentText: proj.description || "",
+      targetWordCount,
     });
     
     if (result.success) {
@@ -2391,7 +2477,7 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
     <div className="rb-card">
       <div className="rb-card-head">
         <span className="rb-card-title">Project {index + 1}</span>
-        {total > 1 && <button className="rb-rm" onClick={() => onRem(proj.id)}>×</button>}
+        {total > 1 && <button className="rb-rm" onClick={() => onRem(proj.id)}>x</button>}
       </div>
 
      <div className="rb-row">
@@ -2401,7 +2487,7 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
         </div>
         <div className="rb-g">
           <label className="rb-lbl">Tools / Technologies</label>
-          <input className="rb-in" placeholder="React, Figma, Python, Excel…" value={proj.tech || ""} onChange={e => onUpd(proj.id,"tech",e.target.value)}/>
+          <input className="rb-in" placeholder="React, Figma, Python, Excel..." value={proj.tech || ""} onChange={e => onUpd(proj.id,"tech",e.target.value)}/>
         </div>
       </div>
 
@@ -2412,11 +2498,18 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
         </div>
         <div className="rb-g">
           <label className="rb-lbl">Keywords <span className="opt">(for AI)</span></label>
-          <input className="rb-in" placeholder="e.g. REST API, real-time…" value={proj.keywords || ""} onChange={e => onUpd(proj.id,"keywords",e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
+          <input className="rb-in" placeholder="e.g. REST API, real-time..." value={proj.keywords || ""} onChange={e => onUpd(proj.id,"keywords",e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
         </div>
       </div>
 
     <div className="rb-g">
+          <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:8 }}>
+            <WordCountSelector
+              value={targetWordCount}
+              options={[150, 200, 250, 300, 350]}
+              onChange={setTargetWordCount}
+            />
+          </div>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
             <label className="rb-lbl" style={{ margin:0 }}>Key Highlights</label>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -2424,7 +2517,7 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
               {loading
                 ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
                 : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
-              {loading ? "Generating…" : "AI Suggest"}
+              {loading ? "Generating..." : "AI Suggest"}
             </button>
           </div>
         </div>
@@ -2432,7 +2525,7 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
        <textarea
           className="rb-in rb-ta"
           style={{ minHeight:110, borderColor: isOver ? "#fca5a5" : isGood ? "#86efac" : undefined, transition:"border-color .25s" }}
-          placeholder={hasContext ? "Describe what you built, your role, impact, and key outcomes…" : "Fill Project Title & Tools above to unlock AI suggestions…"}
+          placeholder={hasContext ? `Describe what you built in about ${targetWordCount} words...` : "Fill Project Title & Tools above to unlock AI suggestions..."}
           value={proj.description}
           onChange={e => onUpd(proj.id,"description",e.target.value)}
         />
@@ -2446,7 +2539,7 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
         <div className="sum-suggestions">
           {suggestions.map((s, i) => (
             <div key={i} className="sum-suggestion-card" onClick={() => onUpd(proj.id,"description",s.text)}>
-              <div className="sum-sug-tag">Option {i+1} · {s.tag}</div>
+              <div className="sum-sug-tag">Option {i+1} - {s.tag}</div>
               <div className="sum-sug-text">{s.text}</div>
               <div className="sum-sug-use">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2459,7 +2552,7 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
      {suggestions.length === 0 && (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"6px 2px 0" }}>
           <span className="sum-chips-hint" style={{ padding:0, textAlign:"left" }}>
-            {hasContext ? "Type keywords → click ✨ AI Suggest to generate 2 options" : "Fill Title & Stack fields to unlock AI suggestions"}
+            {hasContext ? "Type keywords -> click AI Suggest to generate 2 options" : "Fill Title & Stack fields to unlock AI suggestions"}
           </span>
           <span style={{
             fontSize:11, fontWeight:600, color:"#9ca3af",
@@ -2467,7 +2560,7 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
             padding:"3px 10px", borderRadius:99, flexShrink:0, marginLeft:10,
             letterSpacing:".2px",
           }}>
-            Aim for 200–300 words
+            Target {targetWordCount} words
           </span>
         </div>
       )}
@@ -2475,24 +2568,18 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ============================================================================
 // CERTIFICATIONS SECTION
-// ═══════════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════════
-// CERTIFICATIONS CARD WITH AI SUGGEST
-// ═══════════════════════════════════════════════════════════════════════════════
-
 function CertCard({ cert, index, total, onUpd, onRem }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [keywords, setKeywords] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
+  const [targetWordCount, setTargetWordCount] = useState(100);
   const resumeId = localStorage.getItem('resumeId');
 
-  const wordCount = cert.description?.trim() === "" ? 0 : (cert.description?.trim().split(/\s+/).length || 0);
-  const MIN = 80, MAX = 150;
-  const isOver = wordCount > MAX;
-  const isGood = wordCount >= MIN && wordCount <= MAX;
+  const wordCount = countWords(cert.description || "");
+  const { isOver, isGood } = getWordCountState(wordCount, targetWordCount, 25);
 
   const handleAISuggest = async () => {
     const hasCtx = cert.name || cert.issuer || keywords.trim();
@@ -2509,6 +2596,7 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
         issuer: cert.issuer || "",
         keywords,
         currentText: cert.description || "",
+        targetWordCount,
       });
 
       if (result.success) {
@@ -2614,6 +2702,13 @@ function CertCard({ cert, index, total, onUpd, onRem }) {
         </div>
 
         <div className="rb-g">
+          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 8 }}>
+            <WordCountSelector
+              value={targetWordCount}
+              options={[100, 150, 200]}
+              onChange={setTargetWordCount}
+            />
+          </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <label className="rb-lbl" style={{ margin: 0 }}>
@@ -3537,39 +3632,26 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
 
             {/* ── Each page = its own independent A4 sheet ── */}
             <div className="rb-pages">
-              {pages.map((page, pi) => (
-                <div key={page.id} className="rb-page-block">
-                  <PreviewScaler containerRef={previewRef}>
-                    <div className="rb-sheet" ref={pi === 0 ? pageRef : null}>
-                      {pi === 0 ? (
-                        // Page 1: real resume content, no extraPages passed
-                        <GalleryPreview
-                          tpl={galleryTemplate}
-                          data={resumeData}
-                          accentColor={st.styling.accentColor}
-                          font={st.styling.font}
-                          skillsDisplayMode={st.styling.skillsDisplayMode}
-                          skillsRatingStyle={st.styling.skillsRatingStyle}
-                          languagesDisplayMode={st.styling.languagesDisplayMode}
-                          languagesRatingStyle={st.styling.languagesRatingStyle}
-                          extraPages={0}
-                        />
-                      ) : (
-                        // Page 2+: clean independent continuation sheet
-                        <ContinuationPage
-                          tpl={galleryTemplate}
-                          accentColor={st.styling.accentColor}
-                          font={st.styling.font}
-                          pageNumber={pi + 1}
-                        />
-                      )}
-                    </div>
-                  </PreviewScaler>
-                  <div className="rb-page-num">
-                    Page {pi + 1} of {pages.length}
+              <div className="rb-page-block">
+                <PreviewScaler containerRef={previewRef}>
+                  <div className="rb-sheet" ref={pageRef}>
+                    <GalleryPreview
+                      tpl={galleryTemplate}
+                      data={resumeData}
+                      accentColor={st.styling.accentColor}
+                      font={st.styling.font}
+                      skillsDisplayMode={st.styling.skillsDisplayMode}
+                      skillsRatingStyle={st.styling.skillsRatingStyle}
+                      languagesDisplayMode={st.styling.languagesDisplayMode}
+                      languagesRatingStyle={st.styling.languagesRatingStyle}
+                      extraPages={Math.max(0, pages.length - 1)}
+                    />
                   </div>
+                </PreviewScaler>
+                <div className="rb-page-num">
+                  {pages.length} page{pages.length === 1 ? "" : "s"} in preview
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>

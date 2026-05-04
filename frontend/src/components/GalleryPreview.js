@@ -299,21 +299,57 @@ function normaliseData(data) {
   // ── Education ──────────────────────────────────────────────────────────────
   // New format: { ug: [{college, degree, branch, graduatedYear, gpa, highlights}], school: [...] }
   // Old/flat format: { degree, college, year, gpa }
-  let edu = { degree: '', college: '', year: '', gpa: '', highlights: '' };
+  let edu = { degree: '', college: '', year: '', gpa: '', highlights: '', items: [] };
 
   if (raw.education) {
     const e = raw.education;
-    if (Array.isArray(e.ug) && e.ug.length > 0) {
-      // New format — pick first UG entry
-      const first = e.ug[0] || {};
-      edu.degree    = [first.degree, first.branch].filter(Boolean).join(' — ');
-      edu.college   = first.college || '';
-      edu.year      = first.graduatedYear || '';
-      edu.gpa       = first.gpa || '';
+    const ugItems = Array.isArray(e.ug)
+      ? e.ug
+          .filter((item) => item?.degree || item?.college || item?.highlights)
+          .map((item) => ({
+            id: item.id,
+            title: [item.degree, item.branch].filter(Boolean).join(' — '),
+            subtitle: item.college || '',
+            meta: [item.graduatedYear, item.gpa ? `GPA: ${item.gpa}` : ''].filter(Boolean).join(' | '),
+            highlights: item.highlights || '',
+          }))
+      : [];
+
+    const schoolItems = Array.isArray(e.school)
+      ? e.school
+          .filter((item) => item?.schoolName || item?.highlights)
+          .map((item) => ({
+            id: item.id,
+            title: item.schoolName || '',
+            subtitle: [item.board, item.stream].filter(Boolean).join(' • '),
+            meta: [item.passingYear, item.percentage ? `Score: ${item.percentage}` : ''].filter(Boolean).join(' | '),
+            highlights: item.highlights || '',
+          }))
+      : [];
+
+    edu.items = [...ugItems, ...schoolItems];
+
+    if (edu.items.length > 0) {
+      const first = edu.items[0];
+      edu.degree = first.title || '';
+      edu.college = first.subtitle || '';
+      edu.year = first.meta || '';
       edu.highlights = first.highlights || '';
     } else if (e.degree || e.college) {
       // Old flat format (backwards compat)
-      edu = { ...edu, ...e };
+      edu = {
+        ...edu,
+        ...e,
+        items: [
+          {
+            id: 'legacy-education',
+            title: e.degree || '',
+            subtitle: e.college || '',
+            meta: [e.year, e.gpa ? `GPA: ${e.gpa}` : ''].filter(Boolean).join(' | '),
+            highlights: e.highlights || '',
+          },
+        ],
+      };
     }
   }
 
@@ -346,7 +382,12 @@ function normaliseData(data) {
   }));
 
   // ── Certifications ────────────────────────────────────────────────────────
-  const certifications = Array.isArray(raw.certifications) ? raw.certifications : [];
+  const certifications = Array.isArray(raw.certifications)
+    ? raw.certifications.map((cert) => ({
+        ...cert,
+        description: cert.description || cert.highlights || cert.keyHighlights || '',
+      }))
+    : [];
 
   // ── Languages ────────────────────────────────────────────────────────────
   // New format: [{ id, language, proficiency, stars }]
@@ -619,8 +660,27 @@ export default function GalleryPreview({
     </div>
   );
 
-  const EduBlock = () =>
-    education.degree || education.college ? (
+  const EduBlock = () => {
+    const items = Array.isArray(education.items)
+      ? education.items.filter((item) => item.title || item.subtitle || item.highlights)
+      : [];
+
+    if (items.length > 0) {
+      return (
+        <div>
+          {items.map((item, index) => (
+            <div key={item.id || `${item.title}-${index}`} style={{ marginBottom: index === items.length - 1 ? 0 : 8 }}>
+              {item.title && <strong style={{ fontSize: 9 }}>{item.title}</strong>}
+              {item.subtitle && <p style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>{item.subtitle}</p>}
+              {item.meta && <p style={{ fontSize: 8, color: '#888' }}>{item.meta}</p>}
+              {item.highlights && <p style={{ fontSize: 8, color: '#555', marginTop: 2, lineHeight: 1.5 }}>{item.highlights}</p>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return education.degree || education.college ? (
       <div>
         <strong style={{ fontSize: 9 }}>{education.degree}</strong>
         {education.college && <p style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>{education.college}</p>}
@@ -630,6 +690,7 @@ export default function GalleryPreview({
     ) : (
       <p style={{ color: '#ccc', fontStyle: 'italic', fontSize: 8 }}>Education here…</p>
     );
+  };
 
   // ── Page 1 rendering ───────────────────────────────────────────────────────
   const renderPage1 = () => {
@@ -858,6 +919,7 @@ export default function GalleryPreview({
                   <div key={c.id} style={{ marginBottom: 5 }}>
                     <strong style={{ fontSize: 9 }}>{c.name}</strong>
                     {c.issuer && <p style={{ fontSize: 8.5, color: '#555', fontStyle: 'italic' }}>{c.issuer}{c.date ? ` · ${c.date}` : ''}</p>}
+                    {c.description && <p style={{ fontSize: 8, color: '#555', marginTop: 2, lineHeight: 1.5 }}>{c.description}</p>}
                   </div>
                 ))}
               </div>
@@ -1824,7 +1886,7 @@ export default function GalleryPreview({
   return (
     <>
       {/* ── Page 1: Real resume content ── */}
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', minHeight: 842, background: '#fff' }}>
         {renderPage1()}
         {totalPages > 1 && <PageFooter cur={1} total={totalPages} font={font} />}
       </div>

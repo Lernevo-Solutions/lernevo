@@ -57,6 +57,7 @@ class VertexAIService {
       keywords = "",
       experienceContext = "",
       currentText = "",
+      targetWordCount = null,
     } = {}
   ) {
     try {
@@ -68,6 +69,7 @@ class VertexAIService {
         keywords,
         experience_context: experienceContext,
         current_text: currentText,
+        target_word_count: targetWordCount,
       });
     } catch (error) {
       console.error("Summary generation failed:", error);
@@ -86,6 +88,7 @@ class VertexAIService {
       context = "",
       currentText = "",
       numProjects = 3,
+      targetWordCount = null,
     } = {}
   ) {
     try {
@@ -99,6 +102,7 @@ class VertexAIService {
         context,
         current_text: currentText,
         num_projects: numProjects,
+        target_word_count: targetWordCount,
       });
     } catch (error) {
       console.error("Projects generation failed:", error);
@@ -115,6 +119,7 @@ class VertexAIService {
       responsibilities = "",
       keywords = "",
       currentText = "",
+      targetWordCount = null,
     } = {}
   ) {
     try {
@@ -126,6 +131,7 @@ class VertexAIService {
         responsibilities,
         keywords,
         current_text: currentText,
+        target_word_count: targetWordCount,
       });
     } catch (error) {
       console.error("Experience generation failed:", error);
@@ -144,6 +150,7 @@ class VertexAIService {
       keywords = "",
       currentText = "",
       industry = "Technology",
+      targetWordCount = null,
     } = {}
   ) {
     try {
@@ -157,6 +164,7 @@ class VertexAIService {
         keywords,
         current_text: currentText,
         industry,
+        target_word_count: targetWordCount,
       });
     } catch (error) {
       console.error("Certifications generation failed:", error);
@@ -175,6 +183,7 @@ class VertexAIService {
       coursework = "",
       keywords = "",
       currentText = "",
+      targetWordCount = null,
     } = {}
   ) {
     try {
@@ -188,6 +197,7 @@ class VertexAIService {
         coursework,
         keywords,
         current_text: currentText,
+        target_word_count: targetWordCount,
       });
     } catch (error) {
       console.error("Education generation failed:", error);
