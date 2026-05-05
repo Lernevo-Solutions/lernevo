@@ -258,6 +258,22 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;}
 .rb-in{width:100%;padding:8px 11px;border:1.5px solid #e5e7eb;border-radius:7px;font-size:13px;font-family:inherit;color:#111827;background:#fff;outline:none;transition:border-color .15s;}
 .rb-in:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);}
 .rb-in::placeholder{color:#9ca3af;}
+.rt-editor-shell{border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;overflow:hidden;transition:border-color .2s, box-shadow .2s;}
+.rt-editor-shell:focus-within{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+.rt-editor{min-height:120px;padding:10px 12px 6px;font-size:13px;line-height:1.65;color:#111827;outline:none;white-space:pre-wrap;word-break:break-word;}
+.rt-editor:empty:before{content:attr(data-placeholder);color:#9ca3af;}
+.rt-toolbar-row{display:flex;justify-content:flex-end;padding:8px 10px 10px;border-top:1px solid #eef2f7;background:#fbfcfe;}
+.rt-toolbar{display:inline-flex;align-items:center;gap:6px;}
+.rt-btn{width:32px;height:30px;border:1px solid #dbe4f0;border-radius:8px;background:#fff;color:#334155;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;}
+.rt-btn:hover{border-color:#a5b4fc;background:#eef2ff;color:#4338ca;}
+.rt-btn-italic{font-style:italic;}
+.rt-btn-underline{text-decoration:underline;}
+.word-slider-wrap{margin-bottom:10px;padding:12px 14px;border:1px solid #dbe4f0;border-radius:16px;background:linear-gradient(180deg,#fbfdff,#f4f8ff);}
+.word-slider-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.word-slider-label{font-size:12px;font-weight:700;color:#334155;}
+.word-slider-value{font-size:12px;font-weight:800;color:#0f172a;}
+.word-slider-input{width:100%;accent-color:#2563eb;cursor:pointer;}
+.word-slider-scale{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-top:6px;}
 .rb-ta{min-height:82px;resize:vertical;line-height:1.55;}
 .rb-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 .rb-ai-wrap{position:relative;}
@@ -1253,8 +1269,44 @@ function SuggestionCards({ suggestions, onSelect, truncateAt = 0 }) {
 }
 
 function countWords(text = "") {
-  const trimmed = text.trim();
+  const trimmed = text
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .trim();
   return trimmed ? trimmed.split(/\s+/).length : 0;
+}
+
+function escapeHtml(text = "") {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function htmlToPlainText(html = "") {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(div|p|li|h[1-6])>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\n\s+\n/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .trim();
+}
+
+function plainTextToHtml(text = "") {
+  if (!text) return "";
+  return text
+    .split(/\r?\n/)
+    .map((line) => escapeHtml(line) || "<br>")
+    .join("<br>");
+}
+
+function normalizeEditorHtml(value = "") {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (/<[a-z][\s\S]*>/i.test(trimmed)) return trimmed;
+  return plainTextToHtml(trimmed);
 }
 
 function getWordCountState(wordCount, targetWordCount, tolerance = 25) {
@@ -1264,6 +1316,96 @@ function getWordCountState(wordCount, targetWordCount, tolerance = 25) {
   const isOver = wordCount > max;
   const isGood = wordCount >= min && wordCount <= max;
   return { min, max, isUnder, isOver, isGood };
+}
+
+function RichTextToolbar({ onFormat }) {
+  return (
+    <div className="rt-toolbar">
+      {[
+        { key: "bold", label: "B", title: "Bold" },
+        { key: "italic", label: "I", title: "Italic" },
+        { key: "underline", label: "U", title: "Underline" },
+      ].map((tool) => (
+        <button
+          key={tool.key}
+          type="button"
+          className={`rt-btn rt-btn-${tool.key}`}
+          title={tool.title}
+          onMouseDown={(event) => {
+            event.preventDefault();
+            onFormat(tool.key);
+          }}
+        >
+          {tool.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function RichTextEditor({ value, onChange, placeholder, minHeight = 130, borderColor }) {
+  const editorRef = useRef(null);
+  const normalizedValue = normalizeEditorHtml(value || "");
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    if (editor.innerHTML !== normalizedValue) {
+      editor.innerHTML = normalizedValue;
+    }
+  }, [normalizedValue]);
+
+  const handleInput = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    onChange(editor.innerHTML);
+  };
+
+  const handlePaste = (event) => {
+    event.preventDefault();
+    const text = event.clipboardData?.getData("text/plain") || "";
+    document.execCommand("insertText", false, text);
+    handleInput();
+  };
+
+  return (
+    <div className="rt-editor-shell" style={{ borderColor: borderColor || "#e5e7eb", minHeight }}>
+      <div
+        ref={editorRef}
+        className="rt-editor"
+        contentEditable
+        suppressContentEditableWarning
+        data-placeholder={placeholder}
+        onInput={handleInput}
+        onPaste={handlePaste}
+      />
+    </div>
+  );
+}
+
+function WordCountSlider({ value, min = 50, max = 500, step = 50, onChange }) {
+  return (
+    <div className="word-slider-wrap">
+      <div className="word-slider-head">
+        <span className="word-slider-label">Target words</span>
+        <span className="word-slider-value">{value} words</span>
+      </div>
+      <input
+        className="word-slider-input"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+      <div className="word-slider-scale">
+        {[min, 150, 250, 350, max].map((mark) => (
+          <span key={mark}>{mark}</span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function WordCountSelector({ value, options, label = "Target words", onChange }) {
@@ -1331,7 +1473,7 @@ function SummarySection({ data, onChange, personalData }) {
   const resumeId = localStorage.getItem('resumeId');
 
   const wordCount = countWords(data.text || "");
-  const { min: minWords, max: maxWords, isGood, isOver } = getWordCountState(wordCount, targetWordCount, 25);
+  const { isGood, isOver } = getWordCountState(wordCount, targetWordCount, 25);
 
   const handleAISuggest = async () => {
     if (!keywords.trim() && !jobTitle) {
@@ -1347,7 +1489,7 @@ function SummarySection({ data, onChange, personalData }) {
           action: "generate",
           title: jobTitle,
           keywords,
-          currentText: data.text || "",
+          currentText: htmlToPlainText(data.text || ""),
           experienceContext: `${jobTitle} with skills in ${keywords}`.trim(),
           targetWordCount,
         }
@@ -1400,45 +1542,45 @@ function SummarySection({ data, onChange, personalData }) {
 
       {/* Summary textarea with AI button */}
       <div className="rb-g">
-        <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 8 }}>
-          <WordCountSelector
-            value={targetWordCount}
-            options={[100, 150, 200]}
-            onChange={setTargetWordCount}
-          />
-        </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <WordCountSlider value={targetWordCount} min={50} max={300} step={50} onChange={setTargetWordCount} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
           <label className="rb-lbl" style={{ margin: 0 }}>Professional Summary</label>
-          <button
-            className="sum-ai-btn-top"
-            onClick={handleAISuggest}
-            disabled={(!keywords.trim() && !jobTitle) || loading}
-            style={{
-              opacity: ((!keywords.trim() && !jobTitle) || loading) ? 0.5 : 1,
-              cursor: ((!keywords.trim() && !jobTitle) || loading) ? "not-allowed" : "pointer",
-            }}
-          >
-            {loading ? (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "exp-spin 0.7s linear infinite" }}>
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-              </svg>
-            ) : (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-              </svg>
-            )}
-            {loading ? "Generating…" : "✨ AI Suggest"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <RichTextToolbar onFormat={(command) => {
+              document.execCommand(command, false, null);
+              const activeEditor = document.activeElement;
+              if (activeEditor?.classList?.contains("rt-editor")) {
+                onChange({ ...data, text: activeEditor.innerHTML });
+              }
+            }} />
+            <button
+              className="sum-ai-btn-top"
+              onClick={handleAISuggest}
+              disabled={(!keywords.trim() && !jobTitle) || loading}
+              style={{
+                opacity: ((!keywords.trim() && !jobTitle) || loading) ? 0.5 : 1,
+                cursor: ((!keywords.trim() && !jobTitle) || loading) ? "not-allowed" : "pointer",
+              }}
+            >
+              {loading ? (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "exp-spin 0.7s linear infinite" }}>
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              ) : (
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                </svg>
+              )}
+              {loading ? "Generating…" : "✨ AI Suggest"}
+            </button>
+          </div>
         </div>
-        <textarea
-          className="rb-in rb-ta"
-          style={{
-            minHeight: 130,
-            borderColor: isGood ? "#86efac" : isOver ? "#fca5a5" : "#e5e7eb",
-          }}
+        <RichTextEditor
+          minHeight={130}
+          borderColor={isGood ? "#86efac" : isOver ? "#fca5a5" : "#e5e7eb"}
           placeholder="Write a 2–3 sentence overview… or type keywords above and click ✨ AI Suggest."
           value={data.text || ""}
-          onChange={e => onChange({ ...data, text: e.target.value })}
+          onChange={(html) => onChange({ ...data, text: html })}
         />
         <p style={{
           fontSize: 11,
@@ -1454,7 +1596,7 @@ function SummarySection({ data, onChange, personalData }) {
       <SuggestionCards
         suggestions={suggestions}
         truncateAt={200}
-        onSelect={(text) => onChange({ ...data, text })}
+        onSelect={(text) => onChange({ ...data, text: plainTextToHtml(text) })}
       />
       {suggestions.length === 0 && keywords.trim() === "" && (
         <div className="sum-chips-hint">
@@ -1490,7 +1632,7 @@ const handleAISuggest = async () => {
         role: exp.role,
         responsibilities: keywords,
         keywords,
-        currentText: exp.description || "",
+        currentText: htmlToPlainText(exp.description || ""),
         targetWordCount,
       }
     );
@@ -1533,32 +1675,31 @@ const handleAISuggest = async () => {
         <input className="rb-in" placeholder="e.g. React, Node.js, agile, REST APIs, team lead…" value={keywords} onChange={e => setKeywords(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAISuggest()}/>
       </div>
       <div className="rb-g">
-        <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:8 }}>
-          <WordCountSelector
-            value={targetWordCount}
-            options={[200, 250, 300, 350]}
-            onChange={setTargetWordCount}
-          />
-        </div>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+        <WordCountSlider value={targetWordCount} min={100} max={500} step={50} onChange={setTargetWordCount} />
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:6 }}>
           <label className="rb-lbl" style={{ margin:0 }}>Responsibilities</label>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <RichTextToolbar onFormat={(command) => {
+              document.execCommand(command, false, null);
+              const activeEditor = document.activeElement;
+              if (activeEditor?.classList?.contains("rt-editor")) {
+                onUpd(exp.id, "description", activeEditor.innerHTML);
+              }
+            }} />
           <button className="sum-ai-btn-top" onClick={handleAISuggest} disabled={!hasContext || loading} style={{ opacity:(!hasContext || loading) ? 0.5 : 1, cursor:(!hasContext || loading) ? "not-allowed" : "pointer" }}>
             {loading
               ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation:"exp-spin 0.7s linear infinite" }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
               : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>}
             {loading ? "Generating…" : "AI Suggest"}
           </button>
+          </div>
         </div>
-        <textarea
-          className="rb-in rb-ta"
-          style={{
-            minHeight:110,
-            borderColor: isOver ? "#fca5a5" : isGood ? "#86efac" : undefined,
-            transition:"border-color .25s",
-          }}
+        <RichTextEditor
+          minHeight={110}
+          borderColor={isOver ? "#fca5a5" : isGood ? "#86efac" : "#e5e7eb"}
           placeholder={hasContext ? "Write directly or click ✦ AI Suggest above…" : "Fill Company & Role above first…"}
           value={exp.description}
-          onChange={e => onUpd(exp.id,"description",e.target.value)}
+          onChange={(html) => onUpd(exp.id,"description",html)}
         />
         <p style={{
           fontSize:11, marginTop:5, fontStyle:"italic", transition:"color .25s",
@@ -1573,7 +1714,7 @@ const handleAISuggest = async () => {
       </div>
       <SuggestionCards
         suggestions={suggestions}
-        onSelect={(text) => onUpd(exp.id,"description",text)}
+        onSelect={(text) => onUpd(exp.id,"description",plainTextToHtml(text))}
       />
       {suggestions.length === 0 && (<div className="sum-chips-hint">{hasContext ? "Type keywords → click ✨ AI Suggest to generate 2 options" : "Fill Company & Role fields to unlock AI suggestions"}</div>)}
     </div>
@@ -3977,11 +4118,6 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     certifications: Array.isArray(st.certifications) ? st.certifications : [makeCert()],
     languages:      Array.isArray(st.languages)      ? st.languages      : [makeLang()],
   };
-  const plannedContinuationPages = continuationPages.map((page, index) => ({
-    ...page,
-    sections: getContinuationPlan(resumeData, visibleIds, index),
-  }));
-
   const renderForm = () => {
     switch (st.activeSection) {
       case "personal":       return <PersonalSection data={st.personal} onChange={v => setFld("personal", v)} styling={st.styling} onStylingChange={v => setFld("styling", v)} />;
@@ -4118,35 +4254,14 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
                       skillsRatingStyle={st.styling.skillsRatingStyle}
                       languagesDisplayMode={st.styling.languagesDisplayMode}
                       languagesRatingStyle={st.styling.languagesRatingStyle}
-                      extraPages={0}
+                      extraPages={Math.max(0, pages.length - 1)}
                     />
                   </div>
                 </PreviewScaler>
                 <div className="rb-page-num">
-                  Page 1 overview
+                  Auto paginated preview
                 </div>
               </div>
-
-              {plannedContinuationPages.map((page) => (
-                <div key={page.id} className="rb-page-block">
-                  <PreviewScaler containerRef={previewRef}>
-                    <div className="rb-sheet rb-pdf-page">
-                      <ContinuationSheet
-                        pageNumber={page.pageNumber}
-                        sectionIds={page.sections}
-                        data={resumeData}
-                        accentColor={st.styling.accentColor}
-                        font={st.styling.font}
-                      />
-                    </div>
-                  </PreviewScaler>
-                  <div className="rb-page-num">
-                    Page {page.pageNumber} continuation preview
-                  </div>
-                </div>
-              ))}
-
-              
             </div>
           </div>
         </div>
