@@ -406,6 +406,53 @@ function normaliseData(data) {
 }
 
 // ─── GalleryPreview ───────────────────────────────────────────────────────────
+function escapeHtml(text = '') {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function stripHtml(html = '') {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(div|p|li|h[1-6])>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s+\n/g, '\n')
+    .trim();
+}
+
+function plainTextToHtml(text = '') {
+  if (!text) return '';
+  return text.split(/\r?\n/).map((line) => escapeHtml(line) || '<br>').join('<br>');
+}
+
+function sanitizeRichText(html = '') {
+  if (!html) return '';
+  const normalized = /<[a-z][\s\S]*>/i.test(html) ? html : plainTextToHtml(html);
+  return normalized
+    .replace(/<(?!\/?(strong|b|em|i|u|br|p|div)\b)[^>]*>/gi, '')
+    .replace(/ on\w+="[^"]*"/gi, '')
+    .replace(/ on\w+='[^']*'/gi, '');
+}
+
+function chunkArray(items, size) {
+  const chunks = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
+function chunkText(text = '', wordsPerChunk = 70) {
+  const words = stripHtml(text).split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  const chunks = [];
+  for (let index = 0; index < words.length; index += wordsPerChunk) {
+    chunks.push(words.slice(index, index + wordsPerChunk).join(' '));
+  }
+  return chunks;
+}
+
 export default function GalleryPreview({
   tpl,
   data,
@@ -639,6 +686,194 @@ export default function GalleryPreview({
 
     return <MiniStars levelNum={filled} />;
   };
+
+  const estimateBlockHeight = (block) => {
+    switch (block.type) {
+      case 'summary':
+        return 90 + Math.ceil(stripHtml(block.html).length / 3.6);
+      case 'education':
+        return 90 + Math.ceil(((block.item.highlights || '').length) / 5);
+      case 'experience':
+        return 112 + Math.ceil((block.description || '').length / 3.3);
+      case 'skills':
+        return 70 + (block.items.length * 16);
+      case 'projects':
+        return 90 + Math.ceil(stripHtml(block.item.description || '').length / 4.2);
+      case 'languages':
+        return 60 + (block.items.length * 16);
+      default:
+        return 80;
+    }
+  };
+
+  const buildBoldTwoColPages = () => {
+    const blocks = [];
+
+    chunkText(summary.text || '', 85).forEach((text, index) => {
+      blocks.push({ key: `summary-${index}`, type: 'summary', html: plainTextToHtml(text) });
+    });
+
+    (education.items || []).forEach((item, index) => {
+      if (item.title || item.subtitle || item.highlights) {
+        blocks.push({ key: `education-${item.id || index}`, type: 'education', item });
+      }
+    });
+
+    experience
+      .filter((item) => item.company || item.role || item.description)
+      .forEach((item, index) => {
+        const descriptionChunks = chunkText(item.description || '', 48);
+        if (!descriptionChunks.length) {
+          blocks.push({ key: `experience-${item.id || index}-0`, type: 'experience', item, description: '' });
+          return;
+        }
+        descriptionChunks.forEach((chunk, chunkIndex) => {
+          blocks.push({
+            key: `experience-${item.id || index}-${chunkIndex}`,
+            type: 'experience',
+            item,
+            description: chunk,
+            isContinuation: chunkIndex > 0,
+          });
+        });
+      });
+
+    chunkArray(skills.filter((item) => item.name), 10).forEach((items, index) => {
+      if (items.length) blocks.push({ key: `skills-${index}`, type: 'skills', items });
+    });
+
+    projects.filter((item) => item.name || item.description).forEach((item, index) => {
+      blocks.push({ key: `projects-${item.id || index}`, type: 'projects', item });
+    });
+
+    chunkArray(languages.filter((item) => item.language), 6).forEach((items, index) => {
+      if (items.length) blocks.push({ key: `languages-${index}`, type: 'languages', items });
+    });
+
+    const pageLimit = 760;
+    const headerHeight = 88;
+    const pages = [];
+    let page = [];
+    let used = headerHeight;
+
+    blocks.forEach((block) => {
+      const blockHeight = estimateBlockHeight(block);
+      if (page.length > 0 && used + blockHeight > pageLimit) {
+        pages.push(page);
+        page = [block];
+        used = headerHeight + blockHeight;
+      } else {
+        page.push(block);
+        used += blockHeight;
+      }
+    });
+
+    if (page.length || !pages.length) pages.push(page);
+    while (pages.length < 1 + validExtraPages) pages.push([]);
+    return pages;
+  };
+
+  const renderBoldTwoColBlock = (block) => {
+    switch (block.type) {
+      case 'summary':
+        return (
+          <div key={block.key} style={{ marginBottom: 12 }}>
+            <div style={{ borderBottom: '1.5px solid #333', paddingBottom: 2, marginBottom: 6 }}><strong style={{ fontSize: 10, letterSpacing: 0.5 }}>SUMMARY</strong></div>
+            <div style={{ fontSize: 8.5, color: '#333', lineHeight: 1.65 }} dangerouslySetInnerHTML={{ __html: sanitizeRichText(block.html) }} />
+          </div>
+        );
+      case 'education':
+        return (
+          <div key={block.key} style={{ marginBottom: 12 }}>
+            <div style={{ borderBottom: '1.5px solid #333', paddingBottom: 2, marginBottom: 7 }}><strong style={{ fontSize: 10, letterSpacing: 0.5 }}>EDUCATION</strong></div>
+            {block.item.title && <strong style={{ fontSize: 9 }}>{block.item.title}</strong>}
+            {block.item.subtitle && <p style={{ fontSize: 8.5, fontStyle: 'italic', color: '#555', marginTop: 2 }}>{block.item.subtitle}</p>}
+            {block.item.meta && <p style={{ fontSize: 8, color: '#777', marginTop: 2 }}>{block.item.meta}</p>}
+            {block.item.highlights && <div style={{ fontSize: 8.5, color: '#333', marginTop: 3, lineHeight: 1.55 }} dangerouslySetInnerHTML={{ __html: sanitizeRichText(block.item.highlights) }} />}
+          </div>
+        );
+      case 'experience':
+        return (
+          <div key={block.key} style={{ marginBottom: 12 }}>
+            <div style={{ borderBottom: '1.5px solid #333', paddingBottom: 2, marginBottom: 7 }}><strong style={{ fontSize: 10, letterSpacing: 0.5 }}>WORK EXPERIENCE</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <strong style={{ fontSize: 9, textTransform: 'uppercase' }}>{block.item.company || block.item.role || 'Experience'}</strong>
+              <span style={{ fontSize: 8.5, color: '#555' }}>{block.item.duration}{block.item.location ? ` | ${block.item.location}` : ''}</span>
+            </div>
+            {block.item.role && <p style={{ fontSize: 8.5, fontStyle: 'italic', color: '#555', marginBottom: 3 }}>{block.isContinuation ? `${block.item.role} (cont.)` : block.item.role}</p>}
+            {block.description && <div style={{ fontSize: 8.5, color: '#333', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeRichText(plainTextToHtml(block.description)) }} />}
+          </div>
+        );
+      case 'skills':
+        return (
+          <div key={block.key} style={{ marginBottom: 12 }}>
+            <div style={{ borderBottom: '1.5px solid #333', paddingBottom: 2, marginBottom: 7 }}><strong style={{ fontSize: 10, letterSpacing: 0.5 }}>TECHNICAL EXPERTISE</strong></div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px' }}>
+              {block.items.map((item) => (
+                <span key={item.id} style={{ fontSize: 8, background: '#f1f5f9', padding: '2px 7px', borderRadius: 4, color: '#333', border: '1px solid #e5e7eb', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span>{item.name}</span>
+                  <SkillRatingDisplay levelNum={item.levelNum} badge={item.badge} />
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      case 'projects':
+        return (
+          <div key={block.key} style={{ marginBottom: 12 }}>
+            <div style={{ borderBottom: '1.5px solid #333', paddingBottom: 2, marginBottom: 7 }}><strong style={{ fontSize: 10, letterSpacing: 0.5 }}>PROJECTS</strong></div>
+            <strong style={{ fontSize: 9 }}>{block.item.name}</strong>
+            {block.item.stack && <span style={{ fontSize: 8, color: '#555', fontStyle: 'italic' }}> · {block.item.stack}</span>}
+            {block.item.description && <div style={{ fontSize: 8.5, color: '#333', marginTop: 2, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeRichText(block.item.description) }} />}
+          </div>
+        );
+      case 'languages':
+        return (
+          <div key={block.key} style={{ marginBottom: 12 }}>
+            <div style={{ borderBottom: '1.5px solid #333', paddingBottom: 2, marginBottom: 7 }}><strong style={{ fontSize: 10, letterSpacing: 0.5 }}>LANGUAGES</strong></div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
+              {block.items.map((item) => (
+                <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 8.5, color: '#333' }}>{item.language}</span>
+                  <LanguageRatingDisplay language={item} activeColor="#333" emptyColor="#ddd" />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (tpl.structure === 'bold-two-col') {
+    const pages = buildBoldTwoColPages();
+    const totalPages = pages.length;
+
+    return (
+      <>
+        {pages.map((pageBlocks, index) => (
+          <React.Fragment key={`bold-two-col-page-${index}`}>
+            {index > 0 && <PageBreakDivider />}
+            <div style={{ position: 'relative', minHeight: 842, background: '#fff', padding: '20px 28px', fontFamily: `'${font}', sans-serif` }}>
+              <div style={{ textAlign: 'center', marginBottom: 14 }}>
+                <h1 style={{ fontSize: 21, fontWeight: 700, color: '#111', margin: 0 }}>{name}</h1>
+                <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '4px 18px', fontSize: 8.5, color: '#333', marginTop: 8 }}>
+                  {personal.location && <span>📍 {personal.location}</span>}
+                  {personal.email && <span>✉ {personal.email}</span>}
+                  {personal.phone && <span>📞 {personal.phone}</span>}
+                </div>
+              </div>
+              {pageBlocks.length ? pageBlocks.map(renderBoldTwoColBlock) : <BlankBody structure="bold-two-col" accentColor="#333" font={font} />}
+              <div style={{ marginTop: 'auto' }}>
+                <PageFooter cur={index + 1} total={totalPages} font={font} />
+              </div>
+            </div>
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }
 
   const ExpItems = ({ compact = false }) => (
     <div>
