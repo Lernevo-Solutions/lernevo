@@ -44,6 +44,7 @@ import ResumeBuilder from "./components/Resumebuilderrouter";
 import Homepage from "./components/HomePage";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
+import Skill from "./components/skill"
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
@@ -56,6 +57,7 @@ const AppLayout = () => {
     "/reset-password-confirm",
     "/features/coming-soon",
     "/builder",
+    "/skill",
   ];
 
   // 👉 Navbar hide panna routes
@@ -134,6 +136,7 @@ const AppLayout = () => {
         <Route path="/builder" element={<ResumeBuilder />} />
         <Route path="/home" element={<Homepage />} />
         <Route path="/templates" element={<Templates />} />
+        <Route path="/skill"element={<Skill/>}/>
       </Routes>
 
       {/* ✅ Footer conditionally */}
