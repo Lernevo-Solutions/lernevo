@@ -790,4 +790,422 @@ body {
   .results-wrapper {
     padding: 20px;
   }
+}/* New Highlight Banner */
+.highlight-banner {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.15));
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.highlight-icon {
+  font-size: 2rem;
+}
+
+.highlight-text {
+  flex: 1;
+  font-size: 1rem;
+  color: #e2e8f0;
+}
+
+.highlight-text strong {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.highlight-badge, .learning-time-badge {
+  background: rgba(6, 182, 212, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+/* Quick Wins Section */
+.quick-wins-section {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.quick-wins-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.quick-icon {
+  font-size: 1.5rem;
+}
+
+.quick-wins-header h4 {
+  color: #10b981;
+  margin: 0;
+}
+
+.quick-badge {
+  background: rgba(16, 185, 129, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  color: #10b981;
+}
+
+.quick-wins-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quick-win-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.quick-win-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
+}
+
+.quick-win-number {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+.quick-win-skill {
+  flex: 1;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.quick-win-time {
+  font-size: 0.75rem;
+  color: #10b981;
+  padding: 0.25rem 0.5rem;
+  background: rgba(16, 185, 129, 0.15);
+  border-radius: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .highlight-banner {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .quick-win-item {
+    flex-wrap: wrap;
+  }
+  
+  .learning-time-badge {
+    font-size: 0.75rem;
+  }
+}/* Tabs */
+.results-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 1rem;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+}
+
+/* Job Match Card */
+.job-match-card {
+  background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-left: 4px solid;
+}
+
+.match-score-large {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.match-percent {
+  font-size: 4rem;
+  font-weight: 800;
+}
+
+.match-verdict {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-left: 1rem;
+}
+
+/* AI Suggestions */
+.ai-suggestions h3 {
+  margin-bottom: 1rem;
+  color: #e2e8f0;
+}
+
+.suggestions-list {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.suggestion-card {
+  background: rgba(255,255,255,0.05);
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.suggestion-card.priority-high { border-left: 4px solid #ef4444; }
+.suggestion-card.priority-medium { border-left: 4px solid #f59e0b; }
+.suggestion-card.priority-low { border-left: 4px solid #10b981; }
+
+.suggestion-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.suggestion-skill {
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+.suggestion-impact {
+  background: #10b981;
+  padding: 0.25rem 0.5rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+}
+
+.suggestion-project {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+/* ATS Dashboard */
+.ats-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.ats-score-card {
+  background: rgba(255,255,255,0.05);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.ats-score-ring {
+  position: relative;
+  display: inline-block;
+}
+
+.ats-score-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.ats-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #8b5cf6;
+}
+
+.metric {
+  margin: 1rem 0;
+}
+
+.metric-bar {
+  background: #1e293b;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.metric-fill {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s;
+}
+
+.ats-suggestions ul {
+  list-style: none;
+  padding: 0;
+}
+
+.ats-suggestions li {
+  padding: 0.5rem 0;
+  color: #cbd5e1;
+}
+
+/* Roadmap */
+.roadmap-timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.roadmap-item {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.roadmap-item::before {
+  content: '';
+  position: absolute;
+  left: -2rem;
+  top: 2rem;
+  bottom: -2rem;
+  width: 2px;
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+}
+
+.roadmap-item:last-child::before {
+  display: none;
+}
+
+.roadmap-week {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.roadmap-content {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.resource-tag {
+  display: inline-block;
+  background: rgba(59,130,246,0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  margin: 0.25rem;
+}
+
+/* Progress Tracker */
+.progress-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.progress-stat {
+  background: rgba(255,255,255,0.05);
+  padding: 1rem;
+  border-radius: 1rem;
+  text-align: center;
+  flex: 1;
+}
+
+.progress-stat strong {
+  font-size: 2rem;
+  display: block;
+  color: #8b5cf6;
+}
+
+.progress-skill-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.progress-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.progress-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.progress-btn.active {
+  background: #10b981;
+  color: white;
+}
+
+/* Fix Resume Button */
+.fix-resume-btn {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.3s;
+}
+
+.fix-resume-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ats-dashboard {
+    grid-template-columns: 1fr;
+  }
+  
+  .progress-skill-item {
+    flex-direction: column;
+    gap: 1rem;
+  }
 }

@@ -7921,4 +7921,64 @@ align-items:center;
     opacity: 1;
     transform: translateY(0);
   }
+}/* ===== ENTIRE TEMPLATE SECTION - BLUE BACKGROUND FOR CARDS ===== */
+
+/* Make the template section background slightly blue too */
+.rb-template-grid-section {
+  background: #f8fafc;
+}
+
+.section-title {
+  color: #0f172a;
+}
+
+/* Template grid cards - soft blue background */
+.rb-template-grid .rb-template-box-wrapper {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
+  border-radius: 20px;
+  padding: 15px;
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Hover effect - deeper blue */
+.rb-template-grid .rb-template-box-wrapper:hover {
+  background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%) !important;
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.2);
+}
+
+/* Inner resume preview - white background */
+.rb-resume-inner-preview {
+  background: white !important;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Template name styling */
+.rb-template-label h3 {
+  color: #1e3a8a !important;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 12px 0 8px 0;
+}
+
+/* Select badge */
+.rb-select-badge {
+  background: #2563eb;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect on badge */
+.rb-template-box-wrapper:hover .rb-select-badge {
+  background: #1d4ed8;
+  transform: scale(1.05);
 }

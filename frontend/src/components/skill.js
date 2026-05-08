@@ -10,15 +10,33 @@ const SkillGapAnalyzer = () => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Complete Skill Database
+  // Complete Skill Database - ENHANCED
   const SKILL_DATABASE = [
+    // Technical Skills
     'python', 'javascript', 'react', 'node.js', 'java', 'typescript',
     'html', 'css', 'mongodb', 'postgresql', 'mysql', 'aws', 'docker',
     'kubernetes', 'git', 'machine learning', 'data analysis', 'sql',
     'figma', 'ui/ux', 'leadership', 'communication', 'project management',
     'agile', 'scrum', 'rest api', 'graphql', 'tensorflow', 'pytorch',
     'excel', 'tableau', 'power bi', 'c++', 'c#', 'php', 'laravel',
-    'django', 'flask', 'spring boot', 'azure', 'jenkins', 'terraform'
+    'django', 'flask', 'spring boot', 'azure', 'jenkins', 'terraform',
+    
+    // NEW SKILLS ADDED
+    'laugh', 'humor', 'emotional intelligence', 'empathy', 'active listening',
+    'storytelling', 'public speaking', 'negotiation', 'conflict resolution',
+    'team collaboration', 'critical thinking', 'problem solving', 'creativity',
+    'time management', 'adaptability', 'resilience', 'stress management',
+    'decision making', 'delegation', 'coaching', 'mentoring', 'feedback',
+    'presentation', 'sales', 'marketing', 'seo', 'content writing',
+    'analytical skills', 'research', 'statistics', 'r programming',
+    'snowflake', 'airflow', 'spark', 'hadoop', 'linux', 'bash',
+    'nginx', 'apache', 'redis', 'rabbitmq', 'kafka',
+    'next.js', 'vue.js', 'angular', 'svelte', 'tailwind css',
+    
+    // Soft Skills
+    'teamwork', 'work ethic', 'positive attitude', 'flexibility',
+    'self motivation', 'attention to detail', 'organization',
+    'multitasking', 'customer service', 'interpersonal skills'
   ];
 
   const extractSkills = (text) => {
@@ -31,6 +49,7 @@ const SkillGapAnalyzer = () => {
 
   const getRecommendation = (skill) => {
     const recommendations = {
+      // Original recommendations
       'react': '🎨 Build 5+ React apps (E-commerce, Dashboard, Social Media) + Master Hooks & Context API',
       'python': '🐍 100 Days of Code + Build Automation Scripts + Flask/Django Projects',
       'javascript': '⚡ Master ES6+, Async/Await, Promises + Build 10 Real-world Projects',
@@ -47,9 +66,67 @@ const SkillGapAnalyzer = () => {
       'leadership': '👥 Lead Teams + Mentorship + Decision Making Courses',
       'figma': '🎨 Design Systems + Prototyping + UI Animation Courses',
       'java': '☕ Spring Boot Microservices + Hibernate + REST APIs',
-      'php': '🐘 Laravel from Scratch + Build CMS + E-commerce Sites'
+      'php': '🐘 Laravel from Scratch + Build CMS + E-commerce Sites',
+      
+      // NEW LAUGH & HUMOR RECOMMENDATIONS
+      'laugh': '😂 நகைச்சுவை உணர்வை வளர்க்க: Stand-up Comedy classes பாருங்கள் + Friends/The Office பார்க்கும் போது timing-ஐ analyze பண்ணுங்கள் + உங்கள் team-ல daily 1 funny incident share பண்ணுங்கள் + Laughter yoga try பண்ணுங்கள்',
+      'humor': '🎭 Workplace humor mastery: ப்ரசண்டேஷன்ஸ்-ல light moments add பண்ணுங்கள் + Slack/Teams-ல funny GIFs use பண்ணுங்கள் + "The Humor Code" book படியுங்கள் + Practice witty comebacks',
+      
+      // New soft skills recommendations
+      'emotional intelligence': '🧠 Daniel Goleman-ன் EI book படியுங்கள் + Daily self-reflection journal maintain பண்ணுங்கள் + Take EQ assessment + Practice empathy mapping',
+      'empathy': '💖 Active listening practice + Volunteer for social causes + Read fiction books + "Nonviolent Communication" book',
+      'active listening': '👂 Listen without interrupting + Paraphrase what others say + Maintain eye contact + Take notes during meetings',
+      'storytelling': '📖 "Storytelling with Data" book + 5-minute stories practice பண்ணுங்கள் + TED talks analyze பண்ணுங்கள் + Build a personal story bank',
+      'public speaking': '🎤 Toastmasters join பண்ணுங்கள் + Mirror-ல每天 2 minutes பேசுங்கள் + Record yourself + Start with small groups',
+      'negotiation': '🤝 "Never Split the Difference" book + Role-play with friends + Take Harvard negotiation course + Practice BATNA technique',
+      'conflict resolution': '⚡ "Crucial Conversations" book + Mediation training + Practice 5-step conflict resolution framework + Team building activities',
+      'team collaboration': '🤝 Active participation in meetings + Knowledge sharing sessions + Pair programming + Cross-functional projects',
+      'critical thinking': '🧩 Chess விளையாடுங்கள் + "Thinking Fast and Slow" book படியுங்கள் + Analyze case studies + Ask "Why?" 5 times',
+      'problem solving': '💡 Practice design thinking + Codewars challenges + Real-world problem analysis + Root cause analysis training',
+      'creativity': '🎨 Daily 10 minutes mind mapping + New hobby try பண்ணுங்கள் + Brainstorming sessions + Take creative writing classes',
+      'time management': '⏰ Pomodoro technique + Eisenhower Matrix + Time blocking + "Deep Work" by Cal Newport',
+      'adaptability': '🔄 Every week new tool learn பண்ணுங்கள் + Change your routine frequently + Embrace feedback + Learn growth mindset',
+      'resilience': '💪 Meditation practice + "Grit" book by Angela Duckworth + Daily affirmations + Build support network',
+      'stress management': '🧘 Mindfulness meditation + Regular exercise + Sleep hygiene + "The Relaxation Response" techniques',
+      'decision making': '⚖️ Pros/cons list habit + "Decisive" book by Chip Heath + Decision matrix + 10/10/10 rule',
+      'delegation': '📋 Trust your team + Clear instructions + Follow up system + "Who Does What" by Jan R. Margolis',
+      'coaching': '🎯 GROW model mastery + Active listening + Powerful questioning + Certified coaching course',
+      'mentoring': '🌟 Share experiences + Regular 1:1 meetings + Goal setting + Reverse mentoring',
+      'feedback': '💬 SBI feedback model + Regular feedback sessions + Receive gracefully + "Thanks for the Feedback" book',
+      'presentation': '📊 Slide design mastery + Story arc structure + Body language practice + Presentation delivery course',
+      'sales': '💰 "Fanatical Prospecting" book + Role-play objection handling + Sandler training + Sales pipeline management',
+      'marketing': '📢 Digital marketing certification + Google Analytics + Content strategy + A/B testing',
+      'seo': '🔍 Google Search Console use பண்ணுங்கள் + Moz/Semrush course complete பண்ணுங்கள் + Keyword research + Backlink strategy',
+      'content writing': '✍️ Daily writing practice + Hemingway app + SEO writing course + Build writing portfolio',
+      'analytical skills': '📊 Excel mastery + SQL practice + Data visualization + Critical analysis exercises',
+      'research': '🔬 Research methodology course + Academic writing + Citation tools + Literature review techniques',
+      
+      // Technical new skills
+      'next.js': '⚛️ Build 3 full-stack apps + App Router master பண்ணுங்கள் + Server components + ISR implementation',
+      'tailwind css': '🎨 Official playlist follow பண்ணுங்கள் + Build 5 UI components + Custom plugin development + Dark mode',
+      'vue.js': '💚 Vue Mastery course + Build 5 projects + Composition API + Pinia state management',
+      'angular': '🅰️ Angular University + RxJS mastery + Build enterprise apps + NgRx state management',
+      'typescript': '🔷 TypeScript Deep Dive + Generics mastery + Advanced types + Decorators',
+      'redis': '📦 Redis University + Caching strategies + Pub/Sub + RedisJSON',
+      'kafka': '📨 Confluent certification + Event-driven architecture + Stream processing',
+      'graphql': '🚀 Apollo GraphQL course + Schema design + Federation + Performance optimization',
+      'snowflake': '❄️ Snowflake certification + Data warehouse design + Query optimization',
+      'airflow': '⏫ Astronomer certification + DAG writing + Pipeline orchestration',
+      'spark': '🔥 Databricks certification + PySpark + Streaming + Optimization',
+      'linux': '🐧 Linux command line mastery + Bash scripting + System administration',
+      'bash': '💻 Advanced bash scripting + Automation + Cron jobs + Debugging'
     };
-    return recommendations[skill.toLowerCase()] || `🎯 Accelerate ${skill} with Hands-on Projects & Industry Certifications`;
+    
+    // Default recommendation if skill not found
+    return recommendations[skill.toLowerCase()] || `🎯 Accelerate ${skill} with Hands-on Projects & Industry Certifications. Pro tip: Break it down into weekly goals!`;
+  };
+
+  // Function to estimate learning time
+  const getLearningTimeEstimate = (missingSkillsCount) => {
+    if (missingSkillsCount === 0) return 'You\'re ready! 🎉';
+    if (missingSkillsCount <= 2) return '⚡ 2-4 weeks';
+    if (missingSkillsCount <= 5) return '📘 1-3 months';
+    return '🚀 3-6 months';
   };
 
   const handleFileUpload = (file) => {
@@ -124,7 +201,10 @@ const SkillGapAnalyzer = () => {
         verdict,
         verdictColor,
         verdictIcon,
-        message
+        message,
+        topStrengths: matchedSkills.slice(0, 3),
+        quickWins: missingSkills.slice(0, 2),
+        learningTime: getLearningTimeEstimate(missingSkills.length)
       });
       
       setIsLoading(false);
@@ -280,6 +360,22 @@ const SkillGapAnalyzer = () => {
               <div className="results-date">{analysisResult.timestamp}</div>
             </div>
 
+            {/* NEW HIGHLIGHT BANNER */}
+            <div className="highlight-banner">
+              <div className="highlight-icon">⭐</div>
+              <div className="highlight-text">
+                <strong>Your Superpower:</strong> {analysisResult.topStrengths.length > 0 
+                  ? analysisResult.topStrengths.join(', ') 
+                  : 'Your determination to learn!'}
+              </div>
+              <div className="highlight-badge">
+                🎯 {analysisResult.quickWins.length} Quick Win{analysisResult.quickWins.length !== 1 ? 's' : ''} Available
+              </div>
+              <div className="learning-time-badge">
+                ⏱️ {analysisResult.learningTime}
+              </div>
+            </div>
+
             {/* Score Dashboard */}
             <div className="score-dashboard">
               <div className="score-ring-container">
@@ -386,11 +482,31 @@ const SkillGapAnalyzer = () => {
                     </div>
                   ))}
                   {analysisResult.missingSkills.length === 0 && (
-                    <div className="empty-panel success">🎉 Perfect match! No gaps found!</div>
+                    <div className="empty-panel success">🎉 Perfect match! No gaps found! You're ready for this role!</div>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Quick Wins Section */}
+            {analysisResult.quickWins.length > 0 && (
+              <div className="quick-wins-section">
+                <div className="quick-wins-header">
+                  <span className="quick-icon">⚡</span>
+                  <h4>Quick Wins - Start Here!</h4>
+                  <span className="quick-badge">Easy to Learn</span>
+                </div>
+                <div className="quick-wins-list">
+                  {analysisResult.quickWins.map((skill, i) => (
+                    <div key={i} className="quick-win-item">
+                      <span className="quick-win-number">{i + 1}</span>
+                      <span className="quick-win-skill">{skill}</span>
+                      <span className="quick-win-time">~1-2 weeks</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

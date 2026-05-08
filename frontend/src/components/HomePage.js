@@ -107,26 +107,26 @@ useEffect(() => {
 const homeTemplates = [
   {
     id: 1,
-    name: "Sidebar Left",
-    structure: "sidebar-left",
-    image: template1Img // Inga import panna image
+    name: "Classic Minimal",
+    structure: "classic-minimal",
+    image: template1Img
   },
   {
     id: 2,
-    name: "Minimal",
-    structure: "minimal-no-photo",
+    name: "Serif Pro",
+    structure: "serif-pro",
     image: template2Img
   },
   {
     id: 3,
-    name: "Executive Grid",
-    structure: "executive-grid",
+    name: "Two Column Modern",
+    structure: "bold-two-col",
     image: template3Img
   },
   {
     id: 4,
-    name: "Header Bold",
-    structure: "header-bg",
+    name: "Data Pro ATS",
+    structure: "photo-ats",
     image: template4Img
   }
 ];
@@ -433,43 +433,51 @@ useEffect(() => {
   <div className="rb-container">
     <h2>Choose Your Real-World Template</h2>
 
-  <div className="rb-template-grid">
+    <div className="rb-template-grid">
+      {homeTemplates.map((tpl) => (
+        <div className="rb-template-box-wrapper" key={tpl.id}>
+          {/* Template Card - Ippo Link Add Pannanum */}
+          <Link 
+            to="/builder" 
+            state={{ 
+              template: tpl,
+              selectedColor: "#2563eb"
+            }}
+            style={{ textDecoration: 'none', display: 'block' }}
+          >
+            <div className="rb-resume-inner-preview" style={{ 
+              padding: '0',
+              overflow: 'hidden',
+              height: '420px',
+              display: 'flex',
+              cursor: 'pointer'
+            }}>
+              <img 
+                src={tpl.image} 
+                alt={tpl.name} 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover',
+                  objectPosition: 'top'
+                }} 
+              />
+            </div>
 
-{homeTemplates.map((tpl)=>(
-  <div className="rb-template-box-wrapper" key={tpl.id}>
-
-   <div className="rb-resume-inner-preview" style={{ 
-  padding: '0',           // Box kulla padding-a remove pannunga
-  overflow: 'hidden',     // Image box-a vittu veliya varama irukka
-  height: '420px',        // CSS-la irukira height
-  display: 'flex'         // Alignment-kaga
-}}>
-  <img 
-    src={tpl.image} 
-    alt={tpl.name} 
-    style={{ 
-      width: '100%', 
-      height: '100%', 
-      objectFit: 'cover', // Ithu thaan image-a full-aa fill panna vaikkum
-      objectPosition: 'top' // Resume-oda top part first theriyum
-    }} 
-  />
-</div>
-
-    <div className="rb-template-label">
-      <h3>{tpl.name}</h3>
+            <div className="rb-template-label">
+              <h3>{tpl.name}</h3>
+              <span className="rb-select-badge">Select Template →</span>
+            </div>
+          </Link>
+        </div>
+      ))}
     </div>
 
-  </div>
-))}
-
-</div>
     <div className="rb-view-all">
       <Link to="/templates" className="rb-animated-arrow">
         View All Templates <span>→</span>
       </Link>
     </div>
-
   </div>
 </section>
       {/* Features Section */}
