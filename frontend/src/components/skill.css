@@ -1056,4 +1056,596 @@ body {
   border: 1px solid #e2e8f0;
   position: relative;
   z-index: 5;
+}/* ========== BEAUTIFUL ATS SCORE CIRCLE ========== */
+
+.ats-hero-section {
+  margin-bottom: 32px;
+}
+
+.ats-header-minimal {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.header-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.chip-dot {
+  width: 6px;
+  height: 6px;
+  background: #3b82f6;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.ats-header-minimal h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Score Showcase */
+.score-showcase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score-ring-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.ring-bg {
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.08), transparent);
+  border-radius: 50%;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+.score-ring {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  z-index: 1;
+}
+
+.score-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-value-inside {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: white;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.big-score {
+  font-size: 56px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+
+.score-outof {
+  font-size: 16px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.score-status {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-top: 5px;
+  background: #eff6ff;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* Verdict Card */
+.verdict-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 24px;
+  border-radius: 24px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.verdict-icon {
+  font-size: 36px;
+}
+
+.verdict-text strong {
+  font-size: 16px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.verdict-text p {
+  font-size: 12px;
+  color: #475569;
+  margin: 0;
+}
+
+/* Encouragement Text */
+.encouragement-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 12px 24px;
+  border-radius: 60px;
+  font-size: 13px;
+  color: #475569;
+  margin-top: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.enc-emoji {
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .big-score {
+    font-size: 44px;
+  }
+  
+  .score-value-inside {
+    width: 110px;
+    height: 110px;
+  }
+  
+  .score-ring {
+    width: 180px;
+    height: 180px;
+  }
+  
+  .ring-bg {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .verdict-card {
+    padding: 12px 20px;
+    max-width: 320px;
+  }
+  
+  .verdict-icon {
+    font-size: 28px;
+  }
+  
+  .verdict-text strong {
+    font-size: 14px;
+  }
+  
+  .encouragement-text {
+    font-size: 11px;
+    padding: 8px 18px;
+  }
+  
+  .ats-header-minimal h2 {
+    font-size: 20px;
+  }
+}/* ========== BEAUTIFUL ENCOURAGEMENT CARD ========== */
+
+.encouragement-card {
+  background: linear-gradient(135deg, #f0f9ff, #e6f7ff);
+  border-radius: 24px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.encouragement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -8px rgba(37, 99, 235, 0.15);
+}
+
+.encouragement-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #3b82f6, #06b6d4);
+}
+
+.encouragement-icon {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.enc-spark {
+  font-size: 24px;
+  position: relative;
+  z-index: 2;
+  animation: sparkFloat 2s ease-in-out infinite;
+}
+
+@keyframes sparkFloat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.enc-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulseRing 2s ease infinite;
+}
+
+@keyframes pulseRing {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+}
+
+.encouragement-content {
+  flex: 1;
+  min-width: 180px;
+}
+
+.enc-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #2563eb;
+  margin-bottom: 4px;
+}
+
+.enc-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.enc-progress {
+  min-width: 140px;
+  text-align: right;
+}
+
+.enc-progress-bar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.enc-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6, #06b6d4);
+  border-radius: 10px;
+  transition: width 1s ease;
+}
+
+.enc-progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .encouragement-card {
+    padding: 16px 20px;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .enc-progress {
+    text-align: center;
+    width: 100%;
+  }
+  
+  .encouragement-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .enc-spark {
+    font-size: 20px;
+  }
+  
+  .enc-message {
+    font-size: 13px;
+  }
+}/* ========== TWO COLUMN ATS SCORE CARD ========== */
+
+.ats-score-card-premium {
+  background: linear-gradient(145deg, #ffffff, #fafcff);
+  border-radius: 40px;
+  padding: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+/* Header Badge */
+.score-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 8px 20px;
+  border-radius: 100px;
+  margin-bottom: 30px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.badge-icon {
+  font-size: 16px;
+}
+
+/* TWO COLUMN LAYOUT */
+.score-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+  align-items: center;
+}
+
+/* LEFT COLUMN - Score Circle */
+.score-left-column {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.big-score-ring {
+  position: relative;
+  width: 260px;
+  height: 260px;
+}
+
+.big-score-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.big-score-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: white;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15);
+}
+
+.main-score {
+  font-size: 64px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #2563eb, #3b82f6, #06b6d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+
+.total-score {
+  font-size: 20px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.score-rank {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-top: 6px;
+  background: #eff6ff;
+  padding: 3px 12px;
+  border-radius: 20px;
+}
+
+/* RIGHT COLUMN */
+.score-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Verdict Card */
+.verdict-premium-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.verdict-premium-icon {
+  font-size: 40px;
+}
+
+.verdict-premium-text h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.verdict-premium-text p {
+  font-size: 13px;
+  color: #475569;
+  margin: 0;
+}
+
+/* Encouragement Card */
+.encouragement-premium {
+  background: linear-gradient(135deg, #f8fafc, #ffffff);
+  border-radius: 24px;
+  padding: 18px 22px;
+  border: 1px solid #e2e8f0;
+}
+
+.enc-premium-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.enc-premium-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #3b82f6;
+  margin-bottom: 4px;
+}
+
+.enc-premium-message {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 14px;
+}
+
+.enc-premium-bar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.enc-premium-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6, #06b6d4);
+  border-radius: 10px;
+  transition: width 1s ease;
+}
+
+.enc-premium-percent {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .score-two-columns {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .score-left-column {
+    order: 1;
+  }
+  
+  .score-right-column {
+    order: 2;
+  }
+  
+  .big-score-ring {
+    width: 220px;
+    height: 220px;
+  }
+  
+  .big-score-number {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .main-score {
+    font-size: 52px;
+  }
+  
+  .total-score {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ats-score-card-premium {
+    padding: 24px;
+  }
+  
+  .verdict-premium-card {
+    padding: 16px 20px;
+  }
+  
+  .verdict-premium-icon {
+    font-size: 32px;
+  }
+  
+  .verdict-premium-text h4 {
+    font-size: 16px;
+  }
+  
+  .encouragement-premium {
+    padding: 16px 18px;
+  }
 }

@@ -170,21 +170,15 @@ BENEFITS
     if (!resume) return 0;
     let score = 50;
     
-    // Check for standard sections
     if (resume.toLowerCase().includes('experience') || resume.toLowerCase().includes('work experience')) score += 10;
     if (resume.toLowerCase().includes('education')) score += 10;
     if (resume.toLowerCase().includes('skills') || resume.toLowerCase().includes('technical skills')) score += 10;
     if (resume.toLowerCase().includes('summary') || resume.toLowerCase().includes('profile')) score += 5;
-    
-    // Check for bullet points
     if (resume.includes('•') || resume.includes('-') || resume.includes('*')) score += 10;
     
-    // Check for proper formatting (line breaks, sections)
     const lines = resume.split('\n');
     const hasProperSpacing = lines.filter(line => line.trim() === '').length > 3;
     if (hasProperSpacing) score += 5;
-    
-    // Check length (not too short, not too long)
     if (resume.length > 500 && resume.length < 3000) score += 5;
     if (resume.length > 3000) score -= 5;
     
@@ -207,29 +201,20 @@ BENEFITS
     return Math.min(95, Math.round(score));
   };
 
-  const computeATSScore = (resume, jobDesc, matchedSkills, totalJobSkills) => {
-    if (!resume || !jobDesc) return 0;
-    let score = 0;
-    if (totalJobSkills > 0) score += (matchedSkills.length / totalJobSkills) * 40;
-    
-    const jobWords = jobDesc.toLowerCase().split(/\s+/);
-    const resumeWords = resume.toLowerCase().split(/\s+/);
-    let keywordHits = 0;
-    jobWords.forEach(word => {
-      if (word.length > 3 && resumeWords.includes(word)) keywordHits++;
-    });
-    let keywordBonus = Math.min(keywordHits / (jobWords.length / 15), 30);
-    score += keywordBonus;
-    
-    if (resume.toLowerCase().includes('experience')) score += 5;
-    if (resume.toLowerCase().includes('education')) score += 5;
-    if (resume.length > 800) score += 5;
-    
-    // Formatting bonus
-    if (resume.includes('•') || resume.includes('-')) score += 5;
-    
-    return Math.min(Math.round(score), 100);
-  };
+ const computeATSScore = (
+  keywordsScore,
+  formattingScore,
+  skillScore,
+  experienceScore
+) => {
+  const score =
+    (keywordsScore * 0.35) +
+    (skillScore * 0.35) +
+    (formattingScore * 0.15) +
+    (experienceScore * 0.15);
+
+  return Math.min(100, Math.round(score));
+};
 
   const getLearningTimeEstimate = (missingSkillsCount) => {
     if (missingSkillsCount === 0) return '🎉 Ready to Go!';
@@ -258,60 +243,88 @@ BENEFITS
   };
 
   const analyzeGap = () => {
-    if (!resumeText.trim() || !jobDescription.trim()) {
-      alert('✨ Please provide both resume and job description!');
-      return;
-    }
+  if (!resumeText.trim() || !jobDescription.trim()) {
+    alert('✨ Please provide both resume and job description!');
+    return;
+  }
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    setTimeout(() => {
-      const resumeSkills = extractSkills(resumeText);
-      const jobSkills = extractSkills(jobDescription);
-      
-      const matchedSkills = jobSkills.filter(skill => 
-        resumeSkills.some(rs => rs.toLowerCase() === skill.toLowerCase())
-      );
-      
-      const missingSkills = jobSkills.filter(skill => 
-        !resumeSkills.some(rs => rs.toLowerCase() === skill.toLowerCase())
-      );
-      
-      const matchScore = jobSkills.length > 0 
-        ? Math.round((matchedSkills.length / jobSkills.length) * 100)
+  setTimeout(() => {
+    const resumeSkills = extractSkills(resumeText);
+    const jobSkills = extractSkills(jobDescription);
+
+    const matchedSkills = jobSkills.filter(skill =>
+      resumeSkills.some(
+        rs => rs.toLowerCase() === skill.toLowerCase()
+      )
+    );
+
+    const missingSkills = jobSkills.filter(skill =>
+      !resumeSkills.some(
+        rs => rs.toLowerCase() === skill.toLowerCase()
+      )
+    );
+
+    const matchScore =
+      jobSkills.length > 0
+        ? Math.round(
+            (matchedSkills.length / jobSkills.length) * 100
+          )
         : 0;
 
-      const atsScore = computeATSScore(resumeText, jobDescription, matchedSkills, jobSkills.length);
-      const verdict = getVerdict(atsScore);
-      
-      // Calculate all 4 scores
-      const keywordsScore = calculateKeywordsScore(resumeText, jobDescription);
-      const formattingScore = calculateFormattingScore(resumeText);
-      const skillScore = calculateSkillScore(matchedSkills, jobSkills.length);
-      const experienceScore = calculateExperienceScore(resumeText);
-      
-      setAnalysisResult({
-        matchScore,
-        atsScore,
-        matchedSkills,
-        missingSkills,
-        totalJobSkills: jobSkills.length,
-        timestamp: new Date().toLocaleString(),
-        verdict,
-        topStrengths: matchedSkills.slice(0, 5),
-        quickWins: missingSkills.slice(0, 3),
-        learningTime: getLearningTimeEstimate(missingSkills.length),
-        // New scores for breakdown
-        keywordsScore,
-        formattingScore,
-        skillScore,
-        experienceScore,
-        missingSkillsList: missingSkills,
-      });
-      
-      setIsLoading(false);
-    }, 1500);
-  };
+    // SCORE BREAKDOWN
+    const keywordsScore = calculateKeywordsScore(
+      resumeText,
+      jobDescription
+    );
+
+    const formattingScore = calculateFormattingScore(
+      resumeText
+    );
+
+    const skillScore = calculateSkillScore(
+      matchedSkills,
+      jobSkills.length
+    );
+
+    const experienceScore = calculateExperienceScore(
+      resumeText
+    );
+
+    // FINAL ATS SCORE
+    const atsScore = computeATSScore(
+      keywordsScore,
+      formattingScore,
+      skillScore,
+      experienceScore
+    );
+
+    const verdict = getVerdict(atsScore);
+
+    setAnalysisResult({
+      matchScore,
+      atsScore,
+      matchedSkills,
+      missingSkills,
+      totalJobSkills: jobSkills.length,
+      timestamp: new Date().toLocaleString(),
+      verdict,
+      topStrengths: matchedSkills.slice(0, 5),
+      quickWins: missingSkills.slice(0, 3),
+      learningTime: getLearningTimeEstimate(
+        missingSkills.length
+      ),
+      keywordsScore,
+      formattingScore,
+      skillScore,
+      experienceScore,
+      missingSkillsList: missingSkills,
+    });
+
+    setIsLoading(false);
+  }, 1500);
+};
 
   return (
     <div className="app">
@@ -323,54 +336,52 @@ BENEFITS
       </div>
 
       <div className="container">
-       
-
-  <div className="hero">
-  <div className="hero-badge-top">
-    <span className="badge-spark">✨</span>
-    <span>AI-Powered Career Intelligence</span>
-    
-  </div>
-  
-  <div className="hero-title-section">
-    <h1 className="hero-main-title">
-      <span className="title-line-1">Bridge Your</span>
-      <span className="title-line-2 gradient-text"> Skill Gap</span>
-    </h1>
-    <div className="hero-breadcrumb">
-      <span className="breadcrumb-dot"></span>
-      <span>Resume → Analyze → Grow</span>
-      <span className="breadcrumb-dot"></span>
-    </div>
-  </div>
-  
-  <p className="hero-description-simple">
-    Upload your resume and job description — get instant skill gap analysis, 
-    personalized learning recommendations, and ATS optimization tips to land your dream role.
-  </p>
-  
-  <div className="hero-feature-strip">
-    <div className="strip-item">
-      <span className="strip-icon">⚡</span>
-      <span>Instant Analysis</span>
-    </div>
-    <div className="strip-divider"></div>
-    <div className="strip-item">
-      <span className="strip-icon">🎯</span>
-      <span>Smart Matching</span>
-    </div>
-    <div className="strip-divider"></div>
-    <div className="strip-item">
-      <span className="strip-icon">📚</span>
-      <span>Learning Path</span>
-    </div>
-    <div className="strip-divider"></div>
-    <div className="strip-item">
-      <span className="strip-icon">💎</span>
-      <span>ATS Ready</span>
-    </div>
-  </div>
-</div>
+        <div className="hero">
+          <div className="hero-badge-top">
+            <span className="badge-spark">✨</span>
+            <span>AI-Powered Career Intelligence</span>
+          </div>
+          
+          <div className="hero-title-section">
+            <h1 className="hero-main-title">
+              <span className="title-line-1">Bridge Your</span>
+              <span className="title-line-2 gradient-text"> Skill Gap</span>
+            </h1>
+            <div className="hero-breadcrumb">
+              <span className="breadcrumb-dot"></span>
+              <span>Resume → Analyze → Grow</span>
+              <span className="breadcrumb-dot"></span>
+            </div>
+          </div>
+          
+          <p className="hero-description-simple">
+            Upload your resume and job description — get instant skill gap analysis, 
+            personalized learning recommendations, and ATS optimization tips to land your dream role.
+          </p>
+          
+          <div className="hero-feature-strip">
+            <div className="strip-item">
+              <span className="strip-icon">⚡</span>
+              <span>Instant Analysis</span>
+            </div>
+            <div className="strip-divider"></div>
+            <div className="strip-item">
+              <span className="strip-icon">🎯</span>
+              <span>Smart Matching</span>
+            </div>
+            <div className="strip-divider"></div>
+            <div className="strip-item">
+              <span className="strip-icon">📚</span>
+              <span>Learning Path</span>
+            </div>
+            <div className="strip-divider"></div>
+            <div className="strip-item">
+              <span className="strip-icon">💎</span>
+              <span>ATS Ready</span>
+            </div>
+          </div>
+        </div>
+        
         <div className="cards-grid">
           <div className="card">
             <div className="card-header">
@@ -469,91 +480,172 @@ BENEFITS
               </button>
             </div>
 
-            {activeTab === 'ats' && (
-              <div className="ats-tab-container">
-                <div className="ats-score-card">
-                  <div className="ats-main-head">
-                    <h2>📊 Overall ATS Score</h2>
-                    <div className="score-badge-large">{analysisResult.atsScore}<span>/100</span></div>
-                  </div>
-                  <div className="good-score-message">
-                    <div className="icon">{analysisResult.atsScore >= 60 ? '✅🎉' : '📈💪'}</div>
-                    <div>
-                      <strong>{analysisResult.atsScore >= 60 ? 'Good Score!' : 'Growth Opportunity'}</strong>
-                      <p>{analysisResult.atsScore >= 60 ? 'Your resume has a good chance of passing ATS screening.' : 'Follow the roadmap to improve quickly.'}</p>
-                    </div>
-                  </div>
-                  <p style={{ marginBottom: '20px', color: '#334155', fontWeight: 500 }}>✨ Keep improving your skills and fill the gap to get better results.</p>
-
-                  {/* Score Breakdown Heading with 4 cards */}
-                  <h3 className="score-breakdown-title">📈 Score Breakdown</h3>
-                  <div className="breakdown-row">
-                    <div className="break-card">
-                      <div className="break-header">
-                        <span>🔑 Keywords Score</span>
-                        <span className="break-score">{analysisResult.keywordsScore}/100</span>
-                      </div>
-                      <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.keywordsScore}%` }}></div></div>
-                      <div className="break-desc">Job keyword matching from description. Add more relevant keywords.</div>
-                    </div>
-                    <div className="break-card">
-                      <div className="break-header">
-                        <span>📐 Formatting Score</span>
-                        <span className="break-score">{analysisResult.formattingScore}/100</span>
-                      </div>
-                      <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.formattingScore}%` }}></div></div>
-                      <div className="break-desc">Structure, headings, bullet points, and overall readability.</div>
-                    </div>
-                    <div className="break-card">
-                      <div className="break-header">
-                        <span>🛠️ Skill Score</span>
-                        <span className="break-score">{analysisResult.skillScore}/100</span>
-                      </div>
-                      <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.skillScore}%` }}></div></div>
-                      <div className="break-desc">Technical skills matched with job requirements.</div>
-                    </div>
-                    <div className="break-card">
-                      <div className="break-header">
-                        <span>💼 Experience Score</span>
-                        <span className="break-score">{analysisResult.experienceScore}/100</span>
-                      </div>
-                      <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.experienceScore}%` }}></div></div>
-                      <div className="break-desc">Relevant work experience, seniority, and achievements.</div>
-                    </div>
-                  </div>
-
-                  <div className="missing-section">
-                    <div className="missing-title">
-                      <span>⚠️</span> Missing Skills
-                      <span style={{ fontSize: '14px', fontWeight: 'normal' }}>These are important skills missing in your profile based on the job description.</span>
-                    </div>
-                    <div className="missing-badge-list">
-                      {analysisResult.missingSkillsList.length > 0 ? analysisResult.missingSkillsList.map((sk, idx) => (
-                        <span key={idx} className="missing-skill-item">{sk}</span>
-                      )) : <span className="missing-skill-item">✨ No critical missing skills!</span>}
-                    </div>
-                  </div>
-
-                  <div className="tips-card">
-                    <h3>📌 Tips to Improve</h3>
-                    <ul className="tips-list">
-                      <li>➕ <strong>Add Missing Skills</strong> – Include the missing skills in your resume where applicable.</li>
-                      <li>🔑 <strong>Use Relevant Keywords</strong> – Add more role-specific keywords to increase ATS match.</li>
-                      <li>🏆 <strong>Highlight Achievements</strong> – Quantify your achievements to stand out more.</li>
-                      <li>📌 <strong>Improve Skill Section</strong> – Organize and highlight your skills section.</li>
-                      <li>📐 <strong>Fix Formatting</strong> – Use standard headings (Experience, Education, Skills) and bullet points.</li>
-                    </ul>
-                  </div>
-
-                  <div className="keep-improving">
-                    <p>🚀 Keep Improving! Enhance your profile and increase your chances of getting shortlisted.</p>
-                  </div>
-                  <div className="note-text">
-                    📌 Note: Scores are calculated based on ATS compatibility, keyword match, formatting structure, skill relevance, and profile experience.
-                  </div>
-                </div>
+  {activeTab === 'ats' && (
+  <div className="ats-tab-container">
+    <div className="ats-score-card-premium">
+      
+      {/* Header Badge */}
+      <div className="score-header-badge">
+        <span className="badge-icon">🎯</span>
+        <span>ATS Compatibility Score</span>
+      </div>
+      
+      {/* TWO COLUMN LAYOUT - Score Circle LEFT, Content RIGHT */}
+      <div className="score-two-columns">
+        
+        {/* LEFT SIDE - Big Score Circle */}
+        <div className="score-left-column">
+          <div className="big-score-ring">
+            <svg width="260" height="260" viewBox="0 0 260 260">
+              <circle cx="130" cy="130" r="115" fill="none" stroke="#e2e8f0" strokeWidth="12"/>
+              <circle 
+                cx="130" cy="130" r="115" fill="none" 
+                stroke="url(#premiumGradient)" 
+                strokeWidth="12" 
+                strokeDasharray="722" 
+                strokeDashoffset={722 - (722 * analysisResult.atsScore / 100)}
+                strokeLinecap="round"
+                transform="rotate(-90 130 130)"
+              />
+              <defs>
+                <linearGradient id="premiumGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#2563eb" />
+                  <stop offset="50%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#06b6d4" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className="big-score-number">
+              <span className="main-score">{analysisResult.atsScore}</span>
+              <span className="total-score">/100</span>
+              <div className="score-rank">
+                {analysisResult.atsScore >= 80 ? '🏆 Excellent' :
+                 analysisResult.atsScore >= 60 ? '🎯 Good' :
+                 analysisResult.atsScore >= 40 ? '📈 Average' :
+                 '💪 Need Improvement'}
               </div>
-            )}
+            </div>
+          </div>
+        </div>
+        
+        {/* RIGHT SIDE - Verdict and Encouragement */}
+        <div className="score-right-column">
+          {/* Verdict Card */}
+          <div className="verdict-premium-card" style={{ 
+            background: analysisResult.atsScore >= 80 ? '#d1fae5' :
+                       analysisResult.atsScore >= 60 ? '#dbeafe' :
+                       analysisResult.atsScore >= 40 ? '#fed7aa' :
+                       '#fee2e2'
+          }}>
+            <div className="verdict-premium-icon">
+              {analysisResult.atsScore >= 80 ? '🏆' :
+               analysisResult.atsScore >= 60 ? '🎯' :
+               analysisResult.atsScore >= 40 ? '📈' :
+               '💪'}
+            </div>
+            <div className="verdict-premium-text">
+              <h4 style={{ color: analysisResult.atsScore >= 80 ? '#065f46' :
+                           analysisResult.atsScore >= 60 ? '#1e40af' :
+                           analysisResult.atsScore >= 40 ? '#92400e' :
+                           '#991b1b' }}>
+                {analysisResult.atsScore >= 80 ? 'Outstanding Match!' :
+                 analysisResult.atsScore >= 60 ? 'Strong Alignment' :
+                 analysisResult.atsScore >= 40 ? 'Potential Detected' :
+                 'Growth Opportunity'}
+              </h4>
+              <p>{analysisResult.atsScore >= 60 ? 'Your resume has a good chance of passing ATS screening.' : 
+                   analysisResult.atsScore >= 40 ? 'Focus on key missing skills to stand out.' :
+                   'Clear roadmap created for your success.'}
+              </p>
+            </div>
+          </div>
+          
+          {/* Encouragement Message with Progress */}
+          <div className="encouragement-premium">
+            <div className="enc-premium-icon">✨</div>
+            <div className="enc-premium-content">
+              <div className="enc-premium-title">Your Improvement Path</div>
+              <div className="enc-premium-message">Keep improving your skills and fill the gap to get better results</div>
+            </div>
+            <div className="enc-premium-progress">
+              <div className="enc-premium-bar">
+                <div className="enc-premium-fill" style={{ width: `${Math.min(100, Math.round(analysisResult.matchedSkills.length / analysisResult.totalJobSkills * 100))}%` }}></div>
+              </div>
+              <div className="enc-premium-percent">{Math.min(100, Math.round(analysisResult.matchedSkills.length / analysisResult.totalJobSkills * 100))}% Complete</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Score Breakdown */}
+      <h3 className="score-breakdown-title">📈 Score Breakdown</h3>
+      <div className="breakdown-row">
+        <div className="break-card">
+          <div className="break-header">
+            <span>🔑 Keywords Score</span>
+            <span className="break-score">{analysisResult.keywordsScore}/100</span>
+          </div>
+          <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.keywordsScore}%` }}></div></div>
+          <div className="break-desc">Job keyword matching from description. Add more relevant keywords.</div>
+        </div>
+        <div className="break-card">
+          <div className="break-header">
+            <span>📐 Formatting Score</span>
+            <span className="break-score">{analysisResult.formattingScore}/100</span>
+          </div>
+          <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.formattingScore}%` }}></div></div>
+          <div className="break-desc">Structure, headings, bullet points, and overall readability.</div>
+        </div>
+        <div className="break-card">
+          <div className="break-header">
+            <span>🛠️ Skill Score</span>
+            <span className="break-score">{analysisResult.skillScore}/100</span>
+          </div>
+          <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.skillScore}%` }}></div></div>
+          <div className="break-desc">Technical skills matched with job requirements.</div>
+        </div>
+        <div className="break-card">
+          <div className="break-header">
+            <span>💼 Experience Score</span>
+            <span className="break-score">{analysisResult.experienceScore}/100</span>
+          </div>
+          <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.experienceScore}%` }}></div></div>
+          <div className="break-desc">Relevant work experience, seniority, and achievements.</div>
+        </div>
+      </div>
+
+      <div className="missing-section">
+        <div className="missing-title">
+          <span>⚠️</span> Missing Skills
+          <span style={{ fontSize: '14px', fontWeight: 'normal' }}>These are important skills missing in your profile based on the job description.</span>
+        </div>
+        <div className="missing-badge-list">
+          {analysisResult.missingSkillsList.length > 0 ? analysisResult.missingSkillsList.map((sk, idx) => (
+            <span key={idx} className="missing-skill-item">{sk}</span>
+          )) : <span className="missing-skill-item">✨ No critical missing skills!</span>}
+        </div>
+      </div>
+
+      <div className="tips-card">
+        <h3>📌 Tips to Improve</h3>
+        <ul className="tips-list">
+          <li>➕ <strong>Add Missing Skills</strong> – Include the missing skills in your resume where applicable.</li>
+          <li>🔑 <strong>Use Relevant Keywords</strong> – Add more role-specific keywords to increase ATS match.</li>
+          <li>🏆 <strong>Highlight Achievements</strong> – Quantify your achievements to stand out more.</li>
+          <li>📌 <strong>Improve Skill Section</strong> – Organize and highlight your skills section.</li>
+          <li>📐 <strong>Fix Formatting</strong> – Use standard headings (Experience, Education, Skills) and bullet points.</li>
+        </ul>
+      </div>
+
+      <div className="keep-improving">
+        <p>🚀 Keep Improving! Enhance your profile and increase your chances of getting shortlisted.</p>
+      </div>
+      <div className="note-text">
+        📌 Note: Scores are calculated based on ATS compatibility, keyword match, formatting structure, skill relevance, and profile experience.
+      </div>
+    </div>
+  </div>
+)}
 
             {activeTab === 'overview' && (
               <div className="overview">
