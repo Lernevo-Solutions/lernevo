@@ -1648,4 +1648,65 @@ body {
   .encouragement-premium {
     padding: 16px 18px;
   }
+}/* Header Badge without emoji */
+.score-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #f1f5f9;
+  padding: 8px 20px;
+  border-radius: 100px;
+  margin-bottom: 30px;
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.score-header-badge span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #475569;
+}
+
+/* Score Breakdown Title without emoji */
+.score-breakdown-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 20px;
+  margin-top: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  display: inline-block;
+}
+
+/* Tips Card without emoji */
+.tips-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.tips-list li strong {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Keep Improving without emoji */
+.keep-improving p {
+  font-weight: 600;
+  color: #1e1b4b;
+  font-size: 14px;
+}
+
+/* Missing section - keep only warning symbol */
+.missing-title span:first-child {
+  font-size: 18px;
 }

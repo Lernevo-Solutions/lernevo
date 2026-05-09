@@ -479,18 +479,17 @@ BENEFITS
                 <span>📊</span> Skill Overview
               </button>
             </div>
-
-  {activeTab === 'ats' && (
+{activeTab === 'ats' && (
   <div className="ats-tab-container">
     <div className="ats-score-card-premium">
       
-      {/* Header Badge */}
+      {/* Header Badge - Clean without emoji */}
       <div className="score-header-badge">
-        <span className="badge-icon">🎯</span>
-        <span>ATS Compatibility Score</span>
+        <div className="badge-dot"></div>
+        <span>ATS COMPATIBILITY SCORE</span>
       </div>
       
-      {/* TWO COLUMN LAYOUT - Score Circle LEFT, Content RIGHT */}
+      {/* TWO COLUMN LAYOUT */}
       <div className="score-two-columns">
         
         {/* LEFT SIDE - Big Score Circle */}
@@ -519,10 +518,10 @@ BENEFITS
               <span className="main-score">{analysisResult.atsScore}</span>
               <span className="total-score">/100</span>
               <div className="score-rank">
-                {analysisResult.atsScore >= 80 ? '🏆 Excellent' :
-                 analysisResult.atsScore >= 60 ? '🎯 Good' :
-                 analysisResult.atsScore >= 40 ? '📈 Average' :
-                 '💪 Need Improvement'}
+                {analysisResult.atsScore >= 80 ? 'Excellent' :
+                 analysisResult.atsScore >= 60 ? 'Good Match' :
+                 analysisResult.atsScore >= 40 ? 'Average' :
+                 'Needs Work'}
               </div>
             </div>
           </div>
@@ -530,25 +529,20 @@ BENEFITS
         
         {/* RIGHT SIDE - Verdict and Encouragement */}
         <div className="score-right-column">
-          {/* Verdict Card */}
+          
+          {/* Verdict Card - Clean without emoji icons */}
           <div className="verdict-premium-card" style={{ 
             background: analysisResult.atsScore >= 80 ? '#d1fae5' :
                        analysisResult.atsScore >= 60 ? '#dbeafe' :
                        analysisResult.atsScore >= 40 ? '#fed7aa' :
                        '#fee2e2'
           }}>
-            <div className="verdict-premium-icon">
-              {analysisResult.atsScore >= 80 ? '🏆' :
-               analysisResult.atsScore >= 60 ? '🎯' :
-               analysisResult.atsScore >= 40 ? '📈' :
-               '💪'}
-            </div>
             <div className="verdict-premium-text">
               <h4 style={{ color: analysisResult.atsScore >= 80 ? '#065f46' :
                            analysisResult.atsScore >= 60 ? '#1e40af' :
                            analysisResult.atsScore >= 40 ? '#92400e' :
                            '#991b1b' }}>
-                {analysisResult.atsScore >= 80 ? 'Outstanding Match!' :
+                {analysisResult.atsScore >= 80 ? 'Outstanding Match' :
                  analysisResult.atsScore >= 60 ? 'Strong Alignment' :
                  analysisResult.atsScore >= 40 ? 'Potential Detected' :
                  'Growth Opportunity'}
@@ -560,11 +554,10 @@ BENEFITS
             </div>
           </div>
           
-          {/* Encouragement Message with Progress */}
+          {/* Encouragement Message - Clean without emoji */}
           <div className="encouragement-premium">
-            <div className="enc-premium-icon">✨</div>
             <div className="enc-premium-content">
-              <div className="enc-premium-title">Your Improvement Path</div>
+              <div className="enc-premium-title">IMPROVEMENT PATH</div>
               <div className="enc-premium-message">Keep improving your skills and fill the gap to get better results</div>
             </div>
             <div className="enc-premium-progress">
@@ -578,11 +571,11 @@ BENEFITS
       </div>
       
       {/* Score Breakdown */}
-      <h3 className="score-breakdown-title">📈 Score Breakdown</h3>
+      <h3 className="score-breakdown-title">Score Breakdown</h3>
       <div className="breakdown-row">
         <div className="break-card">
           <div className="break-header">
-            <span>🔑 Keywords Score</span>
+            <span>Keywords Score</span>
             <span className="break-score">{analysisResult.keywordsScore}/100</span>
           </div>
           <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.keywordsScore}%` }}></div></div>
@@ -590,7 +583,7 @@ BENEFITS
         </div>
         <div className="break-card">
           <div className="break-header">
-            <span>📐 Formatting Score</span>
+            <span>Formatting Score</span>
             <span className="break-score">{analysisResult.formattingScore}/100</span>
           </div>
           <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.formattingScore}%` }}></div></div>
@@ -598,7 +591,7 @@ BENEFITS
         </div>
         <div className="break-card">
           <div className="break-header">
-            <span>🛠️ Skill Score</span>
+            <span>Skill Score</span>
             <span className="break-score">{analysisResult.skillScore}/100</span>
           </div>
           <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.skillScore}%` }}></div></div>
@@ -606,7 +599,7 @@ BENEFITS
         </div>
         <div className="break-card">
           <div className="break-header">
-            <span>💼 Experience Score</span>
+            <span>Experience Score</span>
             <span className="break-score">{analysisResult.experienceScore}/100</span>
           </div>
           <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.experienceScore}%` }}></div></div>
@@ -617,31 +610,31 @@ BENEFITS
       <div className="missing-section">
         <div className="missing-title">
           <span>⚠️</span> Missing Skills
-          <span style={{ fontSize: '14px', fontWeight: 'normal' }}>These are important skills missing in your profile based on the job description.</span>
+          <span style={{ fontSize: '14px', fontWeight: 'normal' }}>Important skills missing from your profile</span>
         </div>
         <div className="missing-badge-list">
           {analysisResult.missingSkillsList.length > 0 ? analysisResult.missingSkillsList.map((sk, idx) => (
             <span key={idx} className="missing-skill-item">{sk}</span>
-          )) : <span className="missing-skill-item">✨ No critical missing skills!</span>}
+          )) : <span className="missing-skill-item">No critical missing skills</span>}
         </div>
       </div>
 
       <div className="tips-card">
-        <h3>📌 Tips to Improve</h3>
+        <h3>Tips to Improve</h3>
         <ul className="tips-list">
-          <li>➕ <strong>Add Missing Skills</strong> – Include the missing skills in your resume where applicable.</li>
-          <li>🔑 <strong>Use Relevant Keywords</strong> – Add more role-specific keywords to increase ATS match.</li>
-          <li>🏆 <strong>Highlight Achievements</strong> – Quantify your achievements to stand out more.</li>
-          <li>📌 <strong>Improve Skill Section</strong> – Organize and highlight your skills section.</li>
-          <li>📐 <strong>Fix Formatting</strong> – Use standard headings (Experience, Education, Skills) and bullet points.</li>
+          <li><strong>Add Missing Skills</strong> – Include the missing skills in your resume where applicable.</li>
+          <li><strong>Use Relevant Keywords</strong> – Add more role-specific keywords to increase ATS match.</li>
+          <li><strong>Highlight Achievements</strong> – Quantify your achievements to stand out more.</li>
+          <li><strong>Improve Skill Section</strong> – Organize and highlight your skills section.</li>
+          <li><strong>Fix Formatting</strong> – Use standard headings (Experience, Education, Skills) and bullet points.</li>
         </ul>
       </div>
 
       <div className="keep-improving">
-        <p>🚀 Keep Improving! Enhance your profile and increase your chances of getting shortlisted.</p>
+        <p>Keep Improving! Enhance your profile and increase your chances of getting shortlisted.</p>
       </div>
       <div className="note-text">
-        📌 Note: Scores are calculated based on ATS compatibility, keyword match, formatting structure, skill relevance, and profile experience.
+        Note: Scores are calculated based on ATS compatibility, keyword match, formatting structure, skill relevance, and profile experience.
       </div>
     </div>
   </div>
