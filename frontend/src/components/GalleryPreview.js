@@ -435,6 +435,11 @@ function sanitizeRichText(html = '') {
     .replace(/ on\w+='[^']*'/gi, '');
 }
 
+function RichTextPreview({ html, style }) {
+  if (!html) return null;
+  return <div style={style} dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }} />;
+}
+
 function chunkArray(items, size) {
   const chunks = [];
   for (let index = 0; index < items.length; index += size) {
@@ -1105,7 +1110,7 @@ export default function GalleryPreview({
                 {personal.linkedin && <span>in {personal.linkedin}</span>}
               </div>
             </div>
-            {summary.text && <div style={{ marginBottom: 10 }}><h2 style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', borderBottom: '1.5px solid #111', paddingBottom: 2, marginBottom: 6, color: '#111' }}>Profile</h2><p style={{ fontSize: 8.5, color: '#333', lineHeight: 1.7, textAlign: 'justify' }}>{summary.text}</p></div>}
+            {summary.text && <div style={{ marginBottom: 10 }}><h2 style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', borderBottom: '1.5px solid #111', paddingBottom: 2, marginBottom: 6, color: '#111' }}>Profile</h2><RichTextPreview html={summary.text} style={{ fontSize: 8.5, color: '#333', lineHeight: 1.7, textAlign: 'justify' }} /></div>}
             <div style={{ marginBottom: 10 }}>
               <h2 style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', borderBottom: '1.5px solid #111', paddingBottom: 2, marginBottom: 7, color: '#111' }}>Professional Experience</h2>
               {experience.filter(e => e.company || e.role).map(e => (

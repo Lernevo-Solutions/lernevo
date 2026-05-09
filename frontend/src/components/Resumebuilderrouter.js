@@ -1383,75 +1383,122 @@ function RichTextEditor({ value, onChange, placeholder, minHeight = 130, borderC
   );
 }
 
-function WordCountSlider({ value, min = 50, max = 500, step = 50, onChange }) {
+function WordGoalControl({
+  value,
+  min = 50,
+  max = 500,
+  step = 50,
+  onChange,
+  label = "Word Goal",
+  instruction = "Enter an approximate word goal for AI suggestions and length guidance.",
+}) {
+  const clampValue = (nextValue) => {
+    if (Number.isNaN(nextValue)) return value;
+    const stepped = Math.round(nextValue / step) * step;
+    return Math.min(max, Math.max(min, stepped));
+  };
+
   return (
-    <div className="word-slider-wrap">
-      <div className="word-slider-head">
-        <span className="word-slider-label">Target words</span>
-        <span className="word-slider-value">{value} words</span>
-      </div>
-      <input
-        className="word-slider-input"
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-      <div className="word-slider-scale">
-        {[min, 150, 250, 350, max].map((mark) => (
-          <span key={mark}>{mark}</span>
-        ))}
+    <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 8 }}>
+      <div style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "8px 10px",
+        borderRadius: 12,
+        border: "1px solid #dbe4f0",
+        background: "#f8fbff",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,.75)",
+      }}>
+        <span style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: ".08em",
+          textTransform: "uppercase",
+          color: "#64748b",
+          whiteSpace: "nowrap",
+        }}>
+          {label}
+        </span>
+        <span
+          title={instruction}
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            border: "1px solid #cbd5e1",
+            color: "#64748b",
+            background: "#fff",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: "help",
+            lineHeight: 1,
+          }}
+        >
+          i
+        </span>
+        <input
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(event) => {
+            const rawValue = event.target.value;
+            if (rawValue === "") {
+              onChange(min);
+              return;
+            }
+            onChange(clampValue(Number(rawValue)));
+          }}
+          style={{
+            width: 72,
+            height: 32,
+            borderRadius: 10,
+            border: "1px solid #cbd5e1",
+            background: "#fff",
+            color: "#0f172a",
+            fontSize: 13,
+            fontWeight: 700,
+            padding: "0 10px",
+            outline: "none",
+          }}
+        />
+        <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>
+          words
+        </span>
       </div>
     </div>
   );
 }
 
-function WordCountSelector({ value, options, label = "Target words", onChange }) {
+function WordCountSlider(props) {
+  return <WordGoalControl {...props} />;
+}
+
+function WordCountSelector({ value, options, label = "Word Goal", onChange }) {
+  const min = Math.min(...options);
+  const max = Math.max(...options);
+  const step = options.length > 1 ? Math.abs(options[1] - options[0]) : 50;
+
   return (
-    <div style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 8,
-      padding: "6px 10px",
-      borderRadius: 12,
-      border: "1px solid #dbe4f0",
-      background: "#f8fbff",
-      boxShadow: "inset 0 1px 0 rgba(255,255,255,.7)",
-    }}>
-      <span style={{
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: ".08em",
-        textTransform: "uppercase",
-        color: "#64748b",
-        whiteSpace: "nowrap",
-      }}>
-        {label}
-      </span>
-      <select
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        style={{
-          width: 76,
-          height: 28,
-          borderRadius: 999,
-          border: "1px solid #cbd5e1",
-          background: "#fff",
-          color: "#0f172a",
-          fontSize: 12,
-          fontWeight: 700,
-          padding: "0 10px",
-          outline: "none",
-          cursor: "pointer",
-        }}
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>{option}</option>
-        ))}
-      </select>
-    </div>
+    <WordGoalControl
+      value={value}
+      min={min}
+      max={max}
+      step={step}
+      label={label}
+      instruction={`Type a word goal between ${min} and ${max}. The value snaps to the suggested AI ranges for this section.`}
+      onChange={(nextValue) => {
+        const nearest = options.reduce((best, option) => (
+          Math.abs(option - nextValue) < Math.abs(best - nextValue) ? option : best
+        ), options[0]);
+        onChange(nearest);
+      }}
+    />
   );
 }
 
@@ -2744,18 +2791,10 @@ function ProjCard({ proj, index, total, onUpd, onRem }) {
           ))}
         </div>
       )}
-     {suggestions.length === 0 && (
+      {suggestions.length === 0 && (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"6px 2px 0" }}>
           <span className="sum-chips-hint" style={{ padding:0, textAlign:"left" }}>
             {hasContext ? "Type keywords -> click AI Suggest to generate 2 options" : "Fill Title & Stack fields to unlock AI suggestions"}
-          </span>
-          <span style={{
-            fontSize:11, fontWeight:600, color:"#9ca3af",
-            background:"#f8fafc", border:"1px solid #e5e7eb",
-            padding:"3px 10px", borderRadius:99, flexShrink:0, marginLeft:10,
-            letterSpacing:".2px",
-          }}>
-            Target {targetWordCount} words
           </span>
         </div>
       )}
