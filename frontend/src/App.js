@@ -3,6 +3,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
   useLocation,
 } from "react-router-dom";
 
@@ -44,7 +45,7 @@ import ResumeBuilder from "./components/Resumebuilderrouter";
 import Homepage from "./components/HomePage";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
-import Skill from "./components/skill"
+import Skill from "./components/skill";
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
@@ -58,6 +59,7 @@ const AppLayout = () => {
     "/features/coming-soon",
     "/builder",
     "/skill",
+    "/skill-gap-analyzer",
   ];
 
   // 👉 Navbar hide panna routes
@@ -66,6 +68,7 @@ const AppLayout = () => {
     "/builder",
     "/home",
     "/templates",
+    "/skill-gap-analyzer",
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
@@ -132,11 +135,47 @@ const AppLayout = () => {
         <Route path="/features" element={<Features />} />
 
         {/* Resume Pages (No Navbar) */}
-        <Route path="/my-resumes" element={<MyResumes />} />
-        <Route path="/builder" element={<ResumeBuilder />} />
-        <Route path="/home" element={<Homepage />} />
-        <Route path="/templates" element={<Templates />} />
-        <Route path="/skill"element={<Skill/>}/>
+        <Route
+          path="/my-resumes"
+          element={
+            <ProtectedRoute featureName="your resumes">
+              <MyResumes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/builder"
+          element={
+            <ProtectedRoute featureName="Resume Builder">
+              <ResumeBuilder />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute featureName="Resume Builder">
+              <Homepage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/templates"
+          element={
+            <ProtectedRoute featureName="resume templates">
+              <Templates />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/skill-gap-analyzer"
+          element={
+            <ProtectedRoute featureName="Skill Gap Analyzer">
+              <Skill />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/skill" element={<Navigate to="/skill-gap-analyzer" replace />} />
       </Routes>
 
       {/* ✅ Footer conditionally */}

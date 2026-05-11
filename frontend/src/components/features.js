@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './features.css';
 
 const Features = () => {
+  const navigate = useNavigate();
   const sectionRef = useRef(null);
   const cardsRef = useRef([]);
   const chipsRef = useRef([]);
@@ -13,6 +15,20 @@ const Features = () => {
   // Ripples + confetti
   const [ripples, setRipples] = useState([]);
   const [confetti, setConfetti] = useState([]);
+
+  const handleProtectedNavigation = (path, featureName) => {
+    const token = localStorage.getItem('token');
+    const isAuthenticated =
+      token && token !== 'undefined' && token !== 'null' && token.trim() !== '';
+
+    if (!isAuthenticated) {
+      window.alert(`Please signup or login to access ${featureName}.`);
+      navigate('/get-started?mode=login');
+      return;
+    }
+
+    navigate(path);
+  };
 
   // Intersection Observer for fade-up
   useEffect(() => {
@@ -165,6 +181,17 @@ const Features = () => {
       );
     }, 30);
     setTimeout(() => clearInterval(interval), 1500);
+
+    if (cardIndex === 0) {
+      setTimeout(() => handleProtectedNavigation('/home', 'Resume Builder'), 180);
+    }
+
+    if (cardIndex === 1) {
+      setTimeout(
+        () => handleProtectedNavigation('/skill-gap-analyzer', 'Skill Gap Analyzer'),
+        180
+      );
+    }
   };
 
   // Typewriter effect for subtitle
