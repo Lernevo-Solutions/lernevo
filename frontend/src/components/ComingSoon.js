@@ -5,6 +5,20 @@ import "./ComingSoon.css";
 export default function ComingSoon() {
   const navigate = useNavigate();
 
+  const handleProtectedNavigation = (path, featureName) => {
+    const token = localStorage.getItem("token");
+    const isAuthenticated =
+      token && token !== "undefined" && token !== "null" && token.trim() !== "";
+
+    if (!isAuthenticated) {
+      window.alert(`Please signup or login to access ${featureName}.`);
+      navigate("/get-started?mode=login");
+      return;
+    }
+
+    navigate(path);
+  };
+
   return (
     <div className="cs-new-wrapper">
       {/* Enhanced White & Blue Background */}
@@ -88,7 +102,10 @@ export default function ComingSoon() {
               <span>📄 ATS Optimized</span>
               <span>⚡ One-click Download</span>
             </div>
-            <button onClick={() => navigate("/home")} className="cs-card-btn cs-btn-primary">
+            <button
+              onClick={() => handleProtectedNavigation("/home", "Resume Builder")}
+              className="cs-card-btn cs-btn-primary"
+            >
               <span>Build Your Resume</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12H19M19 12L12 5M19 12L12 19" strokeLinecap="round" strokeLinejoin="round"/>
@@ -127,24 +144,15 @@ export default function ComingSoon() {
               <span>📚 Learning Paths</span>
             </div>
             
-            {/* Enhanced Progress Section */}
-            <div className="cs-progress-section">
-              <div className="cs-progress-label">
-                <span>Development Progress</span>
-                <div className="cs-progress-percent">
-                  <span className="percent-number">10%</span>
-                  <div className="percent-wave"></div>
-                </div>
-              </div>
-              <div className="cs-progress-bar">
-                <div className="cs-progress-fill" style={{ width: "10%" }}>
-                  <div className="progress-shine"></div>
-                </div>
-              </div>
-            </div>
             
-            <button className="cs-card-btn cs-btn-outline">
-              <span>Notify Me</span>
+            
+            <button
+              className="cs-card-btn cs-btn-primary"
+              onClick={() =>
+                handleProtectedNavigation("/skill-gap-analyzer", "Skill Gap Analyzer")
+              }
+            >
+              <span>Analyze Your Skills</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 8C20 8 22 10 22 12C22 15 18 18 12 18C6 18 2 15 2 12C2 10 4 8 6 8" strokeLinecap="round"/>
                 <path d="M12 2V12M12 12L15 9M12 12L9 9" strokeLinecap="round" strokeLinejoin="round"/>

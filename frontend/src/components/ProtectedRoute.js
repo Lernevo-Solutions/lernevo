@@ -1,11 +1,26 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, featureName = 'this feature' }) => {
   const token = localStorage.getItem('token');
-  
-  if (!token || token === 'undefined' || token === 'null') {
-    return <Navigate to="/get-started" replace />;
+  const location = useLocation();
+  const isAuthenticated =
+    token && token !== 'undefined' && token !== 'null' && token.trim() !== '';
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      window.alert(`Please signup or login to access ${featureName}.`);
+    }
+  }, [featureName, isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to="/get-started?mode=login"
+        replace
+        state={{ from: location.pathname }}
+      />
+    );
   }
 
   return children;
