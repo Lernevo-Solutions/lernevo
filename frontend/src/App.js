@@ -68,7 +68,7 @@ const AppLayout = () => {
     "/builder",
     "/home",
     "/templates",
-    "/skill-gap-analyzer",
+    
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
