@@ -1,3 +1,4 @@
+// skill.js - Complete Enhanced File
 import React, { useState, useRef, useEffect } from 'react';
 import './skill.css';
 
@@ -122,47 +123,28 @@ BENEFITS
     const lowerText = text.toLowerCase();
     return SKILL_DATABASE.filter(skill => lowerText.includes(skill.toLowerCase()));
   };
-const extractImportantKeywords = (jobDesc) => {
-  if (!jobDesc) return [];
 
-  const lowerJobDesc = jobDesc.toLowerCase();
+  const extractImportantKeywords = (jobDesc) => {
+    if (!jobDesc) return [];
+    const lowerJobDesc = jobDesc.toLowerCase();
+    const uniqueSkills = [...new Set(SKILL_DATABASE)];
+    return uniqueSkills.filter(skill => {
+      const cleanSkill = skill.toLowerCase().trim();
+      if (cleanSkill.length < 3) return false;
+      const regex = new RegExp(`\\b${cleanSkill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      return regex.test(lowerJobDesc);
+    });
+  };
 
-  // remove duplicate & unwanted keywords
-  const uniqueSkills = [...new Set(SKILL_DATABASE)];
-
-  return uniqueSkills.filter(skill => {
-    const cleanSkill = skill.toLowerCase().trim();
-
-    // ignore very small/common words
-    if (cleanSkill.length < 3) return false;
-
-    // exact word match
-    const regex = new RegExp(`\\b${cleanSkill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-
-    return regex.test(lowerJobDesc);
-  });
-};
-
- const checkKeywordPresence = (resume, importantKeywords) => {
-  if (!resume || !importantKeywords.length) return [];
-
-  const resumeLower = resume.toLowerCase();
-
-  return importantKeywords.map(keyword => {
-
-    // normalize text
-    const normalizedKeyword = keyword.toLowerCase().replace(/s$/, '');
-
-    const present =
-      resumeLower.includes(keyword.toLowerCase()) ||
-      resumeLower.includes(normalizedKeyword);
-
-    return {
-      keyword,
-      present
-    };
-  });
-};
+  const checkKeywordPresence = (resume, importantKeywords) => {
+    if (!resume || !importantKeywords.length) return [];
+    const resumeLower = resume.toLowerCase();
+    return importantKeywords.map(keyword => {
+      const normalizedKeyword = keyword.toLowerCase().replace(/s$/, '');
+      const present = resumeLower.includes(keyword.toLowerCase()) || resumeLower.includes(normalizedKeyword);
+      return { keyword, present };
+    });
+  };
 
   const getKeywordSuggestion = (keyword) => {
     const suggestions = {
@@ -244,76 +226,65 @@ const extractImportantKeywords = (jobDesc) => {
 
   const getPriorityColor = (priority) => {
     switch(priority) {
-      case 'high': return '#dc2626';
-      case 'medium': return '#f59e0b';
-      default: return '#10b981';
+      case 'high': return '#ff4785';
+      case 'medium': return '#ffa500';
+      default: return '#00c9a7';
     }
   };
 
   const getPriorityBg = (priority) => {
     switch(priority) {
-      case 'high': return 'linear-gradient(135deg, #fef2f2, #ffffff)';
-      case 'medium': return 'linear-gradient(135deg, #fffbeb, #ffffff)';
-      default: return 'linear-gradient(135deg, #ecfdf5, #ffffff)';
+      case 'high': return 'linear-gradient(135deg, #fff0f3, #ffffff)';
+      case 'medium': return 'linear-gradient(135deg, #fff8e7, #ffffff)';
+      default: return 'linear-gradient(135deg, #e0fff5, #ffffff)';
     }
   };
 
   const getRecommendation = (skill) => {
     const recommendations = {
-      'react': 'Build 5+ React applications (E-commerce, Dashboard, Social Media) + Master Hooks & Context API',
-      'next.js': 'Build full-stack applications + Master App Router + Server Components + ISR',
-      'typescript': 'TypeScript Deep Dive + Build type-safe applications + Generics + Utility Types',
-      'node.js': 'Build REST APIs, JWT Authentication, Real-time applications with Socket.io',
+      'react': 'Build 5+ React applications + Master Hooks, Context API & Redux Toolkit',
+      'next.js': 'Build full-stack apps + Master App Router + Server Components + ISR',
+      'typescript': 'TypeScript Deep Dive + Build type-safe applications + Generics',
+      'node.js': 'Build REST APIs, JWT Authentication, Real-time apps with Socket.io',
       'graphql': 'Apollo Server + Schema Design + Resolvers + Federation',
       'redis': 'Redis University + Caching strategies + Pub/Sub + RedisJSON',
-      'kubernetes': 'K8s basics + Deploy applications + Pods, Services, Ingress + Helm',
+      'kubernetes': 'K8s basics + Deploy apps + Pods, Services, Ingress + Helm',
       'python': '100 Days of Code + Build Django/Flask projects + Data structures',
       'java': 'Spring Boot Microservices + Hibernate + REST APIs + Maven',
-      'docker': 'Docker Mastery + Containerize 3 applications + Docker Compose + Swarm',
+      'docker': 'Docker Mastery + Containerize applications + Docker Compose + Swarm',
       'aws': 'AWS Certified Developer + Hands-on EC2, S3, Lambda, API Gateway',
       'mongodb': 'MongoDB University + Aggregation Pipeline + Indexing + Sharding',
-      'postgresql': 'Master Joins, Window Functions + Query Optimization + pgAdmin',
+      'postgresql': 'Master Joins, Window Functions + Query Optimization',
       'leadership': 'Lead team projects + Mentorship + Decision making courses',
       'communication': 'Toastmasters + Technical blogging + Presentation skills'
     };
     return recommendations[skill.toLowerCase()] || `Master ${skill} with hands-on projects and certifications`;
   };
 
- const calculateKeywordsScore = (resume, jobDesc) => {
-  if (!resume || !jobDesc) return 0;
+  const calculateKeywordsScore = (resume, jobDesc) => {
+    if (!resume || !jobDesc) return 0;
+    const importantKeywords = extractImportantKeywords(jobDesc);
+    if (importantKeywords.length === 0) return 0;
+    const resumeLower = resume.toLowerCase();
+    let matched = 0;
+    importantKeywords.forEach(keyword => {
+      if (resumeLower.includes(keyword.toLowerCase())) matched++;
+    });
+    return Math.round((matched / importantKeywords.length) * 100);
+  };
 
-  const importantKeywords = extractImportantKeywords(jobDesc);
-
-  if (importantKeywords.length === 0) return 0;
-
-  const resumeLower = resume.toLowerCase();
-
-  let matched = 0;
-
-  importantKeywords.forEach(keyword => {
-    if (resumeLower.includes(keyword.toLowerCase())) {
-      matched++;
-    }
-  });
-
-  return Math.round((matched / importantKeywords.length) * 100);
-};
   const calculateFormattingScore = (resume) => {
     if (!resume) return 0;
     let score = 50;
-    
     if (resume.toLowerCase().includes('experience') || resume.toLowerCase().includes('work experience')) score += 10;
     if (resume.toLowerCase().includes('education')) score += 10;
     if (resume.toLowerCase().includes('skills') || resume.toLowerCase().includes('technical skills')) score += 10;
-    if (resume.toLowerCase().includes('summary') || resume.toLowerCase().includes('profile')) score += 5;
+    if (resume.toLowerCase().includes('summary')) score += 5;
     if (resume.includes('•') || resume.includes('-') || resume.includes('*')) score += 10;
-    
     const lines = resume.split('\n');
     const hasProperSpacing = lines.filter(line => line.trim() === '').length > 3;
     if (hasProperSpacing) score += 5;
     if (resume.length > 500 && resume.length < 3000) score += 5;
-    if (resume.length > 3000) score -= 5;
-    
     return Math.min(Math.round(score), 100);
   };
 
@@ -325,9 +296,9 @@ const extractImportantKeywords = (jobDesc) => {
   const calculateExperienceScore = (resume) => {
     let score = 65;
     if (resume.toLowerCase().includes('senior') || resume.toLowerCase().includes('lead')) score += 15;
-    if (resume.toLowerCase().includes('years of experience') || resume.toLowerCase().includes('years experience')) score += 5;
+    if (resume.toLowerCase().includes('years of experience')) score += 5;
     if (resume.length > 800) score += 5;
-    if (resume.toLowerCase().includes('achievement') || resume.toLowerCase().includes('improved') || resume.toLowerCase().includes('increased')) score += 5;
+    if (resume.toLowerCase().includes('achievement') || resume.toLowerCase().includes('improved')) score += 5;
     return Math.min(95, Math.round(score));
   };
 
@@ -344,10 +315,10 @@ const extractImportantKeywords = (jobDesc) => {
   };
 
   const getVerdict = (atsScore) => {
-    if (atsScore >= 80) return { text: 'Outstanding Match', subtext: 'You are an excellent candidate for this role', color: '#10b981', bg: '#d1fae5' };
-    if (atsScore >= 60) return { text: 'Strong Alignment', subtext: 'Minor gaps identified - easy to fill', color: '#3b82f6', bg: '#dbeafe' };
-    if (atsScore >= 40) return { text: 'Potential Detected', subtext: 'Focus on key missing skills to stand out', color: '#f59e0b', bg: '#fed7aa' };
-    return { text: 'Growth Opportunity', subtext: 'Clear roadmap created for your success', color: '#dc2626', bg: '#fee2e2' };
+    if (atsScore >= 80) return { text: 'Outstanding Match', subtext: 'You are an excellent candidate for this role', color: '#00c9a7', bg: '#e0fff5' };
+    if (atsScore >= 60) return { text: 'Strong Alignment', subtext: 'Minor gaps identified - easy to fill', color: '#3b82f6', bg: '#e0f2fe' };
+    if (atsScore >= 40) return { text: 'Potential Detected', subtext: 'Focus on key missing skills to stand out', color: '#ffa500', bg: '#fff3e0' };
+    return { text: 'Growth Opportunity', subtext: 'Clear roadmap created for your success', color: '#ff4785', bg: '#ffe5ec' };
   };
 
   const handleFileUpload = (file) => {
@@ -453,428 +424,273 @@ const extractImportantKeywords = (jobDesc) => {
           </p>
           
           <div className="hero-feature-strip">
-            <div className="strip-item">
-              <span>⚡</span>
-              <span>Instant Analysis</span>
-            </div>
+            <div className="strip-item"><span>⚡</span><span>Instant Analysis</span></div>
             <div className="strip-divider"></div>
-            <div className="strip-item">
-              <span>🎯</span>
-              <span>Smart Matching</span>
-            </div>
+            <div className="strip-item"><span>🎯</span><span>Smart Matching</span></div>
             <div className="strip-divider"></div>
-            <div className="strip-item">
-              <span>📚</span>
-              <span>Learning Path</span>
-            </div>
+            <div className="strip-item"><span>📚</span><span>Learning Path</span></div>
             <div className="strip-divider"></div>
-            <div className="strip-item">
-              <span>💎</span>
-              <span>ATS Ready</span>
-            </div>
+            <div className="strip-item"><span>💎</span><span>ATS Ready</span></div>
           </div>
         </div>
         
         <div className="cards-grid">
           <div className="card">
             <div className="card-header">
-              <div className="card-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M4 4h16v16H4zM8 8h8M8 12h6M8 16h4"/>
-                </svg>
-              </div>
-              <div>
-                <h3>Your Resume</h3>
-                <p>Sample data pre-loaded</p>
-              </div>
+              <div className="card-icon">📄</div>
+              <div><h3>Your Resume</h3><p>Sample data pre-loaded</p></div>
             </div>
             <div className="card-body">
-              <div 
-                className={`drop-zone ${isDragging ? 'dragging' : ''}`}
-                onClick={() => fileInputRef.current?.click()}
+              <div className={`drop-zone ${isDragging ? 'dragging' : ''}`} onClick={() => fileInputRef.current?.click()}
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                  handleFileUpload(e.dataTransfer.files[0]);
-                }}
-              >
-                <div className="drop-icon">📄</div>
+                onDragLeave={() => setIsDragging(false)} onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileUpload(e.dataTransfer.files[0]); }}>
+                <div className="drop-icon">📁</div>
                 <p>Drag & drop or <span>browse</span></p>
                 <small>TXT files only</small>
                 {fileName && <div className="file-name">{fileName}</div>}
                 <input ref={fileInputRef} type="file" accept=".txt" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e.target.files[0])} />
               </div>
-              <textarea
-                className="textarea"
-                placeholder="Your resume content..."
-                value={resumeText}
-                onChange={(e) => setResumeText(e.target.value)}
-                rows={10}
-              />
-              <div className="textarea-footer">
-                <span>{resumeText.length} characters</span>
-                <span className="badge">Ready</span>
-              </div>
+              <textarea className="textarea" placeholder="Your resume content..." value={resumeText} onChange={(e) => setResumeText(e.target.value)} rows={10} />
+              <div className="textarea-footer"><span>{resumeText.length} characters</span><span className="badge">Ready</span></div>
             </div>
           </div>
 
           <div className="card">
-            <div className="card-header">
-              <div className="card-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M12 6v6l4 2"/>
-                </svg>
-              </div>
-              <div>
-                <h3>Job Description</h3>
-                <p>Sample job data pre-loaded</p>
-              </div>
-            </div>
+            <div className="card-header"><div className="card-icon">💼</div><div><h3>Job Description</h3><p>Sample job data pre-loaded</p></div></div>
             <div className="card-body">
-              <textarea
-                className="textarea"
-                placeholder="Job description..."
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                rows={12}
-              />
-              <div className="textarea-footer">
-                <span>{jobDescription.length} characters</span>
-                <span className="badge">Ready</span>
-              </div>
+              <textarea className="textarea" placeholder="Job description..." value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} rows={12} />
+              <div className="textarea-footer"><span>{jobDescription.length} characters</span><span className="badge">Ready</span></div>
             </div>
           </div>
         </div>
 
         <button className="analyze-btn" onClick={analyzeGap} disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <div className="spinner"></div>
-              Analyzing...
-            </>
-          ) : (
-            <>
-              Analyze & Get ATS Score →
-            </>
-          )}
+          {isLoading ? (<><div className="spinner"></div> Analyzing...</>) : (<>✨ Analyze & Get ATS Score →</>)}
         </button>
 
         {analysisResult && (
           <div className="results">
             <div className="tabs">
-              <button className={`tab ${activeTab === 'ats' ? 'active' : ''}`} onClick={() => setActiveTab('ats')}>
-                ATS Scorecard
-              </button>
-              <button className={`tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-                Skill Overview
-              </button>
+              <button className={`tab ${activeTab === 'ats' ? 'active' : ''}`} onClick={() => setActiveTab('ats')}>🎯 ATS Scorecard</button>
+              <button className={`tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>📊 Skill Overview</button>
             </div>
 
-            {activeTab === 'ats' && (
-              <div className="ats-tab-container">
-                <div className="ats-score-card-premium">
-                  <div className="score-header-badge">
-                    <div className="badge-dot"></div>
-                    <span>ATS COMPATIBILITY SCORE</span>
-                  </div>
-                  
-                  <div className="score-two-columns">
-                    <div className="score-left-column">
-                      <div className="big-score-ring">
-                        <svg width="260" height="260" viewBox="0 0 260 260">
-                          <circle cx="130" cy="130" r="115" fill="none" stroke="#e2e8f0" strokeWidth="12"/>
-                          <circle 
-                            cx="130" cy="130" r="115" fill="none" 
-                            stroke="url(#premiumGradient)" 
-                            strokeWidth="12" 
-                            strokeDasharray="722" 
-                            strokeDashoffset={722 - (722 * analysisResult.atsScore / 100)}
-                            strokeLinecap="round"
-                            transform="rotate(-90 130 130)"
-                          />
-                          <defs>
-                            <linearGradient id="premiumGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#2563eb" />
-                              <stop offset="50%" stopColor="#3b82f6" />
-                              <stop offset="100%" stopColor="#06b6d4" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <div className="big-score-number">
-                          <span className="main-score">{analysisResult.atsScore}</span>
-                          <span className="total-score">/100</span>
-                          <div className="score-rank">
-                            {analysisResult.atsScore >= 80 ? 'Excellent' :
-                             analysisResult.atsScore >= 60 ? 'Good Match' :
-                             analysisResult.atsScore >= 40 ? 'Average' :
-                             'Needs Work'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="score-right-column">
-                      <div className="verdict-premium-card" style={{ 
-                        background: analysisResult.atsScore >= 80 ? '#d1fae5' :
-                                   analysisResult.atsScore >= 60 ? '#dbeafe' :
-                                   analysisResult.atsScore >= 40 ? '#fed7aa' :
-                                   '#fee2e2'
-                      }}>
-                        <div className="verdict-premium-text">
-                          <h4 style={{ color: analysisResult.atsScore >= 80 ? '#065f46' :
-                                       analysisResult.atsScore >= 60 ? '#1e40af' :
-                                       analysisResult.atsScore >= 40 ? '#92400e' :
-                                       '#991b1b' }}>
-                            {analysisResult.atsScore >= 80 ? 'Outstanding Match' :
-                             analysisResult.atsScore >= 60 ? 'Strong Alignment' :
-                             analysisResult.atsScore >= 40 ? 'Potential Detected' :
-                             'Growth Opportunity'}
-                          </h4>
-                          <p>{analysisResult.atsScore >= 60 ? 'Your resume has a good chance of passing ATS screening.' : 
-                               analysisResult.atsScore >= 40 ? 'Focus on key missing skills to stand out.' :
-                               'Clear roadmap created for your success.'}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="encouragement-premium">
-                        <div className="enc-premium-title">IMPROVEMENT PATH</div>
-                        <div className="enc-premium-message">Keep improving your skills and fill the gap to get better results</div>
-                        <div className="enc-premium-bar">
-                          <div className="enc-premium-fill" style={{ width: `${Math.min(100, Math.round(analysisResult.matchedSkills.length / analysisResult.totalJobSkills * 100))}%` }}></div>
-                        </div>
-                        <div className="enc-premium-percent">{Math.min(100, Math.round(analysisResult.matchedSkills.length / analysisResult.totalJobSkills * 100))}% Complete</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <h3 className="score-breakdown-title">Score Breakdown</h3>
-                  <div className="breakdown-row">
-                    <div className="break-card">
-                      <div className="break-header">
-                        <span>Keywords Score</span>
-                        <span className="break-score">{analysisResult.keywordsScore}/100</span>
-                      </div>
-                      <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.keywordsScore}%` }}></div></div>
-                      <div className="break-desc">Job keyword matching from description. Add more relevant keywords.</div>
-                    </div>
-                    <div className="break-card">
-                      <div className="break-header">
-                        <span>Formatting Score</span>
-                        <span className="break-score">{analysisResult.formattingScore}/100</span>
-                      </div>
-                      <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.formattingScore}%` }}></div></div>
-                      <div className="break-desc">Structure, headings, bullet points, and overall readability.</div>
-                    </div>
-                    <div className="break-card">
-                      <div className="break-header">
-                        <span>Skill Score</span>
-                        <span className="break-score">{analysisResult.skillScore}/100</span>
-                      </div>
-                      <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.skillScore}%` }}></div></div>
-                      <div className="break-desc">Technical skills matched with job requirements.</div>
-                    </div>
-                    <div className="break-card">
-                      <div className="break-header">
-                        <span>Experience Score</span>
-                        <span className="break-score">{analysisResult.experienceScore}/100</span>
-                      </div>
-                      <div className="progress-bg"><div className="progress-fill" style={{ width: `${analysisResult.experienceScore}%` }}></div></div>
-                      <div className="break-desc">Relevant work experience, seniority, and achievements.</div>
-                    </div>
-                  </div>
+    {activeTab === 'ats' && (
+  <div className="ats-dashboard-container">
+    {/* Dashboard Header */}
+    <div className="dashboard-top-nav">
+      <div className="nav-left">
+        <h2>ATS Score Dashboard </h2>
+        <p>Advanced AI-driven analysis to optimize your resume for Applicant Tracking Systems</p>
+      </div>
+    </div>
 
-                  <div className="missing-section">
-                    <div className="missing-title">
-                      <span>⚠️</span> Missing Skills
-                      <span style={{ fontSize: '14px', fontWeight: 'normal' }}>Important skills missing from your profile</span>
-                    </div>
-                    <div className="missing-badge-list">
-                      {analysisResult.missingSkillsList.length > 0 ? analysisResult.missingSkillsList.map((sk, idx) => (
-                        <span key={idx} className="missing-skill-item">{sk}</span>
-                      )) : <span className="missing-skill-item">No critical missing skills</span>}
-                    </div>
-                  </div>
-
-                  <div className="tips-card">
-                    <h3>Tips to Improve</h3>
-                    <ul className="tips-list">
-                      <li><strong>Add Missing Skills</strong> – Include the missing skills in your resume where applicable.</li>
-                      <li><strong>Use Relevant Keywords</strong> – Add more role-specific keywords to increase ATS match.</li>
-                      <li><strong>Highlight Achievements</strong> – Quantify your achievements to stand out more.</li>
-                      <li><strong>Improve Skill Section</strong> – Organize and highlight your skills section.</li>
-                      <li><strong>Fix Formatting</strong> – Use standard headings (Experience, Education, Skills) and bullet points.</li>
-                    </ul>
-                  </div>
-
-                  <div className="keep-improving">
-                    <p>Keep Improving! Enhance your profile and increase your chances of getting shortlisted.</p>
-                  </div>
-                  <div className="note-text">
-                    Note: Scores are calculated based on ATS compatibility, keyword match, formatting structure, skill relevance, and profile experience.
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'overview' && (
-              <div className="overview-modern">
-                {/* Stats Cards Row */}
-                <div className="modern-stats-grid">
-                  <div className="modern-stat-card">
-                    <div className="stat-header">
-                      <span className="stat-title">Match Score</span>
-                      <span className="stat-value-large">{analysisResult.matchScore}%</span>
-                    </div>
-                    <div className="stat-progress">
-                      <div className="stat-progress-bar" style={{ width: `${analysisResult.matchScore}%` }}></div>
-                    </div>
-                  </div>
-                  <div className="modern-stat-card">
-                    <div className="stat-header">
-                      <span className="stat-title">Matched Skills</span>
-                      <span className="stat-value-large success">{analysisResult.matchedSkills.length}</span>
-                    </div>
-                    <div className="stat-subtext">out of {analysisResult.totalJobSkills} required skills</div>
-                  </div>
-                  <div className="modern-stat-card">
-                    <div className="stat-header">
-                      <span className="stat-title">Skills Gap</span>
-                      <span className="stat-value-large warning">{analysisResult.missingSkills.length}</span>
-                    </div>
-                    <div className="stat-subtext">skills to acquire</div>
-                  </div>
-                </div>
-
-                {/* Verdict Card - Clean */}
-                <div className="modern-verdict" style={{ background: analysisResult.verdict.bg }}>
-                  <div>
-                    <h3 style={{ color: analysisResult.verdict.color }}>{analysisResult.verdict.text}</h3>
-                    <p>{analysisResult.verdict.subtext}</p>
-                  </div>
-                  <div className="verdict-badge">
-                    <span>Analysis Complete</span>
-                  </div>
-                </div>
-                <div className="modern-section">
-                  <div className="section-header-modern">
-                    <h3>Your Strengths</h3>
-                    <div className="strength-count">{analysisResult.matchedSkills.length} skills matched</div>
-                  </div>
-                  <div className="strength-tags">
-                    {analysisResult.matchedSkills.map((skill, i) => (
-                      <span key={i} className="strength-tag">{skill}</span>
-                    ))}
-                  </div>
-                </div>
-              
-                {/* Keyword Density Checker Section */}
-                <div className="modern-section">
-                  <div className="section-header-modern">
-                    <h3>Keyword Density Analysis</h3>
-                    <div className="keyword-stats">
-                      <span className="keyword-found-count">
-  {analysisResult.matchedSkills.length}
-</span>
-
-<span>found out of</span>
-
-<span className="keyword-total-count">
-  {analysisResult.totalJobSkills}
-</span>
-                    </div>
-                  </div>
-                <div className="keyword-grid-modern">
-  {analysisResult.keywordCheckResults
-    ?.filter(item => !item.present) // only missing keywords
-    .slice(0, 20)
-    .map((item, idx) => (
-      <div
-        key={idx}
-        className="keyword-item-modern missing"
-      >
-        <div className="keyword-top">
-          <span className="keyword-name">
-            {item.keyword}
-          </span>
-
-          <span className="keyword-missing-badge">
-            ✕ Missing
-          </span>
-        </div>
-
-        <div className="missing-info-card">
-          <div className="info-icon">💡</div>
-
-          <div className="missing-content">
-            <div className="missing-title-text">
-              Improve this skill in your resume
+    {/* Top Grid: Overall Score & Splitup */}
+    <div className="ats-main-grid">
+      <div className="dashboard-card score-hero">
+        <div className="card-label">OVERALL ATS SCORE ⓘ</div>
+        <div className="score-hero-flex">
+          <div className="gauge-wrapper">
+            <svg viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#2563eb" />
+                  <stop offset="100%" stopColor="#7c3aed" />
+                </linearGradient>
+              </defs>
+              <circle className="gauge-bg" cx="50" cy="50" r="45" />
+              <circle className="gauge-fill" cx="50" cy="50" r="45" 
+                style={{ strokeDashoffset: 283 - (283 * analysisResult.atsScore) / 100 }} 
+              />
+            </svg>
+            <div className="gauge-text">
+              <span className="big-num">{analysisResult.atsScore}</span>
+              <span className="total-num">/ 100</span>
+              <div className="status-tag">Excellent</div>
             </div>
-
-            <div className="missing-suggestion">
-              {getKeywordSuggestion(item.keyword)}
+          </div>
+          <div className="verdict-content">
+            <h3>Great Job! </h3>
+            <p>Your resume is well-optimized for ATS. You're in the top 20% of applicants.</p>
+            <div className="trend-stat">
+              <span className="trend-up">▲ 12%</span>
+              <span className="trend-label">Score improved from last analysis</span>
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="dashboard-card splitup-hero">
+        <div className="card-header-flex">
+          <div className="card-label">SCORE SPLITUP ⓘ</div>
+          <span className="help-link">How it works?</span>
+        </div>
+        <div className="splitup-flex">
+          <div className="doughnut-container">
+            <div className="doughnut-mock">
+              <div className="inner-icon"></div>
+            </div>
+          </div>
+          <div className="progress-list">
+            <div className="prog-item"><span className="dot s"></span> Skills <b>{analysisResult.skillScore} / 100</b> <div className="p-bar"><div className="p-fill s" style={{width: `${analysisResult.skillScore}%`}}></div></div></div>
+            <div className="prog-item"><span className="dot e"></span> Experience <b>{analysisResult.experienceScore} / 100</b> <div className="p-bar"><div className="p-fill e" style={{width: `${analysisResult.experienceScore}%`}}></div></div></div>
+            <div className="prog-item"><span className="dot ed"></span> Education <b>80 / 100</b> <div className="p-bar"><div className="p-fill ed" style={{width: '80%'}}></div></div></div>
+            <div className="prog-item"><span className="dot k"></span> Keywords <b>{analysisResult.keywordsScore} / 100</b> <div className="p-bar"><div className="p-fill k" style={{width: `${analysisResult.keywordsScore}%`}}></div></div></div>
+            <div className="prog-item"><span className="dot f"></span> Formatting <b>{analysisResult.formattingScore} / 100</b> <div className="p-bar"><div className="p-fill f" style={{width: `${analysisResult.formattingScore}%`}}></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* TWO COLUMN LAYOUT: LEFT = TIPS, RIGHT = MISSING SKILLS */}
+    <div className="two-column-layout">
+      {/* LEFT COLUMN - Tips & Recommendations */}
+      <div className="dashboard-card tips-section-full">
+        <div className="card-header-flex">
+          <div className="card-label">💡 TIPS & RECOMMENDATIONS</div>
+          
+        </div>
+        <div className="tips-list-premium">
+          <div className="tip-item-premium">
+            <div className="tip-icon-wrapper keyword">✏️</div>
+            <div className="tip-content-premium">
+              <h4>Add more relevant keywords</h4>
+              <p>Helps ATS understand your resume better</p>
+            </div>
+            
+          </div>
+          <div className="tip-item-premium">
+            <div className="tip-icon-wrapper format">📄</div>
+            <div className="tip-content-premium">
+              <h4>Improve formatting for better readability</h4>
+              <p>Use standard headings and avoid tables</p>
+            </div>
+            
+          </div>
+          <div className="tip-item-premium">
+            <div className="tip-icon-wrapper achievement">📊</div>
+            <div className="tip-content-premium">
+              <h4>Add more quantifiable achievements</h4>
+              <p>Include numbers and metrics in your experience</p>
+            </div>
+          </div>
+          <div className="tip-item-premium">
+            <div className="tip-icon-wrapper keyword">🎯</div>
+            <div className="tip-content-premium">
+              <h4>Match job description language</h4>
+              <p>Use exact phrases from the job posting</p>
+            </div>
+            
+          </div>
+        </div>
+        
       
-    
-                      </div>
-                    ))}
-                  </div>
-                  {analysisResult.missingKeywords?.length > 0 && (
-                    <div className="missing-keywords-alert">
-                      <strong>{analysisResult.missingKeywords.length}</strong> important keywords are missing from your resume. Add these to improve your ATS score.
-                    </div>
-                  )}
-                </div>
+      </div>
 
-                {/* Priority Skills Section */}
-                <div className="modern-section">
-                  <div className="section-header-modern">
-                    <h3>Priority Learning Path</h3>
-                    <div className="priority-filters">
-                      <span className="priority-dot high"></span>
-                      <span>High Priority</span>
-                      <span className="priority-dot medium"></span>
-                      <span>Medium Priority</span>
-                      <span className="priority-dot low"></span>
-                      <span>Low Priority</span>
-                    </div>
-                  </div>
-                  <div className="priority-list">
-                    {analysisResult.missingSkills.map((skill, idx) => {
-                      const priority = getPriorityLevel(skill, idx);
-                      const resources = getLearningResources(skill);
-                      return (
-                        <div key={idx} className={`priority-card ${priority}`}>
-                          <div className="priority-card-header">
-                            <div className="priority-info">
-                              <span className="priority-badge" style={{ background: getPriorityColor(priority) }}>{priority === 'high' ? 'High Priority' : priority === 'medium' ? 'Medium Priority' : 'Low Priority'}</span>
-                              <span className="priority-skill-name">{skill}</span>
-                            </div>
-                            <div className="time-estimate">{getRecommendation(skill).split('•')[1] || '2-3 weeks'}</div>
-                          </div>
-                          <div className="priority-recommendation">{getRecommendation(skill)}</div>
-                          <div className="resources-section">
-                            <div className="resources-label">Learning Resources</div>
-                            <div className="resources-links">
-                              {resources.map((resource, ridx) => (
-                                <a key={ridx} href={resource.url} target="_blank" rel="noopener noreferrer" className="resource-btn">
-                                  {resource.platform}
-                                </a>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+      {/* RIGHT COLUMN - Missing Skills (Exactly like image) */}
+      <div className="dashboard-card missing-skills-premium">
+        <div className="missing-skills-header">
+          <div className="missing-skills-title">
+            <div className="title-icon">📋</div>
+            <div>
+              <h3>MISSING SKILLS</h3>
+              <p>Top skills missing from your resume based on the job description</p>
+            </div>
+          </div>
+          <div className="missing-count-badge">
+            <span className="count-number">{analysisResult.missingSkills.length}</span>
+            <span className="count-label">Skills Missing</span>
+          </div>
+        </div>
 
-           
+        <div className="missing-skills-grid-modern">
+          {analysisResult.missingSkills.slice(0, 8).map((skill, idx) => {
+            const skillIcons = {
+              'aws': 'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg',
+              'kubernetes': 'https://www.vectorlogo.zone/logos/kubernetes/kubernetes-icon.svg',
+              'node.js': 'https://www.vectorlogo.zone/logos/nodejs/nodejs-icon.svg',
+              'mongodb': 'https://www.vectorlogo.zone/logos/mongodb/mongodb-icon.svg',
+              'docker': 'https://www.vectorlogo.zone/logos/docker/docker-tile.svg',
+              'react.js': 'https://www.vectorlogo.zone/logos/reactjs/reactjs-icon.svg',
+              'typescript': 'https://www.vectorlogo.zone/logos/typescriptlang/typescriptlang-icon.svg',
+              'graphql': 'https://www.vectorlogo.zone/logos/graphql/graphql-icon.svg',
+              'postgresql': 'https://www.vectorlogo.zone/logos/postgresql/postgresql-icon.svg',
+              'redis': 'https://www.vectorlogo.zone/logos/redis/redis-icon.svg',
+              'next.js': 'https://www.vectorlogo.zone/logos/nextjs/nextjs-icon.svg'
+            };
+            
+            const colors = ['orange', 'blue', 'green', 'purple', 'pink', 'cyan', 'amber', 'indigo'];
+            const colorClass = colors[idx % colors.length];
+            
+            return (
+              <div key={idx} className={`missing-skill-tile ${colorClass}`}>
+                <div className="skill-tile-left">
+                  <div className="skill-logo-circle">
+                    <img 
+                      src={skillIcons[skill.toLowerCase()] || 'https://www.vectorlogo.zone/logos/devicon/devicon-icon.svg'} 
+                      alt={skill}
+                      onError={(e) => { e.target.src = 'https://www.vectorlogo.zone/logos/google/google-icon.svg'; }}
+                    />
+                  </div>
+                  <span className="skill-name">{skill}</span>
+                </div>
+                <div className="skill-tile-dots">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+     
+      </div>
+    </div>
+
+    {/* Additional Insights Section */}
+    <div className="ats-main-grid">
+      <div className="dashboard-card insights-card">
+        <div className="card-label">📊 QUICK INSIGHTS</div>
+        <div className="insights-flex">
+          <div className="insight-item-v2">
+            <div className="i-icon">⏱️</div>
+            <div>
+              <small>Estimated Learning Time</small>
+              <strong>{analysisResult.learningTime}</strong>
+              <span className="check">to close the gap</span>
+            </div>
+          </div>
+          <div className="insight-item-v2">
+            <div className="i-icon">🎯</div>
+            <div>
+              <small>Top Priority Skill</small>
+              <strong>{analysisResult.missingSkills[0] || 'None'}</strong>
+              <span className="check">focus on this first</span>
+            </div>
+          </div>
+          <div className="insight-item-v2">
+            <div className="i-icon">📈</div>
+            <div>
+              <small>Match Improvement</small>
+              <strong>+35%</strong>
+              <span className="check">after learning missing skills</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+            {activeTab === 'overview' && (
+              <div className="overview-modern">
+                <div className="modern-stats-grid">
+                  <div className="modern-stat-card"><div className="stat-header"><span className="stat-title">Match Score</span><span className="stat-value-large">{analysisResult.matchScore}%</span></div><div className="stat-progress"><div className="stat-progress-bar" style={{ width: `${analysisResult.matchScore}%` }}></div></div></div>
+                  <div className="modern-stat-card"><div className="stat-header"><span className="stat-title">Matched Skills</span><span className="stat-value-large success">{analysisResult.matchedSkills.length}</span></div><div className="stat-subtext">out of {analysisResult.totalJobSkills} required</div></div>
+                  <div className="modern-stat-card"><div className="stat-header"><span className="stat-title">Skills Gap</span><span className="stat-value-large warning">{analysisResult.missingSkills.length}</span></div><div className="stat-subtext">skills to acquire</div></div>
+                </div>
+                <div className="modern-verdict" style={{ background: analysisResult.verdict.bg }}><div><h3 style={{ color: analysisResult.verdict.color }}>{analysisResult.verdict.text}</h3><p>{analysisResult.verdict.subtext}</p></div><div className="verdict-badge"><span>Analysis Complete</span></div></div>
+                <div className="modern-section"><div className="section-header-modern"><h3>💪 Your Strengths</h3><div className="strength-count">{analysisResult.matchedSkills.length} skills matched</div></div><div className="strength-tags">{analysisResult.matchedSkills.map((skill, i) => (<span key={i} className="strength-tag">{skill}</span>))}</div></div>
+                <div className="modern-section"><div className="section-header-modern"><h3>🔍 Keyword Density Analysis</h3><div className="keyword-stats"><span className="keyword-found-count">{analysisResult.matchedSkills.length}</span><span> found out of </span><span className="keyword-total-count">{analysisResult.totalJobSkills}</span></div></div><div className="keyword-grid-modern">{analysisResult.keywordCheckResults?.filter(item => !item.present).slice(0, 20).map((item, idx) => (<div key={idx} className="keyword-item-modern missing"><div className="keyword-top"><span className="keyword-name">{item.keyword}</span><span className="keyword-missing-badge">✕ Missing</span></div><div className="missing-info-card"><div className="info-icon">💡</div><div className="missing-content"><div className="missing-title-text">Improve this skill in your resume</div><div className="missing-suggestion">{getKeywordSuggestion(item.keyword)}</div></div></div></div>))}</div></div>
+                <div className="modern-section"><div className="section-header-modern"><h3>🎯 Priority Learning Path</h3><div className="priority-filters"><span className="priority-dot high"></span><span>High</span><span className="priority-dot medium"></span><span>Medium</span><span className="priority-dot low"></span><span>Low</span></div></div><div className="priority-list">{analysisResult.missingSkills.map((skill, idx) => { const priority = getPriorityLevel(skill, idx); const resources = getLearningResources(skill); return (<div key={idx} className={`priority-card ${priority}`}><div className="priority-card-header"><div className="priority-info"><span className="priority-badge" style={{ background: getPriorityColor(priority) }}>{priority === 'high' ? 'High Priority' : priority === 'medium' ? 'Medium Priority' : 'Low Priority'}</span><span className="priority-skill-name">{skill}</span></div><div className="time-estimate">{getRecommendation(skill).split('•')[1] || '2-3 weeks'}</div></div><div className="priority-recommendation">{getRecommendation(skill)}</div><div className="resources-section"><div className="resources-label">📖 Learning Resources</div><div className="resources-links">{resources.map((resource, ridx) => (<a key={ridx} href={resource.url} target="_blank" rel="noopener noreferrer" className="resource-btn">{resource.platform}</a>))}</div></div></div>); })}</div></div>
               </div>
             )}
           </div>
