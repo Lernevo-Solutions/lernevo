@@ -542,109 +542,207 @@ BENEFITS
       </div>
     </div>
 
-    {/* TWO COLUMN LAYOUT: LEFT = TIPS, RIGHT = MISSING SKILLS */}
-    <div className="two-column-layout">
-      {/* LEFT COLUMN - Tips & Recommendations */}
-      <div className="dashboard-card tips-section-full">
-        <div className="card-header-flex">
-          <div className="card-label">💡 TIPS & RECOMMENDATIONS</div>
-          
-        </div>
-        <div className="tips-list-premium">
-          <div className="tip-item-premium">
-            <div className="tip-icon-wrapper keyword">✏️</div>
-            <div className="tip-content-premium">
-              <h4>Add more relevant keywords</h4>
-              <p>Helps ATS understand your resume better</p>
-            </div>
-            
-          </div>
-          <div className="tip-item-premium">
-            <div className="tip-icon-wrapper format">📄</div>
-            <div className="tip-content-premium">
-              <h4>Improve formatting for better readability</h4>
-              <p>Use standard headings and avoid tables</p>
-            </div>
-            
-          </div>
-          <div className="tip-item-premium">
-            <div className="tip-icon-wrapper achievement">📊</div>
-            <div className="tip-content-premium">
-              <h4>Add more quantifiable achievements</h4>
-              <p>Include numbers and metrics in your experience</p>
-            </div>
-          </div>
-          <div className="tip-item-premium">
-            <div className="tip-icon-wrapper keyword">🎯</div>
-            <div className="tip-content-premium">
-              <h4>Match job description language</h4>
-              <p>Use exact phrases from the job posting</p>
-            </div>
-            
-          </div>
-        </div>
-        
+   {/* TWO COLUMN LAYOUT */}
+<div className="two-column-layout">
+
+  {/* TOP - MISSING SKILLS */}
+  <div className="dashboard-card missing-skills-premium">
+    
+    <div className="missing-skills-header">
       
+      <div className="missing-skills-title">
+        <div className="title-icon">📋</div>
+
+        <div>
+          <h3>MISSING SKILLS</h3>
+          <p>
+            Top skills missing from your resume based on the job description
+          </p>
+        </div>
       </div>
 
-      {/* RIGHT COLUMN - Missing Skills (Exactly like image) */}
-      <div className="dashboard-card missing-skills-premium">
-        <div className="missing-skills-header">
-          <div className="missing-skills-title">
-            <div className="title-icon">📋</div>
-            <div>
-              <h3>MISSING SKILLS</h3>
-              <p>Top skills missing from your resume based on the job description</p>
-            </div>
-          </div>
-          <div className="missing-count-badge">
-            <span className="count-number">{analysisResult.missingSkills.length}</span>
-            <span className="count-label">Skills Missing</span>
-          </div>
-        </div>
+      <div className="missing-count-badge">
+        <span className="count-number">
+          {analysisResult.missingSkills.length}
+        </span>
 
-        <div className="missing-skills-grid-modern">
-          {analysisResult.missingSkills.slice(0, 8).map((skill, idx) => {
-            const skillIcons = {
-              'aws': 'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg',
-              'kubernetes': 'https://www.vectorlogo.zone/logos/kubernetes/kubernetes-icon.svg',
-              'node.js': 'https://www.vectorlogo.zone/logos/nodejs/nodejs-icon.svg',
-              'mongodb': 'https://www.vectorlogo.zone/logos/mongodb/mongodb-icon.svg',
-              'docker': 'https://www.vectorlogo.zone/logos/docker/docker-tile.svg',
-              'react.js': 'https://www.vectorlogo.zone/logos/reactjs/reactjs-icon.svg',
-              'typescript': 'https://www.vectorlogo.zone/logos/typescriptlang/typescriptlang-icon.svg',
-              'graphql': 'https://www.vectorlogo.zone/logos/graphql/graphql-icon.svg',
-              'postgresql': 'https://www.vectorlogo.zone/logos/postgresql/postgresql-icon.svg',
-              'redis': 'https://www.vectorlogo.zone/logos/redis/redis-icon.svg',
-              'next.js': 'https://www.vectorlogo.zone/logos/nextjs/nextjs-icon.svg'
-            };
-            
-            const colors = ['orange', 'blue', 'green', 'purple', 'pink', 'cyan', 'amber', 'indigo'];
-            const colorClass = colors[idx % colors.length];
-            
-            return (
-              <div key={idx} className={`missing-skill-tile ${colorClass}`}>
-                <div className="skill-tile-left">
-                  <div className="skill-logo-circle">
-                    <img 
-                      src={skillIcons[skill.toLowerCase()] || 'https://www.vectorlogo.zone/logos/devicon/devicon-icon.svg'} 
-                      alt={skill}
-                      onError={(e) => { e.target.src = 'https://www.vectorlogo.zone/logos/google/google-icon.svg'; }}
-                    />
-                  </div>
-                  <span className="skill-name">{skill}</span>
-                </div>
-                <div className="skill-tile-dots">
-                  <span></span><span></span><span></span><span></span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        
-     
+        <span className="count-label">
+          Skills Missing
+        </span>
       </div>
     </div>
+
+    <div className="missing-skills-grid-modern">
+
+      {analysisResult.missingSkills.slice(0, 8).map((skill, idx) => {
+
+        const skillIcons = {
+  'aws': 'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg',
+
+  'kubernetes': 'https://www.vectorlogo.zone/logos/kubernetes/kubernetes-icon.svg',
+
+  'node.js': 'https://www.vectorlogo.zone/logos/nodejs/nodejs-icon.svg',
+
+  'mongodb': 'https://www.vectorlogo.zone/logos/mongodb/mongodb-icon.svg',
+
+  'docker': 'https://www.vectorlogo.zone/logos/docker/docker-icon.svg',
+
+  'react.js': 'https://www.vectorlogo.zone/logos/reactjs/reactjs-icon.svg',
+
+  'typescript': 'https://www.vectorlogo.zone/logos/typescriptlang/typescriptlang-icon.svg',
+
+  'graphql': 'https://www.vectorlogo.zone/logos/graphql/graphql-icon.svg',
+
+  'postgresql': 'https://www.vectorlogo.zone/logos/postgresql/postgresql-icon.svg',
+
+  'redis': 'https://www.vectorlogo.zone/logos/redis/redis-icon.svg',
+
+  'next.js': 'https://cdn.worldvectorlogo.com/logos/next-js.svg',
+
+  'java': 'https://www.vectorlogo.zone/logos/java/java-icon.svg',
+
+  'python': 'https://www.vectorlogo.zone/logos/python/python-icon.svg',
+
+  'git': 'https://www.vectorlogo.zone/logos/git-scm/git-scm-icon.svg',
+
+  'tailwind css': 'https://www.vectorlogo.zone/logos/tailwindcss/tailwindcss-icon.svg',
+
+  'express.js': 'https://cdn.worldvectorlogo.com/logos/express-109.svg',
+
+  'django': 'https://cdn.worldvectorlogo.com/logos/django.svg',
+
+  'mysql': 'https://www.vectorlogo.zone/logos/mysql/mysql-icon.svg',
+
+  'redux': 'https://raw.githubusercontent.com/reduxjs/redux/master/logo/logo.png',
+
+  'html': 'https://www.vectorlogo.zone/logos/w3_html5/w3_html5-icon.svg',
+
+  'css': 'https://www.vectorlogo.zone/logos/w3_css/w3_css-icon.svg',
+
+  'api design': 'https://cdn-icons-png.flaticon.com/512/2165/2165004.png',
+
+  'mentoring': 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+
+  'agile': 'https://cdn-icons-png.flaticon.com/512/2620/2620971.png',
+
+  'communication': 'https://cdn-icons-png.flaticon.com/512/3050/3050525.png',
+
+  'leadership': 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
+
+  'problem solving': 'https://cdn-icons-png.flaticon.com/512/2103/2103633.png'
+};
+
+        const colors = [
+          'orange',
+          'blue',
+          'green',
+          'purple',
+          'pink',
+          'cyan',
+          'amber',
+          'indigo'
+        ];
+
+        const colorClass = colors[idx % colors.length];
+
+        return (
+          <div
+            key={idx}
+            className={`missing-skill-tile ${colorClass}`}
+          >
+
+            <div className="skill-tile-left">
+
+              <div className="skill-logo-circle">
+                <img
+                  src={
+                    skillIcons[skill.toLowerCase()] ||
+                    'https://cdn-icons-png.flaticon.com/512/1055/1055687.png'
+                  }
+                  alt={skill}
+                onError={(e) => { 
+  e.target.src = 'https://cdn-icons-png.flaticon.com/512/1055/1055687.png';
+}}
+                />
+              </div>
+
+              <span className="skill-name">
+                {skill}
+              </span>
+            </div>
+
+            <div className="skill-tile-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
+  {/* BOTTOM - TIPS */}
+  <div className="dashboard-card tips-section-full">
+
+    <div className="card-header-flex">
+      <div className="card-label">
+        💡 TIPS & RECOMMENDATIONS
+      </div>
+    </div>
+
+    <div className="tips-list-premium">
+
+      <div className="tip-item-premium">
+        <div className="tip-icon-wrapper keyword">
+          ✏️
+        </div>
+
+        <div className="tip-content-premium">
+          <h4>Add more relevant keywords</h4>
+          <p>Helps ATS understand your resume better</p>
+        </div>
+      </div>
+
+      <div className="tip-item-premium">
+        <div className="tip-icon-wrapper format">
+          📄
+        </div>
+
+        <div className="tip-content-premium">
+          <h4>Improve formatting for better readability</h4>
+          <p>Use standard headings and avoid tables</p>
+        </div>
+      </div>
+
+      <div className="tip-item-premium">
+        <div className="tip-icon-wrapper achievement">
+          📊
+        </div>
+
+        <div className="tip-content-premium">
+          <h4>Add more quantifiable achievements</h4>
+          <p>Include numbers and metrics in your experience</p>
+        </div>
+      </div>
+
+      <div className="tip-item-premium">
+        <div className="tip-icon-wrapper keyword">
+          🎯
+        </div>
+
+        <div className="tip-content-premium">
+          <h4>Match job description language</h4>
+          <p>Use exact phrases from the job posting</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
 
     {/* Additional Insights Section */}
     <div className="ats-main-grid">
