@@ -46,6 +46,7 @@ import Homepage from "./components/HomePage";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
 import Skill from "./components/skill";
+import SkilDashboard from "./components/skilldashboard"
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
@@ -60,6 +61,7 @@ const AppLayout = () => {
     "/builder",
     "/skill",
     "/skill-gap-analyzer",
+    "/skilldashboard",
   ];
 
   // 👉 Navbar hide panna routes
@@ -176,6 +178,7 @@ const AppLayout = () => {
           }
         />
         <Route path="/skill" element={<Navigate to="/skill-gap-analyzer" replace />} />
+        <Route path="/skilldashboard" element={<SkilDashboard/>} />
       </Routes>
 
       {/* ✅ Footer conditionally */}

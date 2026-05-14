@@ -1,0 +1,1815 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f0f4ff;
+  color: #1a1a2e;
+}
+
+.dashboard {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ===== TOP ROW ===== */
+.top-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 300px;
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* ATS Score Card */
+.ats-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.ats-circle {
+  position: relative;
+  width: 90px;
+  height: 90px;
+}
+
+.ats-circle svg {
+  transform: rotate(-90deg);
+  width: 90px;
+  height: 90px;
+}
+
+.ats-circle .track {
+  fill: none;
+  stroke: #e8edff;
+  stroke-width: 8;
+}
+
+.ats-circle .progress {
+  fill: none;
+  stroke: url(#atsGrad);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 226;
+  stroke-dashoffset: 56.5;
+  transition: stroke-dashoffset 1s ease;
+}
+
+.ats-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.ats-center .pct {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.ats-label {
+  text-align: center;
+}
+
+.ats-label h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.ats-label .good-match {
+  font-size: 12px;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.ats-trend {
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ats-trend .up {
+  color: #22c55e;
+}
+
+/* Metrics Row */
+.metrics-row {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-right: 1px solid #f1f5f9;
+}
+
+.metric-item:last-child {
+  border-right: none;
+}
+
+.metric-icon {
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+
+.metric-name {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.metric-status {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.metric-status.green { color: #22c55e; }
+.metric-status.blue { color: #3b82f6; }
+.metric-status.orange { color: #f59e0b; }
+
+.metric-change {
+  font-size: 10px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.metric-change .arrow-up {
+  color: #22c55e;
+}
+
+/* AI Summary Card */
+.ai-summary-card {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #dbeafe 100%);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-summary-card::before {
+  content: '';
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.ai-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.ai-robot {
+  font-size: 20px;
+}
+
+.ai-summary-text {
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.ai-feedback-link {
+  font-size: 12px;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ai-feedback-link:hover {
+  text-decoration: underline;
+}
+
+/* ===== SECOND ROW ===== */
+.second-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 1fr;
+  gap: 14px;
+}
+
+/* Skill Radar */
+.radar-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 2px;
+}
+
+.card-subtitle {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+
+.radar-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.radar-container svg {
+  width: 160px;
+  height: 160px;
+}
+
+.radar-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.radar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #64748b;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+.legend-dot.solid { background: #6366f1; }
+.legend-dot.dashed { background: #94a3b8; border-top: 1px dashed #94a3b8; }
+
+.view-radar-link {
+  font-size: 11px;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+/* Quick Improvement Tips */
+.tips-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.tip-item:last-child {
+  border-bottom: none;
+}
+
+.tip-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tip-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.tip-icon.green { background: #dcfce7; }
+.tip-icon.blue { background: #dbeafe; }
+.tip-icon.purple { background: #ede9fe; }
+.tip-icon.orange { background: #fef3c7; }
+
+.tip-text {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.tip-impact {
+  font-size: 12px;
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.view-all-link {
+  font-size: 11px;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Job Match Insights */
+.job-match-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.job-match-content {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.job-match-circle {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.job-match-circle svg {
+  width: 90px;
+  height: 90px;
+  transform: rotate(-90deg);
+}
+
+.job-match-circle .track {
+  fill: none;
+  stroke: #e8edff;
+  stroke-width: 8;
+}
+
+.job-match-circle .progress {
+  fill: none;
+  stroke: #4f46e5;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 226;
+  stroke-dashoffset: 43;
+}
+
+.job-match-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.job-match-center .pct {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.job-match-center .label {
+  font-size: 9px;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.job-roles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.job-role-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.job-role-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.job-role-name {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.job-role-name .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6366f1;
+}
+
+.job-role-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.job-role-bar {
+  height: 4px;
+  background: #e8edff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.job-role-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.view-jobs-link {
+  font-size: 11px;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ===== THIRD ROW ===== */
+.third-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 1fr;
+  gap: 14px;
+}
+
+/* Resume Quality */
+.quality-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.quality-circle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 10px 0;
+}
+
+.quality-circle {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.quality-circle svg {
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+}
+
+.quality-circle .track { fill: none; stroke: #e8edff; stroke-width: 7; }
+.quality-circle .progress {
+  fill: none;
+  stroke: #22c55e;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 188;
+  stroke-dashoffset: 15;
+}
+
+.quality-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.quality-center .pct {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.quality-center .label {
+  font-size: 8px;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.quality-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.quality-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quality-bar-label {
+  font-size: 11px;
+  color: #64748b;
+  width: 52px;
+}
+
+.quality-bar-track {
+  flex: 1;
+  height: 5px;
+  background: #e8edff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.quality-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.quality-bar-val {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a1a2e;
+  width: 28px;
+  text-align: right;
+}
+
+.view-quality-link {
+  font-size: 11px;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Activity Feed / Learning Path */
+.learning-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.learning-subtext {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  float: right;
+  margin-top: -20px;
+}
+
+.activity-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  clear: both;
+}
+
+.activity-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.activity-item:last-child { border-bottom: none; }
+
+.activity-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activity-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.activity-text {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.activity-time {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.view-activity-link {
+  font-size: 11px;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Focus Areas */
+.focus-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.focus-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.focus-item:last-child { border-bottom: none; }
+
+.focus-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #ede9fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.focus-content {
+  flex: 1;
+}
+
+.focus-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.focus-desc {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.focus-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.focus-badge.high { background: #fee2e2; color: #ef4444; }
+.focus-badge.medium { background: #fef3c7; color: #f59e0b; }
+.focus-badge.low { background: #dbeafe; color: #3b82f6; }
+
+.see-tips-link {
+  font-size: 11px;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ===== BOTTOM ROW ===== */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Career Impact */
+.career-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.career-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.career-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.career-metric-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.career-metric-icon.green-bg { background: #dcfce7; }
+.career-metric-icon.blue-bg { background: #dbeafe; }
+.career-metric-icon.purple-bg { background: #ede9fe; }
+
+.career-metric-label {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.career-metric-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.career-metric-sub {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.career-metric-status {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.career-metric-status.green { color: #22c55e; }
+
+/* AI Roadmap */
+.roadmap-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.roadmap-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.roadmap-icon {
+  font-size: 28px;
+}
+
+.roadmap-level {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.roadmap-sub {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.roadmap-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.roadmap-skill {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.roadmap-skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.roadmap-skill-name {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.roadmap-skill-bar {
+  height: 5px;
+  background: #e8edff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.roadmap-skill-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.fill-python { background: linear-gradient(90deg, #6366f1, #818cf8); width: 84%; }
+.fill-sql { background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 78%; }
+.fill-ml { background: linear-gradient(90deg, #8b5cf6, #a78bfa); width: 68%; }
+.fill-dv { background: linear-gradient(90deg, #ec4899, #f472b6); width: 61%; }
+
+/* Shared link styles */
+a, .link {
+  text-decoration: none;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f7fb;
+  color: #1a1a2e;
+  padding: 20px;
+}
+
+.dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===== TOP ROW ===== */
+.top-row {
+  display: grid;
+  grid-template-columns: 260px 1fr 320px;
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* ATS Score Card */
+.ats-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px 16px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #eef2f6;
+}
+
+.ats-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.ats-circle svg {
+  width: 100px;
+  height: 100px;
+  transform: rotate(-90deg);
+}
+
+.ats-circle .track {
+  fill: none;
+  stroke: #eef2ff;
+  stroke-width: 8;
+}
+
+.ats-circle .progress {
+  fill: none;
+  stroke: url(#atsGrad);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 70.75;
+}
+
+.ats-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.ats-center .pct {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.ats-label h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 12px;
+}
+
+.ats-label .good-match {
+  font-size: 12px;
+  color: #22c55e;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.ats-trend {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 10px;
+}
+
+.ats-trend .up {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* Metrics Row */
+.metrics-row {
+  background: white;
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #eef2f6;
+}
+
+.metric-item {
+  padding: 8px 12px;
+  border-right: 1px solid #eef2f6;
+}
+
+.metric-item:last-child {
+  border-right: none;
+}
+
+.metric-icon {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.metric-name {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.metric-status {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.metric-status.green { color: #22c55e; }
+.metric-status.blue { color: #3b82f6; }
+.metric-status.orange { color: #f59e0b; }
+
+.metric-change {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.metric-change .arrow-up {
+  color: #22c55e;
+}
+
+/* AI Summary Card */
+.ai-summary-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.ai-robot {
+  font-size: 22px;
+}
+
+.ai-summary-text {
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.95;
+  margin-bottom: 16px;
+}
+
+.ai-feedback-link {
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===== SECOND ROW ===== */
+.second-row {
+  display: grid;
+  grid-template-columns: 280px 1fr 1fr;
+  gap: 20px;
+}
+
+/* Skill Radar */
+.radar-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #eef2f6;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.card-subtitle {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.radar-container {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.radar-container svg {
+  width: 180px;
+  height: 180px;
+}
+
+.radar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 12px 0 8px;
+}
+
+.radar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-dot.solid { background: #6366f1; }
+.legend-dot.dashed { background: none; border: 1px dashed #94a3b8; width: 10px; }
+
+.view-radar-link {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+/* Quick Improvement Tips */
+.tips-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #eef2f6;
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.tip-item:last-child {
+  border-bottom: none;
+}
+
+.tip-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tip-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.tip-icon.green { background: #e8f5e9; }
+.tip-icon.blue { background: #e3f2fd; }
+.tip-icon.purple { background: #f3e5f5; }
+.tip-icon.orange { background: #fff3e0; }
+
+.tip-text {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.tip-impact {
+  font-size: 12px;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.view-all-link {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+/* Job Match Insights */
+.job-match-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #eef2f6;
+}
+
+.job-match-content {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.job-match-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+}
+
+.job-match-circle svg {
+  width: 100px;
+  height: 100px;
+  transform: rotate(-90deg);
+}
+
+.job-match-circle .track {
+  fill: none;
+  stroke: #eef2ff;
+  stroke-width: 8;
+}
+
+.job-match-circle .progress {
+  fill: none;
+  stroke: #6366f1;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 51;
+}
+
+.job-match-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.job-match-center .pct {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.job-match-center .label {
+  font-size: 10px;
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.job-roles {
+  flex: 1;
+}
+
+.job-role-item {
+  margin-bottom: 12px;
+}
+
+.job-role-item:last-child {
+  margin-bottom: 0;
+}
+
+.job-role-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.job-role-name {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.job-role-name .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6366f1;
+}
+
+.job-role-pct {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.job-role-bar {
+  height: 6px;
+  background: #eef2ff;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.job-role-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.view-jobs-link {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+/* ===== THIRD ROW ===== */
+.third-row {
+  display: grid;
+  grid-template-columns: 280px 1fr 1fr;
+  gap: 20px;
+}
+
+/* Resume Quality */
+.quality-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #eef2f6;
+}
+
+.quality-circle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.quality-circle {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.quality-circle svg {
+  width: 80px;
+  height: 80px;
+  transform: rotate(-90deg);
+}
+
+.quality-circle .track {
+  fill: none;
+  stroke: #eef2ff;
+  stroke-width: 7;
+}
+
+.quality-circle .progress {
+  fill: none;
+  stroke: #22c55e;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 226;
+  stroke-dashoffset: 18;
+}
+
+.quality-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.quality-center .pct {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.quality-center .label {
+  font-size: 9px;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.quality-bars {
+  flex: 1;
+}
+
+.quality-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.quality-bar-label {
+  font-size: 11px;
+  color: #64748b;
+  width: 50px;
+}
+
+.quality-bar-track {
+  flex: 1;
+  height: 5px;
+  background: #eef2ff;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.quality-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.quality-bar-val {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a1a2e;
+  width: 30px;
+  text-align: right;
+}
+
+.view-quality-link {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+/* Learning Card */
+.learning-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #eef2f6;
+  position: relative;
+}
+
+.learning-subtext {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 6px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.activity-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-top: 20px;
+  margin-bottom: 6px;
+}
+
+.activity-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.activity-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: #e8f5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.activity-text {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.activity-time {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.view-activity-link {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+/* Focus Areas */
+.focus-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #eef2f6;
+}
+
+.focus-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.focus-item:last-child {
+  border-bottom: none;
+}
+
+.focus-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f3e5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.focus-content {
+  flex: 1;
+}
+
+.focus-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.focus-desc {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.focus-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.focus-badge.high { background: #fee2e2; color: #ef4444; }
+.focus-badge.medium { background: #fef3c7; color: #f59e0b; }
+.focus-badge.low { background: #e3f2fd; color: #3b82f6; }
+
+.see-tips-link {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+/* ===== BOTTOM ROW ===== */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Career Impact */
+.career-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #eef2f6;
+}
+
+.career-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.career-metric {
+  text-align: left;
+}
+
+.career-metric-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.career-metric-icon.green-bg { background: #e8f5e9; }
+.career-metric-icon.blue-bg { background: #e3f2fd; }
+.career-metric-icon.purple-bg { background: #f3e5f5; }
+
+.career-metric-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.career-metric-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.career-metric-sub {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.career-metric-status.green {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* Roadmap Card */
+.roadmap-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #eef2f6;
+}
+
+.roadmap-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.roadmap-icon {
+  font-size: 32px;
+}
+
+.roadmap-level {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.roadmap-sub {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.roadmap-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roadmap-skill-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.roadmap-skill-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.roadmap-skill-bar {
+  height: 6px;
+  background: #eef2ff;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.roadmap-skill-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.fill-python { background: linear-gradient(90deg, #6366f1, #818cf8); width: 84%; }
+.fill-sql { background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 78%; }
+.fill-ml { background: linear-gradient(90deg, #8b5cf6, #a78bfa); width: 68%; }
+.fill-dv { background: linear-gradient(90deg, #ec4899, #f472b6); width: 61%; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .top-row, .second-row, .third-row, .bottom-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .metrics-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .metric-item {
+    border-right: none;
+    border-bottom: 1px solid #eef2f6;
+  }
+}
