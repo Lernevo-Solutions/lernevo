@@ -173,7 +173,7 @@ BENEFITS
     setIsDownloading(true);
     
     try {
-      const element = document.querySelector('.ats-dashboard-container');
+      const element = document.querySelector('.sgap-ats-dashboard-container');
       if (!element) {
         alert('Report container not found. Please run analysis first.');
         return;
@@ -495,25 +495,25 @@ BENEFITS
   };
 
   return (
-    <div className="app">
-      <div className="bg-decoration">
-        <div className="circle circle-1"></div>
-        <div className="circle circle-2"></div>
-        <div className="circle circle-3"></div>
-        <div className="dots-pattern"></div>
+    <div className="sgap-app">
+      <div className="sgap-bg-decoration">
+        <div className="sgap-circle sgap-circle-1"></div>
+        <div className="sgap-circle sgap-circle-2"></div>
+        <div className="sgap-circle sgap-circle-3"></div>
+        <div className="sgap-dots-pattern"></div>
       </div>
 
-      <div className="container">
+      <div className="sgap-container">
         {analysisResult && (
-          <div className="download-report-btn-container">
+          <div className="sgap-download-report-btn-container">
             <button 
-              className="download-report-btn" 
+              className="sgap-download-report-btn" 
               onClick={downloadReportAsPDF}
               disabled={isDownloading}
             >
               {isDownloading ? (
                 <>
-                  <div className="spinner-small"></div>
+                  <div className="sgap-spinner-small"></div>
                   Generating PDF...
                 </>
               ) : (
@@ -525,108 +525,108 @@ BENEFITS
           </div>
         )}
 
-        <div className="hero">
-          <div className="hero-badge-top">
-            <span className="badge-spark">✨</span>
+        <div className="sgap-hero">
+          <div className="sgap-hero-badge-top">
+            <span className="sgap-badge-spark">✨</span>
             <span>AI-Powered Career Intelligence</span>
           </div>
           
-          <div className="hero-title-section">
-            <h1 className="hero-main-title">
-              <span className="title-line-1">Bridge Your</span>
-              <span className="title-line-2 gradient-text"> Skill Gap</span>
+          <div className="sgap-hero-title-section">
+            <h1 className="sgap-hero-main-title">
+              <span className="sgap-title-line-1">Bridge Your</span>
+              <span className="sgap-title-line-2 gradient-text"> Skill Gap</span>
             </h1>
-            <div className="hero-breadcrumb">
-              <span className="breadcrumb-dot"></span>
+            <div className="sgap-hero-breadcrumb">
+              <span className="sgap-breadcrumb-dot"></span>
               <span>Resume → Analyze → Grow</span>
-              <span className="breadcrumb-dot"></span>
+              <span className="sgap-breadcrumb-dot"></span>
             </div>
           </div>
           
-          <p className="hero-description-simple">
+          <p className="sgap-hero-description-simple">
             Upload your resume (PDF or TXT) and job description — get instant skill gap analysis, 
             personalized learning recommendations, and ATS optimization tips to land your dream role.
           </p>
           
-          <div className="hero-feature-strip">
-            <div className="strip-item"><span>⚡</span><span>Instant Analysis</span></div>
-            <div className="strip-divider"></div>
-            <div className="strip-item"><span>🎯</span><span>Smart Matching</span></div>
-            <div className="strip-divider"></div>
-            <div className="strip-item"><span>📚</span><span>Learning Path</span></div>
-            <div className="strip-divider"></div>
-            <div className="strip-item"><span>💎</span><span>ATS Ready</span></div>
-            <div className="strip-divider"></div>
-            <div className="strip-item"><span>📄</span><span>PDF Support</span></div>
+          <div className="sgap-hero-feature-strip">
+            <div className="sgap-strip-item"><span>⚡</span><span>Instant Analysis</span></div>
+            <div className="sgap-strip-divider"></div>
+            <div className="sgap-strip-item"><span>🎯</span><span>Smart Matching</span></div>
+            <div className="sgap-strip-divider"></div>
+            <div className="sgap-strip-item"><span>📚</span><span>Learning Path</span></div>
+            <div className="sgap-strip-divider"></div>
+            <div className="sgap-strip-item"><span>💎</span><span>ATS Ready</span></div>
+            <div className="sgap-strip-divider"></div>
+            <div className="sgap-strip-item"><span>📄</span><span>PDF Support</span></div>
           </div>
         </div>
         
-        <div className="cards-grid">
-          <div className="card">
-            <div className="card-header">
-              <div className="card-icon">📄</div>
+        <div className="sgap-cards-grid">
+          <div className="sgap-card">
+            <div className="sgap-card-header">
+              <div className="sgap-card-icon">📄</div>
               <div><h3>Your Resume</h3><p>Upload PDF or TXT (sample pre-loaded)</p></div>
             </div>
             <div className="card-body">
-              <div className={`drop-zone ${isDragging ? 'dragging' : ''}`} 
+              <div className={`sgap-drop-zone ${isDragging ? 'sgap-dragging' : ''}`} 
                 onClick={() => fileInputRef.current?.click()}
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={() => setIsDragging(false)} 
                 onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileUpload(e.dataTransfer.files[0]); }}>
-                <div className="drop-icon">📁</div>
+                <div className="sgap-drop-icon">📁</div>
                 <p>Drag & drop or <span>browse</span></p>
                 <small>PDF or TXT files only</small>
-                {fileName && <div className="file-name">{fileName}</div>}
+                {fileName && <div className="sgap-file-name">{fileName}</div>}
                 <input ref={fileInputRef} type="file" accept=".txt,.pdf,application/pdf" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e.target.files[0])} />
               </div>
-              <textarea className="textarea" placeholder="Your resume content..." value={resumeText} onChange={(e) => setResumeText(e.target.value)} rows={10} />
-              <div className="textarea-footer">
+              <textarea className="sgap-textarea" placeholder="Your resume content..." value={resumeText} onChange={(e) => setResumeText(e.target.value)} rows={10} />
+              <div className="sgap-textarea-footer">
                 <span>{resumeText.length} characters</span>
-                <span className="badge">{fileName ? 'PDF Uploaded' : 'Ready'}</span>
+                <span className="sgap-badge">{fileName ? 'PDF Uploaded' : 'Ready'}</span>
               </div>
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-header">
-              <div className="card-icon">💼</div>
+          <div className="sgap-card">
+            <div className="sgap-card-header">
+              <div className="sgap-card-icon">💼</div>
               <div><h3>Job Description</h3><p>Paste job description here</p></div>
             </div>
             <div className="card-body">
-              <textarea className="textarea" placeholder="Job description..." value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} rows={12} />
-              <div className="textarea-footer">
+              <textarea className="sgap-textarea" placeholder="Job description..." value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} rows={12} />
+              <div className="sgap-textarea-footer">
                 <span>{jobDescription.length} characters</span>
-                <span className="badge">Ready</span>
+                <span className="sgap-badge">Ready</span>
               </div>
             </div>
           </div>
         </div>
 
-        <button className="analyze-btn" onClick={analyzeGap} disabled={isLoading}>
-          {isLoading ? (<><div className="spinner"></div> Analyzing...</>) : (<>✨ Analyze & Get ATS Score →</>)}
+        <button className="sgap-analyze-btn" onClick={analyzeGap} disabled={isLoading}>
+          {isLoading ? (<><div className="sgap-spinner"></div> Analyzing...</>) : (<>✨ Analyze & Get ATS Score →</>)}
         </button>
 
         {analysisResult && (
-          <div className="results">
-            <div className="tabs">
-              <button className={`tab ${activeTab === 'ats' ? 'active' : ''}`} onClick={() => setActiveTab('ats')}>🎯 ATS Scorecard</button>
-              <button className={`tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>📊 Skill Overview</button>
+          <div className="sgap-results">
+            <div className="sgap-tabs">
+              <button className={`sgap-tab ${activeTab === 'ats' ? 'sgap-active' : ''}`} onClick={() => setActiveTab('ats')}>🎯 ATS Scorecard</button>
+              <button className={`sgap-tab ${activeTab === 'overview' ? 'sgap-active' : ''}`} onClick={() => setActiveTab('overview')}>📊 Skill Overview</button>
             </div>
 
             {activeTab === 'ats' && (
-              <div className="ats-dashboard-container">
-                <div className="dashboard-top-nav">
+              <div className="sgap-ats-dashboard-container">
+                <div className="sgap-dashboard-top-nav">
                   <div className="nav-left">
                     <h2>ATS Score Dashboard</h2>
                     <p>Advanced AI-driven analysis to optimize your resume for Applicant Tracking Systems</p>
                   </div>
                 </div>
 
-                <div className="ats-main-grid">
-                  <div className="dashboard-card score-hero">
-                    <div className="card-label">OVERALL ATS SCORE ⓘ</div>
-                    <div className="score-hero-flex">
-                      <div className="gauge-wrapper">
+                <div className="sgap-ats-main-grid">
+                  <div className="sgap-dashboard-card score-hero">
+                    <div className="sgap-card-label">OVERALL ATS SCORE ⓘ</div>
+                    <div className="sgap-score-hero-flex">
+                      <div className="sgap-gauge-wrapper">
                         <svg viewBox="0 0 100 100">
                           <defs>
                             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -634,66 +634,66 @@ BENEFITS
                               <stop offset="100%" stopColor="#7c3aed" />
                             </linearGradient>
                           </defs>
-                          <circle className="gauge-bg" cx="50" cy="50" r="45" />
-                          <circle className="gauge-fill" cx="50" cy="50" r="45" 
+                          <circle className="sgap-gauge-bg" cx="50" cy="50" r="45" />
+                          <circle className="sgap-gauge-fill" cx="50" cy="50" r="45" 
                             style={{ strokeDashoffset: 283 - (283 * analysisResult.atsScore) / 100 }} 
                           />
                         </svg>
-                        <div className="gauge-text">
-                          <span className="big-num">{analysisResult.atsScore}</span>
-                          <span className="total-num">/ 100</span>
-                          <div className="status-tag">Excellent</div>
+                        <div className="sgap-gauge-text">
+                          <span className="sgap-big-num">{analysisResult.atsScore}</span>
+                          <span className="sgap-total-num">/ 100</span>
+                          <div className="sgap-status-tag">Excellent</div>
                         </div>
                       </div>
-                      <div className="verdict-content">
+                      <div className="sgap-verdict-content">
                         <h3>Great Job! 🎉</h3>
                         <p>Your resume is well-optimized for ATS. You're in the top 20% of applicants.</p>
-                        <div className="trend-stat">
-                          <span className="trend-up">▲ 12%</span>
-                          <span className="trend-label">Score improved from last analysis</span>
+                        <div className="sgap-trend-stat">
+                          <span className="sgap-trend-up">▲ 12%</span>
+                          <span className="sgap-trend-label">Score improved from last analysis</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="dashboard-card splitup-hero">
-                    <div className="card-header-flex">
-                      <div className="card-label">SCORE SPLITUP ⓘ</div>
-                      <span className="help-link">How it works?</span>
+                  <div className="sgap-dashboard-card splitup-hero">
+                    <div className="sgap-card-header-flex">
+                      <div className="sgap-card-label">SCORE SPLITUP ⓘ</div>
+                      <span className="sgap-help-link">How it works?</span>
                     </div>
-                    <div className="splitup-flex">
-                      <div className="doughnut-container">
-                        <div className="doughnut-mock">
-                          <div className="inner-icon"></div>
+                    <div className="sgap-splitup-flex">
+                      <div className="sgap-doughnut-container">
+                        <div className="sgap-doughnut-mock">
+                          <div className="sgap-inner-icon"></div>
                         </div>
                       </div>
-                      <div className="progress-list">
-                        <div className="prog-item"><span className="dot s"></span> Skills <b>{analysisResult.skillScore} / 100</b> <div className="p-bar"><div className="p-fill s" style={{width: `${analysisResult.skillScore}%`}}></div></div></div>
-                        <div className="prog-item"><span className="dot e"></span> Experience <b>{analysisResult.experienceScore} / 100</b> <div className="p-bar"><div className="p-fill e" style={{width: `${analysisResult.experienceScore}%`}}></div></div></div>
-                        <div className="prog-item"><span className="dot ed"></span> Education <b>80 / 100</b> <div className="p-bar"><div className="p-fill ed" style={{width: '80%'}}></div></div></div>
-                        <div className="prog-item"><span className="dot k"></span> Keywords <b>{analysisResult.keywordsScore} / 100</b> <div className="p-bar"><div className="p-fill k" style={{width: `${analysisResult.keywordsScore}%`}}></div></div></div>
-                        <div className="prog-item"><span className="dot f"></span> Formatting <b>{analysisResult.formattingScore} / 100</b> <div className="p-bar"><div className="p-fill f" style={{width: `${analysisResult.formattingScore}%`}}></div></div></div>
+                      <div className="sgap-progress-list">
+                        <div className="sgap-prog-item"><span className="sgap-dot sgap-s"></span> Skills <b>{analysisResult.skillScore} / 100</b> <div className="sgap-p-bar"><div className="sgap-p-fill sgap-s" style={{width: `${analysisResult.skillScore}%`}}></div></div></div>
+                        <div className="sgap-prog-item"><span className="sgap-dot sgap-e"></span> Experience <b>{analysisResult.experienceScore} / 100</b> <div className="sgap-p-bar"><div className="sgap-p-fill sgap-e" style={{width: `${analysisResult.experienceScore}%`}}></div></div></div>
+                        <div className="sgap-prog-item"><span className="sgap-dot sgap-ed"></span> Education <b>80 / 100</b> <div className="sgap-p-bar"><div className="sgap-p-fill sgap-ed" style={{width: '80%'}}></div></div></div>
+                        <div className="sgap-prog-item"><span className="sgap-dot sgap-k"></span> Keywords <b>{analysisResult.keywordsScore} / 100</b> <div className="sgap-p-bar"><div className="sgap-p-fill sgap-k" style={{width: `${analysisResult.keywordsScore}%`}}></div></div></div>
+                        <div className="sgap-prog-item"><span className="sgap-dot sgap-f"></span> Formatting <b>{analysisResult.formattingScore} / 100</b> <div className="sgap-p-bar"><div className="sgap-p-fill sgap-f" style={{width: `${analysisResult.formattingScore}%`}}></div></div></div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="two-column-layout">
-                  <div className="dashboard-card missing-skills-premium">
-                    <div className="missing-skills-header">
-                      <div className="missing-skills-title">
-                        <div className="title-icon">📋</div>
+                <div className="sgap-two-column-layout">
+                  <div className="sgap-dashboard-card sgap-missing-skills-premium">
+                    <div className="sgap-missing-skills-header">
+                      <div className="sgap-missing-skills-title">
+                        <div className="sgap-title-icon">📋</div>
                         <div>
                           <h3>MISSING SKILLS</h3>
                           <p>Top skills missing from your resume based on the job description</p>
                         </div>
                       </div>
-                      <div className="missing-count-badge">
-                        <span className="count-number">{analysisResult.missingSkills.length}</span>
-                        <span className="count-label">Skills Missing</span>
+                      <div className="sgap-missing-count-badge">
+                        <span className="sgap-count-number">{analysisResult.missingSkills.length}</span>
+                        <span className="sgap-count-label">Skills Missing</span>
                       </div>
                     </div>
-                    <div className="missing-skills-grid-modern">
+                    <div className="sgap-missing-skills-grid-modern">
                       {analysisResult.missingSkills.slice(0, 8).map((skill, idx) => {
                        const skillIcons = {
   'aws': 'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg',
@@ -753,14 +753,14 @@ BENEFITS
                         const colors = ['orange', 'blue', 'green', 'purple', 'pink', 'cyan', 'amber', 'indigo'];
                         const colorClass = colors[idx % colors.length];
                         return (
-                          <div key={idx} className={`missing-skill-tile ${colorClass}`}>
-                            <div className="skill-tile-left">
-                              <div className="skill-logo-circle">
+                          <div key={idx} className={`sgap-missing-skill-tile ${colorClass}`}>
+                            <div className="sgap-skill-tile-left">
+                              <div className="sgap-skill-logo-circle">
                                 <img src={skillIcons[skill.toLowerCase()] || 'https://cdn-icons-png.flaticon.com/512/1055/1055687.png'} alt={skill} onError={(e) => { e.target.src = 'https://cdn-icons-png.flaticon.com/512/1055/1055687.png'; }} />
                               </div>
-                              <span className="skill-name">{skill}</span>
+                              <span className="sgap-skill-name">{skill}</span>
                             </div>
-                            <div className="skill-tile-dots">
+                            <div className="sgap-skill-tile-dots">
                               <span></span><span></span><span></span><span></span>
                             </div>
                           </div>
@@ -769,35 +769,35 @@ BENEFITS
                     </div>
                   </div>
 
-                  <div className="dashboard-card tips-section-full">
-                    <div className="card-header-flex">
-                      <div className="card-label">💡 TIPS & RECOMMENDATIONS</div>
+                  <div className="sgap-dashboard-card sgap-tips-section-full">
+                    <div className="sgap-card-header-flex">
+                      <div className="sgap-card-label">💡 TIPS & RECOMMENDATIONS</div>
                     </div>
-                    <div className="tips-list-premium">
-                      <div className="tip-item-premium">
-                        <div className="tip-icon-wrapper keyword">✏️</div>
-                        <div className="tip-content-premium">
+                    <div className="sgap-tips-list-premium">
+                      <div className="sgap-tip-item-premium">
+                        <div className="sgap-tip-icon-wrapper sgap-keyword">✏️</div>
+                        <div className="sgap-tip-content-premium">
                           <h4>Add more relevant keywords</h4>
                           <p>Helps ATS understand your resume better</p>
                         </div>
                       </div>
-                      <div className="tip-item-premium">
-                        <div className="tip-icon-wrapper format">📄</div>
-                        <div className="tip-content-premium">
+                      <div className="sgap-tip-item-premium">
+                        <div className="sgap-tip-icon-wrapper sgap-format">📄</div>
+                        <div className="sgap-tip-content-premium">
                           <h4>Improve formatting for better readability</h4>
                           <p>Use standard headings and avoid tables</p>
                         </div>
                       </div>
-                      <div className="tip-item-premium">
-                        <div className="tip-icon-wrapper achievement">📊</div>
-                        <div className="tip-content-premium">
+                      <div className="sgap-tip-item-premium">
+                        <div className="sgap-tip-icon-wrapper sgap-achievement">📊</div>
+                        <div className="sgap-tip-content-premium">
                           <h4>Add more quantifiable achievements</h4>
                           <p>Include numbers and metrics in your experience</p>
                         </div>
                       </div>
-                      <div className="tip-item-premium">
-                        <div className="tip-icon-wrapper keyword">🎯</div>
-                        <div className="tip-content-premium">
+                      <div className="sgap-tip-item-premium">
+                        <div className="sgap-tip-icon-wrapper sgap-keyword">🎯</div>
+                        <div className="sgap-tip-content-premium">
                           <h4>Match job description language</h4>
                           <p>Use exact phrases from the job posting</p>
                         </div>
@@ -806,32 +806,32 @@ BENEFITS
                   </div>
                 </div>
 
-                <div className="ats-main-grid">
-                  <div className="dashboard-card insights-card">
-                    <div className="card-label">📊 QUICK INSIGHTS</div>
-                    <div className="insights-flex">
-                      <div className="insight-item-v2">
-                        <div className="i-icon">⏱️</div>
+                <div className="sgap-ats-main-grid">
+                  <div className="sgap-dashboard-card sgap-insights-card">
+                    <div className="sgap-card-label">📊 QUICK INSIGHTS</div>
+                    <div className="sgap-insights-flex">
+                      <div className="sgap-insight-item-v2">
+                        <div className="sgap-i-icon">⏱️</div>
                         <div>
                           <small>Estimated Learning Time</small>
                           <strong>{analysisResult.learningTime}</strong>
-                          <span className="check">to close the gap</span>
+                          <span className="sgap-check">to close the gap</span>
                         </div>
                       </div>
-                      <div className="insight-item-v2">
-                        <div className="i-icon">🎯</div>
+                      <div className="sgap-insight-item-v2">
+                        <div className="sgap-i-icon">🎯</div>
                         <div>
                           <small>Top Priority Skill</small>
                           <strong>{analysisResult.missingSkills[0] || 'None'}</strong>
-                          <span className="check">focus on this first</span>
+                          <span className="sgap-check">focus on this first</span>
                         </div>
                       </div>
-                      <div className="insight-item-v2">
-                        <div className="i-icon">📈</div>
+                      <div className="sgap-insight-item-v2">
+                        <div className="sgap-i-icon">📈</div>
                         <div>
                           <small>Match Improvement</small>
                           <strong>+35%</strong>
-                          <span className="check">after learning missing skills</span>
+                          <span className="sgap-check">after learning missing skills</span>
                         </div>
                       </div>
                     </div>
@@ -867,67 +867,67 @@ BENEFITS
             )}
             
             {activeTab === 'overview' && (
-              <div className="overview-modern">
-                <div className="modern-stats-grid">
-                  <div className="modern-stat-card">
-                    <div className="stat-header">
-                      <span className="stat-title">Match Score</span>
-                      <span className="stat-value-large">{analysisResult.matchScore}%</span>
+              <div className="sgap-overview-modern">
+                <div className="sgap-modern-stats-grid">
+                  <div className="sgap-modern-stat-card">
+                    <div className="sgap-stat-header">
+                      <span className="sgap-stat-title">Match Score</span>
+                      <span className="sgap-stat-value-large">{analysisResult.matchScore}%</span>
                     </div>
-                    <div className="stat-progress">
-                      <div className="stat-progress-bar" style={{ width: `${analysisResult.matchScore}%` }}></div>
+                    <div className="sgap-stat-progress">
+                      <div className="sgap-stat-progress-bar" style={{ width: `${analysisResult.matchScore}%` }}></div>
                     </div>
                   </div>
-                  <div className="modern-stat-card">
-                    <div className="stat-header">
-                      <span className="stat-title">Matched Skills</span>
-                      <span className="stat-value-large success">{analysisResult.matchedSkills.length}</span>
+                  <div className="sgap-modern-stat-card">
+                    <div className="sgap-stat-header">
+                      <span className="sgap-stat-title">Matched Skills</span>
+                      <span className="sgap-stat-value-large sgap-success">{analysisResult.matchedSkills.length}</span>
                     </div>
-                    <div className="stat-subtext">out of {analysisResult.totalJobSkills} required</div>
+                    <div className="sgap-stat-subtext">out of {analysisResult.totalJobSkills} required</div>
                   </div>
-                  <div className="modern-stat-card">
-                    <div className="stat-header">
-                      <span className="stat-title">Skills Gap</span>
-                      <span className="stat-value-large warning">{analysisResult.missingSkills.length}</span>
+                  <div className="sgap-modern-stat-card">
+                    <div className="sgap-stat-header">
+                      <span className="sgap-stat-title">Skills Gap</span>
+                      <span className="sgap-stat-value-large sgap-warning">{analysisResult.missingSkills.length}</span>
                     </div>
-                    <div className="stat-subtext">skills to acquire</div>
+                    <div className="sgap-stat-subtext">skills to acquire</div>
                   </div>
                 </div>
                 
-                <div className="modern-verdict" style={{ background: analysisResult.verdict.bg }}>
+                <div className="sgap-modern-verdict" style={{ background: analysisResult.verdict.bg }}>
                   <div>
                     <h3 style={{ color: analysisResult.verdict.color }}>{analysisResult.verdict.text}</h3>
                     <p>{analysisResult.verdict.subtext}</p>
                   </div>
-                  <div className="verdict-badge"><span>Analysis Complete</span></div>
+                  <div className="sgap-verdict-badge"><span>Analysis Complete</span></div>
                 </div>
                 
-                <div className="modern-section">
-                  <div className="section-header-modern">
+                <div className="sgap-modern-section">
+                  <div className="sgap-section-header-modern">
                     <h3>💪 Your Strengths</h3>
-                    <div className="strength-count">{analysisResult.matchedSkills.length} skills matched</div>
+                    <div className="sgap-strength-count">{analysisResult.matchedSkills.length} skills matched</div>
                   </div>
-                  <div className="strength-tags">
-                    {analysisResult.matchedSkills.map((skill, i) => (<span key={i} className="strength-tag">{skill}</span>))}
+                  <div className="sgap-strength-tags">
+                    {analysisResult.matchedSkills.map((skill, i) => (<span key={i} className="sgap-strength-tag">{skill}</span>))}
                   </div>
                 </div>
                 
-                <div className="modern-section">
-                  <div className="section-header-modern">
+                <div className="sgap-modern-section">
+                  <div className="sgap-section-header-modern">
                     <h3>🔍 Keyword Density Analysis</h3>
                   </div>
-                  <div className="keyword-grid-modern">
+                  <div className="sgap-keyword-grid-modern">
                     {analysisResult.keywordCheckResults?.filter(item => !item.present).slice(0, 20).map((item, idx) => (
-                      <div key={idx} className="keyword-item-modern missing">
-                        <div className="keyword-top">
-                          <span className="keyword-name">{item.keyword}</span>
-                          <span className="keyword-missing-badge">✕ Missing</span>
+                      <div key={idx} className="sgap-keyword-item-modern sgap-missing">
+                        <div className="sgap-keyword-top">
+                          <span className="sgap-keyword-name">{item.keyword}</span>
+                          <span className="sgap-keyword-missing-badge">✕ Missing</span>
                         </div>
-                        <div className="missing-info-card">
-                          <div className="info-icon">💡</div>
-                          <div className="missing-content">
-                            <div className="missing-title-text">Improve this skill in your resume</div>
-                            <div className="missing-suggestion">{getKeywordSuggestion(item.keyword)}</div>
+                        <div className="sgap-missing-info-card">
+                          <div className="sgap-info-icon">💡</div>
+                          <div className="sgap-missing-content">
+                            <div className="sgap-missing-title-text">Improve this skill in your resume</div>
+                            <div className="sgap-missing-suggestion">{getKeywordSuggestion(item.keyword)}</div>
                           </div>
                         </div>
                       </div>
@@ -935,36 +935,36 @@ BENEFITS
                   </div>
                 </div>
                 
-                <div className="modern-section">
-                  <div className="section-header-modern">
+                <div className="sgap-modern-section">
+                  <div className="sgap-section-header-modern">
                     <h3>🎯 Priority Learning Path</h3>
-                    <div className="priority-filters">
-                      <span className="priority-dot high"></span><span>High</span>
-                      <span className="priority-dot medium"></span><span>Medium</span>
-                      <span className="priority-dot low"></span><span>Low</span>
+                    <div className="sgap-priority-filters">
+                      <span className="sgap-priority-dot sgap-high"></span><span>High</span>
+                      <span className="sgap-priority-dot sgap-medium"></span><span>Medium</span>
+                      <span className="sgap-priority-dot sgap-low"></span><span>Low</span>
                     </div>
                   </div>
-                  <div className="priority-list">
+                  <div className="sgap-priority-list">
                     {analysisResult.missingSkills.map((skill, idx) => {
                       const priority = getPriorityLevel(skill, idx);
                       const resources = getLearningResources(skill);
                       return (
-                        <div key={idx} className={`priority-card ${priority}`}>
-                          <div className="priority-card-header">
-                            <div className="priority-info">
-                              <span className="priority-badge" style={{ background: getPriorityColor(priority) }}>
+                        <div key={idx} className={`sgap-priority-card ${priority}`}>
+                          <div className="sgap-priority-card-header">
+                            <div className="sgap-priority-info">
+                              <span className="sgap-priority-badge" style={{ background: getPriorityColor(priority) }}>
                                 {priority === 'high' ? 'High Priority' : priority === 'medium' ? 'Medium Priority' : 'Low Priority'}
                               </span>
-                              <span className="priority-skill-name">{skill}</span>
+                              <span className="sgap-priority-skill-name">{skill}</span>
                             </div>
-                            <div className="time-estimate">{getRecommendation(skill).split('•')[1] || '2-3 weeks'}</div>
+                            <div className="sgap-time-estimate">{getRecommendation(skill).split('•')[1] || '2-3 weeks'}</div>
                           </div>
-                          <div className="priority-recommendation">{getRecommendation(skill)}</div>
-                          <div className="resources-section">
-                            <div className="resources-label">📖 Learning Resources</div>
-                            <div className="resources-links">
+                          <div className="sgap-priority-recommendation">{getRecommendation(skill)}</div>
+                          <div className="sgap-resources-section">
+                            <div className="sgap-resources-label">📖 Learning Resources</div>
+                            <div className="sgap-resources-links">
                               {resources.map((resource, ridx) => (
-                                <a key={ridx} href={resource.url} target="_blank" rel="noopener noreferrer" className="resource-btn">{resource.platform}</a>
+                                <a key={ridx} href={resource.url} target="_blank" rel="noopener noreferrer" className="sgap-resource-btn">{resource.platform}</a>
                               ))}
                             </div>
                           </div>
