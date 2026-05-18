@@ -107,6 +107,169 @@ function Ring({ size, sw, value, color, gradient, id, children }) {
 }
 
 /* ─────────────────────────────────────
+   AI Career Suggestions Component
+   — Skill → Roles mapping view —
+───────────────────────────────────── */
+
+// TODO: Replace with your AI API response when ready
+const SKILL_ROLE_MAP = [
+  {
+    skill: "Python",
+    emoji: "🐍",
+    type: "matched",
+    roles: ["Data Analyst", "Data Scientist", "ML Engineer", "Data Engineer"],
+  },
+  {
+    skill: "SQL",
+    emoji: "🗄️",
+    type: "matched",
+    roles: ["Data Analyst", "Analytics Engineer", "BI Developer", "Data Engineer"],
+  },
+  {
+    skill: "Data Analysis",
+    emoji: "📊",
+    type: "matched",
+    roles: ["Data Analyst", "Research Analyst", "Product Analyst"],
+  },
+  {
+    skill: "Pandas",
+    emoji: "🐼",
+    type: "matched",
+    roles: ["Data Scientist", "Data Analyst", "ML Engineer"],
+  },
+  {
+    skill: "Excel",
+    emoji: "📗",
+    type: "matched",
+    roles: ["Business Analyst", "Data Analyst", "Financial Analyst"],
+  },
+  {
+    skill: "Tableau",
+    emoji: "📉",
+    type: "matched",
+    roles: ["BI Analyst", "Data Analyst", "BI Developer"],
+  },
+  {
+    skill: "Apache Spark",
+    emoji: "⚡",
+    type: "missing",
+    roles: ["Data Engineer", "Big Data Engineer", "ML Engineer"],
+  },
+  {
+    skill: "Airflow",
+    emoji: "🌬️",
+    type: "missing",
+    roles: ["Data Engineer", "Analytics Engineer", "MLOps Engineer"],
+  },
+  {
+    skill: "dbt",
+    emoji: "🔧",
+    type: "missing",
+    roles: ["Analytics Engineer", "Data Engineer", "BI Developer"],
+  },
+  {
+    skill: "AWS S3",
+    emoji: "☁️",
+    type: "missing",
+    roles: ["Cloud Data Engineer", "Data Engineer", "MLOps Engineer"],
+  },
+];
+
+const ROLE_COLORS = [
+  { bg: "#eef2ff", color: "#4f46e5", border: "#c7d2fe" },
+  { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
+  { bg: "#fff7ed", color: "#c2410c", border: "#fed7aa" },
+  { bg: "#fdf4ff", color: "#9333ea", border: "#e9d5ff" },
+];
+
+function AICareerSuggestions() {
+  const [activeSkill, setActiveSkill] = React.useState(null);
+
+  const displayed = activeSkill
+    ? SKILL_ROLE_MAP.filter(s => s.skill === activeSkill)
+    : SKILL_ROLE_MAP;
+
+  return (
+    <div className="sd-card sd-acs-card">
+
+      {/* Header */}
+      <div className="sd-acs-header">
+        <div>
+          <div className="sd-acs-title">
+            <span className="sd-acs-sparkle">✨</span> AI Career Suggestions
+          </div>
+          <div className="sd-acs-sub">
+            Click a skill to see which roles you can apply for
+          </div>
+        </div>
+        {activeSkill && (
+          <button className="sd-acs-refresh" onClick={() => setActiveSkill(null)}>
+            ✕ Clear
+          </button>
+        )}
+      </div>
+
+      {/* Skill filter pills */}
+      <div className="sd-acs-skills-row">
+        {SKILL_ROLE_MAP.map((s, i) => (
+          <span
+            key={i}
+            onClick={() => setActiveSkill(activeSkill === s.skill ? null : s.skill)}
+            className={[
+              "sd-acs-skill-pill",
+              s.type === "matched" ? "sd-acs-pill--matched" : "sd-acs-pill--missing",
+              activeSkill === s.skill ? "sd-acs-pill--active" : "",
+            ].join(" ")}
+          >
+            {s.emoji} {s.skill}
+          </span>
+        ))}
+      </div>
+
+      {/* Skill → Roles list */}
+      <div className="sd-acs-map-list">
+        {displayed.map((item, i) => (
+          <div className="sd-acs-map-row" key={i}>
+
+            {/* Skill name left */}
+            <div className={`sd-acs-map-skill ${item.type === "missing" ? "sd-acs-map-skill--miss" : ""}`}>
+              <span className="sd-acs-map-emoji">{item.emoji}</span>
+              <div>
+                <div className="sd-acs-map-skillname">{item.skill}</div>
+                <div className="sd-acs-map-skilltype">
+                  {item.type === "matched" ? "✅ Matched" : "⚠️ Missing"}
+                </div>
+              </div>
+            </div>
+
+            {/* Arrow */}
+            <div className="sd-acs-arrow">→</div>
+
+            {/* Role tags right */}
+            <div className="sd-acs-map-roles">
+              {item.roles.map((role, j) => {
+                const c = ROLE_COLORS[j % ROLE_COLORS.length];
+                return (
+                  <span
+                    key={j}
+                    className="sd-acs-map-role-tag"
+                    style={{ background: c.bg, color: c.color, borderColor: c.border }}
+                  >
+                    {role}
+                  </span>
+                );
+              })}
+            </div>
+
+          </div>
+        ))}
+      </div>
+
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────
    Main Dashboard Component
 ───────────────────────────────────── */
 export default function Dashboard() {
@@ -116,74 +279,30 @@ export default function Dashboard() {
       {/* ══ ROW 1: ATS Score · Metrics · AI Summary ══ */}
       <div className="sd-row sd-r1">
 
-        <div className="sd-card sd-ats-card">
-          <Ring size={100} sw={9} value={75} id="atsG"
-            gradient={[{ o:"0%", c:"#6366f1" }, { o:"100%", c:"#22c55e" }]}>
-            <div className="sd-ats-pct">75%</div>
-          </Ring>
-          <div className="sd-ats-info">
-            <div className="sd-ats-title">Overall ATS Match</div>
-            <div className="sd-ats-good">✦ Good Match</div>
+        <div className="sd-card sd-ats-card sd-ats-v2">
+          {/* Decorative blobs */}
+          <div className="sd-ats-blob sd-ats-blob1" />
+          <div className="sd-ats-blob sd-ats-blob2" />
+
+          {/* Label */}
+          <div className="sd-ats-v2-label">ATS Score</div>
+
+          {/* Big ring */}
+          <div className="sd-ats-v2-ring">
+            <Ring size={118} sw={10} value={75} id="atsG2"
+              gradient={[{ o:"0%", c:"#6366f1" }, { o:"60%", c:"#818cf8" }, { o:"100%", c:"#22c55e" }]}>
+              <div className="sd-ats-v2-inner">
+                <div className="sd-ats-v2-pct">75%</div>
+                <div className="sd-ats-v2-sub">Match</div>
+              </div>
+            </Ring>
           </div>
-          <div className="sd-ats-wave">
 
- 
-
-  <svg viewBox="0 0 160 40" preserveAspectRatio="none">
-
-    <defs>
-
-      {/* gradient */}
-      <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#c7d2fe" />
-        <stop offset="40%" stopColor="#6366f1" />
-        <stop offset="100%" stopColor="#22c55e" />
-      </linearGradient>
-
-      {/* glow */}
-      <filter id="glow">
-        <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
-        <feMerge>
-          <feMergeNode in="coloredBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-
-    </defs>
-
-    {/* background faded stock line */}
-    <polyline
-      points="0,32 10,28 18,30 28,22 35,25 45,18 52,21 60,15 68,18 75,12 82,16 90,8 100,12 108,9 116,14 124,6 132,10 140,4 150,7 160,2"
-      fill="none"
-      stroke="#e0e7ff"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-
-    {/* main stock trend line */}
-    <polyline
-      className="sd-wave-path"
-      points="0,32 10,28 18,30 28,22 35,25 45,18 52,21 60,15 68,18 75,12 82,16 90,8 100,12 108,9 116,14 124,6 132,10 140,4 150,7 160,2"
-      fill="none"
-      stroke="url(#waveGradient)"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      filter="url(#glow)"
-    />
-
-    {/* endpoint glow circle */}
-    <circle
-      cx="160"
-      cy="2"
-      r="4"
-      fill="#22c55e"
-      className="sd-wave-circle"
-    />
-
-  </svg>
-</div>
+          {/* Status pill */}
+          <div className="sd-ats-v2-pill">
+            <span className="sd-ats-v2-dot" />
+            Good Match
+          </div>
         </div>
 
         <div className="sd-card sd-metrics-card">
@@ -203,15 +322,39 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <div className="sd-card sd-ai-card">
-          <div className="sd-ai-head">
-            <span className="sd-ai-ico">🤖</span>
-            <span className="sd-ai-title">AI Summary</span>
+        <div className="sd-card sd-ai-card sd-rl-card">
+          <div className="sd-rl-header">
+            <span className="sd-rl-ico">🗺️</span>
+            <span className="sd-rl-title">Learning Roadmap</span>
           </div>
-          <p className="sd-ai-body">
-            Your resume is strong focused on improving matching keywords, match and adding more action verbs.
-          </p>
-     
+          <div className="sd-rl-list">
+            {[
+              { skill: "Python",             emoji: "🐍",
+                udemy:   "https://www.udemy.com/course/complete-python-bootcamp/",
+                youtube: "https://www.youtube.com/results?search_query=python+tutorial",
+                google:  "https://www.google.com/search?q=learn+python+free" },
+              { skill: "Machine Learning",   emoji: "🤖",
+                udemy:   "https://www.udemy.com/course/machinelearning/",
+                youtube: "https://www.youtube.com/results?search_query=machine+learning+course",
+                google:  "https://www.google.com/search?q=learn+machine+learning" },
+              { skill: "Data Visualization", emoji: "📊",
+                udemy:   "https://www.udemy.com/course/data-visualization-with-python/",
+                youtube: "https://www.youtube.com/results?search_query=data+visualization+tutorial",
+                google:  "https://www.google.com/search?q=data+visualization+courses" },
+            ].map((item, i) => (
+              <div className="sd-rl-row" key={i}>
+                <div className="sd-rl-skill">
+                  <span className="sd-rl-emoji">{item.emoji}</span>
+                  <span className="sd-rl-name">{item.skill}</span>
+                </div>
+                <div className="sd-rl-btns">
+                  <a href={item.udemy}   target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--u">🎓 Udemy</a>
+                  <a href={item.youtube} target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--y">▶ YouTube</a>
+                  <a href={item.google}  target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--g">🔍 Google</a>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -308,31 +451,79 @@ export default function Dashboard() {
          
         </div>
 
-        <div className="sd-card sd-learn-card">
-          <div className="sd-learn-top">
+        <div className="sd-card sd-skillgap-card">
+
+          {/* Header */}
+          <div className="sd-sg-header">
             <div>
-              <div className="sd-ctitle">Personalized Learning Path</div>
-              <div className="sd-csub">Step-by-step to reach your next career goal.</div>
+              <div className="sd-ctitle">Skill Gap Breakdown</div>
+              <div className="sd-csub">Your resume vs job market requirements</div>
             </div>
-            <button className="sd-start-btn">Start</button>
+            <div className="sd-sg-badge">
+              <span className="sd-sg-badge-val">68%</span>
+              <span className="sd-sg-badge-lbl">Gap Score</span>
+            </div>
           </div>
-          <div className="sd-act-title">Activity Feed</div>
-          <div className="sd-csub">Your recent learning activity.</div>
-          {[
-            {icon:"📄", txt:"Resume reviewed successfully", time:"2 hours ago"},
-            {icon:"🔍", txt:"Skills analysis completed",    time:"2 hours ago"},
-            {icon:"🤖", txt:"AI feedback generated",        time:"1 hour ago" },
-            {icon:"🗺️", txt:"Roadmap updated",              time:"30 mins ago"},
-          ].map((a,i) => (
-            <div className="sd-act-row" key={i}>
-              <div className="sd-act-left">
-                <div className="sd-act-ico">{a.icon}</div>
-                <span className="sd-act-txt">{a.txt}</span>
+
+          {/* Matched Skills */}
+          <div className="sd-sg-section">
+            <div className="sd-sg-sec-head">
+              <div className="sd-sg-sec-left">
+                <div className="sd-sg-sec-dot sd-sg-dot--green" />
+                <span className="sd-sg-sec-title">Matched Skills</span>
               </div>
-              <span className="sd-act-time">{a.time}</span>
+              <span className="sd-sg-pill sd-sg-pill--green">6 skills</span>
             </div>
-          ))}
-         
+            <div className="sd-sg-tags">
+              {["Python","SQL","Data Analysis","Pandas","Excel","Tableau"].map((s,i) => (
+                <span className="sd-sg-tag sd-sg-tag--green" key={i}>{s}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Missing Skills */}
+          <div className="sd-sg-section">
+            <div className="sd-sg-sec-head">
+              <div className="sd-sg-sec-left">
+                <div className="sd-sg-sec-dot sd-sg-dot--red" />
+                <span className="sd-sg-sec-title">Missing Skills</span>
+              </div>
+              <span className="sd-sg-pill sd-sg-pill--red">4 skills</span>
+            </div>
+            <div className="sd-sg-tags">
+              {["Apache Spark","Airflow","dbt","AWS S3"].map((s,i) => (
+                <span className="sd-sg-tag sd-sg-tag--red" key={i}>{s}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Priority Matrix */}
+          <div className="sd-sg-section sd-pm-section">
+            <div className="sd-sg-sec-head">
+              <div className="sd-sg-sec-left">
+                <div className="sd-sg-sec-dot sd-sg-dot--purple" />
+                <span className="sd-sg-sec-title">Priority Matrix</span>
+              </div>
+              <span className="sd-sg-pill sd-sg-pill--purple">3 skills</span>
+            </div>
+            <div className="sd-pm-grid">
+              {[
+                { name: "Apache Spark",       label: "HIGH",   barW: 100, pc: "sd-pm-high", tc: "sd-pm-txt-high" },
+                { name: "dbt",               label: "MEDIUM", barW: 70,  pc: "sd-pm-med",  tc: "sd-pm-txt-med"  },
+                { name: "Airflow",  label: "LOW",    barW: 40,  pc: "sd-pm-low",  tc: "sd-pm-txt-low"  },
+               
+              ].map((item, i) => (
+                <div className="sd-pm-row" key={i}>
+                  <span className="sd-pm-name">{item.name}</span>
+                  <div className={`sd-pm-bar-track ${item.pc}-track`}>
+                    <div className={`sd-pm-bar-fill ${item.pc}-fill`} style={{ width: `${item.barW}%` }} />
+                  </div>
+                  <span className={`sd-pm-label ${item.tc}`}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
 
         <div className="sd-card sd-focus-card">
@@ -352,7 +543,7 @@ export default function Dashboard() {
               <span className={`sd-foc-badge ${f.bc}`}>{f.badge}</span>
             </div>
           ))}
-          <span className="sd-lnk">See improvement tips →</span>
+          
         </div>
       </div>
 
@@ -384,37 +575,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="sd-card sd-roadmap-card">
-          <div className="sd-ctitle">Your AI Roadmap</div>
-          <div className="sd-rm-col-headers">
-            <span></span>
-            <span className="sd-rm-col-h sd-rm-col-py">Python</span>
-            <span className="sd-rm-col-h sd-rm-col-sq">SQL</span>
-            <span className="sd-rm-col-h sd-rm-col-ml">Machine Learning</span>
-          </div>
-          <div className="sd-rm-top">
-            <div className="sd-rm-trophy">🏆</div>
-            <div>
-              <div className="sd-rm-level">Completion Level: <strong>Moderate</strong></div>
-              <div className="sd-rm-sub">You're ahead of 40% peers.</div>
-            </div>
-          </div>
-          <div className="sd-rm-skills">
-            {[
-              {name:"Python",            cls:"py", w:"84%"},
-              {name:"SQL",               cls:"sq", w:"78%"},
-              {name:"Machine Learning",  cls:"ml", w:"68%"},
-              {name:"Data Visualization",cls:"dv", w:"61%"},
-            ].map((s,i) => (
-              <div className="sd-rm-row" key={i}>
-                <div className="sd-rm-name">{s.name}</div>
-                <div className="sd-bar-track">
-                  <div className={`sd-bar-fill rm-${s.cls}`} style={{width:s.w}}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <AICareerSuggestions />
       </div>
 
     </div>

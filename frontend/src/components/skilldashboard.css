@@ -2382,3 +2382,717 @@
   flex-direction:column;
   gap:18px;
 }
+/* ══════════════════════════════════════
+   R1 GRID FINAL
+══════════════════════════════════════ */
+.sd-r1 {
+  grid-template-columns: 195px 1fr 430px !important;
+}
+
+/* ══════════════════════════════════════
+   ATS CARD V2 — CLEAN ATTRACTIVE
+══════════════════════════════════════ */
+.sd-ats-v2 {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+  background: linear-gradient(145deg, #f0f4ff 0%, #e8edff 50%, #eef9f0 100%) !important;
+  padding: 20px 16px !important;
+  text-align: center;
+}
+
+/* Decorative background blobs */
+.sd-ats-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.sd-ats-blob1 {
+  width: 120px; height: 120px;
+  top: -40px; right: -40px;
+  background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
+}
+.sd-ats-blob2 {
+  width: 90px; height: 90px;
+  bottom: -30px; left: -20px;
+  background: radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%);
+}
+
+/* "ATS Score" label top */
+.sd-ats-v2-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  z-index: 1;
+}
+
+/* Ring wrapper */
+.sd-ats-v2-ring {
+  z-index: 1;
+  filter: drop-shadow(0 4px 16px rgba(99,102,241,0.22));
+}
+
+/* Inside ring */
+.sd-ats-v2-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0px;
+}
+.sd-ats-v2-pct {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1a1a2e;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+.sd-ats-v2-sub {
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Bottom status pill */
+.sd-ats-v2-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #16a34a;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  padding: 5px 14px;
+  border-radius: 20px;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(34,197,94,0.2);
+}
+.sd-ats-v2-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34,197,94,0.6);
+  animation: atsPulse 2s infinite;
+}
+@keyframes atsPulse {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.35); opacity: 0.7; }
+}
+
+/* ══════════════════════════════════════
+   LEARNING ROADMAP FINAL
+══════════════════════════════════════ */
+.sd-rl-card {
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 16px 14px !important;
+}
+.sd-ai-card.sd-rl-card { overflow: visible !important; }
+
+.sd-rl-header { display: flex; align-items: center; gap: 8px; }
+.sd-rl-ico    { font-size: 22px; }
+.sd-rl-title  { font-size: 13px; font-weight: 700; color: #4f46e5; }
+
+.sd-rl-list { display: flex; flex-direction: column; gap: 8px; }
+
+.sd-rl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  background: rgba(255,255,255,0.62);
+  border-radius: 11px;
+  border: 1px solid rgba(99,102,241,0.14);
+  flex-wrap: nowrap;
+  overflow: visible !important;
+}
+
+.sd-rl-skill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 130px;
+  overflow: hidden;
+}
+.sd-rl-emoji { font-size: 18px; flex-shrink: 0; }
+.sd-rl-name  { font-size: 11px; font-weight: 700; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.sd-rl-btns {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+}
+
+.sd-rl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: opacity 0.15s, transform 0.12s;
+}
+.sd-rl-btn:hover { opacity: 0.82; transform: translateY(-1px); }
+.sd-rl-btn--u { background: linear-gradient(135deg,#a435f0,#7c22c4); color:#fff; }
+.sd-rl-btn--y { background: linear-gradient(135deg,#ff2020,#cc0000); color:#fff; }
+.sd-rl-btn--g { background: linear-gradient(135deg,#4285f4,#2563eb); color:#fff; }
+/* ══════════════════════════════════════
+   SKILL GAP BREAKDOWN CARD
+══════════════════════════════════════ */
+
+.sd-skillgap-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Header ── */
+.sd-sg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.sd-sg-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  padding: 6px 13px;
+  gap: 1px;
+  flex-shrink: 0;
+}
+.sd-sg-badge-val {
+  font-size: 17px;
+  font-weight: 900;
+  color: #4f46e5;
+  line-height: 1;
+}
+.sd-sg-badge-lbl {
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* ── Section wrapper ── */
+.sd-sg-section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fafbff;
+  border: 1px solid #f1f5f9;
+}
+
+/* ── Section heading row ── */
+.sd-sg-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sd-sg-sec-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sd-sg-sec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sd-sg-dot--green  { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.45); }
+.sd-sg-dot--red    { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.45); }
+.sd-sg-dot--orange { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.45); }
+
+.sd-sg-sec-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* ── Count pill ── */
+.sd-sg-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 20px;
+}
+.sd-sg-pill--green  { background: #dcfce7; color: #16a34a; }
+.sd-sg-pill--red    { background: #fee2e2; color: #dc2626; }
+.sd-sg-pill--orange { background: #fef3c7; color: #d97706; }
+
+/* ── Skill tags ── */
+.sd-sg-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.sd-sg-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.sd-sg-tag--green {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+.sd-sg-tag--red {
+  background: #fff1f2;
+  color: #dc2626;
+  border: 1px solid #fecdd3;
+}
+
+/* ── Weak area progress bars ── */
+.sd-sg-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.sd-sg-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sd-sg-bar-name {
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748b;
+  width: 120px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sd-sg-bar-track {
+  flex: 1;
+  height: 6px;
+  background: #fef3c7;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.sd-sg-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+.sd-sg-bar-pct {
+  font-size: 10px;
+  font-weight: 700;
+  color: #d97706;
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+/* ══════════════════════════════════════
+   PRIORITY MATRIX (replaces Weak Areas)
+══════════════════════════════════════ */
+
+.sd-sg-dot--purple { background: #8b5cf6; box-shadow: 0 0 6px rgba(139,92,246,0.45); }
+.sd-sg-pill--purple { background: #ede9fe; color: #7c3aed; }
+
+.sd-pm-section { background: #fafbff; border-color: #ede9fe; }
+
+.sd-pm-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.sd-pm-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sd-pm-name {
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748b;
+  width: 120px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Bar track — color per priority */
+.sd-pm-bar-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.sd-pm-high-track { background: #fee2e2; }
+.sd-pm-med-track  { background: #fef3c7; }
+.sd-pm-low-track  { background: #dcfce7; }
+
+/* Bar fill */
+.sd-pm-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+}
+
+.sd-pm-high-fill { background: linear-gradient(90deg, #ef4444, #f87171); }
+.sd-pm-med-fill  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.sd-pm-low-fill  { background: linear-gradient(90deg, #22c55e, #4ade80); }
+
+/* Priority label right side */
+.sd-pm-label {
+  font-size: 10px;
+  font-weight: 700;
+  width: 46px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sd-pm-txt-high { color: #dc2626; }
+.sd-pm-txt-med  { color: #d97706; }
+.sd-pm-txt-low  { color: #16a34a; }
+/* ══════════════════════════════════════
+   AI CAREER SUGGESTIONS CARD
+══════════════════════════════════════ */
+
+.sd-acs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Header */
+.sd-acs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.sd-acs-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.sd-acs-sparkle { font-size: 15px; }
+.sd-acs-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.sd-acs-refresh {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6366f1;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+.sd-acs-refresh:hover { opacity: 0.75; }
+.sd-acs-refresh:disabled { opacity: 0.45; cursor: default; }
+
+/* Skill pills row */
+.sd-acs-skills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.sd-acs-skill-pill {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.sd-acs-pill--matched {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+.sd-acs-pill--missing {
+  background: #fff1f2;
+  color: #dc2626;
+  border: 1px solid #fecdd3;
+}
+
+/* Body */
+.sd-acs-body { flex: 1; }
+
+/* Loading */
+.sd-acs-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 0;
+  color: #94a3b8;
+  font-size: 11px;
+}
+.sd-acs-spinner {
+  width: 22px; height: 22px;
+  border: 2px solid #e0e7ff;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: acsSpin 0.8s linear infinite;
+}
+@keyframes acsSpin { to { transform: rotate(360deg); } }
+
+.sd-acs-empty {
+  text-align: center;
+  font-size: 11px;
+  color: #94a3b8;
+  padding: 20px 0;
+}
+
+/* 2-column grid of role cards */
+.sd-acs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Individual role card */
+.sd-acs-role-card {
+  background: #fafbff;
+  border: 1px solid #e8edff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow 0.15s;
+}
+.sd-acs-role-card:hover {
+  box-shadow: 0 4px 16px rgba(99,102,241,0.12);
+}
+
+/* Role top row */
+.sd-acs-role-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.sd-acs-role-emoji {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.sd-acs-role-info { flex: 1; min-width: 0; }
+.sd-acs-role-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sd-acs-role-gap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+.sd-acs-gap-label {
+  font-size: 9px;
+  color: #94a3b8;
+}
+.sd-acs-gap-val {
+  font-size: 9px;
+  font-weight: 600;
+  color: #f59e0b;
+  background: #fef3c7;
+  padding: 1px 6px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Match % ring */
+.sd-acs-match-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 5px 9px;
+  flex-shrink: 0;
+  gap: 0px;
+}
+.sd-acs-match-num {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+}
+.sd-acs-match-lbl {
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  opacity: 0.8;
+}
+
+/* Match bar */
+.sd-acs-bar-track {
+  height: 4px;
+  background: #e8edff;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.sd-acs-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+
+/* Skill tags inside role card */
+.sd-acs-role-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sd-acs-role-skill-tag {
+  font-size: 9px;
+  font-weight: 600;
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  padding: 2px 7px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════
+   AI CAREER SUGGESTIONS — SKILL→ROLE MAP
+══════════════════════════════════════ */
+
+/* Clickable / active pill */
+.sd-acs-skill-pill {
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+  user-select: none;
+}
+.sd-acs-skill-pill:hover { transform: translateY(-1px); }
+.sd-acs-pill--active {
+  outline: 2px solid #6366f1;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+
+/* Map list container */
+.sd-acs-map-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 2px;
+  max-height: 370px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.sd-acs-map-list::-webkit-scrollbar { width: 4px; }
+.sd-acs-map-list::-webkit-scrollbar-thumb { background: #e0e7ff; border-radius: 4px; }
+
+/* One skill row */
+.sd-acs-map-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: #fafbff;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  transition: box-shadow 0.15s;
+}
+.sd-acs-map-row:hover { box-shadow: 0 2px 12px rgba(99,102,241,0.10); }
+
+/* Skill left block */
+.sd-acs-map-skill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 140px;
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border-radius: 9px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.sd-acs-map-skill--miss {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+.sd-acs-map-emoji { font-size: 18px; flex-shrink: 0; }
+.sd-acs-map-skillname {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sd-acs-map-skilltype {
+  font-size: 9px;
+  color: #94a3b8;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+/* Arrow */
+.sd-acs-arrow {
+  font-size: 16px;
+  color: #c7d2fe;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+/* Role tags right */
+.sd-acs-map-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+}
+.sd-acs-map-role-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  white-space: nowrap;
+  cursor: default;
+  transition: transform 0.1s;
+}
+.sd-acs-map-role-tag:hover { transform: translateY(-1px); }
