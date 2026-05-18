@@ -27,7 +27,7 @@ import trainersImg from "./imp.png";
 import workImg from "./works.png";
 import { FaHandsHelping } from "react-icons/fa";       // Understand User Needs
 import { BiCpu } from "react-icons/bi"; // AI / computer processing
-import { FaRobot } from "react-icons/fa"; // classic AI / robot sgap-icon
+import { FaRobot } from "react-icons/fa"; // classic AI / robot icon
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { FaChartLine } from "react-icons/fa";
 import { MdHealthAndSafety } from "react-icons/md";
@@ -111,7 +111,7 @@ const LandingPage = () => {
         if (element) {
           const { offsetTop, offsetHeight } = element;
           if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            // Section sgap-active in viewport
+            // Section active in viewport
             break;
           }
         }
@@ -219,11 +219,11 @@ const LandingPage = () => {
   </div>
       {/* ========== Performance Dashboard Section (Moved Here) ========== */}
       <section id="performance" className="performance-dashboard-section">
-        <div className="sgap-container">
+        <div className="container">
 
           {/* Header */}
-          <div className="sgap-section-header">
-            <h2 className="sgap-section-title">Performance Dashboard</h2>
+          <div className="section-header">
+            <h2 className="section-title">Performance Dashboard</h2>
             <p className="section-subtitle">
               Monitor your daily, weekly & monthly wellness performance
             </p>
@@ -232,25 +232,25 @@ const LandingPage = () => {
           {/* Tabs */}
           <div className="performance-tabs">
             <button
-              className={`tab-btn ${activeTab === "daily" ? "sgap-active" : ""}`}
+              className={`tab-btn ${activeTab === "daily" ? "active" : ""}`}
               onClick={() => setActiveTab("daily")}
             >
               Daily
             </button>
             <button
-              className={`tab-btn ${activeTab === "weekly" ? "sgap-active" : ""}`}
+              className={`tab-btn ${activeTab === "weekly" ? "active" : ""}`}
               onClick={() => setActiveTab("weekly")}
             >
               Weekly
             </button>
             <button
-              className={`tab-btn ${activeTab === "monthly" ? "sgap-active" : ""}`}
+              className={`tab-btn ${activeTab === "monthly" ? "active" : ""}`}
               onClick={() => setActiveTab("monthly")}
             >
               Monthly
             </button>
             <button
-              className={`tab-btn ${activeTab === "diary" ? "sgap-active" : ""}`}
+              className={`tab-btn ${activeTab === "diary" ? "active" : ""}`}
               onClick={() => setActiveTab("diary")}
             >
               Progress Diary
@@ -267,7 +267,7 @@ const LandingPage = () => {
                 <div className="metric-value">45 min</div>
                 <p>Calories Burned: <strong>420</strong></p>
                 <div className="progress-bar">
-                  <div className="sgap-progress-fill" style={{ width: "85%" }} />
+                  <div className="progress-fill" style={{ width: "85%" }} />
                 </div>
                 <span>Weekly Goal: 85%</span>
               </div>
@@ -280,7 +280,7 @@ const LandingPage = () => {
                 <h3>Nutrition</h3>
                 <div className="metric-value">2150 / 2500 cal</div>
                 <div className="progress-bar">
-                  <div className="sgap-progress-fill" style={{ width: "86%" }} />
+                  <div className="progress-fill" style={{ width: "86%" }} />
                 </div>
                 <p>Protein: 45g • Carbs: 250g • Fat: 65g</p>
               </div>
@@ -365,7 +365,7 @@ const LandingPage = () => {
               </div>
 
               <div className="monthly-card">
-                <div className="monthly-icon sgap-badge">
+                <div className="monthly-icon badge">
                   <Award size={26} />
                 </div>
                 <h4>Achievements</h4>
@@ -388,7 +388,7 @@ const LandingPage = () => {
 
               <div className="diary-entry">
                 <span className="diary-date">Yesterday</span>
-                <p>Stress level sgap-low • Cardio session completed</p>
+                <p>Stress level low • Cardio session completed</p>
                 <p className="motivation">Consistency is your superpower!</p>
               </div>
 
@@ -413,9 +413,9 @@ const LandingPage = () => {
   
 
 
-        <div className="sgap-container">
-          <div className="sgap-section-header">
-            <h2 className="sgap-section-title">Our Wellness Services</h2>
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Our Wellness Services</h2>
             <p className="section-subtitle">Comprehensive wellness solutions tailored to your needs</p>
           </div>
 
@@ -498,7 +498,7 @@ const LandingPage = () => {
               <div className="service-card-hover">
                 <h3>Fitness Programs</h3>
                 <p>
-                  Structured workouts for all levels to maximize your sgap-results efficiently.
+                  Structured workouts for all levels to maximize your results efficiently.
                 </p>
 
                 <div className="hover-points">
@@ -528,7 +528,7 @@ const LandingPage = () => {
                 </p>
                 <div className="hover-points">
                   <span>Customized learning journeys</span>
-                  <span>Track sgap-skill development</span>
+                  <span>Track skill development</span>
                   <span>Daily learning challenges</span>
                   <span>Actionable improvement tips</span>
                   <span>Boost knowledge & productivity</span>
@@ -598,14 +598,14 @@ const LandingPage = () => {
 
       {/* ========== How Lernevo Works (Image Style Layout) ========== */}
       <section id="how-it-works" className="how-lernevo-works">
-        <div className="sgap-container how-works-wrapper">
+        <div className="container how-works-wrapper">
 
           {/* LEFT CONTENT */}
           <div className="how-works-left">
             <h2>How Lernevo Works</h2>
             <p className="how-desc">
               Lernevo combines AI intelligence with human expertise to guide you
-              through sgap-a personalized wellness journey — body, mind, and lifestyle.
+              through a personalized wellness journey — body, mind, and lifestyle.
             </p>
 
             <p className="how-desc">
@@ -635,11 +635,11 @@ const LandingPage = () => {
 
         </div>
         {/* CARDS HEADING */}
-        <div className="sgap-container how-works-cards">
+        <div className="container how-works-cards">
           <h3 className="cards-only-heading">Our Approach</h3>
         </div>
         {/* BOTTOM CARDS - WITH HOVER EFFECTS */}
-        <div className="sgap-container how-works-cards">
+        <div className="container how-works-cards">
 
           {/* CARD 1 */}
           <div className="hover-full-card">
@@ -655,7 +655,7 @@ const LandingPage = () => {
               <h4>Personal Assessment</h4>
               <p>
                 We deeply analyze your goals, habits, and lifestyle preferences to
-                design sgap-a wellness plan that perfectly fits your daily routine and
+                design a wellness plan that perfectly fits your daily routine and
                 long-term vision.
               </p>
             </div>
@@ -675,7 +675,7 @@ const LandingPage = () => {
               <h4>Smart Analysis</h4>
               <p>
                 Our advanced AI analyzes your data patterns and provides intelligent,
-                actionable insights to improve your wellness sgap-results consistently.
+                actionable insights to improve your wellness results consistently.
               </p>
             </div>
           </div>
@@ -722,7 +722,7 @@ const LandingPage = () => {
 
       {/* ========== Transform CTA – PILL STRIP STYLE ========== */}
       <section className="transform-section minimal">
-        <div className="sgap-container">
+        <div className="container">
 
           <div className="transform-header">
             <h2>
