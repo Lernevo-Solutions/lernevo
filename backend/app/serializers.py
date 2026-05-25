@@ -446,3 +446,90 @@ class ResumeSerializer(serializers.ModelSerializer):
         replace(ResumeOptionalSection, optional_data)
 
         return instance
+from rest_framework import serializers
+
+from .models import (
+    SkillGapAnalysis,
+    SkillAnalysis,
+    JobRoleMatch,
+    AICareerSuggestion,
+    LearningRoadmap,
+    ImprovementTip,
+    FocusArea
+)
+
+
+class SkillAnalysisSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SkillAnalysis
+        fields = "__all__"
+
+
+class JobRoleMatchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = JobRoleMatch
+        fields = "__all__"
+
+
+class CareerSuggestionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AICareerSuggestion
+        fields = "__all__"
+
+
+class LearningRoadmapSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LearningRoadmap
+        fields = "__all__"
+
+
+class ImprovementTipSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ImprovementTip
+        fields = "__all__"
+
+
+class FocusAreaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FocusArea
+        fields = "__all__"
+
+
+class SkillGapAnalysisSerializer(serializers.ModelSerializer):
+
+    skills = SkillAnalysisSerializer(many=True, read_only=True)
+
+    job_matches = JobRoleMatchSerializer(
+        many=True,
+        read_only=True
+    )
+
+    career_suggestions = CareerSuggestionSerializer(
+        many=True,
+        read_only=True
+    )
+
+    learning_roadmaps = LearningRoadmapSerializer(
+        many=True,
+        read_only=True
+    )
+
+    improvement_tips = ImprovementTipSerializer(
+        many=True,
+        read_only=True
+    )
+
+    focus_areas = FocusAreaSerializer(
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+        model = SkillGapAnalysis
+        fields = "__all__"

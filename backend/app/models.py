@@ -1,7 +1,7 @@
-
 import uuid
 from django.db import models
 from django.contrib.auth.models import User as AuthUser
+from django.conf import settings  # ✅ ADD THIS IMPORT
 import random
 
 
@@ -77,26 +77,20 @@ class User(models.Model):
         related_name="lernevo_user"
     )
 
-    #role = models.ForeignKey(Role, on_delete=models.CASCADE)
-    #organization = models.ForeignKey(Organization,on_delete=models.SET_NULL,null=True,blank=True,related_name="users")
-
-    #wellness_types = models.ManyToManyField(WellnessType,related_name="users",blank=True)
     country_code = models.CharField(max_length=5, default="+91")
     mobile = models.CharField(
-    max_length=15,
-    null=True,
-    blank=True
-)
+        max_length=15,
+        null=True,
+        blank=True
+    )
     user_code = models.CharField(
-    max_length=6,
-    unique=True,
-    null=True,        
-    blank=True,
-    editable=False
-)
+        max_length=6,
+        unique=True,
+        null=True,        
+        blank=True,
+        editable=False
+    )
 
-
-    #fcm_token = models.CharField(max_length=255, null=True, blank=True) # The "Phone Address"
     is_frozen = models.BooleanField(default=False)
     frozen_at = models.DateTimeField(null=True, blank=True)
     unfrozen_at = models.DateTimeField(null=True, blank=True)
@@ -146,7 +140,7 @@ class UserProfile(models.Model):
     weight_kg = models.FloatField(null=True, blank=True)
 
     goal = models.CharField(max_length=255)
-    activity_level = models.CharField( max_length=20, choices=[ ('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High'), ], default='MEDIUM' )
+    activity_level = models.CharField(max_length=20, choices=[('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High')], default='MEDIUM')
 
     assigned_trainer = models.ForeignKey(
         User,
@@ -198,11 +192,12 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.sender} → {self.receiver}"
+
+
 class WorkoutGroup(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     
-    # Yar vena create pannalam (Trainer or Admin)
     created_by = models.ForeignKey(
         User, 
         on_delete=models.SET_NULL, 
@@ -210,7 +205,6 @@ class WorkoutGroup(models.Model):
         related_name="created_groups"
     )
     
-    # Group-la join panra users
     members = models.ManyToManyField(
         User, 
         related_name="workout_groups",
@@ -224,11 +218,9 @@ class WorkoutGroup(models.Model):
         return self.name
 
 
-
 class UserOTP(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    
     email = models.EmailField(null=True, blank=True)
 
     user = models.ForeignKey(
@@ -254,7 +246,6 @@ class UserOTP(models.Model):
 
 
 class ContactMessage(models.Model):
-
     INQUIRY_CHOICES = [
         ('general', 'General Inquiry'),
         ('support', 'Customer Support'),
@@ -281,7 +272,6 @@ class ContactMessage(models.Model):
 
 
 class Enquiry(models.Model):
-
     INTEREST_CHOICES = [
         ('holistic', 'Holistic Wellness Journey'),
         ('fitness', 'Fitness & Training'),
@@ -311,8 +301,8 @@ class Enquiry(models.Model):
     def __str__(self):
         return f"{self.first_name} - {self.interest_area}"
 
-class DemoBooking(models.Model):
 
+class DemoBooking(models.Model):
     full_name = models.CharField(max_length=150)
     email = models.EmailField()
     preferred_date = models.DateField()
@@ -326,19 +316,15 @@ class DemoBooking(models.Model):
 
 
 ##############################################################
-import uuid
-from django.db import models
+# RESUME BUILDER MODELS
+##############################################################
 
-# ─────────────────────────────────────────────
-# MAIN RESUME
-# ─────────────────────────────────────────────
 class Resume(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey("app.User", on_delete=models.CASCADE, related_name="resumes")
 
     title = models.CharField(max_length=150, default="My Resume")
 
-    # Styling (Frontend match)
     font = models.CharField(max_length=50, default="Inter")
     theme_color = models.CharField(max_length=20, default="#2563eb")
     layout = models.CharField(max_length=50, default="one-col")
@@ -352,9 +338,6 @@ class Resume(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-# ─────────────────────────────────────────────
-# PERSONAL INFO
-# ─────────────────────────────────────────────
 class ResumePersonalInfo(models.Model):
     resume = models.OneToOneField(Resume, on_delete=models.CASCADE, related_name="personal_info")
 
@@ -369,17 +352,11 @@ class ResumePersonalInfo(models.Model):
     photo = models.TextField(null=True, blank=True)
 
 
-# ─────────────────────────────────────────────
-# SUMMARY
-# ─────────────────────────────────────────────
 class ResumeSummary(models.Model):
     resume = models.OneToOneField(Resume, on_delete=models.CASCADE, related_name="summary")
     text = models.TextField(blank=True)
 
 
-# ─────────────────────────────────────────────
-# EXPERIENCE
-# ─────────────────────────────────────────────
 class ResumeExperience(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="experiences")
 
@@ -390,9 +367,6 @@ class ResumeExperience(models.Model):
     description = models.TextField(blank=True)
 
 
-# ─────────────────────────────────────────────
-# EDUCATION (UG)
-# ─────────────────────────────────────────────
 class ResumeUGEducation(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="ug_education")
 
@@ -404,9 +378,6 @@ class ResumeUGEducation(models.Model):
     highlights = models.TextField(blank=True)
 
 
-# ─────────────────────────────────────────────
-# EDUCATION (SCHOOL)
-# ─────────────────────────────────────────────
 class ResumeSchoolEducation(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="school_education")
 
@@ -418,9 +389,6 @@ class ResumeSchoolEducation(models.Model):
     highlights = models.TextField(blank=True)
 
 
-# ─────────────────────────────────────────────
-# SKILLS
-# ─────────────────────────────────────────────
 class ResumeSkill(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="skills")
 
@@ -429,9 +397,6 @@ class ResumeSkill(models.Model):
     badge = models.CharField(max_length=50, default="Intermediate")
 
 
-# ─────────────────────────────────────────────
-# PROJECTS
-# ─────────────────────────────────────────────
 class ResumeProject(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="projects")
 
@@ -442,9 +407,6 @@ class ResumeProject(models.Model):
     date = models.CharField(max_length=50, blank=True)
 
 
-# ─────────────────────────────────────────────
-# CERTIFICATIONS
-# ─────────────────────────────────────────────
 class ResumeCertification(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="certifications")
 
@@ -455,9 +417,6 @@ class ResumeCertification(models.Model):
     description = models.TextField(blank=True)
 
 
-# ─────────────────────────────────────────────
-# LANGUAGES
-# ─────────────────────────────────────────────
 class ResumeLanguage(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="languages")
 
@@ -466,12 +425,252 @@ class ResumeLanguage(models.Model):
     stars = models.IntegerField(default=3)
 
 
-# ─────────────────────────────────────────────
-# OPTIONAL SECTIONS
-# ─────────────────────────────────────────────
 class ResumeOptionalSection(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name="optional_sections")
 
     title = models.CharField(max_length=150)
     content = models.TextField(blank=True)
     section_type = models.CharField(max_length=50, default="custom")
+
+
+# =========================================================
+# SKILL GAP ANALYSIS MODELS - FIXED
+# =========================================================
+
+class SkillGapResume(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
+    # ✅ FIXED: Use settings.AUTH_USER_MODEL with the custom User model
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # This will be 'app.User'
+        on_delete=models.CASCADE,
+        related_name="skill_gap_resumes"
+    )
+
+    resume_pdf = models.FileField(
+        upload_to="skill_gap_resumes/"
+    )
+
+    extracted_text = models.TextField()
+
+    uploaded_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return str(self.id)
+
+
+class SkillGapAnalysis(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # ✅ FIXED: Use settings.AUTH_USER_MODEL
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="skill_gap_analyses"
+    )
+
+    # ✅ FIXED: Direct import of SkillGapResume
+    resume = models.ForeignKey(
+        SkillGapResume,
+        on_delete=models.CASCADE,
+        related_name="skill_gap_results"
+    )
+
+    job_title = models.CharField(max_length=255, blank=True)
+    company_name = models.CharField(max_length=255, blank=True)
+    job_description = models.TextField()
+
+    ats_score = models.IntegerField(default=0)
+    match_score = models.IntegerField(default=0)
+    gap_score = models.IntegerField(default=0)
+    resume_quality_score = models.IntegerField(default=0)
+
+    open_jobs = models.IntegerField(default=0)
+    salary_range = models.CharField(max_length=100, blank=True)
+    growth_rate = models.CharField(max_length=50, blank=True)
+
+    analyzed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.job_title}"
+
+
+class ResumeMetric(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="resume_metrics"
+    )
+
+    METRIC_TYPES = [
+        ('KEYWORD_DENSITY', 'Keyword Density'),
+        ('FORMATTING', 'Formatting'),
+        ('EXPERIENCE_MATCH', 'Experience Match'),
+        ('SOFT_SKILLS', 'Soft Skills'),
+        ('ATS_COMPATIBILITY', 'ATS Compatibility'),
+        ('RELEVANCE_SCORE', 'Relevance Score'),
+    ]
+
+    metric_type = models.CharField(max_length=50, choices=METRIC_TYPES)
+    score = models.IntegerField(default=0)
+    label = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"{self.metric_type} - {self.score}%"
+
+
+class SkillAnalysis(models.Model):
+    SKILL_STATUS = [
+        ('MATCHED', 'Matched'),
+        ('MISSING', 'Missing'),
+    ]
+
+    PRIORITY_LEVELS = [
+        ('HIGH', 'High'),
+        ('MEDIUM', 'Medium'),
+        ('LOW', 'Low'),
+    ]
+
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="skills"
+    )
+
+    skill_name = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=SKILL_STATUS)
+    priority = models.CharField(max_length=20, choices=PRIORITY_LEVELS, null=True, blank=True)
+    score = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.skill_name
+
+
+class JobRoleMatch(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="job_matches"
+    )
+
+    role_name = models.CharField(max_length=150)
+    match_percentage = models.IntegerField(default=0)
+    average_salary = models.CharField(max_length=100, blank=True)
+    demand_level = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return self.role_name
+
+
+class AICareerSuggestion(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="career_suggestions"
+    )
+
+    skill_name = models.CharField(max_length=100)
+    role_name = models.CharField(max_length=150)
+    is_matched = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.skill_name} → {self.role_name}"
+
+
+class LearningRoadmap(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="learning_roadmaps"
+    )
+
+    skill_name = models.CharField(max_length=100)
+    emoji = models.CharField(max_length=10, blank=True)
+    udemy_link = models.URLField(blank=True, null=True)
+    youtube_link = models.URLField(blank=True, null=True)
+    google_link = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.skill_name
+
+
+class ImprovementTip(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="improvement_tips"
+    )
+
+    title = models.CharField(max_length=255)
+    impact_percentage = models.CharField(max_length=50)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.title
+
+
+class FocusArea(models.Model):
+    PRIORITY_TYPES = [
+        ('HIGH', 'High Impact'),
+        ('MEDIUM', 'Medium Impact'),
+        ('LOW', 'Low Impact'),
+    ]
+
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="focus_areas"
+    )
+
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    priority = models.CharField(max_length=20, choices=PRIORITY_TYPES)
+
+    def __str__(self):
+        return self.title
+
+
+class DailyGoal(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="daily_goals"
+    )
+
+    title = models.CharField(max_length=255)
+    xp_points = models.IntegerField(default=0)
+    is_completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+class ResumeQualityMetric(models.Model):
+    analysis = models.ForeignKey(
+        SkillGapAnalysis,
+        on_delete=models.CASCADE,
+        related_name="quality_metrics"
+    )
+
+    QUALITY_TYPES = [
+        ('CLARITY', 'Clarity'),
+        ('IMPACT', 'Impact'),
+        ('STRUCTURE', 'Structure'),
+        ('READABILITY', 'Readability'),
+        ('PROFESSIONALISM', 'Professionalism'),
+        ('ATS_READINESS', 'ATS Readiness'),
+    ]
+
+    metric_type = models.CharField(max_length=50, choices=QUALITY_TYPES)
+    score = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.metric_type} - {self.score}%"

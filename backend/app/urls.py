@@ -18,6 +18,7 @@ from .views import (
     ProfileImageUploadView,
     PasswordResetConfirmView,
     ContactMessageCreateAPIView,
+    AnalyzeSkillGapAPIView,
     DemoBookingCreateAPIView,
 )
 
@@ -53,6 +54,11 @@ urlpatterns = [
     path("ai/skills/", views.ai_suggest_skills, name='ai-skills'),
     path("ai/health/", views.ai_health_check, name='ai-health'),
     path("test-vertex-rest/", views.test_vertex_rest),
+    path(
+        "analyze-skill-gap/",
+        AnalyzeSkillGapAPIView.as_view(),
+        name="analyze-skill-gap"
+    ),
 
     # 🔥 IMPORTANT (ADD THIS LINE)
     path('', include(router.urls)),

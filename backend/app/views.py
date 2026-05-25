@@ -1414,3 +1414,209 @@ def ai_generate_summary(request):
         return _vertex_error_response(exc, "Summary generation")
 
     return _vertex_success_response(result, mode="saved")
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated  # Add this
+
+import fitz
+
+from .models import (
+    SkillGapResume,
+    SkillGapAnalysis,
+    SkillAnalysis,
+    JobRoleMatch,
+    AICareerSuggestion,
+    LearningRoadmap,
+    ImprovementTip,
+    FocusArea,
+)
+
+from .serializers import (
+    SkillGapAnalysisSerializer
+)
+
+from .vertex_ai_service import (
+    vertex_service
+)
+import fitz
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+
+from .models import (
+    SkillGapResume,
+    SkillGapAnalysis,
+    SkillAnalysis,
+    JobRoleMatch,
+    AICareerSuggestion,
+    LearningRoadmap,
+    ImprovementTip,
+    FocusArea,
+    ResumeMetric,
+)
+
+from .serializers import (
+    SkillGapAnalysisSerializer
+)
+
+from .vertex_ai_service import (
+    vertex_service
+)
+
+
+class AnalyzeSkillGapAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            user = request.user
+            resume_file = request.FILES.get("resume")
+            job_description = request.data.get("job_description")
+            job_title = request.data.get("job_title", "")
+            company_name = request.data.get("company_name", "")
+
+            if not resume_file:
+                return Response({
+                    "success": False,
+                    "message": "Resume file required"
+                }, status=400)
+
+            if not job_description:
+                return Response({
+                    "success": False,
+                    "message": "Job description required"
+                }, status=400)
+
+            # Extract text from file
+            pdf_text = ""
+            if resume_file.name.endswith('.txt'):
+                pdf_text = resume_file.read().decode('utf-8')
+            else:
+                pdf_document = fitz.open(stream=resume_file.read(), filetype="pdf")
+                for page in pdf_document:
+                    pdf_text += page.get_text()
+                pdf_document.close()
+
+            # Store resume
+            skill_gap_resume = SkillGapResume.objects.create(
+                user=user,
+                resume_pdf=resume_file,
+                extracted_text=pdf_text
+            )
+
+            # AI Analysis
+            ai_response = vertex_service.analyze_skill_gap(
+                resume_text=pdf_text,
+                job_description=job_description
+            )
+
+            print("AI Response received:", ai_response)  # Debug log
+
+            # Save analysis
+            analysis = SkillGapAnalysis.objects.create(
+                user=user,
+                resume=skill_gap_resume,
+                job_title=job_title,
+                company_name=company_name,
+                job_description=job_description,
+                ats_score=ai_response.get("ats_score", 65),
+                match_score=ai_response.get("match_score", 60),
+                gap_score=ai_response.get("gap_score", 40),
+                resume_quality_score=ai_response.get("ats_score", 65)
+            )
+
+            # Save Resume Metrics (NEW)
+            resume_metrics = ai_response.get("resume_metrics", [])
+            for metric in resume_metrics:
+                ResumeMetric.objects.create(
+                    analysis=analysis,
+                    metric_type=metric.get("name", "").upper().replace(" ", "_"),
+                    score=metric.get("score", 70),
+                    label=metric.get("label", "")
+                )
+
+            # Save matched skills
+            for skill in ai_response.get("matched_skills", []):
+                SkillAnalysis.objects.create(
+                    analysis=analysis,
+                    skill_name=skill,
+                    status="MATCHED",
+                    score=85
+                )
+
+            # Save missing skills
+            for skill in ai_response.get("missing_skills", []):
+                SkillAnalysis.objects.create(
+                    analysis=analysis,
+                    skill_name=skill,
+                    status="MISSING",
+                    priority="HIGH",
+                    score=30
+                )
+
+            # Save job matches
+            for item in ai_response.get("job_matches", []):
+                JobRoleMatch.objects.create(
+                    analysis=analysis,
+                    role_name=item.get("role", ""),
+                    match_percentage=item.get("match_percentage", 0),
+                    average_salary=item.get("average_salary", ""),
+                    demand_level=item.get("demand_level", "")
+                )
+
+            # Save career suggestions
+            for item in ai_response.get("career_suggestions", []):
+                AICareerSuggestion.objects.create(
+                    analysis=analysis,
+                    skill_name=item.get("skill", ""),
+                    role_name=item.get("role", ""),
+                    is_matched=True
+                )
+
+            # Save learning roadmap
+            for item in ai_response.get("learning_roadmap", []):
+                LearningRoadmap.objects.create(
+                    analysis=analysis,
+                    skill_name=item.get("skill", ""),
+                    youtube_link=item.get("youtube_link", ""),
+                    google_link=item.get("google_link", "")
+                )
+
+            # Save improvement tips
+            for item in ai_response.get("improvement_tips", []):
+                ImprovementTip.objects.create(
+                    analysis=analysis,
+                    title=item.get("title", ""),
+                    impact_percentage=item.get("impact", ""),
+                    description=item.get("description", item.get("title", ""))
+                )
+
+            # Save focus areas
+            for item in ai_response.get("focus_areas", []):
+                FocusArea.objects.create(
+                    analysis=analysis,
+                    title=item.get("title", ""),
+                    description=item.get("description", ""),
+                    priority=item.get("priority", "MEDIUM")
+                )
+
+            serializer = SkillGapAnalysisSerializer(analysis)
+
+            return Response({
+                "success": True,
+                "message": "Skill Gap Analysis Completed",
+                "data": serializer.data
+            }, status=200)
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({
+                "success": False,
+                "message": str(e)
+            }, status=500)
