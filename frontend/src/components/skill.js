@@ -1,7 +1,8 @@
 // skill.js - Complete Enhanced File with PDF Upload & Download Report
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import Tesseract from 'tesseract.js';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './skill.css';
@@ -14,8 +15,7 @@ import f6 from "./f6.png";
 import f7 from "./f7.png";
 import f8 from "./f8.png";
 
-// Set up PDF.js worker (important for PDF parsing)
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL || ''}/pdf.worker.min.mjs`;
 
 const SkillGapAnalyzer = () => {
   const [resumeText, setResumeText] = useState('');
@@ -24,9 +24,9 @@ const SkillGapAnalyzer = () => {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState('');
+  const [uploadStatus, setUploadStatus] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [activeTab, setActiveTab] = useState('ats');
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [isFirstLoad, setIsFirstLoad] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -135,6 +135,54 @@ BENEFITS
     'mentoring', 'agile', 'scrum', 'api design', 'database', 'optimization'
   ];
 
+  const loadPdfDocument = async (file, arrayBuffer) => {
+    const pdfData = new Uint8Array(arrayBuffer);
+    const loadAttempts = [
+      () => pdfjsLib.getDocument({
+        data: pdfData,
+        useSystemFonts: true,
+        verbosity: 0,
+      }).promise,
+      () => {
+        const objectUrl = URL.createObjectURL(file);
+        return pdfjsLib
+          .getDocument({
+            url: objectUrl,
+            useSystemFonts: true,
+            verbosity: 0,
+          })
+          .promise.finally(() => URL.revokeObjectURL(objectUrl));
+      },
+      async () => {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('Failed to convert PDF into a data URL.'));
+          reader.readAsDataURL(file);
+        });
+
+        return pdfjsLib.getDocument({
+          url: dataUrl,
+          useSystemFonts: true,
+          verbosity: 0,
+        }).promise;
+      },
+    ];
+
+    let lastError = null;
+
+    for (const attempt of loadAttempts) {
+      try {
+        return await attempt();
+      } catch (error) {
+        lastError = error;
+        console.warn('PDF load attempt failed:', error);
+      }
+    }
+
+    throw lastError || new Error('Unable to load the PDF document.');
+  };
+
   // ==================== PDF UPLOAD FUNCTION ====================
   const handlePDFUpload = async (file) => {
     if (!file) return;
@@ -143,10 +191,11 @@ BENEFITS
       return;
     }
     setFileName(file.name);
+    setUploadStatus(null);
     setIsLoading(true);
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pdf = await loadPdfDocument(file, arrayBuffer);
       let fullText = '';
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
@@ -156,13 +205,62 @@ BENEFITS
       }
       if (fullText.trim()) {
         setResumeText(fullText);
-        alert(`✅ PDF loaded successfully! Extracted ${pdf.numPages} pages.`);
+        setUploadStatus({
+          type: 'success',
+          message: `PDF loaded successfully. Extracted text from ${pdf.numPages} page${pdf.numPages > 1 ? 's' : ''}.`,
+        });
       } else {
-        alert('No text found in PDF. Please try a different file or paste manually.');
+        setUploadStatus({
+          type: 'warning',
+          message: 'No selectable text found. Trying OCR on the scanned PDF now. This may take a little longer.',
+        });
+
+        let ocrText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          setUploadStatus({
+            type: 'warning',
+            message: `Running OCR on page ${i} of ${pdf.numPages}...`,
+          });
+
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          await page.render({
+            canvasContext: context,
+            viewport,
+          }).promise;
+
+          const { data } = await Tesseract.recognize(canvas, 'eng');
+          ocrText += `${data.text || ''}\n\n`;
+        }
+
+        if (ocrText.trim()) {
+          setResumeText(ocrText);
+          setUploadStatus({
+            type: 'success',
+            message: `Scanned PDF processed with OCR successfully. Extracted text from ${pdf.numPages} page${pdf.numPages > 1 ? 's' : ''}.`,
+          });
+        } else {
+          setResumeText('');
+          setUploadStatus({
+            type: 'warning',
+            message: 'OCR could not detect readable text from this PDF. Please paste the resume text manually or upload a clearer PDF/TXT file.',
+          });
+        }
       }
     } catch (error) {
       console.error('PDF parsing error:', error);
-      alert('Error reading PDF file. Please paste your resume text manually.');
+      setResumeText('');
+      setUploadStatus({
+        type: 'error',
+        message: `Unable to read this PDF${error?.message ? `: ${error.message}` : ''}. Please try another file or paste the resume text manually.`,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -226,8 +324,24 @@ BENEFITS
       handlePDFUpload(file);
     } else if (file.type === 'text/plain') {
       setFileName(file.name);
+      setUploadStatus(null);
+      setIsLoading(true);
       const reader = new FileReader();
-      reader.onload = (e) => setResumeText(e.target.value);
+      reader.onload = (e) => {
+        setResumeText(e.target.result || '');
+        setUploadStatus({
+          type: 'success',
+          message: 'TXT file loaded successfully.',
+        });
+        setIsLoading(false);
+      };
+      reader.onerror = () => {
+        setIsLoading(false);
+        setUploadStatus({
+          type: 'error',
+          message: 'Unable to read the TXT file. Please try again.',
+        });
+      };
       reader.readAsText(file);
     } else {
       alert('Please upload PDF or TXT files only');
@@ -503,6 +617,9 @@ BENEFITS
           importantKeywords,
           keywordCheckResults,
           missingKeywords,
+          resumeText,
+          jobDescription,
+          fileName,
         })
       );
 
@@ -619,7 +736,7 @@ BENEFITS
                 <div className="sgap-card-icon">📄</div>
                 <div>
                   <h3>Your Resume</h3>
-                  <p>Upload PDF or TXT (sample pre-loaded)</p>
+                  <p>Upload PDF or TXT to extract your resume</p>
                 </div>
               </div>
               <div className="card-body">
@@ -644,7 +761,7 @@ BENEFITS
                 </div>
                 <textarea
                   className="sgap-textarea"
-                  placeholder="Your resume content..."
+                  placeholder="Upload your resume or paste the extracted text here..."
                   value={resumeText}
                   onChange={(e) => setResumeText(e.target.value)}
                   rows={10}
@@ -653,6 +770,38 @@ BENEFITS
                   <span>{resumeText.length} characters</span>
                   <span className="sgap-badge">{fileName ? 'PDF Uploaded' : 'Ready'}</span>
                 </div>
+                {uploadStatus && (
+                  <div
+                    className="sgap-upload-status"
+                    style={{
+                      marginTop: '12px',
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      lineHeight: 1.5,
+                      background:
+                        uploadStatus.type === 'success'
+                          ? '#ecfdf5'
+                          : uploadStatus.type === 'warning'
+                            ? '#fff7ed'
+                            : '#fef2f2',
+                      color:
+                        uploadStatus.type === 'success'
+                          ? '#047857'
+                          : uploadStatus.type === 'warning'
+                            ? '#c2410c'
+                            : '#b91c1c',
+                      border:
+                        uploadStatus.type === 'success'
+                          ? '1px solid #a7f3d0'
+                          : uploadStatus.type === 'warning'
+                            ? '1px solid #fdba74'
+                            : '1px solid #fca5a5',
+                    }}
+                  >
+                    {uploadStatus.message}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -667,7 +816,7 @@ BENEFITS
               <div className="card-body">
                 <textarea
                   className="sgap-textarea"
-                  placeholder="Job description..."
+                  placeholder="Paste the job description here..."
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
                   rows={12}
@@ -680,7 +829,11 @@ BENEFITS
             </div>
           </div>
 
-          <button className="sgap-analyze-btn" onClick={analyzeGap} disabled={isLoading}>
+          <button
+            className="sgap-analyze-btn"
+            onClick={analyzeGap}
+            disabled={isLoading || !resumeText.trim() || !jobDescription.trim()}
+          >
             {isLoading
               ? (<><div className="sgap-spinner"></div> Analyzing...</>)
               : (<>✨ Analyze & Get ATS Score →</>)
