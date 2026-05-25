@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./skilldashboard.css";
 
 /* ─────────────────────────────────────
    Radar Chart Component
 ───────────────────────────────────── */
-function RadarChart() {
-  // Larger canvas: cx pushed right to give left labels space
+function RadarChart({ skills = [] }) {
   const cx = 185, cy = 165, r = 100;
 
   const toXY = (angle, radius) => {
@@ -13,20 +13,25 @@ function RadarChart() {
     return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) };
   };
 
-  // 6 evenly spaced angles: Python=top, clockwise every 60°
-  const angles6 = [270, 330, 30, 90, 150, 210];
-  const vals     = [84, 78, 85, 68, 61, 66];
-  const indAvg   = [75, 70, 78, 72, 70, 72];
+  const displaySkills = skills.filter(s => s && s.skill_name).slice(0, 6);
+  
+  if (displaySkills.length === 0) {
+    return (
+      <div className="sd-radar-container">
+        <svg viewBox="0 0 370 330" xmlns="http://www.w3.org/2000/svg">
+          <text x="185" y="165" textAnchor="middle" fill="#6b7280" fontSize="14">
+            No skill data available
+          </text>
+        </svg>
+      </div>
+    );
+  }
 
-  // Per-skill colors
-  const skillColors = [
-    "#6366f1", // Python     — indigo
-    "#f59e0b", // SQL        — amber
-    "#10b981", // Data Analysis — emerald
-    "#3b82f6", // Machine Learning — blue
-    "#f43f5e", // Data Visualization — rose
-    "#a855f7", // Communication — purple
-  ];
+  const angles6 = [270, 330, 30, 90, 150, 210];
+  const vals = displaySkills.map(s => s.score || 50);
+  const indAvg = vals.map(v => Math.max(40, v - 15));
+  
+  const skillColors = ["#6366f1", "#f59e0b", "#10b981", "#3b82f6", "#f43f5e", "#a855f7"];
 
   const polygon = (values) =>
     values.map((v, i) => {
@@ -35,23 +40,18 @@ function RadarChart() {
     }).join(" ");
 
   const gridLevels = [25, 50, 75, 100];
-
-  // Labels: anchor + offsets tuned per position to avoid clipping
-  const labels = [
-    { label: "Python",             pct: "84%", angle: 270, ox:   0, oy: -20 }, // top
-    { label: "SQL",                pct: "78%", angle: 330, ox:  30, oy: -10 }, // top-right
-    { label: "Data Analysis",      pct: "85%", angle:  30, ox:  30, oy:  12 }, // bottom-right
-    { label: "Machine Learning",   pct: "68%", angle:  90, ox:   0, oy:  24 }, // bottom
-    { label: "Data Visualization", pct: "61%", angle: 150, ox: -30, oy:  12 }, // bottom-left
-    { label: "Communication",      pct: "66%", angle: 210, ox: -30, oy: -10 }, // top-left
-  ];
-
-  // Build colorful filled polygon: split into triangles center→edge[i]→edge[i+1]
   const pts = vals.map((v, i) => toXY(angles6[i], (v / 100) * r));
+
+  const labels = displaySkills.map((skill, i) => ({
+    label: skill.skill_name,
+    pct: `${skill.score || 50}%`,
+    angle: angles6[i],
+    ox: [0, 30, 30, 0, -30, -30][i % 6],
+    oy: [-20, -10, 12, 24, 12, -10][i % 6]
+  }));
 
   return (
     <div className="sd-radar-container">
-      {/* viewBox wide enough: cx=185, left label needs ~185-100-30-80=-25 → pad to 370 wide */}
       <svg viewBox="0 0 370 330" xmlns="http://www.w3.org/2000/svg">
         <defs>
           {skillColors.map((c, i) => (
@@ -62,21 +62,18 @@ function RadarChart() {
           ))}
         </defs>
 
-        {/* Grid rings */}
         {gridLevels.map((lvl) => (
           <polygon key={lvl}
             points={angles6.map((a) => { const pt = toXY(a, (lvl/100)*r); return `${pt.x},${pt.y}`; }).join(" ")}
             fill="none" stroke="#e2e8f0" strokeWidth="1" />
         ))}
 
-        {/* Axis spokes — colored */}
         {angles6.map((a, i) => {
           const pt = toXY(a, r);
           return <line key={i} x1={cx} y1={cy} x2={pt.x} y2={pt.y}
             stroke={skillColors[i]} strokeWidth="1.2" strokeOpacity="0.4" />;
         })}
 
-        {/* Colorful filled slices (center → pt[i] → pt[i+1]) */}
         {pts.map((pt, i) => {
           const next = pts[(i + 1) % pts.length];
           return (
@@ -87,9 +84,7 @@ function RadarChart() {
           );
         })}
 
-        {/* Outer colored stroke border */}
-        <polygon points={polygon(vals)}
-          fill="none" stroke="url(#rg0)" strokeWidth="0" />
+        <polygon points={polygon(vals)} fill="none" />
         {pts.map((pt, i) => {
           const next = pts[(i + 1) % pts.length];
           return (
@@ -99,17 +94,13 @@ function RadarChart() {
           );
         })}
 
-        {/* Industry avg dashed */}
-        <polygon points={polygon(indAvg)}
-          fill="none" stroke="#94a3b8" strokeWidth="1.4" strokeDasharray="4,3" />
+        <polygon points={polygon(indAvg)} fill="none" stroke="#94a3b8" strokeWidth="1.4" strokeDasharray="4,3" />
 
-        {/* Dot on each vertex */}
         {pts.map((pt, i) => (
           <circle key={i} cx={pt.x} cy={pt.y} r="3.5"
             fill={skillColors[i]} stroke="#fff" strokeWidth="1.5" />
         ))}
 
-        {/* Labels */}
         {labels.map((item, i) => {
           const pt = toXY(item.angle, r + 32);
           return (
@@ -133,7 +124,7 @@ function RadarChart() {
 ───────────────────────────────────── */
 function Ring({ size, sw, value, color, gradient, id, children }) {
   const radius = (size - sw) / 2;
-  const circ   = 2 * Math.PI * radius;
+  const circ = 2 * Math.PI * radius;
   const offset = circ - (value / 100) * circ;
   return (
     <div className="sd-ring-wrap" style={{ width: size, height: size }}>
@@ -163,16 +154,16 @@ function Ring({ size, sw, value, color, gradient, id, children }) {
    Daily Goals Card Component
 ───────────────────────────────────── */
 const DAILY_GOALS = [
-  { id:0, icon:"📝", title:"Update resume summary",      pts: 10 },
-  { id:1, icon:"🔍", title:"Apply to 2 jobs today",      pts: 20 },
-  { id:2, icon:"📚", title:"Study Python for 30 mins",   pts: 15 },
-  { id:3, icon:"🤝", title:"Send 1 LinkedIn connection",  pts: 10 },
-  { id:4, icon:"💡", title:"Read 1 industry article",     pts: 5  },
+  { id: 0, icon: "📝", title: "Update resume summary", pts: 10 },
+  { id: 1, icon: "🔍", title: "Apply to 2 jobs today", pts: 20 },
+  { id: 2, icon: "📚", title: "Study missing skills", pts: 15 },
+  { id: 3, icon: "🤝", title: "Send 1 LinkedIn connection", pts: 10 },
+  { id: 4, icon: "💡", title: "Read 1 industry article", pts: 5 },
 ];
 
 function DailyGoalsCard() {
-  const [done, setDone]     = React.useState(new Set());
-  const [streak, setStreak] = React.useState(4); // mock streak
+  const [done, setDone] = React.useState(new Set());
+  const [streak, setStreak] = React.useState(4);
 
   const toggle = (id) => {
     setDone(prev => {
@@ -182,15 +173,13 @@ function DailyGoalsCard() {
     });
   };
 
-  const totalPts    = DAILY_GOALS.reduce((s, g) => s + g.pts, 0);
-  const earnedPts   = DAILY_GOALS.filter(g => done.has(g.id)).reduce((s,g) => s+g.pts, 0);
-  const pct         = Math.round((earnedPts / totalPts) * 100);
-  const allDone     = done.size === DAILY_GOALS.length;
+  const totalPts = DAILY_GOALS.reduce((s, g) => s + g.pts, 0);
+  const earnedPts = DAILY_GOALS.filter(g => done.has(g.id)).reduce((s, g) => s + g.pts, 0);
+  const pct = Math.round((earnedPts / totalPts) * 100);
+  const allDone = done.size === DAILY_GOALS.length;
 
   return (
     <div className="sd-card sd-dg-card">
-
-      {/* Header row */}
       <div className="sd-dg-header">
         <div>
           <div className="sd-ctitle">🎯 Daily Goals</div>
@@ -203,7 +192,6 @@ function DailyGoalsCard() {
         </div>
       </div>
 
-      {/* XP progress bar */}
       <div className="sd-dg-xp-row">
         <span className="sd-dg-xp-lbl">{earnedPts} / {totalPts} XP</span>
         <span className="sd-dg-xp-pct">{pct}%</span>
@@ -212,23 +200,17 @@ function DailyGoalsCard() {
         <div className="sd-dg-bar-fill" style={{ width: `${pct}%` }} />
       </div>
 
-      {/* All done banner */}
       {allDone && (
         <div className="sd-dg-banner">
           🎉 All goals done! Streak extended to {streak + 1} days!
         </div>
       )}
 
-      {/* Goal list */}
       <div className="sd-dg-list">
         {DAILY_GOALS.map((goal) => {
           const isDone = done.has(goal.id);
           return (
-            <div
-              key={goal.id}
-              className={`sd-dg-item ${isDone ? "sd-dg-item--done" : ""}`}
-              onClick={() => toggle(goal.id)}
-            >
+            <div key={goal.id} className={`sd-dg-item ${isDone ? "sd-dg-item--done" : ""}`} onClick={() => toggle(goal.id)}>
               <div className="sd-dg-ico">{goal.icon}</div>
               <span className={`sd-dg-text ${isDone ? "sd-dg-strike" : ""}`}>{goal.title}</span>
               <div className={`sd-dg-pts ${isDone ? "sd-dg-pts--done" : ""}`}>
@@ -239,212 +221,82 @@ function DailyGoalsCard() {
           );
         })}
       </div>
-
     </div>
   );
 }
+
 /* ─────────────────────────────────────
    AI Career Suggestions Component
-   — Skill → Roles mapping view —
 ───────────────────────────────────── */
+function AICareerSuggestions({ suggestions = [] }) {
+  const [activeSkill, setActiveSkill] = React.useState(null);
 
-// TODO: Replace with your AI API response when ready
-const SKILL_ROLE_MAP = [
-  {
-    skill: "Python",
-    emoji: "🐍",
-    type: "matched",
-    roles: ["Data Analyst", "Data Scientist", "ML Engineer", "Data Engineer"],
-  },
-  {
-    skill: "SQL",
-    emoji: "🗄️",
-    type: "matched",
-    roles: ["Data Analyst", "Analytics Engineer", "BI Developer", "Data Engineer"],
-  },
-  {
-    skill: "Data Analysis",
-    emoji: "📊",
-    type: "matched",
-    roles: ["Data Analyst", "Research Analyst", "Product Analyst"],
-  },
-  {
-    skill: "Pandas",
-    emoji: "🐼",
-    type: "matched",
-    roles: ["Data Scientist", "Data Analyst", "ML Engineer"],
-  },
-  {
-    skill: "Excel",
-    emoji: "📗",
-    type: "matched",
-    roles: ["Business Analyst", "Data Analyst", "Financial Analyst"],
-  },
-  {
-    skill: "Tableau",
-    emoji: "📉",
-    type: "matched",
-    roles: ["BI Analyst", "Data Analyst", "BI Developer"],
-  },
-  {
-    skill: "Apache Spark",
-    emoji: "⚡",
-    type: "missing",
-    roles: ["Data Engineer", "Big Data Engineer", "ML Engineer"],
-  },
-  {
-    skill: "Airflow",
-    emoji: "🌬️",
-    type: "missing",
-    roles: ["Data Engineer", "Analytics Engineer", "MLOps Engineer"],
-  },
-  {
-    skill: "dbt",
-    emoji: "🔧",
-    type: "missing",
-    roles: ["Analytics Engineer", "Data Engineer", "BI Developer"],
-  },
-  {
-    skill: "AWS S3",
-    emoji: "☁️",
-    type: "missing",
-    roles: ["Cloud Data Engineer", "Data Engineer", "MLOps Engineer"],
-  },
-];
+  React.useEffect(() => {
+    if (suggestions && suggestions.length > 0) {
+      setActiveSkill(suggestions[0].skill_name);
+    }
+  }, [suggestions]);
 
-const ROLE_COLORS = [
-  { bg: "#eef2ff", color: "#4f46e5", border: "#c7d2fe" },
-  { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
-  { bg: "#fff7ed", color: "#c2410c", border: "#fed7aa" },
-  { bg: "#fdf4ff", color: "#9333ea", border: "#e9d5ff" },
-];
+  if (!suggestions || suggestions.length === 0) {
+    return (
+      <div className="sd-card sd-acs-card">
+        <div className="sd-acs-header">
+          <div>
+            <div className="sd-acs-title">
+              <span className="sd-acs-sparkle">✨</span>
+              AI Career Suggestions
+            </div>
+            <div className="sd-acs-sub">No suggestions available. Analyze your resume first.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-function AICareerSuggestions() {
-
-  // first skill default selected
-  const [activeSkill, setActiveSkill] = React.useState(
-    SKILL_ROLE_MAP[0]?.skill || null
-  );
-
-  // only selected skill display
-  const displayed = SKILL_ROLE_MAP.filter(
-    s => s.skill === activeSkill
-  );
+  const displayed = suggestions.filter(s => s.skill_name === activeSkill);
 
   return (
     <div className="sd-card sd-acs-card">
-
-      {/* Header */}
       <div className="sd-acs-header">
         <div>
           <div className="sd-acs-title">
             <span className="sd-acs-sparkle">✨</span>
             AI Career Suggestions
           </div>
-
-          <div className="sd-acs-sub">
-            Click a skill to see matching career roles
-          </div>
+          <div className="sd-acs-sub">Click a skill to see matching career roles</div>
         </div>
       </div>
 
-      {/* Skill pills */}
       <div className="sd-acs-skills-row">
-
-        {SKILL_ROLE_MAP.map((s, i) => (
-
+        {suggestions.map((s, i) => (
           <span
             key={i}
-            onClick={() => setActiveSkill(s.skill)}
-            className={[
-              "sd-acs-skill-pill",
-
-              s.type === "matched"
-                ? "sd-acs-pill--matched"
-                : "sd-acs-pill--missing",
-
-              activeSkill === s.skill
-                ? "sd-acs-pill--active"
-                : "",
-
-            ].join(" ")}
+            onClick={() => setActiveSkill(s.skill_name)}
+            className={`sd-acs-skill-pill sd-acs-pill--matched ${activeSkill === s.skill_name ? "sd-acs-pill--active" : ""}`}
           >
-            {s.emoji} {s.skill}
+            💼 {s.skill_name}
           </span>
-
         ))}
-
       </div>
 
-      {/* Selected skill only */}
       <div className="sd-acs-map-list">
-
         {displayed.map((item, i) => (
-
           <div className="sd-acs-map-row" key={i}>
-
-            {/* Skill */}
-            <div className={`sd-acs-map-skill ${
-              item.type === "missing"
-                ? "sd-acs-map-skill--miss"
-                : ""
-            }`}>
-
-              <span className="sd-acs-map-emoji">
-                {item.emoji}
-              </span>
-
+            <div className="sd-acs-map-skill">
               <div>
-
-                <div className="sd-acs-map-skillname">
-                  {item.skill}
-                </div>
-
-                <div className="sd-acs-map-skilltype">
-                  {item.type === "matched"
-                    ? "✅ Matched"
-                    : "⚠️ Missing"}
-                </div>
-
+                <div className="sd-acs-map-skillname">{item.skill_name}</div>
+                <div className="sd-acs-map-skilltype">✅ Recommended Fit</div>
               </div>
-
             </div>
-
-            {/* Arrow */}
             <div className="sd-acs-arrow">→</div>
-
-            {/* Roles */}
             <div className="sd-acs-map-roles">
-
-              {item.roles.map((role, j) => {
-
-                const c =
-                  ROLE_COLORS[j % ROLE_COLORS.length];
-
-                return (
-                  <span
-                    key={j}
-                    className="sd-acs-map-role-tag"
-                    style={{
-                      background: c.bg,
-                      color: c.color,
-                      borderColor: c.border
-                    }}
-                  >
-                    {role}
-                  </span>
-                );
-
-              })}
-
+              <span className="sd-acs-map-role-tag" style={{ background: "#eef2ff", color: "#4f46e5", borderColor: "#c7d2fe" }}>
+                {item.role_name || "Target Professional"}
+              </span>
             </div>
-
           </div>
-
         ))}
-
       </div>
-
     </div>
   );
 }
@@ -453,211 +305,237 @@ function AICareerSuggestions() {
    Main Dashboard Component
 ───────────────────────────────────── */
 export default function Dashboard() {
+  const [analysisData, setAnalysisData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedData = localStorage.getItem('analysisResult');
+    console.log("Stored data from localStorage:", storedData);
+    
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log("Parsed analysis data:", parsedData);
+        setAnalysisData(parsedData);
+      } catch (e) {
+        console.error("Failed to parse analysis data:", e);
+      }
+    }
+    
+    setLoading(false);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="sd-dashboard" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div>Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (!analysisData) {
+    return (
+      <div className="sd-dashboard" style={{ textAlign: 'center', padding: '50px' }}>
+        <div className="sd-card" style={{ maxWidth: '500px', margin: '0 auto', padding: '40px' }}>
+          <h2>No Analysis Data Found</h2>
+          <p style={{ marginTop: '20px', color: '#6b7280' }}>
+            Please analyze your resume first by going to the Skill Gap Analyzer page.
+          </p>
+          <button 
+            onClick={() => navigate('/skillgap')}
+            style={{
+              marginTop: '30px',
+              padding: '12px 24px',
+              background: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            Go to Analyzer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract data from analysis
+  const atsScore = analysisData.ats_score || 65;
+  const matchScore = analysisData.match_score || 60;
+  const gapScore = analysisData.gap_score || 40;
+  const skills = analysisData.skills || [];
+  const matchedSkills = skills.filter(s => s.status === "MATCHED");
+  const missingSkills = skills.filter(s => s.status === "MISSING");
+  const roadmap = analysisData.learning_roadmaps || [];
+  const tips = analysisData.improvement_tips || [];
+  const focusAreas = analysisData.focus_areas || [];
+  const suggestions = analysisData.career_suggestions || [];
+  const jobMatches = analysisData.job_matches || [];
+  
+  // Get resume metrics from analysisData (if available)
+  const resumeMetrics = analysisData.resume_metrics || [];
+
+  // Default metrics if none from API
+  const defaultMetrics = [
+    { metric_type: "KEYWORD_DENSITY", score: 70, label: "Good" },
+    { metric_type: "FORMATTING", score: 85, label: "Excellent" },
+    { metric_type: "EXPERIENCE_MATCH", score: 65, label: "Fair" },
+    { metric_type: "SOFT_SKILLS", score: 78, label: "Good" },
+    { metric_type: "ATS_COMPATIBILITY", score: 82, label: "High" },
+    { metric_type: "RELEVANCE_SCORE", score: 74, label: "Solid" },
+  ];
+
+  const metricsToShow = resumeMetrics.length > 0 ? resumeMetrics : defaultMetrics;
+
+  const metricConfig = {
+    "KEYWORD_DENSITY": { icon: "⌨️", name: "Keyword Density", accent: "#22c55e", bg: "#f0fdf4", ring: "#bbf7d0" },
+    "FORMATTING": { icon: "📝", name: "Formatting", accent: "#6366f1", bg: "#eef2ff", ring: "#c7d2fe" },
+    "EXPERIENCE_MATCH": { icon: "💼", name: "Experience Match", accent: "#f59e0b", bg: "#fefce8", ring: "#fde68a" },
+    "SOFT_SKILLS": { icon: "🤝", name: "Soft Skills", accent: "#f97316", bg: "#fff7ed", ring: "#fed7aa" },
+    "ATS_COMPATIBILITY": { icon: "🎯", name: "ATS Compatibility", accent: "#8b5cf6", bg: "#f5f3ff", ring: "#ddd6fe" },
+    "RELEVANCE_SCORE": { icon: "📌", name: "Relevance Score", accent: "#ec4899", bg: "#fdf2f8", ring: "#fbcfe8" },
+  };
+
   return (
     <div className="sd-dashboard">
 
-      {/* ══ ROW 1: ATS Score · Metrics · AI Summary ══ */}
+      {/* ROW 1: ATS Score · Metrics · Learning Roadmap */}
       <div className="sd-row sd-r1">
 
         <div className="sd-card sd-ats-card sd-ats-v2">
-          {/* Stars overlay */}
           <div className="sd-ats-stars" />
-
-          {/* Decorative blobs */}
           <div className="sd-ats-blob sd-ats-blob1" />
           <div className="sd-ats-blob sd-ats-blob2" />
-
-          {/* Label */}
           <div className="sd-ats-v2-label">ATS Score</div>
-
-          {/* Big ring */}
           <div className="sd-ats-v2-ring">
-            <Ring size={130} sw={11} value={85} id="atsG2"
-              gradient={[{ o:"0%", c:"#6366f1" }, { o:"50%", c:"#818cf8" }, { o:"100%", c:"#22c55e" }]}>
+            <Ring size={130} sw={11} value={atsScore} id="atsG2"
+              gradient={[{ o: "0%", c: "#6366f1" }, { o: "50%", c: "#818cf8" }, { o: "100%", c: "#22c55e" }]}>
               <div className="sd-ats-v2-inner">
-                <div className="sd-ats-v2-pct">85%</div>
+                <div className="sd-ats-v2-pct">{atsScore}%</div>
                 <div className="sd-ats-v2-sub">Match</div>
               </div>
             </Ring>
           </div>
-
-          {/* Status pill */}
           <div className="sd-ats-v2-pill sd-ats-pill--good">
             <span className="sd-ats-v2-dot" />
-            Good Match
+            {atsScore >= 70 ? "Good Match" : atsScore >= 50 ? "Average Match" : "Needs Improvement"}
           </div>
-
         </div>
 
         <div className="sd-card sd-metrics-card">
           <div className="sd-met-header">
             <span className="sd-met-header-title">📊 Resume Metrics</span>
-            
           </div>
           <div className="sd-met-grid">
-          {[
-            { icon:"⌨️", name:"Keyword Density",  val:70,  accent:"#22c55e", bg:"#f0fdf4", ring:"#bbf7d0", label:"Strong" },
-            { icon:"📝", name:"Formatting",        val:90,  accent:"#6366f1", bg:"#eef2ff", ring:"#c7d2fe", label:"Excellent" },
-            { icon:"💼", name:"Experience Match",  val:65,  accent:"#f59e0b", bg:"#fefce8", ring:"#fde68a", label:"Fair" },
-            { icon:"🤝", name:"Soft Skills",       val:78,  accent:"#f97316", bg:"#fff7ed", ring:"#fed7aa", label:"Good" },
-            { icon:"🎯", name:"ATS Compatibility", val:82,  accent:"#8b5cf6", bg:"#f5f3ff", ring:"#ddd6fe", label:"High" },
-            { icon:"📌", name:"Relevance Score",   val:74,  accent:"#ec4899", bg:"#fdf2f8", ring:"#fbcfe8", label:"Solid" },
-          ].map((m,i) => {
-            const circ = 2 * Math.PI * 22;
-            const offset = circ - (m.val / 100) * circ;
-            return (
-            <div className="sd-met3" key={i} style={{borderColor: m.ring, background: `linear-gradient(145deg, ${m.bg}, #fff)`}}>
-              {/* Left: icon + name + label */}
-              <div className="sd-met3-left">
-                <div className="sd-met3-ico" style={{background: m.bg, border:`1.5px solid ${m.ring}`}}>
-                  {m.icon}
+            {metricsToShow.slice(0, 6).map((m, i) => {
+              const metricName = m.metric_type || m.name;
+              const config = metricConfig[metricName] || metricConfig["RELEVANCE_SCORE"];
+              const score = m.score || 70;
+              const label = m.label || "Good";
+              const circ = 2 * Math.PI * 22;
+              const offset = circ - (score / 100) * circ;
+              
+              return (
+                <div className="sd-met3" key={i} style={{ borderColor: config.ring, background: `linear-gradient(145deg, ${config.bg}, #fff)` }}>
+                  <div className="sd-met3-left">
+                    <div className="sd-met3-ico" style={{ background: config.bg, border: `1.5px solid ${config.ring}` }}>
+                      {config.icon}
+                    </div>
+                    <div>
+                      <div className="sd-met3-name">{config.name}</div>
+                      <span className="sd-met3-label" style={{ color: config.accent, background: config.bg, border: `1px solid ${config.ring}` }}>{label}</span>
+                    </div>
+                  </div>
+                  <div className="sd-met3-ring">
+                    <svg width="54" height="54" viewBox="0 0 54 54">
+                      <circle cx="27" cy="27" r="22" fill="none" stroke="#e8edff" strokeWidth="5"/>
+                      <circle cx="27" cy="27" r="22" fill="none"
+                        stroke={config.accent} strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeDasharray={circ}
+                        strokeDashoffset={offset}
+                        transform="rotate(-90 27 27)"
+                      />
+                    </svg>
+                    <div className="sd-met3-pct" style={{ color: config.accent }}>{score}%</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="sd-met3-name">{m.name}</div>
-                  <span className="sd-met3-label" style={{color: m.accent, background: m.bg, border:`1px solid ${m.ring}`}}>{m.label}</span>
-                </div>
-              </div>
-              {/* Right: circular ring progress */}
-              <div className="sd-met3-ring">
-                <svg width="54" height="54" viewBox="0 0 54 54">
-                  <circle cx="27" cy="27" r="22" fill="none" stroke="#e8edff" strokeWidth="5"/>
-                  <circle cx="27" cy="27" r="22" fill="none"
-                    stroke={m.accent} strokeWidth="5"
-                    strokeLinecap="round"
-                    strokeDasharray={circ}
-                    strokeDashoffset={offset}
-                    transform="rotate(-90 27 27)"
-                  />
-                </svg>
-                <div className="sd-met3-pct" style={{color: m.accent}}>{m.val}%</div>
-              </div>
-            </div>
-            );
-          })}
+              );
+            })}
           </div>
         </div>
 
-       <div className="sd-card sd-ai-card sd-rl-card">
-  <div className="sd-rl-header">
-    <span className="sd-rl-ico">🗺️</span>
-    <span className="sd-rl-title">Learning Roadmap</span>
-  </div>
-
-  <div className="sd-rl-list">
-    {[
-      { 
-        skill: "Python",             
-        emoji: "🐍",
-        udemy:   "https://www.udemy.com/course/complete-python-bootcamp/",
-        youtube: "https://www.youtube.com/results?search_query=python+tutorial",
-        google:  "https://www.google.com/search?q=learn+python+free" 
-      },
-
-      { 
-        skill: "Machine Learning",   
-        emoji: "🤖",
-        udemy:   "https://www.udemy.com/course/machinelearning/",
-        youtube: "https://www.youtube.com/results?search_query=machine+learning+course",
-        google:  "https://www.google.com/search?q=learn+machine+learning" 
-      },
-
-      { 
-        skill: "Data Visualization", 
-        emoji: "📊",
-        udemy:   "https://www.udemy.com/course/data-visualization-with-python/",
-        youtube: "https://www.youtube.com/results?search_query=data+visualization+tutorial",
-        google:  "https://www.google.com/search?q=data+visualization+courses" 
-      },
-
-      // NEW ROADMAP 1
-      { 
-        skill: "Deep Learning", 
-        emoji: "🧠",
-        udemy:   "https://www.udemy.com/course/deeplearning/",
-        youtube: "https://www.youtube.com/results?search_query=deep+learning+tutorial",
-        google:  "https://www.google.com/search?q=learn+deep+learning" 
-      },
-
-      // NEW ROADMAP 2
-      { 
-        skill: "React JS", 
-        emoji: "⚛️",
-        udemy:   "https://www.udemy.com/course/react-the-complete-guide-incl-redux/",
-        youtube: "https://www.youtube.com/results?search_query=react+js+tutorial",
-        google:  "https://www.google.com/search?q=learn+react+js" 
-      },
-
-    ].map((item, i) => (
-      <div className="sd-rl-row" key={i}>
-        <div className="sd-rl-skill">
-          <span className="sd-rl-emoji">{item.emoji}</span>
-          <span className="sd-rl-name">{item.skill}</span>
-        </div>
-
-        <div className="sd-rl-btns">
-          <a
-            href={item.udemy}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="sd-rl-btn sd-rl-btn--u"
-          >
-            🎓 Udemy
-          </a>
-
-          <a
-            href={item.youtube}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="sd-rl-btn sd-rl-btn--y"
-          >
-            ▶ YouTube
-          </a>
-
-          <a
-            href={item.google}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="sd-rl-btn sd-rl-btn--g"
-          >
-            🔍 Google
-          </a>
+        <div className="sd-card sd-ai-card sd-rl-card">
+          <div className="sd-rl-header">
+            <span className="sd-rl-ico">🗺️</span>
+            <span className="sd-rl-title">Learning Roadmap</span>
+          </div>
+          <div className="sd-rl-list">
+            {roadmap.length > 0 ? (
+              roadmap.map((item, i) => (
+                <div className="sd-rl-row" key={i}>
+                  <div className="sd-rl-skill">
+                    <span className="sd-rl-name">🔹 {item.skill_name}</span>
+                  </div>
+                  <div className="sd-rl-btns">
+                    {item.youtube_link && (
+                      <a href={item.youtube_link} target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--y">
+                        ▶ YouTube
+                      </a>
+                    )}
+                    {item.google_link && (
+                      <a href={item.google_link} target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--g">
+                        🔍 Google
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="sd-rl-row">
+                <span className="sd-rl-name">No missing skills found! Ready to apply.</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    ))}
-  </div>
-</div>
-      </div>
 
-      {/* ══ ROW 2: Radar · Tips · Job Match ══ */}
+      {/* ROW 2: Radar · Tips · Daily Goals · Job Match */}
       <div className="sd-row sd-r2">
 
         <div className="sd-card sd-radar-card">
           <div className="sd-ctitle">Skill Strength Radar</div>
-          <RadarChart />
+          <RadarChart skills={skills} />
           <div className="sd-radar-leg">
             <div className="sd-leg-item"><div className="sd-leg-line sd-solid"></div><span>Your Score</span></div>
             <div className="sd-leg-item"><div className="sd-leg-line sd-dash"></div><span>Industry Avg</span></div>
           </div>
-          
         </div>
 
         <div className="sd-card sd-tips-card">
           <div className="sd-ctitle">Quick Improvement Tips</div>
           <div className="sd-csub">Based on your skills and experience</div>
-          {[
-            { icon:"✅", ic:"g", text:"Add more quantifiable achievements", imp:"+12% impact" },
-            { icon:"💬", ic:"b", text:"Include more action verbs",           imp:"+8% impact"  },
-            { icon:"🏆", ic:"p", text:"Highlight relevant certifications",   imp:"+10% impact" },
-            { icon:"🔑", ic:"o", text:"Improve keyword matching",            imp:"+14% impact" },
-          ].map((t,i) => (
-            <div className="sd-tip-row" key={i}>
-              <div className="sd-tip-left">
-                <div className={`sd-tip-ic ${t.ic}`}>{t.icon}</div>
-                <span className="sd-tip-txt">{t.text}</span>
+          {tips.length > 0 ? (
+            tips.map((t, i) => (
+              <div className="sd-tip-row" key={i}>
+                <div className="sd-tip-left">
+                  <span className="sd-tip-txt">💡 {t.title}</span>
+                </div>
+                <span className="sd-tip-imp">{t.impact_percentage || t.impact || ''}</span>
               </div>
-              <span className="sd-tip-imp">{t.imp}</span>
-            </div>
-          ))}
+            ))
+          ) : (
+            <>
+              <div className="sd-tip-row"><div className="sd-tip-left"><span className="sd-tip-txt">💡 Add more quantifiable achievements</span></div><span className="sd-tip-imp">+15% impact</span></div>
+              <div className="sd-tip-row"><div className="sd-tip-left"><span className="sd-tip-txt">💡 Include more action verbs</span></div><span className="sd-tip-imp">+10% impact</span></div>
+              <div className="sd-tip-row"><div className="sd-tip-left"><span className="sd-tip-txt">💡 Highlight relevant certifications</span></div><span className="sd-tip-imp">+12% impact</span></div>
+              <div className="sd-tip-row"><div className="sd-tip-left"><span className="sd-tip-txt">💡 Improve keyword matching</span></div><span className="sd-tip-imp">+14% impact</span></div>
+              <div className="sd-tip-row"><div className="sd-tip-left"><span className="sd-tip-txt">💡 Add leadership experiences</span></div><span className="sd-tip-imp">+8% impact</span></div>
+            </>
+          )}
         </div>
 
         <DailyGoalsCard />
@@ -665,64 +543,49 @@ export default function Dashboard() {
         <div className="sd-card sd-jm-card">
           <div className="sd-ctitle">Job Match Insights</div>
           <div className="sd-csub">Based on your skills and experience</div>
-
-          {/* Ring + roles row */}
           <div className="sd-jm-body">
-            <Ring size={100} sw={9} value={82} color="#6366f1">
-              <div className="sd-jm-pct">82%</div>
-              <div className="sd-jm-sub">Strong Match</div>
+            <Ring size={100} sw={9} value={matchScore} color="#6366f1">
+              <div className="sd-jm-pct">{matchScore}%</div>
+              <div className="sd-jm-sub">{matchScore >= 70 ? "Strong Match" : "Average Match"}</div>
             </Ring>
             <div className="sd-jm-roles">
-              <div className="sd-csub" style={{marginBottom:4}}>Top Matching Roles</div>
-              {[
-                { name:"Data Analyst",     p:82, c:"#6366f1" },
-                { name:"Business Analyst", p:78, c:"#3b82f6" },
-                { name:"Data Scientist",   p:73, c:"#8b5cf6" },
-              ].map((r,i) => (
-                <div className="sd-role-row" key={i}>
-                  <div className="sd-role-hd">
-                    <div className="sd-role-name"><span className="sd-dot" style={{background:r.c}}></span>{r.name}</div>
-                    <div className="sd-role-pct" style={{color:r.c}}>{r.p}%</div>
+              <div className="sd-csub" style={{ marginBottom: 4 }}>Top Matching Roles</div>
+              {jobMatches.length > 0 ? (
+                jobMatches.slice(0, 3).map((r, i) => (
+                  <div className="sd-role-row" key={i}>
+                    <div className="sd-role-hd">
+                      <div className="sd-role-name">{r.role_name}</div>
+                      <div className="sd-role-pct">{r.match_percentage}%</div>
+                    </div>
+                    <div className="sd-bar-track">
+                      <div className="sd-bar-fill" style={{ width: `${r.match_percentage}%`, background: "#6366f1" }}></div>
+                    </div>
                   </div>
-                  <div className="sd-bar-track">
-                    <div className="sd-bar-fill" style={{width:`${r.p}%`, background:r.c}}></div>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <>
+                  <div className="sd-role-row"><div className="sd-role-hd"><div className="sd-role-name">Software Developer</div><div className="sd-role-pct">75%</div></div><div className="sd-bar-track"><div className="sd-bar-fill" style={{ width: "75%", background: "#6366f1" }}></div></div></div>
+                  <div className="sd-role-row"><div className="sd-role-hd"><div className="sd-role-name">Full Stack Developer</div><div className="sd-role-pct">70%</div></div><div className="sd-bar-track"><div className="sd-bar-fill" style={{ width: "70%", background: "#6366f1" }}></div></div></div>
+                </>
+              )}
             </div>
           </div>
-
-          {/* Divider */}
           <div className="sd-jm-divider" />
-
-          {/* Market demand stats */}
           <div className="sd-jm-why-title">📈 Market Demand</div>
           <div className="sd-jm-stats-row">
-            <div className="sd-jm-stat">
-              <div className="sd-jm-stat-val">1,240+</div>
-              <div className="sd-jm-stat-lbl">Open Jobs</div>
-            </div>
+            <div className="sd-jm-stat"><div className="sd-jm-stat-val">1,240+</div><div className="sd-jm-stat-lbl">Open Jobs</div></div>
             <div className="sd-jm-stat-sep" />
-            <div className="sd-jm-stat">
-              <div className="sd-jm-stat-val sd-jm-green">↑18%</div>
-              <div className="sd-jm-stat-lbl">You Growth</div>
-            </div>
+            <div className="sd-jm-stat"><div className="sd-jm-stat-val sd-jm-green">↑{Math.floor(matchScore / 5)}%</div><div className="sd-jm-stat-lbl">Your Growth</div></div>
             <div className="sd-jm-stat-sep" />
-            <div className="sd-jm-stat">
-              <div className="sd-jm-stat-val">₹12 LPA</div>
-              <div className="sd-jm-stat-lbl">Avg Salary</div>
-            </div>
+            <div className="sd-jm-stat"><div className="sd-jm-stat-val">₹{Math.floor(atsScore * 1.5)} LPA</div><div className="sd-jm-stat-lbl">Avg Salary</div></div>
           </div>
-
         </div>
       </div>
 
-      {/* ══ ROW 3: Quality · Learning · Focus ══ */}
+      {/* ROW 3: Quality · Skill Gap · Focus */}
       <div className="sd-row sd-r3">
 
         <div className="sd-card sd-qual-card sd-qual-v2">
-
-          {/* Top: badge + title side by side */}
           <div className="sd-qv2-header">
             <div className="sd-qv2-badge">
               <div className="sd-qv2-badge-ring">
@@ -741,193 +604,147 @@ export default function Dashboard() {
                   </defs>
                 </svg>
               </div>
-              <div className="sd-qv2-badge-score">92%</div>
-              
+              <div className="sd-qv2-badge-score">{atsScore}%</div>
             </div>
             <div className="sd-qv2-title-block">
               <div className="sd-qv2-title">Resume Quality</div>
               <div className="sd-qv2-subtitle">Based on skills & experience</div>
               <div className="sd-qv2-status-row">
                 <span className="sd-qv2-dot" />
-                <span className="sd-qv2-status-txt">Top 10% of resumes</span>
+                <span className="sd-qv2-status-txt">{atsScore >= 70 ? "Top 10% of resumes" : "Good improvement possible"}</span>
               </div>
             </div>
           </div>
-
-          {/* Divider */}
           <div className="sd-qv2-divider"/>
-
-          {/* 2x2 metric tiles */}
           <div className="sd-qv2-grid">
             {[
-              { 
-  lbl:"Clarity",
-  v:92,
-  icon:"✏️",
-  c:"#6366f1",
-  bg:"#eef2ff",
-  bar:"#a5b4fc"
-},
-
-{ 
-  lbl:"Impact",
-  v:90,
-  icon:"⚡",
-  c:"#f59e0b",
-  bg:"#fff7ed",
-  bar:"#fdba74"
-},
-
-{ 
-  lbl:"Structure",
-  v:90,
-  icon:"🏗️",
-  c:"#06b6d4",
-  bg:"#ecfeff",
-  bar:"#67e8f9"
-},
-
-{ 
-  lbl:"Readability",
-  v:92,
-  icon:"📖",
-  c:"#22c55e",
-  bg:"#f0fdf4",
-  bar:"#86efac"
-},
-
-{ 
-  lbl:"Professionalism",
-  v:92,
-  icon:"💼",
-  c:"#8b5cf6",
-  bg:"#f5f3ff",
-  bar:"#c4b5fd"
-},
-
-{ 
-  lbl:"ATS Readiness",
-  v:92,
-  icon:"🤖",
-  c:"#ec4899",
-  bg:"#fdf2f8",
-  bar:"#f9a8d4"
-},
-            ].map((m,i) => (
-              <div className="sd-qv2-tile" key={i} style={{background: m.bg, borderColor: m.bar}}>
+              { lbl: "Clarity", v: Math.min(95, atsScore + 5), icon: "✏️", c: "#6366f1", bg: "#eef2ff", bar: "#a5b4fc" },
+              { lbl: "Impact", v: Math.min(90, atsScore + 2), icon: "⚡", c: "#f59e0b", bg: "#fff7ed", bar: "#fdba74" },
+              { lbl: "Structure", v: Math.min(92, atsScore + 3), icon: "🏗️", c: "#06b6d4", bg: "#ecfeff", bar: "#67e8f9" },
+              { lbl: "Readability", v: Math.min(93, atsScore + 4), icon: "📖", c: "#22c55e", bg: "#f0fdf4", bar: "#86efac" },
+              { lbl: "Professionalism", v: Math.min(94, atsScore + 5), icon: "💼", c: "#8b5cf6", bg: "#f5f3ff", bar: "#c4b5fd" },
+              { lbl: "ATS Readiness", v: atsScore, icon: "🤖", c: "#ec4899", bg: "#fdf2f8", bar: "#f9a8d4" },
+            ].map((m, i) => (
+              <div className="sd-qv2-tile" key={i} style={{ background: m.bg, borderColor: m.bar }}>
                 <div className="sd-qv2-tile-top">
                   <span className="sd-qv2-tile-icon">{m.icon}</span>
-                  <span className="sd-qv2-tile-val" style={{color: m.c}}>{m.v}%</span>
+                  <span className="sd-qv2-tile-val" style={{ color: m.c }}>{m.v}%</span>
                 </div>
                 <div className="sd-qv2-tile-lbl">{m.lbl}</div>
                 <div className="sd-qv2-tile-bar-track">
-                  <div className="sd-qv2-tile-bar-fill" style={{width:`${m.v}%`, background: m.c}}/>
+                  <div className="sd-qv2-tile-bar-fill" style={{ width: `${m.v}%`, background: m.c }} />
                 </div>
               </div>
             ))}
           </div>
-
         </div>
 
         <div className="sd-card sd-skillgap-card">
-
-          {/* Header */}
           <div className="sd-sg-header">
             <div>
               <div className="sd-ctitle">Skill Gap Breakdown</div>
               <div className="sd-csub">Your resume vs job market requirements</div>
             </div>
             <div className="sd-sg-badge">
-              <span className="sd-sg-badge-val">68%</span>
+              <span className="sd-sg-badge-val">{gapScore}%</span>
               <span className="sd-sg-badge-lbl">Gap Score</span>
             </div>
           </div>
 
-          {/* Matched Skills */}
           <div className="sd-sg-section">
             <div className="sd-sg-sec-head">
               <div className="sd-sg-sec-left">
                 <div className="sd-sg-sec-dot sd-sg-dot--green" />
                 <span className="sd-sg-sec-title">Matched Skills</span>
               </div>
-              <span className="sd-sg-pill sd-sg-pill--green">6 skills</span>
+              <span className="sd-sg-pill sd-sg-pill--green">{matchedSkills.length} skills</span>
             </div>
             <div className="sd-sg-tags">
-              {["Python","SQL","Data Analysis","Pandas","Excel","Tableau"].map((s,i) => (
-                <span className="sd-sg-tag sd-sg-tag--green" key={i}>{s}</span>
-              ))}
+              {matchedSkills.length > 0 ? (
+                matchedSkills.map((s, i) => (
+                  <span className="sd-sg-tag sd-sg-tag--green" key={i}>{s.skill_name}</span>
+                ))
+              ) : (
+                <span className="sd-sg-tag">No matched skills</span>
+              )}
             </div>
           </div>
 
-          {/* Missing Skills */}
           <div className="sd-sg-section">
             <div className="sd-sg-sec-head">
               <div className="sd-sg-sec-left">
                 <div className="sd-sg-sec-dot sd-sg-dot--red" />
                 <span className="sd-sg-sec-title">Missing Skills</span>
               </div>
-              <span className="sd-sg-pill sd-sg-pill--red">4 skills</span>
+              <span className="sd-sg-pill sd-sg-pill--red">{missingSkills.length} skills</span>
             </div>
             <div className="sd-sg-tags">
-              {["Apache Spark","Airflow","dbt","AWS S3"].map((s,i) => (
-                <span className="sd-sg-tag sd-sg-tag--red" key={i}>{s}</span>
-              ))}
+              {missingSkills.length > 0 ? (
+                missingSkills.map((s, i) => (
+                  <span className="sd-sg-tag sd-sg-tag--red" key={i}>{s.skill_name}</span>
+                ))
+              ) : (
+                <span className="sd-sg-tag">No missing skills!</span>
+              )}
             </div>
           </div>
 
-          {/* Priority Matrix */}
-          <div className="sd-sg-section sd-pm-section">
-            <div className="sd-sg-sec-head">
-              <div className="sd-sg-sec-left">
-                <div className="sd-sg-sec-dot sd-sg-dot--purple" />
-                <span className="sd-sg-sec-title">Priority Matrix</span>
-              </div>
-              <span className="sd-sg-pill sd-sg-pill--purple">3 skills</span>
-            </div>
-            <div className="sd-pm-grid">
-              {[
-                { name: "Apache Spark",       label: "HIGH",   barW: 100, pc: "sd-pm-high", tc: "sd-pm-txt-high" },
-                { name: "dbt",               label: "MEDIUM", barW: 70,  pc: "sd-pm-med",  tc: "sd-pm-txt-med"  },
-                { name: "Airflow",  label: "LOW",    barW: 40,  pc: "sd-pm-low",  tc: "sd-pm-txt-low"  },
-               
-              ].map((item, i) => (
-                <div className="sd-pm-row" key={i}>
-                  <span className="sd-pm-name">{item.name}</span>
-                  <div className={`sd-pm-bar-track ${item.pc}-track`}>
-                    <div className={`sd-pm-bar-fill ${item.pc}-fill`} style={{ width: `${item.barW}%` }} />
-                  </div>
-                  <span className={`sd-pm-label ${item.tc}`}>{item.label}</span>
+          {/* Priority Matrix Section */}
+          {missingSkills.length > 0 && (
+            <div className="sd-sg-section sd-pm-section">
+              <div className="sd-sg-sec-head">
+                <div className="sd-sg-sec-left">
+                  <div className="sd-sg-sec-dot sd-sg-dot--purple" />
+                  <span className="sd-sg-sec-title">Priority Matrix</span>
                 </div>
-              ))}
+                <span className="sd-sg-pill sd-sg-pill--purple">{missingSkills.length} skills</span>
+              </div>
+              <div className="sd-pm-grid">
+                {missingSkills.slice(0, 3).map((skill, idx) => {
+                  const priority = idx === 0 ? "HIGH" : idx === 1 ? "MEDIUM" : "LOW";
+                  const barWidth = idx === 0 ? 100 : idx === 1 ? 70 : 40;
+                  return (
+                    <div className="sd-pm-row" key={idx}>
+                      <span className="sd-pm-name">{skill.skill_name}</span>
+                      <div className={`sd-pm-bar-track ${priority === 'HIGH' ? 'sd-pm-high' : priority === 'MEDIUM' ? 'sd-pm-med' : 'sd-pm-low'}-track`}>
+                        <div className={`sd-pm-bar-fill ${priority === 'HIGH' ? 'sd-pm-high' : priority === 'MEDIUM' ? 'sd-pm-med' : 'sd-pm-low'}-fill`} style={{ width: `${barWidth}%` }} />
+                      </div>
+                      <span className={`sd-pm-label ${priority === 'HIGH' ? 'sd-pm-txt-high' : priority === 'MEDIUM' ? 'sd-pm-txt-med' : 'sd-pm-txt-low'}`}>{priority}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-
+          )}
         </div>
 
         <div className="sd-card sd-focus-card">
           <div className="sd-ctitle">Focus Areas to Improve</div>
           <div className="sd-csub">Skills that will create the biggest impact.</div>
-          {[
-            {icon:"🧪", title:"Add Key Project Experience",  desc:"Include 2-3 more projects in your resume.",      badge:"High Impact",   bc:"sd-high"  },
-            {icon:"⚡", title:"Use Stronger Action Verbs",   desc:"Use stronger, industry-relevant action verbs.",  badge:"Medium Impact", bc:"sd-med"   },
-            {icon:"🏅", title:"Highlight Achievements",      desc:"Quantify your achievements more.",               badge:"Low Impact",    bc:"sd-low"   },
-          ].map((f,i) => (
-            <div className="sd-focus-row" key={i}>
-              <div className="sd-foc-ico">{f.icon}</div>
-              <div className="sd-foc-body">
-                <div className="sd-foc-title">{f.title}</div>
-                <div className="sd-foc-desc">{f.desc}</div>
+          {focusAreas.length > 0 ? (
+            focusAreas.map((f, i) => (
+              <div className="sd-focus-row" key={i}>
+                <div className="sd-foc-body">
+                  <div className="sd-foc-title">🎯 {f.title}</div>
+                  <div className="sd-foc-desc">{f.description}</div>
+                </div>
+                <span className={`sd-foc-badge ${f.priority === 'HIGH' ? 'sd-high' : f.priority === 'MEDIUM' ? 'sd-med' : 'sd-low'}`}>
+                  {f.priority} Impact
+                </span>
               </div>
-              <span className={`sd-foc-badge ${f.bc}`}>{f.badge}</span>
-            </div>
-          ))}
-          
+            ))
+          ) : (
+            <>
+              <div className="sd-focus-row"><div className="sd-foc-body"><div className="sd-foc-title">🎯 Add Key Project Experience</div><div className="sd-foc-desc">Include 2-3 more projects in your resume.</div></div><span className="sd-foc-badge sd-high">HIGH Impact</span></div>
+              <div className="sd-focus-row"><div className="sd-foc-body"><div className="sd-foc-title">🎯 Use Stronger Action Verbs</div><div className="sd-foc-desc">Use stronger, industry-relevant action verbs.</div></div><span className="sd-foc-badge sd-med">MEDIUM Impact</span></div>
+              <div className="sd-focus-row"><div className="sd-foc-body"><div className="sd-foc-title">🎯 Highlight Achievements</div><div className="sd-foc-desc">Quantify your achievements more.</div></div><span className="sd-foc-badge sd-low">LOW Impact</span></div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* ══ ROW 4: Career Impact · AI Roadmap ══ */}
+      {/* ROW 4: Career Impact · AI Suggestions */}
       <div className="sd-row sd-r4">
-
         <div className="sd-card sd-career-card">
           <div className="sd-ctitle">Career Impact Snapshot</div>
           <div className="sd-csub">See how your skills translate to real-world opportunities.</div>
@@ -935,25 +752,25 @@ export default function Dashboard() {
             <div className="sd-c-metric">
               <div className="sd-c-ico sd-gbg">💼</div>
               <div className="sd-c-lbl">Job Opportunities</div>
-              <div className="sd-c-val">1,240+</div>
+              <div className="sd-c-val">{jobMatches.length > 0 ? Math.floor(jobMatches[0].match_percentage * 15) : "1,240"}+</div>
               <div className="sd-c-sub">High match jobs</div>
             </div>
             <div className="sd-c-metric">
               <div className="sd-c-ico sd-bbg">💰</div>
               <div className="sd-c-lbl">Average Salary Range</div>
-              <div className="sd-c-val">₹8 – ₹18 LPA</div>
+              <div className="sd-c-val">₹{Math.floor(atsScore * 0.5)} – ₹{Math.floor(atsScore * 1.2)} LPA</div>
               <div className="sd-c-sub">For your target roles</div>
             </div>
             <div className="sd-c-metric">
               <div className="sd-c-ico sd-pbg">👁️</div>
               <div className="sd-c-lbl">Profile Visibility</div>
-              <div className="sd-c-val sd-c-good">Good</div>
+              <div className={`sd-c-val ${atsScore >= 70 ? 'sd-c-good' : ''}`}>{atsScore >= 70 ? "Excellent" : atsScore >= 50 ? "Good" : "Fair"}</div>
               <div className="sd-c-sub">Improve to reach top 20%</div>
             </div>
           </div>
         </div>
 
-        <AICareerSuggestions />
+        <AICareerSuggestions suggestions={suggestions} />
       </div>
 
     </div>
