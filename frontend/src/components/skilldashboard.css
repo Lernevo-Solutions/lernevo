@@ -17,11 +17,11 @@
   gap: 14px;
 }
 
-/* Row-specific column counts matching the image exactly */
-.sd-r1 { grid-template-columns: 190px 1fr 270px;  align-items: stretch; }
-.sd-r2 { grid-template-columns: 220px 1fr 1fr 1fr;    align-items: stretch; }
-.sd-r3 { grid-template-columns: 230px 1fr 1fr;    align-items: stretch; }
-.sd-r4 { grid-template-columns: 1fr 1fr;          align-items: stretch; }
+/* All rows — perfectly equal 4-column grid, every card same width */
+.sd-r1,
+.sd-r2,
+.sd-r3,
+.sd-r4 { grid-template-columns: repeat(4, 1fr); align-items: stretch; }
 
 /* ── Card base ── */
 .sd-card {
@@ -181,8 +181,7 @@
   align-items: center;
   margin: 4px 0;
 }
-.sd-radar-container svg { width: 320px;
-  height: 300px; }
+.sd-radar-container svg { width: 100%; height: auto; max-height: 260px; }
 
 .sd-radar-leg {
   display: flex;
@@ -515,19 +514,19 @@
 }
 
 .sd-r1 {
-  grid-template-columns: 220px 1fr 280px;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .sd-r2 {
-  grid-template-columns: 300px 1fr 1fr 320px;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .sd-r3 {
-  grid-template-columns: 320px 1fr 340px;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .sd-r4 {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 /* ─────────────────────────
@@ -816,20 +815,26 @@
 }
 
 /* EXACT PROPORTIONS */
+/* Row 1: ATS(1) + Metrics(2) + Roadmap(1) + AI Detector(1) = 5 cols */
 .sd-r1{
-  grid-template-columns: 240px 1fr 300px;
+  grid-template-columns: 1fr 2fr 1fr 1fr;
+}
+
+/* Metrics card spans 2 columns in row 1 */
+.sd-r1 .sd-metrics-card {
+  grid-column: span 1;
 }
 
 .sd-r2{
-  grid-template-columns: 320px 1fr 1fr 330px;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .sd-r3{
-  grid-template-columns: 320px 1fr 330px;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .sd-r4{
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 /* ─────────────────────────
@@ -1287,16 +1292,16 @@
 
 /* Row-specific column counts matching first image */
 .sd-r1 { 
-  grid-template-columns: 240px 1fr 300px; 
+  grid-template-columns: repeat(4, 1fr); 
 }
 .sd-r2 { 
-  grid-template-columns: 320px 1fr 1fr 340px; 
+  grid-template-columns: repeat(4, 1fr); 
 }
 .sd-r3 { 
-  grid-template-columns: 320px 1fr 340px; 
+  grid-template-columns: repeat(4, 1fr); 
 }
 .sd-r4 { 
-  grid-template-columns: 1fr 1fr; 
+  grid-template-columns: repeat(4, 1fr); 
 }
 
 /* ── Card base ── */
@@ -2406,7 +2411,7 @@
 /* ══ ROADMAP COLUMN HEADERS ══ */
 .sd-rm-col-headers {
   display: grid;
-  grid-template-columns: 120px 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-bottom: 8px;
   align-items: center;
@@ -2468,7 +2473,7 @@
    R1 GRID FINAL
 ══════════════════════════════════════ */
 .sd-r1 {
-  grid-template-columns: 195px 1fr 430px !important;
+  grid-template-columns: repeat(4, 1fr) !important;
 }
 
 /* ══════════════════════════════════════
@@ -2980,7 +2985,7 @@
 /* 2-column grid of role cards */
 .sd-acs-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
@@ -3210,10 +3215,10 @@
   gap: 18px;
   align-items: stretch;
 }
-.sd-r1 { grid-template-columns: 195px 1fr 430px; }
-.sd-r2 { grid-template-columns: 320px 1fr 1fr 330px; }
-.sd-r3 { grid-template-columns: 320px 1fr 330px; }
-.sd-r4 { grid-template-columns: 1fr 1fr; }
+.sd-r1 { grid-template-columns: repeat(4, 1fr); }
+.sd-r2 { grid-template-columns: repeat(4, 1fr); }
+.sd-r3 { grid-template-columns: repeat(4, 1fr); }
+.sd-r4 { grid-template-columns: repeat(4, 1fr); }
 
 .sd-card {
   background: #ffffff;
@@ -3241,10 +3246,10 @@
 .sd-ring-wrap   { position: relative; flex-shrink: 0; }
 .sd-ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; white-space: nowrap; }
 
-.sd-r1 .sd-card { min-height: unset; }
-.sd-r2 .sd-card { min-height: 340px; }
-.sd-r3 .sd-card { min-height: 320px; }
-.sd-r4 .sd-card { min-height: 230px; }
+.sd-r1 .sd-card { min-height: 300px; }
+.sd-r2 .sd-card { min-height: 300px; }
+.sd-r3 .sd-card { min-height: 300px; }
+.sd-r4 .sd-card { min-height: 300px; }
 
 /* ATS CARD V2 */
 .sd-ats-card.sd-ats-v2 {
@@ -4039,7 +4044,7 @@ circle[stroke="#eef2ff"] { stroke: #e8edff !important; }
 /* 2×2 metric tiles grid */
 .sd-qv2-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 .sd-qv2-tile {
@@ -4085,3 +4090,709 @@ circle[stroke="#eef2ff"] { stroke: #e8edff !important; }
   border-radius: 4px;
   transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
 }
+/* ══════════════════════════════════════
+   AI RESUME DETECTOR CARD
+══════════════════════════════════════ */
+.sd-ai-detector-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: linear-gradient(150deg, #faf5ff 0%, #ede9fe 60%, #e0e7ff 100%);
+  border: 1.5px solid #ddd6fe !important;
+}
+
+.sd-aid-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sd-aid-ico {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.sd-aid-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4c1d95;
+}
+
+.sd-aid-sub {
+  font-size: 10px;
+  color: #7c3aed;
+  margin-top: 1px;
+}
+
+.sd-aid-grade {
+  border-radius: 10px;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.sd-aid-grade-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sd-aid-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  margin-top: 4px;
+}
+
+.sd-aid-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.sd-aid-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 0;
+  font-size: 12px;
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.sd-aid-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #ddd6fe;
+  border-top-color: #7c3aed;
+  border-radius: 50%;
+  animation: aidSpin 0.8s linear infinite;
+}
+
+@keyframes aidSpin {
+  to { transform: rotate(360deg); }
+}
+
+.sd-aid-error {
+  font-size: 11px;
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sd-aid-retry {
+  background: none;
+  border: 1px solid #dc2626;
+  color: #dc2626;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sd-aid-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sd-aid-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sd-aid-type-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(124,58,237,0.1);
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.sd-aid-retry-btn {
+  background: none;
+  border: 1px solid #c4b5fd;
+  color: #7c3aed;
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background 0.15s;
+}
+
+.sd-aid-retry-btn:hover {
+  background: #ede9fe;
+}
+
+.sd-aid-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sd-aid-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sd-aid-bar-lbl {
+  font-size: 10px;
+  color: #374151;
+  font-weight: 600;
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.sd-aid-bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sd-aid-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sd-aid-bar--ai {
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.sd-aid-bar--human {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.sd-aid-bar-pct {
+  font-size: 10px;
+  font-weight: 800;
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sd-aid-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sd-aid-sec-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.sd-aid-item {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+.sd-aid-item--green {
+  background: rgba(220,252,231,0.7);
+  color: #15803d;
+}
+
+.sd-aid-item--red {
+  background: rgba(254,226,226,0.7);
+  color: #dc2626;
+}
+
+.sd-aid-tip {
+  font-size: 10px;
+  color: #374151;
+  background: rgba(255,255,255,0.55);
+  border-radius: 8px;
+  padding: 7px 10px;
+  line-height: 1.5;
+  border: 1px solid rgba(196,181,253,0.4);
+}
+/* ══════════════════════════════════════
+   RESUME METRICS FIX — ALIGNMENT OVERRIDE
+══════════════════════════════════════ */
+
+/* Metrics card: always flex-column, proper padding */
+.sd-card.sd-metrics-card,
+.sd-metrics-card {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 16px 18px !important;
+  gap: 0 !important;
+  overflow: visible !important;
+}
+
+/* Header row */
+.sd-met-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 10px !important;
+}
+
+.sd-met-header-title {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #1a1a2e !important;
+}
+
+/* Metric tiles grid: 2 columns × 3 rows (6 tiles total) */
+.sd-met-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+  flex: 1 !important;
+  width: 100% !important;
+}
+
+/* Each metric tile */
+.sd-met3 {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  border: 1.5px solid #e8edff !important;
+  background: #f9faff;
+  gap: 8px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  transition: transform 0.15s, box-shadow 0.15s !important;
+}
+
+.sd-met3:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(99,102,241,0.10) !important;
+}
+
+/* Left side: icon + name + label */
+.sd-met3-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.sd-met3-ico {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 15px !important;
+  flex-shrink: 0 !important;
+}
+
+.sd-met3-name {
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  color: #1a1a2e !important;
+  line-height: 1.2 !important;
+  margin-bottom: 3px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+.sd-met3-label {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  padding: 1px 7px !important;
+  border-radius: 20px !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+}
+
+/* Right side: circular progress ring */
+.sd-met3-ring {
+  position: relative !important;
+  width: 50px !important;
+  height: 50px !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sd-met3-ring svg {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+.sd-met3-pct {
+  position: relative !important;
+  z-index: 1 !important;
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+}
+
+/* r1 grid: ATS(1) Metrics(wider) Roadmap(1) Detector(1) */
+.sd-r1 {
+  grid-template-columns: 1fr 1.8fr 1fr 1fr !important;
+  align-items: stretch !important;
+}/* ═══════════════════════════════════════════════════════
+   UNIFORM CARD DESIGN PATCH — add at the END of skilldashboard.css
+   Overrides all card-specific styles with one consistent look
+   ═══════════════════════════════════════════════════════ */
+
+/* ── CSS Variables for the uniform theme ── */
+:root {
+  --uc-primary:    #6366f1;
+  --uc-primary-lt: #eef2ff;
+  --uc-primary-bd: #c7d2fe;
+  --uc-accent:     #818cf8;
+  --uc-text:       #1e1b4b;
+  --uc-sub:        #6b7280;
+  --uc-border:     #e5e7eb;
+  --uc-bg:         #ffffff;
+  --uc-surface:    #f8faff;
+  --uc-radius:     14px;
+  --uc-shadow:     0 2px 14px rgba(99,102,241,0.09);
+}
+
+/* ── Universal card reset ── */
+.sd-card {
+  background: var(--uc-bg) !important;
+  border-radius: var(--uc-radius) !important;
+  border: 1.5px solid var(--uc-border) !important;
+  box-shadow: var(--uc-shadow) !important;
+  padding: 16px 18px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Uniform purple top accent bar on every card */
+.sd-card::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #6366f1, #818cf8, #a5b4fc) !important;
+  border-radius: var(--uc-radius) var(--uc-radius) 0 0 !important;
+  z-index: 1 !important;
+  width: auto !important;
+}
+
+/* Remove old ai-card gradient background */
+.sd-ai-card {
+  background: var(--uc-bg) !important;
+}
+
+/* Remove decorative blobs */
+.sd-ats-blob1, .sd-ats-blob2, .sd-ats-stars {
+  display: none !important;
+}
+
+/* ── Uniform card title ── */
+.sd-ctitle,
+.sd-rl-title,
+.sd-acs-title,
+.sd-aid-title,
+.sd-met-header-title {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--uc-text) !important;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px !important;
+}
+
+/* ── Uniform subtitle ── */
+.sd-csub,
+.sd-rl-subtitle,
+.sd-acs-sub,
+.sd-aid-sub {
+  font-size: 10.5px !important;
+  color: var(--uc-sub) !important;
+  margin-bottom: 10px !important;
+}
+
+/* ── Uniform badge / pill ── */
+.sd-dg-streak {
+  border-radius: 20px !important;
+  border: 1px solid var(--uc-primary-bd) !important;
+  background: var(--uc-primary-lt) !important;
+  padding: 3px 10px !important;
+}
+.sd-dg-streak-num { color: #ea580c !important; font-size: 14px !important; font-weight: 800 !important; }
+.sd-dg-streak-lbl { color: var(--uc-sub) !important; font-size: 9px !important; }
+
+/* ── Uniform surface bg for inner areas ── */
+.sd-jm-stats-row {
+  background: var(--uc-surface) !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--uc-primary-bd) !important;
+  padding: 8px 6px !important;
+}
+
+/* ── Uniform progress bars ── */
+.sd-bar-fill {
+  background: linear-gradient(90deg, #6366f1, #818cf8) !important;
+}
+.sd-bar-track {
+  background: var(--uc-primary-lt) !important;
+  border-radius: 4px !important;
+}
+.sd-dg-bar-fill {
+  background: linear-gradient(90deg, #6366f1, #818cf8) !important;
+}
+.sd-dg-bar-track {
+  background: var(--uc-primary-lt) !important;
+}
+
+/* ── Uniform skill tags ── */
+.sd-sg-tag {
+  border-radius: 8px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 4px 10px !important;
+}
+.sd-sg-tag--green {
+  background: #ecfdf5 !important;
+  color: #065f46 !important;
+  border: 1px solid #6ee7b7 !important;
+}
+.sd-sg-tag--red {
+  background: #fef2f2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+/* ── Uniform focus area badges ── */
+.sd-foc-badge {
+  border-radius: 20px !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  padding: 3px 9px !important;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.sd-high { background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
+.sd-med  { background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important; }
+.sd-low  { background: #ecfdf5 !important; color: #065f46 !important; border: 1px solid #6ee7b7 !important; }
+
+/* ── Uniform tip rows ── */
+.sd-tip-row {
+  border-bottom: 1px solid var(--uc-border) !important;
+  padding: 7px 0 !important;
+}
+.sd-tip-imp { color: var(--uc-primary) !important; font-weight: 700 !important; }
+
+/* ── Uniform ATS card ── */
+.sd-ats-v2-label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  color: var(--uc-sub) !important;
+  text-transform: uppercase !important;
+}
+.sd-ats-v2-pct {
+  color: var(--uc-text) !important;
+  font-size: 28px !important;
+  font-weight: 800 !important;
+}
+.sd-ats-v2-sub {
+  color: var(--uc-sub) !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+}
+.sd-ats-v2-pill {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 4px 14px !important;
+  border-radius: 20px !important;
+}
+.sd-ats-pill--good {
+  background: var(--uc-primary-lt) !important;
+  color: var(--uc-primary) !important;
+  border: 1px solid var(--uc-primary-bd) !important;
+}
+
+/* ── Uniform metrics card ── */
+.sd-card.sd-metrics-card {
+  padding: 14px 10px !important;
+}
+.sd-met3 {
+  border-radius: 10px !important;
+  border: 1px solid var(--uc-border) !important;
+  background: var(--uc-surface) !important;
+}
+.sd-met3-name { font-size: 10.5px !important; color: var(--uc-text) !important; font-weight: 600 !important; }
+.sd-met3-label {
+  border-radius: 6px !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+}
+
+/* ── Uniform AI detector card ── */
+.sd-aid-grade {
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px;
+}
+.sd-aid-btn {
+  background: linear-gradient(135deg, #6366f1, #818cf8) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  padding: 10px 16px !important;
+  width: 100% !important;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.sd-aid-btn:hover { opacity: 0.9; }
+.sd-aid-bar--ai    { background: linear-gradient(90deg, #6366f1, #818cf8) !important; }
+.sd-aid-bar--human { background: linear-gradient(90deg, #22c55e, #4ade80) !important; }
+
+/* ── Uniform learning roadmap ── */
+.sd-rl-row {
+  border-bottom: 1px solid var(--uc-border);
+  padding: 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.sd-rl-btn {
+  border-radius: 8px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  text-decoration: none;
+}
+.sd-rl-btn--y {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+}
+.sd-rl-btn--g {
+  background: var(--uc-primary-lt) !important;
+  color: var(--uc-primary) !important;
+  border: 1px solid var(--uc-primary-bd) !important;
+}
+
+/* ── Uniform quality v2 tiles ── */
+.sd-qv2-tile {
+  border-radius: 10px !important;
+  border: 1px solid var(--uc-border) !important;
+}
+.sd-qv2-tile-lbl { font-size: 10px !important; color: var(--uc-sub) !important; }
+
+/* ── Uniform career metrics ── */
+.sd-c-ico {
+  width: 36px !important; height: 36px !important;
+  border-radius: 10px !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  font-size: 18px !important;
+}
+.sd-gbg { background: #ecfdf5 !important; }
+.sd-bbg { background: var(--uc-primary-lt) !important; }
+.sd-pbg { background: #f3e8ff !important; }
+.sd-c-val { font-size: 18px !important; font-weight: 800 !important; color: var(--uc-text) !important; }
+.sd-c-lbl { font-size: 10px !important; color: var(--uc-sub) !important; font-weight: 500 !important; }
+.sd-c-sub { font-size: 9px !important; color: var(--uc-sub) !important; }
+
+/* ── Uniform daily goal items ── */
+.sd-dg-item {
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  margin: 1px 0;
+  transition: background 0.15s;
+}
+.sd-dg-item:hover { background: var(--uc-surface) !important; }
+.sd-dg-item--done { background: #f0fdf4 !important; }
+.sd-dg-pts { color: var(--uc-primary) !important; font-weight: 700 !important; font-size: 11px !important; }
+.sd-dg-pts--done { color: #22c55e !important; }
+.sd-dg-xp-pct { color: var(--uc-primary) !important; }
+
+/* ── Uniform ACS pills ── */
+.sd-acs-skill-pill {
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 4px 12px !important;
+  cursor: pointer;
+  border: 1px solid var(--uc-primary-bd) !important;
+  background: var(--uc-primary-lt) !important;
+  color: var(--uc-primary) !important;
+  transition: all 0.15s;
+}
+.sd-acs-pill--active {
+  background: var(--uc-primary) !important;
+  color: #fff !important;
+}
+
+/* ── Uniform job match ── */
+.sd-role-name { font-size: 11px !important; font-weight: 600 !important; color: var(--uc-text) !important; }
+.sd-role-pct  { font-size: 11px !important; font-weight: 700 !important; color: var(--uc-primary) !important; }
+.sd-jm-pct    { font-size: 16px !important; font-weight: 800 !important; color: var(--uc-text) !important; }
+.sd-jm-sub    { font-size: 9px !important; color: var(--uc-sub) !important; }
+.sd-jm-stat-val { color: var(--uc-text) !important; font-weight: 800 !important; }
+.sd-jm-stat-lbl { color: var(--uc-sub) !important; }
+.sd-jm-why-title { color: var(--uc-text) !important; font-weight: 700 !important; font-size: 11px !important; }
+.sd-jm-divider { height: 1px !important; background: var(--uc-border) !important; margin: 10px 0 !important; }
+
+/* ── Uniform focus rows ── */
+.sd-focus-row {
+  border-bottom: 1px solid var(--uc-border) !important;
+  padding: 7px 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sd-foc-title { font-size: 12px !important; font-weight: 600 !important; color: var(--uc-text) !important; }
+.sd-foc-desc  { font-size: 10px !important; color: var(--uc-sub) !important; }
+
+/* ── Uniform skill gap indicators ── */
+.sd-sg-sec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sd-sg-dot--green  { background: #22c55e !important; }
+.sd-sg-dot--red    { background: #ef4444 !important; }
+.sd-sg-dot--purple { background: var(--uc-primary) !important; }
+.sd-sg-sec-title   { font-size: 11px !important; font-weight: 600 !important; color: var(--uc-text) !important; }
+.sd-sg-pill--green  { background: #ecfdf5 !important; color: #065f46 !important; border-color: #6ee7b7 !important; }
+.sd-sg-pill--red    { background: #fef2f2 !important; color: #991b1b !important; border-color: #fca5a5 !important; }
+.sd-sg-pill--purple { background: var(--uc-primary-lt) !important; color: var(--uc-primary) !important; border-color: var(--uc-primary-bd) !important; }
+
+/* ── Uniform PM (Priority Matrix) bars ── */
+.sd-pm-high-track { background: #fee2e2 !important; }
+.sd-pm-med-track  { background: #fef3c7 !important; }
+.sd-pm-low-track  { background: #ecfdf5 !important; }
+.sd-pm-high-fill  { background: #ef4444 !important; }
+.sd-pm-med-fill   { background: #f59e0b !important; }
+.sd-pm-low-fill   { background: #22c55e !important; }
+.sd-pm-txt-high   { color: #991b1b !important; font-weight: 700 !important; font-size: 10px !important; }
+.sd-pm-txt-med    { color: #92400e !important; font-weight: 700 !important; font-size: 10px !important; }
+.sd-pm-txt-low    { color: #065f46 !important; font-weight: 700 !important; font-size: 10px !important; }

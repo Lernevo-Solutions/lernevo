@@ -302,6 +302,156 @@ function AICareerSuggestions({ suggestions = [] }) {
 }
 
 /* ─────────────────────────────────────
+   AI Resume Detector Card Component
+───────────────────────────────────── */
+function AIResumeDetectorCard({ atsScore = 65, resumeMetrics = [] }) {
+  const [loading, setLoading] = React.useState(false);
+  const [result, setResult] = React.useState(null);
+  const [error, setError] = React.useState(null);
+
+  const getGrade = (score) => {
+    if (score >= 85) return { label: "Excellent", color: "#22c55e", bg: "#dcfce7", border: "#bbf7d0" };
+    if (score >= 70) return { label: "Good", color: "#3b82f6", bg: "#dbeafe", border: "#bfdbfe" };
+    if (score >= 55) return { label: "Average", color: "#f59e0b", bg: "#fef3c7", border: "#fde68a" };
+    return { label: "Needs Work", color: "#ef4444", bg: "#fee2e2", border: "#fecaca" };
+  };
+
+  const grade = getGrade(atsScore);
+
+  const detectResume = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    const avgMetricScore = resumeMetrics.length > 0
+      ? Math.round(resumeMetrics.reduce((s, m) => s + (m.score || 70), 0) / resumeMetrics.length)
+      : 70;
+
+    const prompt = `You are an AI Resume Quality Detector. Based on these stats:
+- ATS Score: ${atsScore}%
+- Average Metric Score: ${avgMetricScore}%
+- Grade: ${grade.label}
+
+Respond ONLY in this exact JSON format (no markdown, no extra text):
+{
+  "resume_type": "one of: Fresher | Mid-Level | Senior | Executive",
+  "ai_written_probability": <number 0-100>,
+  "human_written_probability": <number 0-100>,
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "red_flags": ["flag 1", "flag 2"],
+  "recommendation": "one sentence actionable recommendation"
+}`;
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+      const data = await response.json();
+      const text = data.content?.map(i => i.text || "").join("") || "";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setResult(parsed);
+    } catch (e) {
+      setError("Detection failed. Please try again.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="sd-card sd-ai-detector-card">
+      <div className="sd-aid-header">
+        <span className="sd-aid-ico">🤖</span>
+        <div>
+          <div className="sd-aid-title">AI Resume Detector</div>
+          <div className="sd-aid-sub">Detect resume type & quality</div>
+        </div>
+      </div>
+
+      {/* Current Grade Badge */}
+      <div className="sd-aid-grade" style={{ background: grade.bg, border: `1.5px solid ${grade.border}` }}>
+        <span className="sd-aid-grade-label" style={{ color: grade.color }}>
+          {atsScore}% — {grade.label}
+        </span>
+      </div>
+
+      {!result && !loading && (
+        <button className="sd-aid-btn" onClick={detectResume}>
+          ✨ Analyze Resume
+        </button>
+      )}
+
+      {loading && (
+        <div className="sd-aid-loading">
+          <div className="sd-aid-spinner" />
+          <span>Detecting...</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="sd-aid-error">
+          ⚠️ {error}
+          <button className="sd-aid-retry" onClick={detectResume}>Retry</button>
+        </div>
+      )}
+
+      {result && (
+        <div className="sd-aid-result">
+          <div className="sd-aid-row">
+            <span className="sd-aid-type-badge">📄 {result.resume_type}</span>
+            <button className="sd-aid-retry-btn" onClick={detectResume}>↺</button>
+          </div>
+
+          <div className="sd-aid-bars">
+            <div className="sd-aid-bar-row">
+              <span className="sd-aid-bar-lbl">🤖 AI Written</span>
+              <div className="sd-aid-bar-track">
+                <div className="sd-aid-bar-fill sd-aid-bar--ai" style={{ width: `${result.ai_written_probability}%` }} />
+              </div>
+              <span className="sd-aid-bar-pct" style={{ color: "#6366f1" }}>{result.ai_written_probability}%</span>
+            </div>
+            <div className="sd-aid-bar-row">
+              <span className="sd-aid-bar-lbl">✍️ Human</span>
+              <div className="sd-aid-bar-track">
+                <div className="sd-aid-bar-fill sd-aid-bar--human" style={{ width: `${result.human_written_probability}%` }} />
+              </div>
+              <span className="sd-aid-bar-pct" style={{ color: "#22c55e" }}>{result.human_written_probability}%</span>
+            </div>
+          </div>
+
+          {result.strengths && (
+            <div className="sd-aid-section">
+              <div className="sd-aid-sec-title">✅ Strengths</div>
+              {result.strengths.slice(0, 2).map((s, i) => (
+                <div key={i} className="sd-aid-item sd-aid-item--green">• {s}</div>
+              ))}
+            </div>
+          )}
+
+          {result.red_flags && result.red_flags.length > 0 && (
+            <div className="sd-aid-section">
+              <div className="sd-aid-sec-title">🚩 Flags</div>
+              {result.red_flags.slice(0, 2).map((f, i) => (
+                <div key={i} className="sd-aid-item sd-aid-item--red">• {f}</div>
+              ))}
+            </div>
+          )}
+
+          {result.recommendation && (
+            <div className="sd-aid-tip">💡 {result.recommendation}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────
    Main Dashboard Component
 ───────────────────────────────────── */
 export default function Dashboard() {
@@ -501,6 +651,9 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* AI Resume Detector Card */}
+        <AIResumeDetectorCard atsScore={atsScore} resumeMetrics={metricsToShow} />
       </div>
 
       {/* ROW 2: Radar · Tips · Daily Goals · Job Match */}
