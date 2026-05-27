@@ -173,7 +173,7 @@
 ══════════════════════════════════════ */
 
 /* Radar card */
-.sd-radar-card { display: flex; flex-direction: column; }
+.sd-radar-card { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
 
 .sd-radar-container {
   display: flex;
@@ -3451,7 +3451,7 @@
 .sd-dg-bar-track { width: 100%; height: 7px; background: #e8edff; border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
 .sd-dg-bar-fill  { height: 100%; border-radius: 5px; background: linear-gradient(90deg,#6366f1,#f59e0b); transition: width 0.4s ease; }
 .sd-dg-banner    { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 11px; color: #15803d; font-weight: 600; padding: 6px 10px; margin-bottom: 6px; text-align: center; }
-.sd-dg-list      { display: flex; flex-direction: column; gap: 0; }
+.sd-dg-list      { display: flex; flex-direction: column; gap: 0; flex: 1; justify-content: space-between; }
 .sd-dg-item      { display: flex; align-items: center; gap: 9px; padding: 7px 6px; border-radius: 8px; cursor: pointer; border-bottom: 1px solid #f5f7fa; transition: background 0.15s; }
 .sd-dg-item:last-child { border-bottom: none; }
 .sd-dg-item:hover      { background: #f8faff; }
@@ -4796,3 +4796,215 @@ circle[stroke="#eef2ff"] { stroke: #e8edff !important; }
 .sd-pm-txt-high   { color: #991b1b !important; font-weight: 700 !important; font-size: 10px !important; }
 .sd-pm-txt-med    { color: #92400e !important; font-weight: 700 !important; font-size: 10px !important; }
 .sd-pm-txt-low    { color: #065f46 !important; font-weight: 700 !important; font-size: 10px !important; }
+/* ═══════════════════════════════════════
+   UNIFORM HEIGHT FIX — ALL ROWS EQUAL
+   ═══════════════════════════════════════ */
+
+/* Every card in every row must be same height as tallest card */
+.sd-r1,
+.sd-r2,
+.sd-r3,
+.sd-r4 {
+  align-items: stretch !important;
+}
+
+/* All cards fill their grid cell height completely */
+.sd-r1 .sd-card,
+.sd-r2 .sd-card,
+.sd-r3 .sd-card,
+.sd-r4 .sd-card {
+  height: 100% !important;
+  min-height: unset !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Metrics card: grid fills remaining height */
+.sd-metrics-card .sd-met-grid {
+  flex: 1 !important;
+  align-content: stretch !important;
+}
+
+/* Metrics tiles stretch to fill height */
+.sd-met3 {
+  flex: 1 !important;
+}
+
+/* ATS card centers content vertically */
+.sd-ats-card {
+  justify-content: center !important;
+}
+
+/* Radar card fills height */
+.sd-radar-card {
+  min-height: unset !important;
+}
+/* ═══════════════════════════════════════════════════
+   🔒 FINAL OVERRIDE — UNIFORM CARD HEIGHT FIX
+   This block is LAST in file, overrides everything
+   ═══════════════════════════════════════════════════ */
+
+/* 1. All rows: 4 equal columns, stretch to tallest card */
+.sd-r1,
+.sd-r2 {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+}
+
+.sd-r3 {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+}
+
+.sd-r4 {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+}
+
+/* 2. Every card fills its grid cell height */
+.sd-r1 .sd-card,
+.sd-r2 .sd-card,
+.sd-r3 .sd-card,
+.sd-r4 .sd-card {
+  min-height: unset !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 3. Metrics card: let grid fill height */
+.sd-metrics-card {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.sd-met-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  flex: 1 !important;
+  align-content: stretch !important;
+  gap: 8px !important;
+}
+.sd-met3 {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+/* 4. ATS card: center content */
+.sd-ats-card {
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* 5. Radar, Tips, Daily Goals, Job Match — fill height */
+.sd-radar-card,
+.sd-tips-card,
+.sd-dg-card,
+.sd-jm-card {
+  min-height: unset !important;
+}
+
+/* 6. Remove any fixed min-heights that break uniformity */
+.sd-ai-card,
+.sd-rl-card,
+.sd-ai-detector-card {
+  min-height: unset !important;
+  justify-content: flex-start !important;
+}
+/* ═══════════════════════════════════════════════════
+   🔒 ABSOLUTE FINAL OVERRIDE — uniform card height
+   ═══════════════════════════════════════════════════ */
+.sd-r1, .sd-r2, .sd-r3, .sd-r4 {
+  display: grid !important;
+  align-items: stretch !important;
+}
+.sd-r1 { grid-template-columns: repeat(4,1fr) !important; }
+.sd-r2 { grid-template-columns: repeat(4,1fr) !important; }
+.sd-r3 { grid-template-columns: repeat(4,1fr) !important; }
+.sd-r4 { grid-template-columns: repeat(4,1fr) !important; }
+
+.sd-r1 .sd-card,
+.sd-r2 .sd-card,
+.sd-r3 .sd-card,
+.sd-r4 .sd-card {
+  height: 100% !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* ═══════════════════════════════════════════
+   🔒 METRICS CARD TEXT OVERFLOW FIX
+   ═══════════════════════════════════════════ */
+.sd-met3 {
+  padding: 8px 10px !important;
+  gap: 6px !important;
+}
+.sd-met3-left {
+  gap: 7px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+.sd-met3-ico {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 14px !important;
+  flex-shrink: 0 !important;
+}
+.sd-met3-name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+.sd-met3-ring {
+  width: 46px !important;
+  height: 46px !important;
+  flex-shrink: 0 !important;
+}
+.sd-met3-ring svg {
+  width: 46px !important;
+  height: 46px !important;
+}
+.sd-met3-pct {
+  font-size: 10px !important;
+}
+
+/* ═══════════════════════════════════════
+   🔒 RESUME QUALITY GRID FIX — 3 cols
+   ═══════════════════════════════════════ */
+.sd-qual-card {
+  overflow: hidden !important;
+}
+.sd-qv2-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 7px !important;
+  overflow: hidden !important;
+}
+.sd-qv2-tile {
+  padding: 8px 9px 7px !important;
+  min-width: 0 !important;
+}
+.sd-qv2-tile-val {
+  font-size: 15px !important;
+}
+.sd-qv2-tile-icon {
+  font-size: 14px !important;
+}
+.sd-qv2-tile-lbl {
+  font-size: 9.5px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}

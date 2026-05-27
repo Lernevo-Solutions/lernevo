@@ -179,7 +179,7 @@ function DailyGoalsCard() {
   const allDone = done.size === DAILY_GOALS.length;
 
   return (
-    <div className="sd-card sd-dg-card">
+    <div className="sd-card sd-dg-card" style={{height:'100%',boxSizing:'border-box',display:'flex',flexDirection:'column'}}>
       <div className="sd-dg-header">
         <div>
           <div className="sd-ctitle">🎯 Daily Goals</div>
@@ -364,7 +364,7 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
   };
 
   return (
-    <div className="sd-card sd-ai-detector-card">
+    <div className="sd-card sd-ai-detector-card" style={{height:'100%',boxSizing:'border-box',display:'flex',flexDirection:'column'}}>
       <div className="sd-aid-header">
         <span className="sd-aid-ico">🤖</span>
         <div>
@@ -553,33 +553,73 @@ export default function Dashboard() {
     <div className="sd-dashboard">
 
       {/* ROW 1: ATS Score · Metrics · Learning Roadmap */}
-      <div className="sd-row sd-r1">
+      <div className="sd-row sd-r1" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px',alignItems:'stretch'}}>
 
-        <div className="sd-card sd-ats-card sd-ats-v2">
-          <div className="sd-ats-stars" />
+        <div className="sd-card sd-ats-card sd-ats-v2" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%',padding:'18px 16px',gap:'0',position:'relative',overflow:'hidden'}}>
+          {/* Background blobs */}
           <div className="sd-ats-blob sd-ats-blob1" />
           <div className="sd-ats-blob sd-ats-blob2" />
-          <div className="sd-ats-v2-label">ATS Score</div>
-          <div className="sd-ats-v2-ring">
-            <Ring size={130} sw={11} value={atsScore} id="atsG2"
-              gradient={[{ o: "0%", c: "#6366f1" }, { o: "50%", c: "#818cf8" }, { o: "100%", c: "#22c55e" }]}>
-              <div className="sd-ats-v2-inner">
-                <div className="sd-ats-v2-pct">{atsScore}%</div>
-                <div className="sd-ats-v2-sub">Match</div>
-              </div>
-            </Ring>
+
+          {/* Top: Label + Grade badge */}
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',zIndex:1,marginBottom:'10px'}}>
+            <div>
+              <div style={{fontSize:'9px',fontWeight:700,letterSpacing:'1.5px',textTransform:'uppercase',color:'#94a3b8'}}>ATS SCORE</div>
+              <div style={{fontSize:'11px',fontWeight:700,color:'#374151',marginTop:'2px'}}>Resume Match</div>
+            </div>
+            <div style={{
+              background: atsScore >= 70 ? 'linear-gradient(135deg,#22c55e,#4ade80)' : atsScore >= 50 ? 'linear-gradient(135deg,#f59e0b,#fbbf24)' : 'linear-gradient(135deg,#ef4444,#f87171)',
+              color:'#fff', borderRadius:'10px', padding:'4px 10px', fontSize:'11px', fontWeight:800,
+              boxShadow: atsScore >= 70 ? '0 3px 10px rgba(34,197,94,0.4)' : atsScore >= 50 ? '0 3px 10px rgba(245,158,11,0.4)' : '0 3px 10px rgba(239,68,68,0.4)'
+            }}>
+              {atsScore >= 70 ? 'Good' : atsScore >= 50 ? 'Fair' : 'Weak'}
+            </div>
           </div>
-          <div className="sd-ats-v2-pill sd-ats-pill--good">
-            <span className="sd-ats-v2-dot" />
-            {atsScore >= 70 ? "Good Match" : atsScore >= 50 ? "Average Match" : "Needs Improvement"}
+
+          {/* Center: Ring + Score */}
+          <div style={{display:'flex',alignItems:'center',gap:'14px',zIndex:1,marginBottom:'12px'}}>
+            <div style={{flexShrink:0}}>
+              <Ring size={90} sw={9} value={atsScore} id="atsG2"
+                gradient={[{ o: "0%", c: "#6366f1" }, { o: "50%", c: "#818cf8" }, { o: "100%", c: "#22c55e" }]}>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
+                  <div style={{fontSize:'20px',fontWeight:900,color:'#1a1a2e',lineHeight:1,letterSpacing:'-1px'}}>{atsScore}%</div>
+                  <div style={{fontSize:'8px',fontWeight:600,color:'#94a3b8',textTransform:'uppercase',letterSpacing:'0.5px'}}>Match</div>
+                </div>
+              </Ring>
+            </div>
+            {/* Right side stats */}
+            <div style={{flex:1,display:'flex',flexDirection:'column',gap:'7px'}}>
+              {[
+                { label: 'Keywords', val: Math.min(100, atsScore + 8), color: '#6366f1' },
+                { label: 'Format', val: Math.min(100, atsScore + 15), color: '#22c55e' },
+                { label: 'Skills', val: Math.max(20, atsScore - 10), color: '#f59e0b' },
+              ].map((s, i) => (
+                <div key={i} style={{display:'flex',flexDirection:'column',gap:'2px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:'9px',fontWeight:600,color:'#64748b'}}>{s.label}</span>
+                    <span style={{fontSize:'9px',fontWeight:800,color:s.color}}>{s.val}%</span>
+                  </div>
+                  <div style={{height:'4px',background:'#f1f5f9',borderRadius:'4px',overflow:'hidden'}}>
+                    <div style={{height:'100%',width:`${s.val}%`,background:s.color,borderRadius:'4px',transition:'width 0.6s ease'}} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom pill */}
+          <div style={{zIndex:1,marginTop:'auto'}}>
+            <div className={`sd-ats-v2-pill ${atsScore >= 50 ? 'sd-ats-pill--good' : 'sd-ats-pill--bad'}`} style={{width:'100%',justifyContent:'center'}}>
+              <span className="sd-ats-v2-dot" style={{background: atsScore >= 70 ? '#22c55e' : atsScore >= 50 ? '#f59e0b' : '#ef4444'}} />
+              {atsScore >= 70 ? "Strong Match — Ready to Apply!" : atsScore >= 50 ? "Average Match — Keep Improving" : "Needs Improvement"}
+            </div>
           </div>
         </div>
 
-        <div className="sd-card sd-metrics-card">
+        <div className="sd-card sd-metrics-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-met-header">
             <span className="sd-met-header-title">📊 Resume Metrics</span>
           </div>
-          <div className="sd-met-grid">
+          <div className="sd-met-grid" style={{flex:1,display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'8px',alignContent:'stretch'}}>
             {metricsToShow.slice(0, 6).map((m, i) => {
               const metricName = m.metric_type || m.name;
               const config = metricConfig[metricName] || metricConfig["RELEVANCE_SCORE"];
@@ -618,7 +658,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="sd-card sd-ai-card sd-rl-card">
+        <div className="sd-card sd-ai-card sd-rl-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-rl-header">
             <span className="sd-rl-ico">🗺️</span>
             <span className="sd-rl-title">Learning Roadmap</span>
@@ -653,13 +693,15 @@ export default function Dashboard() {
         </div>
 
         {/* AI Resume Detector Card */}
-        <AIResumeDetectorCard atsScore={atsScore} resumeMetrics={metricsToShow} />
+        <div style={{height:'100%',boxSizing:'border-box',display:'flex',flexDirection:'column'}}>
+          <AIResumeDetectorCard atsScore={atsScore} resumeMetrics={metricsToShow} />
+        </div>
       </div>
 
-      {/* ROW 2: Radar · Tips · Daily Goals · Job Match */}
-      <div className="sd-row sd-r2">
+      {/* ROW 2: Radar · Tips · Resume Quality · Job Match */}
+      <div className="sd-row sd-r2" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px',alignItems:'stretch'}}>
 
-        <div className="sd-card sd-radar-card">
+        <div className="sd-card sd-radar-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-ctitle">Skill Strength Radar</div>
           <RadarChart skills={skills} />
           <div className="sd-radar-leg">
@@ -668,9 +710,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="sd-card sd-tips-card">
+        <div className="sd-card sd-tips-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-ctitle">Quick Improvement Tips</div>
           <div className="sd-csub">Based on your skills and experience</div>
+          <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
           {tips.length > 0 ? (
             tips.map((t, i) => (
               <div className="sd-tip-row" key={i}>
@@ -689,11 +732,65 @@ export default function Dashboard() {
               <div className="sd-tip-row"><div className="sd-tip-left"><span className="sd-tip-txt">💡 Add leadership experiences</span></div><span className="sd-tip-imp">+8% impact</span></div>
             </>
           )}
+          </div>
         </div>
 
-        <DailyGoalsCard />
+        {/* Resume Quality — moved from Row 3 */}
+        <div className="sd-card sd-qual-card sd-qual-v2" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
+          <div className="sd-qv2-header">
+            <div className="sd-qv2-badge">
+              <div className="sd-qv2-badge-ring">
+                <svg width="64" height="64" viewBox="0 0 64 64">
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="#dcfce7" strokeWidth="6"/>
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="url(#qGrad)" strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2*Math.PI*26}`}
+                    strokeDashoffset={`${2*Math.PI*26*(1-0.92)}`}
+                    transform="rotate(-90 32 32)"/>
+                  <defs>
+                    <linearGradient id="qGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#22c55e"/>
+                      <stop offset="100%" stopColor="#4ade80"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <div className="sd-qv2-badge-score">{atsScore}%</div>
+            </div>
+            <div className="sd-qv2-title-block">
+              <div className="sd-qv2-title">Resume Quality</div>
+              <div className="sd-qv2-subtitle">Based on skills & experience</div>
+              <div className="sd-qv2-status-row">
+                <span className="sd-qv2-dot" />
+                <span className="sd-qv2-status-txt">{atsScore >= 70 ? "Top 10% of resumes" : "Good improvement possible"}</span>
+              </div>
+            </div>
+          </div>
+          <div className="sd-qv2-divider"/>
+          <div className="sd-qv2-grid" style={{flex:1}}>
+            {[
+              { lbl: "Clarity", v: Math.min(95, atsScore + 5), icon: "✏️", c: "#6366f1", bg: "#eef2ff", bar: "#a5b4fc" },
+              { lbl: "Impact", v: Math.min(90, atsScore + 2), icon: "⚡", c: "#f59e0b", bg: "#fff7ed", bar: "#fdba74" },
+              { lbl: "Structure", v: Math.min(92, atsScore + 3), icon: "🏗️", c: "#06b6d4", bg: "#ecfeff", bar: "#67e8f9" },
+              { lbl: "Readability", v: Math.min(93, atsScore + 4), icon: "📖", c: "#22c55e", bg: "#f0fdf4", bar: "#86efac" },
+              { lbl: "Professionalism", v: Math.min(94, atsScore + 5), icon: "💼", c: "#8b5cf6", bg: "#f5f3ff", bar: "#c4b5fd" },
+              { lbl: "ATS Readiness", v: atsScore, icon: "🤖", c: "#ec4899", bg: "#fdf2f8", bar: "#f9a8d4" },
+            ].map((m, i) => (
+              <div className="sd-qv2-tile" key={i} style={{ background: m.bg, borderColor: m.bar }}>
+                <div className="sd-qv2-tile-top">
+                  <span className="sd-qv2-tile-icon">{m.icon}</span>
+                  <span className="sd-qv2-tile-val" style={{ color: m.c }}>{m.v}%</span>
+                </div>
+                <div className="sd-qv2-tile-lbl">{m.lbl}</div>
+                <div className="sd-qv2-tile-bar-track">
+                  <div className="sd-qv2-tile-bar-fill" style={{ width: `${m.v}%`, background: m.c }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <div className="sd-card sd-jm-card">
+        <div className="sd-card sd-jm-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-ctitle">Job Match Insights</div>
           <div className="sd-csub">Based on your skills and experience</div>
           <div className="sd-jm-body">
@@ -735,64 +832,36 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ROW 3: Quality · Skill Gap · Focus */}
-      <div className="sd-row sd-r3">
+      {/* ROW 3: Career Impact · Skill Gap · Focus Areas · AI Suggestions */}
+      <div className="sd-row sd-r3" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px',alignItems:'stretch'}}>
 
-        <div className="sd-card sd-qual-card sd-qual-v2">
-          <div className="sd-qv2-header">
-            <div className="sd-qv2-badge">
-              <div className="sd-qv2-badge-ring">
-                <svg width="64" height="64" viewBox="0 0 64 64">
-                  <circle cx="32" cy="32" r="26" fill="none" stroke="#dcfce7" strokeWidth="6"/>
-                  <circle cx="32" cy="32" r="26" fill="none" stroke="url(#qGrad)" strokeWidth="6"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2*Math.PI*26}`}
-                    strokeDashoffset={`${2*Math.PI*26*(1-0.92)}`}
-                    transform="rotate(-90 32 32)"/>
-                  <defs>
-                    <linearGradient id="qGrad" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#22c55e"/>
-                      <stop offset="100%" stopColor="#4ade80"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-              <div className="sd-qv2-badge-score">{atsScore}%</div>
+        {/* Career Impact — moved up from Row 4 */}
+        <div className="sd-card sd-career-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
+          <div className="sd-ctitle">Career Impact Snapshot</div>
+          <div className="sd-csub">See how your skills translate to real-world opportunities.</div>
+          <div className="sd-career-grid">
+            <div className="sd-c-metric">
+              <div className="sd-c-ico sd-gbg">💼</div>
+              <div className="sd-c-lbl">Job Opportunities</div>
+              <div className="sd-c-val">{jobMatches.length > 0 ? Math.floor(jobMatches[0].match_percentage * 15) : "1,240"}+</div>
+              <div className="sd-c-sub">High match jobs</div>
             </div>
-            <div className="sd-qv2-title-block">
-              <div className="sd-qv2-title">Resume Quality</div>
-              <div className="sd-qv2-subtitle">Based on skills & experience</div>
-              <div className="sd-qv2-status-row">
-                <span className="sd-qv2-dot" />
-                <span className="sd-qv2-status-txt">{atsScore >= 70 ? "Top 10% of resumes" : "Good improvement possible"}</span>
-              </div>
+            <div className="sd-c-metric">
+              <div className="sd-c-ico sd-bbg">💰</div>
+              <div className="sd-c-lbl">Average Salary Range</div>
+              <div className="sd-c-val">₹{Math.floor(atsScore * 0.5)} – ₹{Math.floor(atsScore * 1.2)} LPA</div>
+              <div className="sd-c-sub">For your target roles</div>
             </div>
-          </div>
-          <div className="sd-qv2-divider"/>
-          <div className="sd-qv2-grid">
-            {[
-              { lbl: "Clarity", v: Math.min(95, atsScore + 5), icon: "✏️", c: "#6366f1", bg: "#eef2ff", bar: "#a5b4fc" },
-              { lbl: "Impact", v: Math.min(90, atsScore + 2), icon: "⚡", c: "#f59e0b", bg: "#fff7ed", bar: "#fdba74" },
-              { lbl: "Structure", v: Math.min(92, atsScore + 3), icon: "🏗️", c: "#06b6d4", bg: "#ecfeff", bar: "#67e8f9" },
-              { lbl: "Readability", v: Math.min(93, atsScore + 4), icon: "📖", c: "#22c55e", bg: "#f0fdf4", bar: "#86efac" },
-              { lbl: "Professionalism", v: Math.min(94, atsScore + 5), icon: "💼", c: "#8b5cf6", bg: "#f5f3ff", bar: "#c4b5fd" },
-              { lbl: "ATS Readiness", v: atsScore, icon: "🤖", c: "#ec4899", bg: "#fdf2f8", bar: "#f9a8d4" },
-            ].map((m, i) => (
-              <div className="sd-qv2-tile" key={i} style={{ background: m.bg, borderColor: m.bar }}>
-                <div className="sd-qv2-tile-top">
-                  <span className="sd-qv2-tile-icon">{m.icon}</span>
-                  <span className="sd-qv2-tile-val" style={{ color: m.c }}>{m.v}%</span>
-                </div>
-                <div className="sd-qv2-tile-lbl">{m.lbl}</div>
-                <div className="sd-qv2-tile-bar-track">
-                  <div className="sd-qv2-tile-bar-fill" style={{ width: `${m.v}%`, background: m.c }} />
-                </div>
-              </div>
-            ))}
+            <div className="sd-c-metric">
+              <div className="sd-c-ico sd-pbg">👁️</div>
+              <div className="sd-c-lbl">Profile Visibility</div>
+              <div className={`sd-c-val ${atsScore >= 70 ? 'sd-c-good' : ''}`}>{atsScore >= 70 ? "Excellent" : atsScore >= 50 ? "Good" : "Fair"}</div>
+              <div className="sd-c-sub">Improve to reach top 20%</div>
+            </div>
           </div>
         </div>
 
-        <div className="sd-card sd-skillgap-card">
+        <div className="sd-card sd-skillgap-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-sg-header">
             <div>
               <div className="sd-ctitle">Skill Gap Breakdown</div>
@@ -842,7 +911,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Priority Matrix Section */}
           {missingSkills.length > 0 && (
             <div className="sd-sg-section sd-pm-section">
               <div className="sd-sg-sec-head">
@@ -871,7 +939,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="sd-card sd-focus-card">
+        <div className="sd-card sd-focus-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-ctitle">Focus Areas to Improve</div>
           <div className="sd-csub">Skills that will create the biggest impact.</div>
           {focusAreas.length > 0 ? (
@@ -894,36 +962,10 @@ export default function Dashboard() {
             </>
           )}
         </div>
-      </div>
 
-      {/* ROW 4: Career Impact · AI Suggestions */}
-      <div className="sd-row sd-r4">
-        <div className="sd-card sd-career-card">
-          <div className="sd-ctitle">Career Impact Snapshot</div>
-          <div className="sd-csub">See how your skills translate to real-world opportunities.</div>
-          <div className="sd-career-grid">
-            <div className="sd-c-metric">
-              <div className="sd-c-ico sd-gbg">💼</div>
-              <div className="sd-c-lbl">Job Opportunities</div>
-              <div className="sd-c-val">{jobMatches.length > 0 ? Math.floor(jobMatches[0].match_percentage * 15) : "1,240"}+</div>
-              <div className="sd-c-sub">High match jobs</div>
-            </div>
-            <div className="sd-c-metric">
-              <div className="sd-c-ico sd-bbg">💰</div>
-              <div className="sd-c-lbl">Average Salary Range</div>
-              <div className="sd-c-val">₹{Math.floor(atsScore * 0.5)} – ₹{Math.floor(atsScore * 1.2)} LPA</div>
-              <div className="sd-c-sub">For your target roles</div>
-            </div>
-            <div className="sd-c-metric">
-              <div className="sd-c-ico sd-pbg">👁️</div>
-              <div className="sd-c-lbl">Profile Visibility</div>
-              <div className={`sd-c-val ${atsScore >= 70 ? 'sd-c-good' : ''}`}>{atsScore >= 70 ? "Excellent" : atsScore >= 50 ? "Good" : "Fair"}</div>
-              <div className="sd-c-sub">Improve to reach top 20%</div>
-            </div>
-          </div>
-        </div>
-
+        {/* AI Suggestions — moved up from Row 4 */}
         <AICareerSuggestions suggestions={suggestions} />
+
       </div>
 
     </div>
