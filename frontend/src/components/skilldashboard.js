@@ -239,7 +239,7 @@ function AICareerSuggestions({ suggestions = [] }) {
 
   if (!suggestions || suggestions.length === 0) {
     return (
-      <div className="sd-card sd-acs-card">
+      <div className="sd-card sd-acs-card" style={{height:'100%',boxSizing:'border-box',display:'flex',flexDirection:'column'}}>
         <div className="sd-acs-header">
           <div>
             <div className="sd-acs-title">
@@ -256,46 +256,75 @@ function AICareerSuggestions({ suggestions = [] }) {
   const displayed = suggestions.filter(s => s.skill_name === activeSkill);
 
   return (
-    <div className="sd-card sd-acs-card">
-      <div className="sd-acs-header">
-        <div>
-          <div className="sd-acs-title">
-            <span className="sd-acs-sparkle">✨</span>
-            AI Career Suggestions
-          </div>
-          <div className="sd-acs-sub">Click a skill to see matching career roles</div>
+    <div className="sd-card sd-acs-card" style={{height:'100%',boxSizing:'border-box',display:'flex',flexDirection:'column',gap:0}}>
+
+      {/* Header */}
+      <div style={{flexShrink:0,marginBottom:'8px'}}>
+        <div className="sd-acs-title">
+          <span className="sd-acs-sparkle">✨</span>
+          AI Career Suggestions
         </div>
+        <div className="sd-acs-sub">Your skills mapped to career roles</div>
       </div>
 
-      <div className="sd-acs-skills-row">
-        {suggestions.map((s, i) => (
-          <span
-            key={i}
-            onClick={() => setActiveSkill(s.skill_name)}
-            className={`sd-acs-skill-pill sd-acs-pill--matched ${activeSkill === s.skill_name ? "sd-acs-pill--active" : ""}`}
-          >
-            💼 {s.skill_name}
-          </span>
-        ))}
-      </div>
+      {/* All skill → role rows, fills remaining height equally */}
+      <div style={{flex:1,display:'flex',flexDirection:'column',gap:'6px',minHeight:0}}>
+        {suggestions.map((item, i) => {
+          const isActive = activeSkill === item.skill_name;
+          return (
+            <div
+              key={i}
+              onClick={() => setActiveSkill(item.skill_name)}
+              style={{
+                flex:1,
+                display:'flex',
+                alignItems:'center',
+                gap:'8px',
+                padding:'0 10px',
+                borderRadius:'10px',
+                border: isActive ? '1.5px solid #a5b4fc' : '1.5px solid #f1f5f9',
+                background: isActive ? '#eef2ff' : '#fafbff',
+                cursor:'pointer',
+                transition:'all 0.15s',
+                minHeight:0,
+              }}
+            >
+              {/* Skill pill */}
+              <div style={{
+                flexShrink:0,
+                background: isActive ? '#6366f1' : '#fff',
+                border:'1.5px solid #c7d2fe',
+                borderRadius:'8px',
+                padding:'5px 10px',
+                minWidth:'90px',
+              }}>
+                <div style={{fontSize:'11px',fontWeight:700,color: isActive ? '#fff' : '#1e1b4b',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                  💼 {item.skill_name}
+                </div>
+                <div style={{fontSize:'9px',color: isActive ? '#c7d2fe' : '#6366f1',marginTop:'1px'}}>
+                  ✅ Recommended
+                </div>
+              </div>
 
-      <div className="sd-acs-map-list">
-        {displayed.map((item, i) => (
-          <div className="sd-acs-map-row" key={i}>
-            <div className="sd-acs-map-skill">
-              <div>
-                <div className="sd-acs-map-skillname">{item.skill_name}</div>
-                <div className="sd-acs-map-skilltype">✅ Recommended Fit</div>
+              {/* Arrow */}
+              <div style={{color:'#a5b4fc',fontSize:'14px',flexShrink:0}}>→</div>
+
+              {/* Role tag */}
+              <div style={{
+                flex:1,
+                background:'#f5f3ff',
+                border:'1px solid #ddd6fe',
+                borderRadius:'8px',
+                padding:'5px 10px',
+                textAlign:'center',
+              }}>
+                <div style={{fontSize:'11px',fontWeight:700,color:'#4f46e5',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                  {item.role_name || "Target Professional"}
+                </div>
               </div>
             </div>
-            <div className="sd-acs-arrow">→</div>
-            <div className="sd-acs-map-roles">
-              <span className="sd-acs-map-role-tag" style={{ background: "#eef2ff", color: "#4f46e5", borderColor: "#c7d2fe" }}>
-                {item.role_name || "Target Professional"}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -524,6 +553,9 @@ export default function Dashboard() {
   const focusAreas = analysisData.focus_areas || [];
   const suggestions = analysisData.career_suggestions || [];
   const jobMatches = analysisData.job_matches || [];
+  const openJobs = analysisData.open_jobs || 0;
+const salaryRange = analysisData.salary_range || "N/A";
+const growthRate = analysisData.growth_rate || "0%";
   
   // Get resume metrics from analysisData (if available)
   const resumeMetrics = analysisData.resume_metrics || [];
@@ -553,67 +585,97 @@ export default function Dashboard() {
     <div className="sd-dashboard">
 
       {/* ROW 1: ATS Score · Metrics · Learning Roadmap */}
-      <div className="sd-row sd-r1" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px',alignItems:'stretch'}}>
+      <div className="sd-row sd-r1" style={{display:'grid',gridTemplateColumns:'1.35fr 1.8fr 1fr 1fr',gap:'14px',alignItems:'stretch'}}>
 
-        <div className="sd-card sd-ats-card sd-ats-v2" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%',padding:'18px 16px',gap:'0',position:'relative',overflow:'hidden'}}>
-          {/* Background blobs */}
-          <div className="sd-ats-blob sd-ats-blob1" />
-          <div className="sd-ats-blob sd-ats-blob2" />
-
-          {/* Top: Label + Grade badge */}
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',zIndex:1,marginBottom:'10px'}}>
-            <div>
-              <div style={{fontSize:'9px',fontWeight:700,letterSpacing:'1.5px',textTransform:'uppercase',color:'#94a3b8'}}>ATS SCORE</div>
-              <div style={{fontSize:'11px',fontWeight:700,color:'#374151',marginTop:'2px'}}>Resume Match</div>
-            </div>
-            <div style={{
-              background: atsScore >= 70 ? 'linear-gradient(135deg,#22c55e,#4ade80)' : atsScore >= 50 ? 'linear-gradient(135deg,#f59e0b,#fbbf24)' : 'linear-gradient(135deg,#ef4444,#f87171)',
-              color:'#fff', borderRadius:'10px', padding:'4px 10px', fontSize:'11px', fontWeight:800,
-              boxShadow: atsScore >= 70 ? '0 3px 10px rgba(34,197,94,0.4)' : atsScore >= 50 ? '0 3px 10px rgba(245,158,11,0.4)' : '0 3px 10px rgba(239,68,68,0.4)'
+        {/* ── ATS SCORE CARD — Clean Single Ring ── */}
+        {(() => {
+          const score = atsScore;
+          const isGood = score >= 70, isFair = score >= 50;
+          const R = 52, sw = 10, sz = 120, cx = 60, cy = 60;
+          const circ = 2 * Math.PI * R;
+          const offset = circ - (score / 100) * circ;
+          const tipAngle = (-90 + (score / 100) * 360) * Math.PI / 180;
+          const tipX = cx + R * Math.cos(tipAngle);
+          const tipY = cy + R * Math.sin(tipAngle);
+          const ringColor  = isGood ? '#3B6D11' : isFair ? '#7F77DD' : '#A32D2D';
+          const pillBg     = isGood ? '#EAF3DE' : isFair ? '#EEEDFE' : '#FCEBEB';
+          const pillBdr    = isGood ? '#C0DD97' : isFair ? '#AFA9EC' : '#F7C1C1';
+          const pillTxt    = isGood ? '#27500A' : isFair ? '#3C3489' : '#791F1F';
+          const statusBg   = isGood ? 'rgba(59,109,17,0.07)'  : isFair ? 'rgba(127,119,221,0.08)' : 'rgba(163,45,45,0.07)';
+          const statusBdr  = isGood ? 'rgba(59,109,17,0.22)'  : isFair ? 'rgba(127,119,221,0.22)' : 'rgba(163,45,45,0.22)';
+          const statusTxt  = isGood ? '#27500A' : isFair ? '#3C3489' : '#791F1F';
+          const rank = Math.max(1, Math.round(100 - score * 0.68));
+          return (
+            <div className="sd-card sd-ats-card sd-ats-v2" style={{
+              display:'flex', flexDirection:'column', boxSizing:'border-box',
+              height:'100%', padding:'16px 14px',
+              background:'#fff', border:'1.5px solid #e8edff'
             }}>
-              {atsScore >= 70 ? 'Good' : atsScore >= 50 ? 'Fair' : 'Weak'}
-            </div>
-          </div>
 
-          {/* Center: Ring + Score */}
-          <div style={{display:'flex',alignItems:'center',gap:'14px',zIndex:1,marginBottom:'12px'}}>
-            <div style={{flexShrink:0}}>
-              <Ring size={90} sw={9} value={atsScore} id="atsG2"
-                gradient={[{ o: "0%", c: "#6366f1" }, { o: "50%", c: "#818cf8" }, { o: "100%", c: "#22c55e" }]}>
-                <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
-                  <div style={{fontSize:'20px',fontWeight:900,color:'#1a1a2e',lineHeight:1,letterSpacing:'-1px'}}>{atsScore}%</div>
-                  <div style={{fontSize:'8px',fontWeight:600,color:'#94a3b8',textTransform:'uppercase',letterSpacing:'0.5px'}}>Match</div>
+              {/* Header */}
+              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'10px'}}>
+                <div>
+                  <div style={{fontSize:'9px',fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'#a5b4fc'}}>ATS Score</div>
+                  <div style={{fontSize:'13px',fontWeight:800,color:'#1e1b4b',marginTop:'2px'}}>Resume Match</div>
                 </div>
-              </Ring>
-            </div>
-            {/* Right side stats */}
-            <div style={{flex:1,display:'flex',flexDirection:'column',gap:'7px'}}>
-              {[
-                { label: 'Keywords', val: Math.min(100, atsScore + 8), color: '#6366f1' },
-                { label: 'Format', val: Math.min(100, atsScore + 15), color: '#22c55e' },
-                { label: 'Skills', val: Math.max(20, atsScore - 10), color: '#f59e0b' },
-              ].map((s, i) => (
-                <div key={i} style={{display:'flex',flexDirection:'column',gap:'2px'}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                    <span style={{fontSize:'9px',fontWeight:600,color:'#64748b'}}>{s.label}</span>
-                    <span style={{fontSize:'9px',fontWeight:800,color:s.color}}>{s.val}%</span>
-                  </div>
-                  <div style={{height:'4px',background:'#f1f5f9',borderRadius:'4px',overflow:'hidden'}}>
-                    <div style={{height:'100%',width:`${s.val}%`,background:s.color,borderRadius:'4px',transition:'width 0.6s ease'}} />
-                  </div>
+                <div style={{background:pillBg,border:`1px solid ${pillBdr}`,color:pillTxt,borderRadius:'999px',padding:'3px 11px',fontSize:'11px',fontWeight:700,flexShrink:0}}>
+                  {isGood ? 'Good' : isFair ? 'Fair' : 'Weak'}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Bottom pill */}
-          <div style={{zIndex:1,marginTop:'auto'}}>
-            <div className={`sd-ats-v2-pill ${atsScore >= 50 ? 'sd-ats-pill--good' : 'sd-ats-pill--bad'}`} style={{width:'100%',justifyContent:'center'}}>
-              <span className="sd-ats-v2-dot" style={{background: atsScore >= 70 ? '#22c55e' : atsScore >= 50 ? '#f59e0b' : '#ef4444'}} />
-              {atsScore >= 70 ? "Strong Match — Ready to Apply!" : atsScore >= 50 ? "Average Match — Keep Improving" : "Needs Improvement"}
+              {/* Single Ring */}
+              <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:'10px'}}>
+                <div style={{position:'relative',width:'120px',height:'120px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="120" height="120" viewBox="0 0 120 120" style={{position:'absolute',top:0,left:0}}>
+                    <circle cx={cx} cy={cy} r={R} fill="none" stroke="#eef0f6" strokeWidth={sw}/>
+                    <circle cx={cx} cy={cy} r={R} fill="none"
+                      stroke={ringColor} strokeWidth={sw} strokeLinecap="round"
+                      strokeDasharray={circ} strokeDashoffset={offset}
+                      transform={`rotate(-90 ${cx} ${cy})`}/>
+                    <circle cx={tipX} cy={tipY} r="5" fill={ringColor}/>
+                    <circle cx={tipX} cy={tipY} r="2.5" fill="#fff"/>
+                  </svg>
+                  <div style={{position:'absolute',display:'flex',flexDirection:'column',alignItems:'center',gap:'1px'}}>
+                    <span style={{fontSize:'30px',fontWeight:800,color:'#1e1b4b',lineHeight:1,letterSpacing:'-1px'}}>{score}%</span>
+                    <span style={{fontSize:'8px',fontWeight:600,letterSpacing:'2px',color:'#a5b4fc',textTransform:'uppercase'}}>match</span>
+
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 stat chips — Resume Rank · Keywords Hit · ATS Grade */}
+              {(() => {
+                const resumeRank = `Top ${Math.max(1, Math.round(100 - score * 0.68))}%`;
+                const keywordsHit = matchedSkills.length;
+                const atsGrade = score >= 85 ? 'Excellent' : score >= 70 ? 'Good' : score >= 50 ? 'Fair' : 'Weak';
+                const gradeColor = score >= 85 ? '#22c55e' : score >= 70 ? '#6366f1' : score >= 50 ? '#f59e0b' : '#ef4444';
+                return (
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'5px',marginBottom:'10px'}}>
+                    {[
+                      { val: resumeRank, lbl: 'resume rank', color: '#6366f1' },
+                      { val: `${keywordsHit}`, lbl: 'keywords hit', color: '#10b981' },
+                      { val: atsGrade, lbl: 'ats grade', color: gradeColor },
+                    ].map((s, i) => (
+                      <div key={i} style={{background:'#f8f9ff',border:'1px solid #eef0f6',borderRadius:'10px',padding:'6px 4px',textAlign:'center'}}>
+                        <div style={{fontSize:'11px',fontWeight:800,color:s.color,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{s.val}</div>
+                        <div style={{fontSize:'8px',color:'#94a3b8',marginTop:'1px'}}>{s.lbl}</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* Status pill */}
+              <div style={{marginTop:'auto',display:'flex',alignItems:'center',justifyContent:'center',gap:'7px',background:statusBg,border:`1.5px solid ${statusBdr}`,borderRadius:'20px',padding:'7px 10px'}}>
+                <span style={{width:'7px',height:'7px',borderRadius:'50%',flexShrink:0,background:ringColor}}/>
+                <span style={{fontSize:'10px',fontWeight:700,color:statusTxt}}>
+                  {isGood ? 'Strong Match — Ready to Apply!' : isFair ? 'Average Match — Keep Improving' : 'Needs Improvement'}
+                </span>
+              </div>
+
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         <div className="sd-card sd-metrics-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-met-header">
@@ -663,32 +725,36 @@ export default function Dashboard() {
             <span className="sd-rl-ico">🗺️</span>
             <span className="sd-rl-title">Learning Roadmap</span>
           </div>
-          <div className="sd-rl-list">
-            {roadmap.length > 0 ? (
-              roadmap.map((item, i) => (
+          <div className="sd-rl-list" style={{overflowY:'auto',flex:1}}>
+            {(() => {
+              const roadmapNames = roadmap.map(r => (r.skill_name || '').toLowerCase());
+              const extraFromMissing = missingSkills
+                .filter(s => !roadmapNames.includes((s.skill_name || '').toLowerCase()))
+                .map(s => ({ skill_name: s.skill_name, youtube_link: null, google_link: null }));
+              const fullList = [...roadmap, ...extraFromMissing];
+              if (fullList.length === 0) {
+                return (
+                  <div className="sd-rl-row">
+                    <span className="sd-rl-name">No missing skills found! </span>
+                  </div>
+                );
+              }
+              return fullList.map((item, i) => (
                 <div className="sd-rl-row" key={i}>
                   <div className="sd-rl-skill">
                     <span className="sd-rl-name">🔹 {item.skill_name}</span>
                   </div>
                   <div className="sd-rl-btns">
-                    {item.youtube_link && (
-                      <a href={item.youtube_link} target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--y">
-                        ▶ YouTube
-                      </a>
-                    )}
-                    {item.google_link && (
-                      <a href={item.google_link} target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--g">
-                        🔍 Google
-                      </a>
-                    )}
+                    <a href={item.youtube_link || `https://www.youtube.com/results?search_query=${encodeURIComponent((item.skill_name || '') + ' tutorial')}`} target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--y">
+                      ▶ YouTube
+                    </a>
+                    <a href={item.google_link || `https://www.google.com/search?q=${encodeURIComponent((item.skill_name || '') + ' learn')}`} target="_blank" rel="noopener noreferrer" className="sd-rl-btn sd-rl-btn--g">
+                      🔍 Google
+                    </a>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="sd-rl-row">
-                <span className="sd-rl-name">No missing skills found! Ready to apply.</span>
-              </div>
-            )}
+              ));
+            })()}
           </div>
         </div>
 
@@ -823,11 +889,13 @@ export default function Dashboard() {
           <div className="sd-jm-divider" />
           <div className="sd-jm-why-title">📈 Market Demand</div>
           <div className="sd-jm-stats-row">
-            <div className="sd-jm-stat"><div className="sd-jm-stat-val">1,240+</div><div className="sd-jm-stat-lbl">Open Jobs</div></div>
+            <div className="sd-jm-stat"><div className="sd-jm-stat-val">
+  {analysisData.open_jobs || 0}+
+</div><div className="sd-jm-stat-lbl">Open Jobs</div></div>
             <div className="sd-jm-stat-sep" />
-            <div className="sd-jm-stat"><div className="sd-jm-stat-val sd-jm-green">↑{Math.floor(matchScore / 5)}%</div><div className="sd-jm-stat-lbl">Your Growth</div></div>
+            <div className="sd-jm-stat"><div className="sd-jm-stat-val sd-jm-green">↑{analysisData.growth_rate || "0%"}</div><div className="sd-jm-stat-lbl">Your Growth</div></div>
             <div className="sd-jm-stat-sep" />
-            <div className="sd-jm-stat"><div className="sd-jm-stat-val">₹{Math.floor(atsScore * 1.5)} LPA</div><div className="sd-jm-stat-lbl">Avg Salary</div></div>
+            <div className="sd-jm-stat"><div className="sd-jm-stat-val">{analysisData.salary_range || "N/A"}</div><div className="sd-jm-stat-lbl">Avg Salary</div></div>
           </div>
         </div>
       </div>
@@ -835,30 +903,71 @@ export default function Dashboard() {
       {/* ROW 3: Career Impact · Skill Gap · Focus Areas · AI Suggestions */}
       <div className="sd-row sd-r3" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px',alignItems:'stretch'}}>
 
-        {/* Career Impact — moved up from Row 4 */}
-        <div className="sd-card sd-career-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
-          <div className="sd-ctitle">Career Impact Snapshot</div>
-          <div className="sd-csub">See how your skills translate to real-world opportunities.</div>
-          <div className="sd-career-grid">
-            <div className="sd-c-metric">
-              <div className="sd-c-ico sd-gbg">💼</div>
-              <div className="sd-c-lbl">Job Opportunities</div>
-              <div className="sd-c-val">{jobMatches.length > 0 ? Math.floor(jobMatches[0].match_percentage * 15) : "1,240"}+</div>
-              <div className="sd-c-sub">High match jobs</div>
+        <div className="sd-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%',padding:'16px 18px'}}>
+          {/* Header */}
+          <div style={{fontSize:'13px',fontWeight:700,color:'#1a1a2e',marginBottom:'2px',flexShrink:0}}>Career Impact Snapshot</div>
+          <div style={{fontSize:'10px',color:'#94a3b8',marginBottom:'0',flexShrink:0}}>See how your skills translate to real-world opportunities.</div>
+
+          {/* 3 metric rows — each flex:1, fills card equally */}
+          {[
+            {
+              ico:'💼', bg:'#dcfce7', lbl:'Job Opportunities',
+              val: openJobs > 0 ? `${openJobs}+` : jobMatches.length > 0 ? `${Math.floor(jobMatches[0].match_percentage*15)}+` : '1,240+',
+              sub:'High match jobs',
+              bar: Math.min(100, openJobs > 0 ? Math.min(openJobs / 50 * 100, 100) : 75),
+              barColor: '#22c55e',
+              trend: `${matchedSkills.length} skills matched`,
+              trendColor: '#22c55e',
+            },
+            {
+              ico:'💰', bg:'#dbeafe', lbl:'Average Salary Range',
+              val: salaryRange !== 'N/A' ? salaryRange : `₹${Math.floor(atsScore*0.5)}\u2013₹${Math.floor(atsScore*1.2)} LPA`,
+              sub:'For your target roles',
+              bar: Math.min(100, atsScore),
+              barColor: '#6366f1',
+              trend: `Based on ${atsScore}% ATS match`,
+              trendColor: '#6366f1',
+            },
+            {
+              ico:'👁️', bg:'#ede9fe', lbl:'Profile Visibility',
+              val: atsScore >= 70 ? 'Excellent' : atsScore >= 50 ? 'Good' : 'Fair',
+              sub:'Improve to reach top 20%',
+              green: atsScore >= 70,
+              bar: atsScore,
+              barColor: atsScore >= 70 ? '#22c55e' : atsScore >= 50 ? '#6366f1' : '#f59e0b',
+              trend: `Top ${Math.max(1, Math.round(100 - atsScore * 0.68))}% of applicants`,
+              trendColor: atsScore >= 70 ? '#22c55e' : '#f59e0b',
+            },
+          ].map((m, i, arr) => (
+            <div key={i} style={{
+              flex:1,
+              display:'flex',
+              flexDirection:'column',
+              justifyContent:'center',
+              gap:'3px',
+              borderBottom: i < arr.length-1 ? '1px solid #f1f5f9' : 'none',
+              paddingTop:'10px',
+              paddingBottom:'10px',
+              minHeight:0,
+            }}>
+              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'2px'}}>
+                <div style={{width:'30px',height:'30px',borderRadius:'8px',background:m.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',flexShrink:0}}>
+                  {m.ico}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:'9px',color:'#94a3b8',fontWeight:500}}>{m.lbl}</div>
+                  <div style={{fontSize:'15px',fontWeight:800,color: m.green ? '#22c55e' : '#1a1a2e',lineHeight:1.1,wordBreak:'break-word'}}>{m.val}</div>
+                </div>
+              </div>
+              <div style={{height:'4px',background:'#f1f5f9',borderRadius:'4px',overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${m.bar}%`,background:m.barColor,borderRadius:'4px'}}/>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontSize:'8.5px',color:m.trendColor,fontWeight:600}}>↑ {m.trend}</span>
+                <span style={{fontSize:'8px',color:'#94a3b8'}}>{m.sub}</span>
+              </div>
             </div>
-            <div className="sd-c-metric">
-              <div className="sd-c-ico sd-bbg">💰</div>
-              <div className="sd-c-lbl">Average Salary Range</div>
-              <div className="sd-c-val">₹{Math.floor(atsScore * 0.5)} – ₹{Math.floor(atsScore * 1.2)} LPA</div>
-              <div className="sd-c-sub">For your target roles</div>
-            </div>
-            <div className="sd-c-metric">
-              <div className="sd-c-ico sd-pbg">👁️</div>
-              <div className="sd-c-lbl">Profile Visibility</div>
-              <div className={`sd-c-val ${atsScore >= 70 ? 'sd-c-good' : ''}`}>{atsScore >= 70 ? "Excellent" : atsScore >= 50 ? "Good" : "Fair"}</div>
-              <div className="sd-c-sub">Improve to reach top 20%</div>
-            </div>
-          </div>
+          ))}
         </div>
 
         <div className="sd-card sd-skillgap-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
@@ -942,9 +1051,10 @@ export default function Dashboard() {
         <div className="sd-card sd-focus-card" style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%'}}>
           <div className="sd-ctitle">Focus Areas to Improve</div>
           <div className="sd-csub">Skills that will create the biggest impact.</div>
+          <div style={{flex:1,display:'flex',flexDirection:'column'}}>
           {focusAreas.length > 0 ? (
             focusAreas.map((f, i) => (
-              <div className="sd-focus-row" key={i}>
+              <div className="sd-focus-row" key={i} style={{flex:1,padding:'10px 0'}}>
                 <div className="sd-foc-body">
                   <div className="sd-foc-title">🎯 {f.title}</div>
                   <div className="sd-foc-desc">{f.description}</div>
@@ -956,15 +1066,18 @@ export default function Dashboard() {
             ))
           ) : (
             <>
-              <div className="sd-focus-row"><div className="sd-foc-body"><div className="sd-foc-title">🎯 Add Key Project Experience</div><div className="sd-foc-desc">Include 2-3 more projects in your resume.</div></div><span className="sd-foc-badge sd-high">HIGH Impact</span></div>
-              <div className="sd-focus-row"><div className="sd-foc-body"><div className="sd-foc-title">🎯 Use Stronger Action Verbs</div><div className="sd-foc-desc">Use stronger, industry-relevant action verbs.</div></div><span className="sd-foc-badge sd-med">MEDIUM Impact</span></div>
-              <div className="sd-focus-row"><div className="sd-foc-body"><div className="sd-foc-title">🎯 Highlight Achievements</div><div className="sd-foc-desc">Quantify your achievements more.</div></div><span className="sd-foc-badge sd-low">LOW Impact</span></div>
+              <div className="sd-focus-row" style={{flex:1,padding:'10px 0'}}><div className="sd-foc-body"><div className="sd-foc-title">🎯 Add Key Project Experience</div><div className="sd-foc-desc">Include 2-3 more projects in your resume.</div></div><span className="sd-foc-badge sd-high">HIGH Impact</span></div>
+              <div className="sd-focus-row" style={{flex:1,padding:'10px 0'}}><div className="sd-foc-body"><div className="sd-foc-title">🎯 Use Stronger Action Verbs</div><div className="sd-foc-desc">Use stronger, industry-relevant action verbs.</div></div><span className="sd-foc-badge sd-med">MEDIUM Impact</span></div>
+              <div className="sd-focus-row" style={{flex:1,padding:'10px 0'}}><div className="sd-foc-body"><div className="sd-foc-title">🎯 Highlight Achievements</div><div className="sd-foc-desc">Quantify your achievements more.</div></div><span className="sd-foc-badge sd-low">LOW Impact</span></div>
             </>
           )}
+          </div>
         </div>
 
-        {/* AI Suggestions — moved up from Row 4 */}
-        <AICareerSuggestions suggestions={suggestions} />
+        {/* AI Suggestions */}
+        <div style={{display:'flex',flexDirection:'column',boxSizing:'border-box',height:'100%',minHeight:0}}>
+          <AICareerSuggestions suggestions={suggestions} />
+        </div>
 
       </div>
 

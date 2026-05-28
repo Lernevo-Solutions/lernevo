@@ -26,7 +26,7 @@
 /* ── Card base ── */
 .sd-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 16px 18px;
   box-shadow: 0 2px 12px rgba(99,102,241,0.07);
 }
@@ -125,6 +125,20 @@
 .sd-ats-trend {
   font-size: 10px;
   color: #64748b;
+}
+
+/* ATS pulsing status dot */
+.sd-ats-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--dot-color, #6366f1);
+  animation: sd-ats-pulse 2s ease-in-out infinite;
+}
+@keyframes sd-ats-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
 }
 
 /* Metrics card */
@@ -534,7 +548,7 @@
 ───────────────────────── */
 .sd-card {
   background: #ffffff;
-  border-radius: 22px;
+  border-radius: 14px;
   padding: 20px;
   border: 1px solid #edf1ff;
   box-shadow:
@@ -781,7 +795,7 @@
   
   .sd-card {
     padding: 16px;
-    border-radius: 18px;
+    border-radius: 14px;
   }
 
   .sd-metrics-card {
@@ -1307,7 +1321,7 @@
 /* ── Card base ── */
 .sd-card {
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: 14px;
   padding: 20px 22px;
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.06);
   border: 1px solid #edf1ff;
@@ -1849,10 +1863,12 @@
 
 .sd-focus-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  padding: 12px 0;
+  padding: 0;
   border-bottom: 1px solid #f5f7fa;
+  flex: 1;
+  min-height: 0;
 }
 
 .sd-focus-row:last-of-type {
@@ -1927,6 +1943,8 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-top: 16px;
+  flex: 1;
+  align-content: center;
 }
 
 .sd-c-metric {
@@ -2664,7 +2682,8 @@
 .sd-skillgap-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
+  justify-content: space-between;
 }
 
 /* ── Header ── */
@@ -2887,7 +2906,8 @@
 .sd-acs-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  justify-content: space-between;
 }
 
 /* Header */
@@ -3120,7 +3140,7 @@
   flex-direction: column;
   gap: 7px;
   margin-top: 2px;
-  max-height: 370px;
+  flex: 1;
   overflow-y: auto;
   padding-right: 2px;
 }
@@ -3222,7 +3242,7 @@
 
 .sd-card {
   background: #ffffff;
-  border-radius: 22px;
+  border-radius: 14px;
   padding: 20px 22px;
   border: 1px solid #edf1ff;
   box-shadow: 0 4px 18px rgba(99,102,241,0.06), 0 1px 3px rgba(15,23,42,0.04);
@@ -3700,7 +3720,7 @@
   background: linear-gradient(155deg, #eef0ff 0%, #e5e8ff 40%, #dff5ec 100%);
   padding: 28px 20px 24px;
   text-align: center;
-  border-radius: 28px !important;
+  border-radius: 14px !important;
   border: 1.5px solid rgba(199,210,254,0.9);
   box-shadow:
     0 8px 40px rgba(99,102,241,0.20),
@@ -3849,7 +3869,7 @@
 /* ══ Card base — make all cards more premium ══ */
 .sd-card {
   background: #fff;
-  border-radius: 18px !important;
+  border-radius: 14px !important;
   padding: 18px 20px;
   box-shadow:
     0 2px 16px rgba(99,102,241,0.08),
@@ -5007,4 +5027,66 @@ circle[stroke="#eef2ff"] { stroke: #e8edff !important; }
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+}
+/* ═══════════════════════════════════════════
+   🔒 CAREER IMPACT CARD — NO GAP FIX
+   ═══════════════════════════════════════════ */
+.sd-career-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  min-height: 0 !important;
+}
+
+.sd-career-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  gap: 0 !important;
+  margin-top: 8px !important;
+  align-content: stretch !important;
+  min-height: 0 !important;
+}
+
+.sd-c-metric {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  padding: 12px 0 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.sd-c-metric:last-child {
+  border-bottom: none !important;
+}
+
+.sd-c-ico {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  font-size: 18px !important;
+  margin-bottom: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+.sd-c-lbl {
+  font-size: 10px !important;
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+}
+
+.sd-c-val {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: #1a1a2e !important;
+  line-height: 1.2 !important;
+  word-break: break-word !important;
+}
+
+.sd-c-sub {
+  font-size: 9px !important;
+  color: #94a3b8 !important;
 }
