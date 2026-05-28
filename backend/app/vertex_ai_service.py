@@ -414,6 +414,11 @@ class VertexAIService:
                     "description": "Include relevant keywords from the job posting"
                 }
             ],
+        "market_demand": {
+    "open_jobs": 2450,
+    "salary_range": "18-25 LPA",
+    "growth_rate": "22%"
+},
             "focus_areas": [
                 {
                     "title": "Cloud Skills",

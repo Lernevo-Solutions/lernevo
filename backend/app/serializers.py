@@ -453,49 +453,55 @@ from .models import (
     SkillAnalysis,
     JobRoleMatch,
     AICareerSuggestion,
+    ResumeMetric,
+    ResumeQualityMetric,
     LearningRoadmap,
     ImprovementTip,
     FocusArea
 )
+class ResumeMetricSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResumeMetric
+        fields = "__all__"
+
+
+class ResumeQualityMetricSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResumeQualityMetric
+        fields = "__all__"
 
 
 class SkillAnalysisSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = SkillAnalysis
         fields = "__all__"
 
 
 class JobRoleMatchSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = JobRoleMatch
         fields = "__all__"
 
 
 class CareerSuggestionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = AICareerSuggestion
         fields = "__all__"
 
 
 class LearningRoadmapSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = LearningRoadmap
         fields = "__all__"
 
 
 class ImprovementTipSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ImprovementTip
         fields = "__all__"
 
 
 class FocusAreaSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FocusArea
         fields = "__all__"
@@ -505,31 +511,22 @@ class SkillGapAnalysisSerializer(serializers.ModelSerializer):
 
     skills = SkillAnalysisSerializer(many=True, read_only=True)
 
-    job_matches = JobRoleMatchSerializer(
-        many=True,
-        read_only=True
-    )
+    resume_metrics = ResumeMetricSerializer(many=True, read_only=True)
 
-    career_suggestions = CareerSuggestionSerializer(
-        many=True,
-        read_only=True
-    )
+    quality_metrics = ResumeQualityMetricSerializer(many=True, read_only=True)
 
-    learning_roadmaps = LearningRoadmapSerializer(
-        many=True,
-        read_only=True
-    )
+    job_matches = JobRoleMatchSerializer(many=True, read_only=True)
 
-    improvement_tips = ImprovementTipSerializer(
-        many=True,
-        read_only=True
-    )
+    career_suggestions = CareerSuggestionSerializer(many=True, read_only=True)
 
-    focus_areas = FocusAreaSerializer(
-        many=True,
-        read_only=True
-    )
+    learning_roadmaps = LearningRoadmapSerializer(many=True, read_only=True)
+
+    improvement_tips = ImprovementTipSerializer(many=True, read_only=True)
+
+    focus_areas = FocusAreaSerializer(many=True, read_only=True)
 
     class Meta:
         model = SkillGapAnalysis
         fields = "__all__"
+        # open_jobs, salary_range, growth_rate are direct model fields,
+        # so fields = "__all__" already includes them automatically.

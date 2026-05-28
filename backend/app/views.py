@@ -1514,7 +1514,7 @@ class AnalyzeSkillGapAPIView(APIView):
                 resume_text=pdf_text,
                 job_description=job_description
             )
-
+            market_data = ai_response.get("market_demand", {})
             print("AI Response received:", ai_response)  # Debug log
 
             # Save analysis
@@ -1527,7 +1527,10 @@ class AnalyzeSkillGapAPIView(APIView):
                 ats_score=ai_response.get("ats_score", 65),
                 match_score=ai_response.get("match_score", 60),
                 gap_score=ai_response.get("gap_score", 40),
-                resume_quality_score=ai_response.get("ats_score", 65)
+                resume_quality_score=ai_response.get("ats_score", 65),
+                open_jobs=market_data.get("open_jobs", 0),
+                salary_range=market_data.get("salary_range", ""),
+                growth_rate=market_data.get("growth_rate", "")
             )
 
             # Save Resume Metrics (NEW)
@@ -1620,3 +1623,10 @@ class AnalyzeSkillGapAPIView(APIView):
                 "success": False,
                 "message": str(e)
             }, status=500)
+
+
+
+
+
+
+            

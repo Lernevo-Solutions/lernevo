@@ -524,7 +524,8 @@ class ResumeMetric(models.Model):
     def __str__(self):
         return f"{self.metric_type} - {self.score}%"
 
-
+  
+  
 class SkillAnalysis(models.Model):
     SKILL_STATUS = [
         ('MATCHED', 'Matched'),

@@ -15,6 +15,12 @@ Return EXACTLY this JSON structure with DETAILED and VARIED content:
   "ats_score": 75,
   "match_score": 70,
   "gap_score": 30,
+
+"market_demand": {{
+  "open_jobs": 2450,
+  "salary_range": "18-25 LPA",
+  "growth_rate": "22%"
+}},
   "matched_skills": ["React.js", "Node.js", "JavaScript", "Express.js", "MongoDB"],
   "missing_skills": ["TypeScript", "AWS", "Docker", "GraphQL", "Redis"],
   "resume_metrics": [
@@ -48,6 +54,7 @@ Return EXACTLY this JSON structure with DETAILED and VARIED content:
     {{"title": "Add Certifications Section", "impact": "+8%", "description": "Include relevant certifications"}},
     {{"title": "Improve Keyword Matching", "impact": "+14%", "description": "Match keywords exactly from job description"}}
   ],
+  
   "focus_areas": [
     {{"title": "Cloud Skills", "description": "Learn AWS or Azure for better opportunities", "priority": "HIGH"}},
     {{"title": "TypeScript", "description": "Add TypeScript to your tech stack", "priority": "HIGH"}},
@@ -69,6 +76,16 @@ IMPORTANT RULES:
 - Make focus_areas have 4-5 items
 - Make career_suggestions have 4 items with descriptions
 - Make learning_roadmap have 3-4 items
+- market_demand object is REQUIRED
+- open_jobs must be integer
+- salary_range must be string
+- growth_rate must be string percentage
+- Do NOT use generic/template responses
+- Generate unique data based on resume and job description
+- Generate realistic market demand based on skill demand
+- Generate dynamic salaries based on role seniority
+- Skill scores must vary
+- Priority levels must vary
 """
 
 
