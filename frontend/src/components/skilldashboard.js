@@ -1027,7 +1027,7 @@ const growthRate = analysisData.growth_rate || "0%";
                   <div className="sd-sg-sec-dot sd-sg-dot--purple" />
                   <span className="sd-sg-sec-title">Priority Matrix</span>
                 </div>
-                <span className="sd-sg-pill sd-sg-pill--purple">{missingSkills.length} skills</span>
+                
               </div>
               <div className="sd-pm-grid">
                 {missingSkills.slice(0, 3).map((skill, idx) => {
