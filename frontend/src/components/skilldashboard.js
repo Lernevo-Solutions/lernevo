@@ -341,7 +341,7 @@ function AIResumeDetectorCard({ atsScore = 65, resumeMetrics = [] }) {
   const getGrade = (score) => {
     if (score >= 85) return { label: "Excellent", color: "#22c55e", bg: "#dcfce7", border: "#bbf7d0" };
     if (score >= 70) return { label: "Good", color: "#3b82f6", bg: "#dbeafe", border: "#bfdbfe" };
-    if (score >= 55) return { label: "Average", color: "#f59e0b", bg: "#fef3c7", border: "#fde68a" };
+    if (score >= 55) return { label: "Average", color: "#3b82f6", bg: "#dbeafe", border: "#93c5fd" };
     return { label: "Needs Work", color: "#ef4444", bg: "#fee2e2", border: "#fecaca" };
   };
 
@@ -352,11 +352,47 @@ function AIResumeDetectorCard({ atsScore = 65, resumeMetrics = [] }) {
     setError(null);
     setResult(null);
 
+    // Get actual resume text from localStorage (saved by skill.js)
+    const resumeText = localStorage.getItem('resumeText') || '';
+    const jobDescription = localStorage.getItem('jobDescription') || '';
     const avgMetricScore = resumeMetrics.length > 0
       ? Math.round(resumeMetrics.reduce((s, m) => s + (m.score || 70), 0) / resumeMetrics.length)
       : 70;
 
-    const prompt = `You are an AI Resume Quality Detector. Based on these stats:
+    // Build prompt — use actual resume text if available, else fall back to scores
+    const hasText = resumeText.trim().length > 50;
+    const prompt = hasText
+      ? `You are an expert AI Resume Detector. Carefully analyze the ACTUAL RESUME TEXT below and determine if it was written by a human or AI (like ChatGPT/Claude).
+
+RESUME TEXT:
+"""
+${resumeText.slice(0, 3000)}
+"""
+
+${jobDescription ? `JOB DESCRIPTION CONTEXT:\n"""${jobDescription.slice(0, 500)}"""\n` : ''}
+ATS Score context: ${atsScore}%
+
+Look for these AI writing signals:
+- Overly perfect structure and uniform sentence lengths
+- Generic buzzwords with no specific personal details
+- Lack of natural human imperfections or personality
+- Suspiciously balanced bullet points
+- Absence of specific numbers, dates, or personal anecdotes
+- Overly formal and polished language throughout
+
+Respond ONLY in this exact JSON format (no markdown, no extra text):
+{
+  "resume_type": "one of: Fresher | Mid-Level | Senior | Executive",
+  "ai_written_probability": <number 0-100>,
+  "human_written_probability": <number 0-100>,
+  "detection_confidence": "one of: High | Medium | Low",
+  "ai_signals": ["specific signal 1 found in resume", "specific signal 2"],
+  "human_signals": ["specific human signal 1 found", "specific human signal 2"],
+  "strengths": ["strength 1 from actual resume", "strength 2", "strength 3"],
+  "red_flags": ["flag 1 based on resume content", "flag 2"],
+  "recommendation": "one specific actionable recommendation based on the actual resume content"
+}`
+      : `You are an AI Resume Quality Detector. Based on these stats:
 - ATS Score: ${atsScore}%
 - Average Metric Score: ${avgMetricScore}%
 - Grade: ${grade.label}
@@ -366,9 +402,12 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
   "resume_type": "one of: Fresher | Mid-Level | Senior | Executive",
   "ai_written_probability": <number 0-100>,
   "human_written_probability": <number 0-100>,
+  "detection_confidence": "Low",
+  "ai_signals": ["No resume text provided for detailed analysis"],
+  "human_signals": ["Score-based estimation only"],
   "strengths": ["strength 1", "strength 2", "strength 3"],
   "red_flags": ["flag 1", "flag 2"],
-  "recommendation": "one sentence actionable recommendation"
+  "recommendation": "Upload your resume text for accurate AI detection analysis"
 }`;
 
     try {
@@ -385,7 +424,7 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
       const text = data.content?.map(i => i.text || "").join("") || "";
       const clean = text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
-      setResult(parsed);
+      setResult({ ...parsed, analyzedFromText: hasText });
     } catch (e) {
       setError("Detection failed. Please try again.");
     }
@@ -433,7 +472,25 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
         <div className="sd-aid-result">
           <div className="sd-aid-row">
             <span className="sd-aid-type-badge">📄 {result.resume_type}</span>
-            <button className="sd-aid-retry-btn" onClick={detectResume}>↺</button>
+            <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+              {result.analyzedFromText && (
+                <span style={{fontSize:'9px',background:'#dcfce7',color:'#16a34a',border:'1px solid #bbf7d0',borderRadius:'999px',padding:'2px 7px',fontWeight:700}}>
+                  ✅ Text Analyzed
+                </span>
+              )}
+              {result.detection_confidence && (
+                <span style={{
+                  fontSize:'9px',
+                  background: result.detection_confidence === 'High' ? '#eef2ff' : result.detection_confidence === 'Medium' ? '#fef3c7' : '#f1f5f9',
+                  color: result.detection_confidence === 'High' ? '#6366f1' : result.detection_confidence === 'Medium' ? '#d97706' : '#64748b',
+                  border: `1px solid ${result.detection_confidence === 'High' ? '#c7d2fe' : result.detection_confidence === 'Medium' ? '#fde68a' : '#e2e8f0'}`,
+                  borderRadius:'999px',padding:'2px 7px',fontWeight:700
+                }}>
+                  {result.detection_confidence} Confidence
+                </span>
+              )}
+              <button className="sd-aid-retry-btn" onClick={detectResume} title="Re-analyze">↺</button>
+            </div>
           </div>
 
           <div className="sd-aid-bars">
@@ -453,7 +510,27 @@ Respond ONLY in this exact JSON format (no markdown, no extra text):
             </div>
           </div>
 
-          {result.strengths && (
+          {/* AI Signals (only when text was analyzed) */}
+          {result.analyzedFromText && result.ai_signals && result.ai_signals.length > 0 && result.ai_signals[0] !== 'No resume text provided for detailed analysis' && (
+            <div className="sd-aid-section">
+              <div className="sd-aid-sec-title" style={{color:'#6366f1'}}>🤖 AI Signals Detected</div>
+              {result.ai_signals.slice(0, 2).map((s, i) => (
+                <div key={i} className="sd-aid-item" style={{background:'#eef2ff',color:'#3730a3',borderLeft:'2px solid #818cf8'}}>• {s}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Human Signals */}
+          {result.analyzedFromText && result.human_signals && result.human_signals.length > 0 && (
+            <div className="sd-aid-section">
+              <div className="sd-aid-sec-title" style={{color:'#16a34a'}}>✍️ Human Signals Found</div>
+              {result.human_signals.slice(0, 2).map((s, i) => (
+                <div key={i} className="sd-aid-item sd-aid-item--green">• {s}</div>
+              ))}
+            </div>
+          )}
+
+          {result.strengths && !result.analyzedFromText && (
             <div className="sd-aid-section">
               <div className="sd-aid-sec-title">✅ Strengths</div>
               {result.strengths.slice(0, 2).map((s, i) => (
@@ -587,92 +664,114 @@ const growthRate = analysisData.growth_rate || "0%";
       {/* ROW 1: ATS Score · Metrics · Learning Roadmap */}
       <div className="sd-row sd-r1" style={{display:'grid',gridTemplateColumns:'1.35fr 1.8fr 1fr 1fr',gap:'14px',alignItems:'stretch'}}>
 
-        {/* ── ATS SCORE CARD — Clean Single Ring ── */}
+        {/* ── ATS SCORE CARD — Attractive Gradient Version ── */}
         {(() => {
           const score = atsScore;
-          const isGood = score >= 70, isFair = score >= 50;
-          const R = 52, sw = 10, sz = 120, cx = 60, cy = 60;
+          const isExcellent = score >= 85, isGood = score >= 70, isFair = score >= 50;
+          const R = 50, sw = 11, cx = 60, cy = 60;
           const circ = 2 * Math.PI * R;
           const offset = circ - (score / 100) * circ;
           const tipAngle = (-90 + (score / 100) * 360) * Math.PI / 180;
           const tipX = cx + R * Math.cos(tipAngle);
           const tipY = cy + R * Math.sin(tipAngle);
-          const ringColor  = isGood ? '#3B6D11' : isFair ? '#7F77DD' : '#A32D2D';
-          const pillBg     = isGood ? '#EAF3DE' : isFair ? '#EEEDFE' : '#FCEBEB';
-          const pillBdr    = isGood ? '#C0DD97' : isFair ? '#AFA9EC' : '#F7C1C1';
-          const pillTxt    = isGood ? '#27500A' : isFair ? '#3C3489' : '#791F1F';
-          const statusBg   = isGood ? 'rgba(59,109,17,0.07)'  : isFair ? 'rgba(127,119,221,0.08)' : 'rgba(163,45,45,0.07)';
-          const statusBdr  = isGood ? 'rgba(59,109,17,0.22)'  : isFair ? 'rgba(127,119,221,0.22)' : 'rgba(163,45,45,0.22)';
-          const statusTxt  = isGood ? '#27500A' : isFair ? '#3C3489' : '#791F1F';
-          const rank = Math.max(1, Math.round(100 - score * 0.68));
+          const gradStart = isExcellent ? '#22c55e' : isGood ? '#6366f1' : isFair ? '#3b82f6' : '#ef4444';
+          const gradEnd   = isExcellent ? '#4ade80' : isGood ? '#a78bfa' : isFair ? '#60a5fa' : '#f87171';
+          const cardBg    = isExcellent ? 'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)' : isGood ? 'linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%)' : isFair ? 'linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)' : 'linear-gradient(135deg,#fff1f2 0%,#ffe4e6 100%)';
+          const pillBg    = isExcellent ? '#dcfce7' : isGood ? '#e0e7ff' : isFair ? '#dbeafe' : '#ffe4e6';
+          const pillBdr   = isExcellent ? '#86efac' : isGood ? '#a5b4fc' : isFair ? '#93c5fd' : '#fca5a5';
+          const pillTxt   = isExcellent ? '#15803d' : isGood ? '#4338ca' : isFair ? '#1d4ed8' : '#b91c1c';
+          const gradId    = `atsGrad_${score}`;
+
+          const atsGrade     = isExcellent ? 'Excellent' : isGood ? 'Good' : isFair ? 'Fair' : 'Weak';
+          const resumeRankPct= Math.max(1, Math.round(100 - score * 0.68));
+          const keywordsHit  = matchedSkills.length;
+
+          /* micro spark bars — visual flair */
+          const sparkBars = [0.4, 0.7, 0.55, 0.9, score/100, 0.75, 0.6, 0.85];
+
           return (
-            <div className="sd-card sd-ats-card sd-ats-v2" style={{
+            <div className="sd-card sd-ats-card sd-ats-v3" style={{
               display:'flex', flexDirection:'column', boxSizing:'border-box',
               height:'100%', padding:'16px 14px',
-              background:'#fff', border:'1.5px solid #e8edff'
+              background: cardBg,
+              border:`1.5px solid ${pillBdr}`,
+              position:'relative', overflow:'hidden',
             }}>
+              {/* Decorative blurred blob */}
+              <div style={{position:'absolute',top:'-18px',right:'-18px',width:'80px',height:'80px',borderRadius:'50%',background:gradStart,opacity:0.12,filter:'blur(18px)',pointerEvents:'none'}}/>
 
               {/* Header */}
-              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'10px'}}>
+              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'8px',position:'relative'}}>
                 <div>
-                  <div style={{fontSize:'9px',fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'#a5b4fc'}}>ATS Score</div>
+                  <div style={{fontSize:'9px',fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:gradStart}}>ATS Score</div>
                   <div style={{fontSize:'13px',fontWeight:800,color:'#1e1b4b',marginTop:'2px'}}>Resume Match</div>
                 </div>
-                <div style={{background:pillBg,border:`1px solid ${pillBdr}`,color:pillTxt,borderRadius:'999px',padding:'3px 11px',fontSize:'11px',fontWeight:700,flexShrink:0}}>
-                  {isGood ? 'Good' : isFair ? 'Fair' : 'Weak'}
+                <div style={{background:pillBg,border:`1.5px solid ${pillBdr}`,color:pillTxt,borderRadius:'999px',padding:'4px 12px',fontSize:'11px',fontWeight:800,flexShrink:0,boxShadow:`0 2px 8px ${gradStart}22`}}>
+                  {atsGrade}
                 </div>
               </div>
 
-              {/* Single Ring */}
-              <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:'10px'}}>
-                <div style={{position:'relative',width:'120px',height:'120px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <svg width="120" height="120" viewBox="0 0 120 120" style={{position:'absolute',top:0,left:0}}>
-                    <circle cx={cx} cy={cy} r={R} fill="none" stroke="#eef0f6" strokeWidth={sw}/>
+              {/* Dual-ring with gradient */}
+              <div style={{display:'flex',justifyContent:'center',alignItems:'center',marginBottom:'8px'}}>
+                <div style={{position:'relative',width:'130px',height:'130px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="130" height="130" viewBox="0 0 120 120" style={{position:'absolute',top:0,left:0}}>
+                    <defs>
+                      <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={gradStart}/>
+                        <stop offset="100%" stopColor={gradEnd}/>
+                      </linearGradient>
+                    </defs>
+                    {/* Outer ghost track */}
+                    <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={sw}/>
+                    {/* Filled arc */}
                     <circle cx={cx} cy={cy} r={R} fill="none"
-                      stroke={ringColor} strokeWidth={sw} strokeLinecap="round"
+                      stroke={`url(#${gradId})`} strokeWidth={sw} strokeLinecap="round"
                       strokeDasharray={circ} strokeDashoffset={offset}
                       transform={`rotate(-90 ${cx} ${cy})`}/>
-                    <circle cx={tipX} cy={tipY} r="5" fill={ringColor}/>
-                    <circle cx={tipX} cy={tipY} r="2.5" fill="#fff"/>
+                    {/* Inner thin decorative ring */}
+                    <circle cx={cx} cy={cy} r={R - sw - 4} fill="none" stroke={`${gradStart}22`} strokeWidth="1.5" strokeDasharray="4 4"/>
+                    {/* Glowing tip dot */}
+                    <circle cx={tipX} cy={tipY} r="7" fill={gradStart} opacity="0.25"/>
+                    <circle cx={tipX} cy={tipY} r="4.5" fill={gradStart}/>
+                    <circle cx={tipX} cy={tipY} r="2" fill="#fff"/>
                   </svg>
-                  <div style={{position:'absolute',display:'flex',flexDirection:'column',alignItems:'center',gap:'1px'}}>
-                    <span style={{fontSize:'30px',fontWeight:800,color:'#1e1b4b',lineHeight:1,letterSpacing:'-1px'}}>{score}%</span>
-                    <span style={{fontSize:'8px',fontWeight:600,letterSpacing:'2px',color:'#a5b4fc',textTransform:'uppercase'}}>match</span>
-
+                  {/* Center text */}
+                  <div style={{position:'absolute',display:'flex',flexDirection:'column',alignItems:'center',gap:'0px'}}>
+                    <span style={{fontSize:'32px',fontWeight:900,color:gradStart,lineHeight:1,letterSpacing:'-2px'}}>{score}</span>
+                    <span style={{fontSize:'13px',fontWeight:700,color:gradStart,lineHeight:1}}>%</span>
+                    <span style={{fontSize:'7.5px',fontWeight:700,letterSpacing:'2px',color:'#94a3b8',textTransform:'uppercase',marginTop:'2px'}}>match</span>
                   </div>
                 </div>
               </div>
 
-              {/* 3 stat chips — Resume Rank · Keywords Hit · ATS Grade */}
-              {(() => {
-                const resumeRank = `Top ${Math.max(1, Math.round(100 - score * 0.68))}%`;
-                const keywordsHit = matchedSkills.length;
-                const atsGrade = score >= 85 ? 'Excellent' : score >= 70 ? 'Good' : score >= 50 ? 'Fair' : 'Weak';
-                const gradeColor = score >= 85 ? '#22c55e' : score >= 70 ? '#6366f1' : score >= 50 ? '#f59e0b' : '#ef4444';
-                return (
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'5px',marginBottom:'10px'}}>
-                    {[
-                      { val: resumeRank, lbl: 'resume rank', color: '#6366f1' },
-                      { val: `${keywordsHit}`, lbl: 'keywords hit', color: '#10b981' },
-                      { val: atsGrade, lbl: 'ats grade', color: gradeColor },
-                    ].map((s, i) => (
-                      <div key={i} style={{background:'#f8f9ff',border:'1px solid #eef0f6',borderRadius:'10px',padding:'6px 4px',textAlign:'center'}}>
-                        <div style={{fontSize:'11px',fontWeight:800,color:s.color,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{s.val}</div>
-                        <div style={{fontSize:'8px',color:'#94a3b8',marginTop:'1px'}}>{s.lbl}</div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-
-              {/* Status pill */}
-              <div style={{marginTop:'auto',display:'flex',alignItems:'center',justifyContent:'center',gap:'7px',background:statusBg,border:`1.5px solid ${statusBdr}`,borderRadius:'20px',padding:'7px 10px'}}>
-                <span style={{width:'7px',height:'7px',borderRadius:'50%',flexShrink:0,background:ringColor}}/>
-                <span style={{fontSize:'10px',fontWeight:700,color:statusTxt}}>
-                  {isGood ? 'Strong Match — Ready to Apply!' : isFair ? 'Average Match — Keep Improving' : 'Needs Improvement'}
-                </span>
+              {/* Spark bar mini-chart */}
+              <div style={{display:'flex',alignItems:'flex-end',gap:'3px',height:'22px',justifyContent:'center',marginBottom:'8px'}}>
+                {sparkBars.map((h, i) => (
+                  <div key={i} style={{width:'10px',borderRadius:'3px 3px 0 0',background:`linear-gradient(180deg,${gradStart},${gradEnd})`,opacity: i === 4 ? 1 : 0.35 + h * 0.45,height:`${Math.round(h*22)}px`,transition:'height 0.5s'}}/>
+                ))}
               </div>
 
+              {/* 3 stat chips */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'5px',marginBottom:'10px'}}>
+                {[
+                  { val: `Top ${resumeRankPct}%`, lbl: 'Resume Rank', color: gradStart },
+                  { val: `${keywordsHit}`, lbl: 'Keywords Hit', color: '#10b981' },
+                  { val: atsGrade, lbl: 'ATS Grade', color: pillTxt },
+                ].map((s, i) => (
+                  <div key={i} style={{background:'rgba(255,255,255,0.7)',border:`1px solid ${pillBdr}`,borderRadius:'10px',padding:'6px 4px',textAlign:'center',backdropFilter:'blur(4px)'}}>
+                    <div style={{fontSize:'11px',fontWeight:800,color:s.color,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{s.val}</div>
+                    <div style={{fontSize:'7.5px',color:'#94a3b8',marginTop:'1px',fontWeight:600}}>{s.lbl}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Status banner */}
+              <div style={{marginTop:'auto',display:'flex',alignItems:'center',justifyContent:'center',gap:'7px',background:`linear-gradient(90deg,${gradStart}18,${gradEnd}18)`,border:`1.5px solid ${pillBdr}`,borderRadius:'20px',padding:'8px 10px',boxShadow:`0 2px 10px ${gradStart}18`}}>
+                <span style={{width:'8px',height:'8px',borderRadius:'50%',flexShrink:0,background:`linear-gradient(135deg,${gradStart},${gradEnd})`,boxShadow:`0 0 6px ${gradStart}`}}/>
+                <span style={{fontSize:'10px',fontWeight:700,color:pillTxt}}>
+                  {isExcellent ? '🏆 Excellent Match — Apply Now!' : isGood ? '✅ Strong Match — Ready to Apply!' : isFair ? '⚡ Average — Keep Improving' : '🔧 Needs Improvement'}
+                </span>
+              </div>
             </div>
           );
         })()}
@@ -934,9 +1033,9 @@ const growthRate = analysisData.growth_rate || "0%";
               sub:'Improve to reach top 20%',
               green: atsScore >= 70,
               bar: atsScore,
-              barColor: atsScore >= 70 ? '#22c55e' : atsScore >= 50 ? '#6366f1' : '#f59e0b',
+              barColor: atsScore >= 70 ? '#22c55e' : atsScore >= 50 ? '#6366f1' : '#3b82f6',
               trend: `Top ${Math.max(1, Math.round(100 - atsScore * 0.68))}% of applicants`,
-              trendColor: atsScore >= 70 ? '#22c55e' : '#f59e0b',
+              trendColor: atsScore >= 70 ? '#22c55e' : '#1d4ed8',
             },
           ].map((m, i, arr) => (
             <div key={i} style={{
@@ -996,7 +1095,13 @@ const growthRate = analysisData.growth_rate || "0%";
                   <span className="sd-sg-tag sd-sg-tag--green" key={i}>{s.skill_name}</span>
                 ))
               ) : (
-                <span className="sd-sg-tag">No matched skills</span>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 12px',background:'#fef3c7',border:'1.5px solid #fde68a',borderRadius:'10px',width:'100%',boxSizing:'border-box'}}>
+                  <span style={{fontSize:'18px'}}>📋</span>
+                  <div>
+                    <div style={{fontSize:'12px',fontWeight:700,color:'#92400e'}}>No matched skills yet</div>
+                    <div style={{fontSize:'10px',color:'#b45309',marginTop:'1px'}}>Try updating your resume with relevant keywords.</div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -1015,12 +1120,18 @@ const growthRate = analysisData.growth_rate || "0%";
                   <span className="sd-sg-tag sd-sg-tag--red" key={i}>{s.skill_name}</span>
                 ))
               ) : (
-                <span className="sd-sg-tag">No missing skills!</span>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 12px',background:'#f0fdf4',border:'1.5px solid #bbf7d0',borderRadius:'10px',width:'100%',boxSizing:'border-box'}}>
+                  <span style={{fontSize:'18px'}}>🎉</span>
+                  <div>
+                    <div style={{fontSize:'12px',fontWeight:700,color:'#15803d'}}>No skill gaps found!</div>
+                    <div style={{fontSize:'10px',color:'#16a34a',marginTop:'1px'}}>Your resume covers all required skills.</div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          {missingSkills.length > 0 && (
+          {missingSkills.length > 0 ? (
             <div className="sd-sg-section sd-pm-section">
               <div className="sd-sg-sec-head">
                 <div className="sd-sg-sec-left">
@@ -1043,6 +1154,14 @@ const growthRate = analysisData.growth_rate || "0%";
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          ) : (
+            <div className="sd-sg-section" style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div style={{textAlign:'center',padding:'16px 0'}}>
+                <div style={{fontSize:'32px',marginBottom:'8px'}}>✨</div>
+                <div style={{fontSize:'13px',fontWeight:700,color:'#15803d'}}>You're fully job-ready!</div>
+                <div style={{fontSize:'11px',color:'#6b7280',marginTop:'4px'}}>No skill priorities needed — great match!</div>
               </div>
             </div>
           )}

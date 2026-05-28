@@ -201,6 +201,11 @@ REQUIRED SKILLS (Must Have)
       if (result.success) {
         setAnalysisResult(result.data);
         localStorage.setItem('analysisResult', JSON.stringify(result.data));
+        // Save resume text for AI Resume Detector in dashboard
+        // If PDF was uploaded, backend may return extracted_text — prefer that
+        const extractedText = result.data?.extracted_text || result.extracted_text || resumeText || '';
+        localStorage.setItem('resumeText', extractedText);
+        localStorage.setItem('jobDescription', jobDescription || '');
         navigate('/skilldashboard');
       } else {
         setUploadStatus({

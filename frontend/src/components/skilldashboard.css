@@ -157,7 +157,7 @@
 .sd-met-s     { font-size: 11px; font-weight: 700; }
 .sd-met-s.sd-green  { color: #22c55e; }
 .sd-met-s.sd-blue   { color: #3b82f6; }
-.sd-met-s.sd-orange { color: #f59e0b; }
+.sd-met-s.sd-orange { color: #3b82f6; }
 .sd-met-ch    { font-size: 10px; color: #64748b; }
 
 /* AI Summary card */
@@ -2884,7 +2884,7 @@
 }
 
 .sd-pm-high-fill { background: linear-gradient(90deg, #ef4444, #f87171); }
-.sd-pm-med-fill  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.sd-pm-med-fill  { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
 .sd-pm-low-fill  { background: linear-gradient(90deg, #22c55e, #4ade80); }
 
 /* Priority label right side */
@@ -3550,7 +3550,7 @@
 .sd-pm-low-track  { background: #dcfce7; }
 .sd-pm-bar-fill   { height: 100%; border-radius: 99px; }
 .sd-pm-high-fill  { background: linear-gradient(90deg,#ef4444,#f87171); }
-.sd-pm-med-fill   { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+.sd-pm-med-fill   { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
 .sd-pm-low-fill   { background: linear-gradient(90deg,#22c55e,#4ade80); }
 .sd-pm-label      { font-size: 10px; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0; }
 .sd-pm-txt-high   { color: #dc2626; }
@@ -4808,13 +4808,13 @@ circle[stroke="#eef2ff"] { stroke: #e8edff !important; }
 
 /* ── Uniform PM (Priority Matrix) bars ── */
 .sd-pm-high-track { background: #fee2e2 !important; }
-.sd-pm-med-track  { background: #fef3c7 !important; }
+.sd-pm-med-track  { background: #dbeafe !important; }
 .sd-pm-low-track  { background: #ecfdf5 !important; }
 .sd-pm-high-fill  { background: #ef4444 !important; }
-.sd-pm-med-fill   { background: #f59e0b !important; }
+.sd-pm-med-fill   { background: linear-gradient(90deg, #3b82f6, #1d4ed8) !important; }
 .sd-pm-low-fill   { background: #22c55e !important; }
 .sd-pm-txt-high   { color: #991b1b !important; font-weight: 700 !important; font-size: 10px !important; }
-.sd-pm-txt-med    { color: #92400e !important; font-weight: 700 !important; font-size: 10px !important; }
+.sd-pm-txt-med    { color: #1d4ed8 !important; font-weight: 700 !important; font-size: 10px !important; }
 .sd-pm-txt-low    { color: #065f46 !important; font-weight: 700 !important; font-size: 10px !important; }
 /* ═══════════════════════════════════════
    UNIFORM HEIGHT FIX — ALL ROWS EQUAL
