@@ -2548,6 +2548,7 @@ function normaliseEducation(raw) {
       school: Array.isArray(raw.school) ? raw.school : [makeSchool()],
     };
   }
+  {}
   if (Array.isArray(raw)) {
     const ug     = raw.filter(e => e.type==="ug" || e.type==="pg" || (!e.type && !e.schoolName));
     const school = raw.filter(e => e.type==="school" || e.schoolName);
