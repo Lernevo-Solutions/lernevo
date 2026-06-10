@@ -4419,4 +4419,62 @@ body {
   display: flex;
   justify-content: center;
   padding: 20px 0;
+}/* ===== TRANSFORM HEADER - BLACK + BLUE TEXT (FORCE OVERRIDE) ===== */
+
+/* Force the main heading to be BLACK */
+.transform-header h2 {
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+  margin: 0 0 20px 0 !important;
+  color: #1e293b !important;  /* Dark black color */
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: #1e293b !important;
+}
+
+/* Only the SPAN inside should have BLUE GRADIENT */
+.transform-header h2 span {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb, #3b82f6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  display: inline-block !important;
+}
+
+/* Ensure no other styles are affecting this */
+.transform-header h2 span {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb, #3b82f6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* Secondary description text - keep dark gray */
+.primary-desc {
+  color: #475569 !important;
+  font-size: 1.1rem !important;
+  line-height: 1.7 !important;
+  margin-top: 1rem !important;
+}
+
+/* Button styling */
+.trial-btn {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  color: white !important;
+  border: none !important;
+  padding: 14px 32px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  border-radius: 50px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+
+.trial-btn:hover {
+  transform: translateY(-3px) !important;
+  background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3) !important;
 }

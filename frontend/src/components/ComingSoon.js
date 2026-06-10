@@ -127,11 +127,9 @@ export default function ComingSoon() {
                   <path d="M12 12V22" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <div className="cs-card-badge cs-badge-soon">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <circle cx="12" cy="12" r="10"/>
-                </svg>
-                Coming Soon
+              <div className="cs-card-badge cs-badge-live">
+                <span className="badge-dot"></span>
+                Live Now
               </div>
             </div>
             <h3 className="cs-card-title">Skill Gap Analyzer</h3>
@@ -162,14 +160,7 @@ export default function ComingSoon() {
           </div>
         </div>
 
-        {/* Floating decorative elements */}
-        <div className="cs-floating-dots">
-          <div className="cs-dot"></div>
-          <div className="cs-dot"></div>
-          <div className="cs-dot"></div>
-          <div className="cs-dot"></div>
-          <div className="cs-dot"></div>
-        </div>
+       
       </div>
     </div>
   );

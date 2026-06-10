@@ -7,9 +7,8 @@ import template1Img from './template_1.avif';
 import template2Img from './template_2.avif';
 import template3Img from './template_12.webp';
 import template4Img from './template_5.avif';
-
+import Navbar from './Navbar';  // Import Navbar component
 const HomePage = () => {
-  const [skillScore, setSkillScore] = useState(0);
   const canvasRef = useRef(null);
   const [counts, setCounts] = useState({ resumes: 0, satisfaction: 0, ats: 0 });
 const statsRef = useRef(null);
@@ -67,19 +66,6 @@ const mockupRef = useRef(null);
     return () => window.removeEventListener('resize', resize);
   }, []);
 
-  // Simulate skill score animation on hover
-  const handleAnalyzeHover = () => {
-    let start = 0;
-    const interval = setInterval(() => {
-      if (start >= 85) {
-        clearInterval(interval);
-        setSkillScore(85);
-      } else {
-        start += 1;
-        setSkillScore(start);
-      }
-    }, 10);
-  };
 const [currentTemplate, setCurrentTemplate] = useState(0);
 useEffect(() => {
   const handleScroll = () => {
@@ -315,7 +301,7 @@ useEffect(() => {
   const interval = setInterval(() => {
     setCurrentTemplate((prev) => (prev + 1) % homeTemplates.length);
   }, 4000); // change every 4 seconds
-
+ 
   return () => clearInterval(interval);
 }, [homeTemplates.length]);
   return (
@@ -326,36 +312,9 @@ useEffect(() => {
 {/* Gradient Mesh Overlay */}
 <div className="rb-mesh-overlay"></div>
 
-{/* Navigation */}
-<nav className="rb-navbar">
-  <div className="rb-container rb-nav-container">
+  <Navbar />
 
-    {/* LEFT - LOGO */}
-    <div className="rb-logo">
-      <div
-        className="logo-section"
-        onClick={() => navigate('/')}
-        style={{ cursor: 'pointer' }}
-      >
-        <span className="logo-text">LERNEVO</span>
-      </div>
-    </div>
-
-    {/* RIGHT SIDE (Links + Button together) */}
-    <div className="rb-nav-right">
-      <div className="rb-nav-links">
-        <a href="/">Home</a>
-        <a href="/my-resumes">My Resumes</a>
-      </div>
-
-      <div className="rb-nav-cta">
-        <a href="/builder" className="rb-btn-glow">Get Started</a>
-      </div>
-    </div>
-
-  </div>
-</nav>
-
+<div style={{ height: '30px' }}></div>
 {/* Hero Section */}
 {/* Hero Section */}
 {/* Hero Section */}
@@ -490,7 +449,7 @@ useEffect(() => {
           <div className="rb-features-grid">
             <div className="rb-feature-card rb-glass rb-tilt">
               <div className="rb-feature-icon">📄</div>
-              <h3>10+ Templates</h3>
+              <h3>Templates</h3>
               <p>Modern, creative, classic & executive designs for any industry.</p>
             </div>
             <div className="rb-feature-card rb-glass rb-tilt">
@@ -522,53 +481,46 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Skill Analyzer */}
-      <section className="rb-skill-analyzer">
+
+      {/* How It Works Section */}
+      <section className="rb-how-it-works">
         <div className="rb-container">
-          <div className="rb-analyzer-card">
-            <div className="rb-analyzer-left">
-              <h3>AI Skill Gap Analyzer</h3>
-              <p>Paste any job description and see how your resume matches in real time.</p>
-              <div className="rb-analyzer-input-group">
-                <input type="text" placeholder="Paste job description..." className="rb-analyzer-input" />
-                <button className="rb-btn rb-btn-primary" onMouseEnter={handleAnalyzeHover}>
-                  Analyze Match
-                </button>
-              </div>
-              <div className="rb-analyzer-match">
-                <span className="rb-match-title">Overall match</span>
-                <div className="rb-match-bar-bg">
-                  <div className="rb-match-bar-fill" style={{ width: `${skillScore}%` }}></div>
+          <div className="rb-section-header">
+            <span className="rb-how-badge">HOW IT WORKS</span>
+            <h2 className="rb-how-title">Ready in 3 Simple Steps</h2>
+            <p className="rb-how-subtitle">No design skills needed. Just fill, click, and download.</p>
+          </div>
+
+          <div className="rb-steps-wrapper">
+            {/* Connecting Line */}
+            <div className="rb-steps-line"></div>
+
+            <div className="rb-steps-grid">
+              {/* Step 1 */}
+              <div className="rb-step-card">
+                <div className="rb-step-circle">
+                  <span>1</span>
                 </div>
-                <span className="rb-match-percentage">{skillScore}%</span>
+                <h3>Pick a Template</h3>
+                <p>Browse our collection of professional templates and choose one that fits your style.</p>
               </div>
-              <p className="rb-analyzer-note">✨ AI identifies missing keywords & skills</p>
-            </div>
-            <div className="rb-analyzer-right">
-              <div className="rb-circular-progress">
-                <svg viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" strokeWidth="8" />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    stroke="url(#gradient)"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 45}`}
-                    strokeDashoffset={`${2 * Math.PI * 45 * (1 - skillScore / 100)}`}
-                    transform="rotate(-90 50 50)"
-                    style={{ transition: 'stroke-dashoffset 1s' }}
-                  />
-                  <defs>
-                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#2563eb" />
-                      <stop offset="100%" stopColor="#8b5cf6" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <span className="rb-progress-text">{skillScore}%</span>
+
+              {/* Step 2 */}
+              <div className="rb-step-card">
+                <div className="rb-step-circle rb-step-circle-active">
+                  <span>2</span>
+                </div>
+                <h3>Add Your Details</h3>
+                <p>Fill in your experience, skills and education. Use AI suggestions to write better content.</p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="rb-step-card">
+                <div className="rb-step-circle">
+                  <span>3</span>
+                </div>
+                <h3>Download &amp; Apply</h3>
+                <p>Export your resume as a perfect PDF and start applying to your dream jobs.</p>
               </div>
             </div>
           </div>
@@ -576,16 +528,16 @@ useEffect(() => {
       </section>
 
       {/* CTA Section */}
-      <section className="rb-cta">
-        <div className="rb-cta-particles"></div>
-        <div className="rb-container">
-          <h2>Ready to Build Your Perfect Resume?</h2>
-          <p>Join thousands of job seekers who've landed their dream jobs with our resume builder.</p>
-          <a href="/builder" className="rb-btn rb-cta-btn rb-btn-pulse">
-            Start Building Now <span className="rb-btn-arrow">→</span>
-          </a>
-        </div>
-      </section>
+      {/* CTA Section */}
+<section className="rb-cta">
+  <div className="rb-container">
+    <h2>Ready to Build Your Perfect Resume?</h2>
+    <p>Join thousands of job seekers who've landed their dream jobs with our resume builder.</p>
+    <a href="/builder" className="rb-cta-btn rb-btn-pulse">
+      Start Building Now <span className="rb-btn-arrow">→</span>
+    </a>
+  </div>
+</section>
 </>
   );
 };

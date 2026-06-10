@@ -7982,3 +7982,1370 @@ align-items:center;
   background: #1d4ed8;
   transform: scale(1.05);
 }
+
+
+/* ===== HOW IT WORKS SECTION ===== */
+.rb-how-it-works {
+  padding: 80px 0 100px;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.rb-how-badge {
+  display: inline-block;
+  background: transparent;
+  border: 1.5px solid #2563eb;
+  color: #2563eb;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 6px 20px;
+  border-radius: 30px;
+  margin-bottom: 20px;
+}
+
+.rb-how-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 14px;
+  letter-spacing: -0.03em;
+}
+
+.rb-how-subtitle {
+  font-size: 1.05rem;
+  color: #64748b;
+  margin-bottom: 60px;
+}
+
+/* Steps layout */
+.rb-steps-wrapper {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Horizontal connecting line */
+.rb-steps-line {
+  position: absolute;
+  top: 40px;
+  left: calc(16.66% + 40px);
+  right: calc(16.66% + 40px);
+  height: 2px;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6, #2563eb);
+  background-size: 200% 100%;
+  animation: rb-line-shimmer 3s linear infinite;
+  z-index: 0;
+}
+
+@keyframes rb-line-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.rb-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Each step card */
+.rb-step-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 16px;
+}
+
+/* Circle */
+.rb-step-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.rb-step-circle span {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* Active/middle circle - slightly larger glow */
+.rb-step-circle-active {
+  width: 88px;
+  height: 88px;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.45);
+}
+
+.rb-step-card:hover .rb-step-circle {
+  transform: translateY(-6px) scale(1.07);
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.4);
+}
+
+.rb-step-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.rb-step-card p {
+  font-size: 0.92rem;
+  color: #64748b;
+  line-height: 1.6;
+  max-width: 200px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rb-steps-line {
+    display: none;
+  }
+  .rb-steps-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .rb-how-title {
+    font-size: 2rem;
+  }
+}/* ===== HOW IT WORKS SECTION - ZOOMED IN / BIGGER CONTENT ===== */
+
+.rb-how-it-works {
+  padding: 20px 0 60px !important;
+  background: #ffffff;
+}
+
+/* Header section - bigger */
+.rb-section-header {
+  margin-bottom: 35px !important;
+}
+
+.rb-how-badge {
+  display: inline-block;
+  background: transparent;
+  border: 2px solid #2563eb;
+  color: #2563eb;
+  font-size: 0.9rem !important;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 6px 22px;
+  border-radius: 40px;
+  margin-bottom: 15px;
+}
+
+.rb-how-title {
+  font-size: 3rem !important;  /* Much bigger */
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 12px !important;
+  letter-spacing: -0.02em;
+}
+
+.rb-how-subtitle {
+  font-size: 1.2rem !important;  /* Much bigger */
+  color: #64748b;
+  margin-bottom: 45px !important;
+}
+
+/* Steps wrapper */
+.rb-steps-wrapper {
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 !important;
+  width: 100%;
+}
+
+/* Steps grid */
+.rb-steps-grid {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 40px !important;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/* Step cards - bigger */
+.rb-step-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  flex: 1 !important;
+  max-width: 320px !important;
+}
+
+/* Circles - MUCH BIGGER */
+.rb-step-circle {
+  width: 90px !important;
+  height: 90px !important;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  flex-shrink: 0;
+}
+
+.rb-step-circle span {
+  font-size: 2.2rem !important;  /* Much bigger number */
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* Active/middle circle - even bigger */
+.rb-step-circle-active {
+  width: 98px !important;
+  height: 98px !important;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.45);
+}
+
+.rb-step-card:hover .rb-step-circle {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 18px 35px rgba(37, 99, 235, 0.4);
+}
+
+/* Card text - MUCH BIGGER */
+.rb-step-card h3 {
+  font-size: 1.4rem !important;  /* Much bigger heading */
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px !important;
+  line-height: 1.3;
+}
+
+.rb-step-card p {
+  font-size: 1rem !important;  /* Much bigger description */
+  color: #64748b;
+  line-height: 1.6 !important;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* Connecting line - thicker and positioned correctly */
+.rb-steps-line {
+  position: absolute;
+  top: 45px;
+  left: calc(16.66% + 40px);
+  right: calc(16.66% + 40px);
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6, #2563eb);
+  background-size: 200% 100%;
+  animation: rb-line-shimmer 3s linear infinite;
+  z-index: 0;
+}
+
+@keyframes rb-line-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .rb-steps-grid {
+    gap: 25px !important;
+  }
+  .rb-how-title {
+    font-size: 2.5rem !important;
+  }
+  .rb-step-circle {
+    width: 75px !important;
+    height: 75px !important;
+  }
+  .rb-step-circle span {
+    font-size: 1.8rem !important;
+  }
+  .rb-step-card h3 {
+    font-size: 1.2rem !important;
+  }
+  .rb-step-card p {
+    font-size: 0.9rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .rb-steps-line {
+    display: none;
+  }
+  .rb-steps-grid {
+    flex-direction: column !important;
+    gap: 40px !important;
+  }
+  .rb-how-title {
+    font-size: 2rem !important;
+  }
+  .rb-how-subtitle {
+    font-size: 1rem !important;
+  }
+  .rb-step-card {
+    max-width: 100% !important;
+  }
+  .rb-step-circle {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  .rb-step-circle span {
+    font-size: 2rem !important;
+  }
+  .rb-step-card h3 {
+    font-size: 1.3rem !important;
+  }
+  .rb-step-card p {
+    font-size: 0.95rem !important;
+    max-width: 300px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .rb-how-title {
+    font-size: 1.6rem !important;
+  }
+  .rb-how-subtitle {
+    font-size: 0.85rem !important;
+  }
+  .rb-step-circle {
+    width: 65px !important;
+    height: 65px !important;
+  }
+  .rb-step-circle span {
+    font-size: 1.5rem !important;
+  }
+  .rb-step-circle-active {
+    width: 70px !important;
+    height: 70px !important;
+  }
+  .rb-step-card h3 {
+    font-size: 1.1rem !important;
+  }
+  .rb-step-card p {
+    font-size: 0.85rem !important;
+  }
+}/* ===== FEATURES SECTION - 3 CARDS TOP + 3 CARDS BOTTOM (3x2 GRID) ===== */
+
+.rb-features {
+  padding: 60px 0 80px !important;
+  background: linear-gradient(145deg, #f1f5f9, #ffffff);
+  position: relative;
+  z-index: 10;
+}
+
+/* Features header */
+.rb-features .rb-section-header {
+  text-align: center;
+  margin-bottom: 50px !important;
+}
+
+.rb-features .rb-section-header h2 {
+  font-size: 2.5rem !important;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 15px !important;
+  letter-spacing: -0.02em;
+}
+
+.rb-features .rb-section-header p {
+  font-size: 1.1rem !important;
+  color: #64748b;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Features Grid - 3 COLUMNS (top row + bottom row) */
+.rb-features-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;  /* Exactly 3 columns */
+  gap: 30px !important;
+  row-gap: 40px !important;  /* Gap between top and bottom row */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Feature Cards - all same height */
+.rb-feature-card {
+  padding: 35px 25px !important;
+  border-radius: 24px !important;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.rb-feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 35px -12px rgba(37, 99, 235, 0.15);
+  background: white;
+  border-color: #2563eb20;
+}
+
+/* Feature icons */
+.rb-feature-icon {
+  font-size: 3rem !important;
+  margin-bottom: 20px !important;
+  display: inline-block;
+  background: linear-gradient(135deg, #2563eb, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Feature titles */
+.rb-feature-card h3 {
+  font-size: 1.3rem !important;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px !important;
+}
+
+/* Feature descriptions */
+.rb-feature-card p {
+  font-size: 0.9rem !important;
+  color: #64748b;
+  line-height: 1.6 !important;
+}
+
+/* Make sure all 6 cards appear in 3x2 grid */
+/* The 4th, 5th, 6th cards will automatically go to second row */
+
+/* Responsive - Tablet (2 columns) */
+@media (max-width: 900px) {
+  .rb-features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 25px !important;
+  }
+  
+  .rb-features .rb-section-header h2 {
+    font-size: 2rem !important;
+  }
+}
+
+/* Responsive - Mobile (1 column) */
+@media (max-width: 600px) {
+  .rb-features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  
+  .rb-features {
+    padding: 40px 0 60px !important;
+  }
+  
+  .rb-feature-card {
+    padding: 25px 20px !important;
+  }
+  
+  .rb-feature-card h3 {
+    font-size: 1.2rem !important;
+  }
+}
+
+/* Fix for any extra margins */
+.rb-features-grid .rb-feature-card:nth-child(4) {
+  margin-top: 0 !important;
+}/* ===== FIX GAPS IN TEMPLATE & FEATURES SECTION ===== */
+
+/* Template Section - reduce bottom padding */
+.rb-template-grid-section {
+  padding: 40px 0 10px !important;  /* Reduced bottom padding to close gap */
+  background: #f8fafc;
+}
+
+/* View All button - remove bottom margin */
+.rb-view-all {
+  text-align: center;
+  margin-top: 15px !important;
+  margin-bottom: 0 !important;  /* Remove bottom margin */
+  padding-bottom: 0 !important;
+}
+
+.rb-animated-arrow {
+  color: #2563eb;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: gap 0.3s;
+}
+
+/* Features Section - reduce top padding to close gap with View All */
+.rb-features {
+  padding: 20px 0 60px !important;  /* Reduced top padding from 100px to 20px */
+  background: linear-gradient(145deg, #f1f5f9, #ffffff);
+  position: relative;
+  z-index: 10;
+  margin-top: 0 !important;
+}
+
+/* Features Header - reduce spacing between heading and description */
+.rb-features .rb-section-header {
+  text-align: center;
+  margin-bottom: 40px !important;
+}
+
+.rb-features .rb-section-header h2 {
+  font-size: 2.5rem !important;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px !important;  /* Reduced from 15px to 8px */
+  letter-spacing: -0.02em;
+}
+
+.rb-features .rb-section-header p {
+  font-size: 1rem !important;
+  color: #64748b;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Remove any extra margins between sections */
+.rb-template-grid-section + .rb-features {
+  margin-top: -10px !important;  /* Pull features section up */
+}
+
+/* Features Grid - 3x2 layout */
+.rb-features-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 30px !important;
+  row-gap: 35px !important;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Feature Cards */
+.rb-feature-card {
+  padding: 35px 25px !important;
+  border-radius: 24px !important;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.rb-feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 35px -12px rgba(37, 99, 235, 0.15);
+  background: white;
+  border-color: #2563eb20;
+}
+
+.rb-feature-icon {
+  font-size: 3rem !important;
+  margin-bottom: 20px !important;
+  display: inline-block;
+}
+
+.rb-feature-card h3 {
+  font-size: 1.3rem !important;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px !important;
+}
+
+.rb-feature-card p {
+  font-size: 0.9rem !important;
+  color: #64748b;
+  line-height: 1.6 !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .rb-features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .rb-features .rb-section-header h2 {
+    font-size: 2rem !important;
+  }
+  
+  .rb-template-grid-section {
+    padding: 30px 0 5px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .rb-features-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .rb-features {
+    padding: 15px 0 50px !important;
+  }
+  
+  .rb-features .rb-section-header h2 {
+    font-size: 1.8rem !important;
+    margin-bottom: 5px !important;
+  }
+  
+  .rb-features .rb-section-header p {
+    font-size: 0.9rem !important;
+  }
+}/* ===== CLEAN CTA SECTION - NO BLUE BACKGROUND (KEEP SIMPLE) ===== */
+
+.rb-cta {
+  padding: 70px 0 80px !important;
+  position: relative;
+  background: #ffffff !important;  /* White background */
+  text-align: center;
+  overflow: hidden;
+  z-index: 10;
+  border-top: 1px solid #e2e8f0;  /* Light border on top */
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* CTA Container */
+.rb-cta .rb-container {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* CTA Heading */
+.rb-cta h2 {
+  font-size: 2.8rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 20px !important;
+  background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.02em;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+/* CTA Description */
+.rb-cta p {
+  font-size: 1.2rem !important;
+  color: #475569 !important;
+  max-width: 550px;
+  margin: 0 auto 35px auto !important;
+  line-height: 1.6 !important;
+  animation: fadeInUp 0.6s 0.1s ease forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* CTA Button - Blue gradient but not background */
+.rb-cta-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  padding: 16px 40px !important;
+  border-radius: 50px !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25) !important;
+  border: none !important;
+  cursor: pointer;
+  animation: fadeInUp 0.6s 0.2s ease forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.rb-cta-btn:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.35) !important;
+  background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+}
+
+.rb-cta-btn .rb-btn-arrow {
+  font-size: 1.3rem;
+  transition: transform 0.3s ease;
+}
+
+.rb-cta-btn:hover .rb-btn-arrow {
+  transform: translateX(8px);
+}
+
+/* Button pulse effect - subtle */
+.rb-btn-pulse {
+  animation: btnPulse 2s infinite !important;
+}
+
+@keyframes btnPulse {
+  0% {
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+  }
+  50% {
+    box-shadow: 0 10px 35px rgba(37, 99, 235, 0.4);
+  }
+  100% {
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+  }
+}
+
+/* Subtle floating elements - very light */
+.rb-cta .rb-cta-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.rb-cta-orb-1 {
+  width: 300px;
+  height: 300px;
+  top: -100px;
+  left: -100px;
+}
+
+.rb-cta-orb-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -150px;
+  right: -150px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rb-cta {
+    padding: 50px 0 60px !important;
+  }
+  
+  .rb-cta h2 {
+    font-size: 2rem !important;
+  }
+  
+  .rb-cta p {
+    font-size: 1rem !important;
+    padding: 0 15px;
+  }
+  
+  .rb-cta-btn {
+    padding: 14px 32px !important;
+    font-size: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .rb-cta {
+    padding: 40px 0 50px !important;
+  }
+  
+  .rb-cta h2 {
+    font-size: 1.6rem !important;
+  }
+  
+  .rb-cta p {
+    font-size: 0.9rem !important;
+  }
+  
+  .rb-cta-btn {
+    padding: 12px 28px !important;
+    font-size: 0.9rem !important;
+  }
+}/* ===== CLEAN CTA SECTION - WORKING WHITE & BLUE THEME ===== */
+
+/* Remove all previous conflicting CTA styles and use only this */
+
+.rb-cta {
+  padding: 60px 0 70px !important;
+  position: relative;
+  background: #ffffff !important;
+  text-align: center;
+  z-index: 10;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* CTA Container */
+.rb-cta .rb-container {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* CTA Heading - Blue gradient text */
+.rb-cta h2 {
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 16px !important;
+  background: linear-gradient(135deg, #1e40af, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.02em;
+}
+
+/* CTA Description */
+.rb-cta p {
+  font-size: 1.1rem !important;
+  color: #475569 !important;
+  max-width: 550px;
+  margin: 0 auto 30px auto !important;
+  line-height: 1.6 !important;
+}
+
+/* CTA Button - VISIBLE BLUE BUTTON */
+.rb-cta .rb-cta-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: #2563eb !important;
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  padding: 14px 32px !important;
+  border-radius: 50px !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25) !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+.rb-cta .rb-cta-btn:hover {
+  transform: translateY(-3px) !important;
+  background: #1d4ed8 !important;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.35) !important;
+}
+
+.rb-cta .rb-cta-btn .rb-btn-arrow {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.rb-cta .rb-cta-btn:hover .rb-btn-arrow {
+  transform: translateX(6px);
+}
+
+/* Button pulse effect */
+.rb-cta .rb-btn-pulse {
+  animation: btnPulse 2s infinite !important;
+}
+
+@keyframes btnPulse {
+  0% {
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  }
+  50% {
+    box-shadow: 0 8px 30px rgba(37, 99, 235, 0.5);
+  }
+  100% {
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  }
+}
+
+/* Remove any conflicting styles */
+.rb-cta::before,
+.rb-cta .rb-cta-particles,
+.rb-cta .rb-cta-orb {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rb-cta {
+    padding: 50px 0 60px !important;
+  }
+  
+  .rb-cta h2 {
+    font-size: 2rem !important;
+  }
+  
+  .rb-cta p {
+    font-size: 1rem !important;
+  }
+  
+  .rb-cta .rb-cta-btn {
+    padding: 12px 28px !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .rb-cta {
+    padding: 40px 0 50px !important;
+  }
+  
+  .rb-cta h2 {
+    font-size: 1.6rem !important;
+  }
+  
+  .rb-cta p {
+    font-size: 0.9rem !important;
+  }
+  
+  .rb-cta .rb-cta-btn {
+    padding: 10px 24px !important;
+    font-size: 0.9rem !important;
+  }
+}/* ===== FINAL CTA BUTTON FIX - WHITE & BLUE THEME ===== */
+
+/* Override all conflicting CTA styles */
+.rb-cta {
+  background: #ffffff !important;
+  padding: 60px 0 70px !important;
+  border-top: 1px solid #e2e8f0 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  margin: 0 !important;
+}
+
+.rb-cta .rb-container {
+  max-width: 800px !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+}
+
+/* Heading - Blue gradient */
+.rb-cta h2 {
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 16px !important;
+  background: linear-gradient(135deg, #1e40af, #2563eb) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Description */
+.rb-cta p {
+  font-size: 1.1rem !important;
+  color: #475569 !important;
+  max-width: 550px !important;
+  margin: 0 auto 30px auto !important;
+  line-height: 1.6 !important;
+}
+
+/* BUTTON - MAKE IT VISIBLE */
+.rb-cta .rb-cta-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: #2563eb !important;
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  padding: 14px 32px !important;
+  border-radius: 50px !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3) !important;
+  border: none !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 100 !important;
+  position: relative !important;
+}
+
+.rb-cta .rb-cta-btn:hover {
+  transform: translateY(-3px) !important;
+  background: #1d4ed8 !important;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.4) !important;
+}
+
+.rb-cta .rb-cta-btn .rb-btn-arrow {
+  font-size: 1.2rem !important;
+  transition: transform 0.3s ease !important;
+  display: inline-block !important;
+}
+
+.rb-cta .rb-cta-btn:hover .rb-btn-arrow {
+  transform: translateX(6px) !important;
+}
+
+/* Pulse animation for button */
+@keyframes ctaBtnPulse {
+  0% {
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 30px rgba(37, 99, 235, 0.5);
+  }
+  100% {
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+  }
+}
+
+.rb-cta .rb-btn-pulse {
+  animation: ctaBtnPulse 2s infinite !important;
+}
+
+/* Hide any unwanted elements */
+.rb-cta::before,
+.rb-cta::after,
+.rb-cta .rb-cta-particles,
+.rb-cta .rb-cta-orb {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rb-cta {
+    padding: 50px 0 60px !important;
+  }
+  .rb-cta h2 {
+    font-size: 2rem !important;
+  }
+  .rb-cta p {
+    font-size: 1rem !important;
+  }
+  .rb-cta .rb-cta-btn {
+    padding: 12px 28px !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .rb-cta {
+    padding: 40px 0 50px !important;
+  }
+  .rb-cta h2 {
+    font-size: 1.6rem !important;
+  }
+  .rb-cta p {
+    font-size: 0.9rem !important;
+  }
+  .rb-cta .rb-cta-btn {
+    padding: 10px 24px !important;
+    font-size: 0.9rem !important;
+  }
+}/* ===== REMOVE EXTRA LINE ABOVE CTA HEADING ===== */
+
+/* Remove any pseudo-elements or borders above CTA */
+.rb-cta {
+  background: #ffffff !important;
+  padding: 60px 0 70px !important;
+  border-top: none !important;  /* Remove top border */
+  border-bottom: 1px solid #e2e8f0 !important;
+  margin: 0 !important;
+  position: relative !important;
+}
+
+/* Remove any ::before or ::after elements */
+.rb-cta::before,
+.rb-cta::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Ensure no extra line from container */
+.rb-cta .rb-container {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Make heading clean without any top border/line */
+.rb-cta h2 {
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+  margin-top: 0 !important;
+  margin-bottom: 16px !important;
+  padding-top: 0 !important;
+  background: linear-gradient(135deg, #1e40af, #2563eb) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  letter-spacing: -0.02em !important;
+  border: none !important;
+}
+
+/* Remove any possible line from parent sections */
+.rb-features,
+.rb-how-it-works {
+  border-bottom: none !important;
+}
+
+/* Ensure no extra spacing or borders */
+section {
+  position: relative;
+}
+
+section + .rb-cta {
+  margin-top: 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rb-cta h2 {
+    font-size: 2rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .rb-cta h2 {
+    font-size: 1.6rem !important;
+  }
+}/* ===== WHITE & BLUE THEME FOR PAGE BACKGROUND ONLY ===== */
+
+/* Page body background - White and Blue gradient */
+body {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%) !important;
+  min-height: 100vh;
+}
+
+/* Individual section backgrounds - Keep them white or light */
+.rb-hero,
+.rb-template-grid-section,
+.rb-features,
+.rb-how-it-works,
+.rb-cta {
+  background: transparent !important;
+}
+
+/* Or set each section with subtle white background */
+.rb-template-grid-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+.rb-features {
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+
+.rb-how-it-works {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Cards remain WHITE (not blue) */
+.rb-template-box-wrapper {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+.rb-template-box-wrapper:hover {
+  background: #ffffff !important;
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.15) !important;
+  border-color: #2563eb !important;
+}
+
+.rb-feature-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+.rb-feature-card:hover {
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.1) !important;
+  border-color: #2563eb !important;
+}
+
+.rb-step-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+.rb-step-card:hover {
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.1) !important;
+  border-color: #2563eb !important;
+}
+
+/* Step circles - Keep blue (they are accents) */
+.rb-step-circle {
+  background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+}
+
+/* Headings - Blue gradient text */
+.rb-section-header h2,
+.rb-template-grid-section h2,
+.rb-features .rb-section-header h2,
+.rb-how-title,
+.rb-cta h2 {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* Buttons - Blue */
+.rb-btn-primary,
+.rb-cta-btn {
+  background: #2563eb !important;
+}
+
+.rb-btn-primary:hover,
+.rb-cta-btn:hover {
+  background: #1d4ed8 !important;
+}
+
+/* Badges - Blue border */
+.rb-how-badge,
+.rb-hero-badge {
+  border-color: #2563eb !important;
+  color: #2563eb !important;
+}
+
+/* Connecting line - Blue */
+.rb-steps-line {
+  background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb) !important;
+}
+
+/* Template labels - Blue text */
+.rb-template-label h3 {
+  color: #1e3a8a !important;
+}
+
+/* Select badge - Blue */
+.rb-select-badge {
+  background: #2563eb !important;
+  color: white !important;
+}
+
+/* Feature icons - Blue gradient */
+.rb-feature-icon {
+  background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* Feature titles - Blue */
+.rb-feature-card h3 {
+  color: #1e3a8a !important;
+}
+
+/* View All link - Blue */
+.rb-animated-arrow {
+  color: #2563eb !important;
+}/* ===== HOMEPAGE ONLY - HEADING STYLES (No effect on other pages) ===== */
+
+/* Target only HomePage headings - use body selector with specific classes */
+body .rb-hero .rb-gradient-text,
+body .rb-hero .rb-heading-compact {
+  background: linear-gradient(135deg, #0f172a, #2563eb, #3b82f6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-size: 64px !important;
+  font-weight: 800 !important;
+}
+
+/* Templates section heading */
+body .rb-template-grid-section > .rb-container > h2 {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+}
+
+/* Features section main heading */
+body .rb-features .rb-section-header h2 {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+}
+
+/* How It Works section heading */
+body .rb-how-it-works .rb-how-title {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-size: 3rem !important;
+  font-weight: 800 !important;
+}
+
+/* CTA section heading */
+body .rb-cta h2 {
+  background: linear-gradient(135deg, #1e40af, #2563eb) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  font-size: 2.5rem !important;
+  font-weight: 800 !important;
+}
+
+/* IMPORTANT: Remove any global heading overrides that affect other pages */
+/* These will ONLY apply inside HomePage sections */
+section:not(.rb-hero):not(.rb-template-grid-section):not(.rb-features):not(.rb-how-it-works):not(.rb-cta) h1,
+section:not(.rb-hero):not(.rb-template-grid-section):not(.rb-features):not(.rb-how-it-works):not(.rb-cta) h2,
+section:not(.rb-hero):not(.rb-template-grid-section):not(.rb-features):not(.rb-how-it-works):not(.rb-cta) h3 {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: inherit !important;
+}
+
+/* Reset card headings - these should NOT have gradient */
+.rb-template-label h3,
+.rb-feature-card h3,
+.rb-step-card h3 {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #0f172a !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  body .rb-hero .rb-gradient-text,
+  body .rb-hero .rb-heading-compact {
+    font-size: 48px !important;
+  }
+  
+  body .rb-template-grid-section > .rb-container > h2,
+  body .rb-features .rb-section-header h2,
+  body .rb-how-it-works .rb-how-title,
+  body .rb-cta h2 {
+    font-size: 2rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body .rb-hero .rb-gradient-text,
+  body .rb-hero .rb-heading-compact {
+    font-size: 36px !important;
+  }
+  
+  body .rb-template-grid-section > .rb-container > h2,
+  body .rb-features .rb-section-header h2,
+  body .rb-how-it-works .rb-how-title,
+  body .rb-cta h2 {
+    font-size: 1.6rem !important;
+  }
+}

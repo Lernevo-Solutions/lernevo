@@ -3,6 +3,8 @@ import "./Navbar.css";
 import { ChevronDown, User, LogOut, Key } from "lucide-react";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
+
 
 export default function Navbar({ onGetStarted }) {
   const [scrolled, setScrolled] = useState(false);
@@ -13,7 +15,7 @@ export default function Navbar({ onGetStarted }) {
   const dropdownRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-
+const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const checkAuth = () => {
     const token = localStorage.getItem('token');
     const name = localStorage.getItem('user_name');
@@ -93,16 +95,24 @@ export default function Navbar({ onGetStarted }) {
         <div className="logo-section" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <span className="logo-text">LERNEVO</span>
         </div>
-
+        <button
+  className="mobile-menu-btn"
+  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+>
+  {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+</button>
         {/* Center Navigation */}
-        <nav className="nav-menu">
+        <nav className={`nav-menu ${mobileMenuOpen ? "mobile-open" : ""}`}>
           <Link
-            to="/"
-            onClick={(e) => handleNavClick(e, 'home', true)}
-            className={`nav-item nav-home ${location.pathname === "/" && !location.hash ? "active" : ""}`}
-          >
-            HOME
-          </Link>
+  to="/"
+  onClick={(e) => {
+    handleNavClick(e, 'home', true);
+    setMobileMenuOpen(false);
+  }}
+  className={`nav-item nav-home ${location.pathname === "/" && !location.hash ? "active" : ""}`}
+>
+  HOME
+</Link>
 
           <Link
             to="/our-approach"
@@ -117,7 +127,6 @@ export default function Navbar({ onGetStarted }) {
             ABOUT US
           </Link>
 
-
           <Link
             to="/dashboard"
             className={`nav-item nav-dashboard ${location.pathname === "/dashboard" ? "active" : ""}`}
@@ -128,7 +137,8 @@ export default function Navbar({ onGetStarted }) {
           {/* SERVICES Dropdown */}
           <div className={`nav-item dropdown nav-services ${location.pathname.startsWith("/services") || location.hash === "#services" ? "active" : ""}`}>
             <span className="dropdown-trigger" onClick={(e) => handleNavClick(e, 'services', true)}>
-              SERVICES </span>
+              SERVICES
+            </span>
             <div className="dropdown-menu">
               <Link to="/services/fitness" className="dropdown-link">
                 <strong>FITNESS</strong>
@@ -148,21 +158,19 @@ export default function Navbar({ onGetStarted }) {
               </Link>
             </div>
           </div>
-         {/* FEATURES Dropdown */}
-<div className={`nav-item dropdown nav-features ${location.pathname.startsWith("/features") ? "active" : ""}`}>
-  <span className="dropdown-trigger">FEATURES</span>
-  <div className="dropdown-menu">
-   
-    
-    {/* Coming Soon still goes to /features/coming-soon */}
-    <Link to="/features/coming-soon" className="dropdown-link">
-      <strong>Coming Soon</strong>
-      <span>More exciting features</span>
-    </Link>
-  </div>
-</div>
+          
+          {/* FEATURES Dropdown */}
+          <div className={`nav-item dropdown nav-features ${location.pathname.startsWith("/features") ? "active" : ""}`}>
+            <span className="dropdown-trigger">FEATURES</span>
+            <div className="dropdown-menu">
+              <Link to="/features/coming-soon" className="dropdown-link">
+                <strong>Coming Soon</strong>
+                <span>More exciting features</span>
+              </Link>
+            </div>
+          </div>
 
-        <Link
+          <Link
             to="/faq"
             className={`nav-item nav-faq ${location.pathname === "/faq" ? "active" : ""}`}
           >
@@ -179,41 +187,48 @@ export default function Navbar({ onGetStarted }) {
           )}
 
           {isAuthenticated && (
-            <div className="profile-container" ref={dropdownRef}>
-              <div 
-                className="profile-avatar" 
-                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                title={username}
-              >
-                {profileImage ? (
-                  <img src={profileImage} alt="Avatar" className="navbar-avatar-image" />
-                ) : (
-                  getInitials(username)
+            <div className="user-welcome-container">
+              {/* ✅ WELCOME MESSAGE - BEFORE PROFILE */}
+              <span className="welcome-message">
+  Welcome, {username ? username.charAt(0).toUpperCase() + username.slice(1) : "User"}!
+</span>
+              
+              <div className="profile-container" ref={dropdownRef}>
+                <div 
+                  className="profile-avatar" 
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  title={username}
+                >
+                  {profileImage ? (
+                    <img src={profileImage} alt="Avatar" className="navbar-avatar-image" />
+                  ) : (
+                    getInitials(username)
+                  )}
+                </div>
+                
+                {showProfileDropdown && (
+                  <div className="profile-dropdown">
+                    <div className="dropdown-header">
+                      <p className="user-name">{username}</p>
+                      <p className="user-status">Online</p>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item" onClick={() => {navigate('/profile'); setShowProfileDropdown(false);}}>
+                      <User size={16} />
+                      <span>View Profile</span>
+                    </button>
+                    <button className="dropdown-item" onClick={() => {navigate('/profile/change-password'); setShowProfileDropdown(false);}}>
+                      <Key size={16} />
+                      <span>Change Password</span>
+                    </button>
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item logout" onClick={handleLogout}>
+                      <LogOut size={16} />
+                      <span>Logout</span>
+                    </button>
+                  </div>
                 )}
               </div>
-              
-              {showProfileDropdown && (
-                <div className="profile-dropdown">
-                  <div className="dropdown-header">
-                    <p className="user-name">{username}</p>
-                    <p className="user-status">Online</p>
-                  </div>
-                  <div className="dropdown-divider"></div>
-                  <button className="dropdown-item" onClick={() => {navigate('/profile'); setShowProfileDropdown(false);}}>
-                    <User size={16} />
-                    <span>View Profile</span>
-                  </button>
-                  <button className="dropdown-item" onClick={() => {navigate('/profile/change-password'); setShowProfileDropdown(false);}}>
-                    <Key size={16} />
-                    <span>Change Password</span>
-                  </button>
-                  <div className="dropdown-divider"></div>
-                  <button className="dropdown-item logout" onClick={handleLogout}>
-                    <LogOut size={16} />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>

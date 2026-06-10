@@ -40,12 +40,13 @@ import Blog from "./components/Blog";
 import Contact from "./components/Contact";
 import HelpCenter from "./components/HelpCenter";
 
-import MyResumes from "./components/MyResumes";
+
 import ResumeBuilder from "./components/Resumebuilderrouter";
 import Homepage from "./components/HomePage";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
 import Skill from "./components/skill";
+import { APP_ENV, API_BASE_URL } from "./config";
 import SkilDashboard from "./components/skilldashboard"
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
@@ -136,15 +137,7 @@ const AppLayout = () => {
         <Route path="/careers" element={<Careers />} />
         <Route path="/features" element={<Features />} />
 
-        {/* Resume Pages (No Navbar) */}
-        <Route
-          path="/my-resumes"
-          element={
-            <ProtectedRoute featureName="your resumes">
-              <MyResumes />
-            </ProtectedRoute>
-          }
-        />
+      
         <Route
           path="/builder"
           element={
@@ -185,7 +178,8 @@ const AppLayout = () => {
       {!hideFooter && <Footer />}
     </>
   );
-};
+};console.log("APP_ENV:", APP_ENV);
+console.log("API_BASE_URL:", API_BASE_URL);
 
 /* ---------------- APP ---------------- */
 function App() {

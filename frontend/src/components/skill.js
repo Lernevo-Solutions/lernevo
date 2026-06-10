@@ -23,41 +23,18 @@ const SkillGapAnalyzer = () => {
   const [fileName, setFileName] = useState('');
   const [uploadStatus, setUploadStatus] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isFirstLoad, setIsFirstLoad] = useState(true); // Changed to true
+  
   const [isDownloading, setIsDownloading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Get auth token from multiple possible locations
   const getAuthToken = () => {
     const token = localStorage.getItem('auth_token') || 
                   sessionStorage.getItem('auth_token') ||
                   localStorage.getItem('token') ||
                   sessionStorage.getItem('token');
-    
-    console.log("Retrieved token:", token ? token.substring(0, 20) + "..." : "No token found");
     return token;
   };
 
-  // Auto-load demo data - REMOVED token check from here
-  useEffect(() => {
-    if (isFirstLoad) {
-      setResumeText(`SENIOR FULL STACK DEVELOPER
-Email: john.doe@email.com | Phone: +1 234 567 8900
-
-PROFESSIONAL SUMMARY
-Innovative Full Stack Developer with 6+ years of experience building scalable web applications. Expert in React, Node.js, and cloud technologies.`);
-
-      setJobDescription(`SENIOR SOFTWARE ENGINEER - FULL STACK
-Company: TechInnovate Inc. | Location: Remote | Type: Full-Time
-
-REQUIRED SKILLS (Must Have)
-• React.js with Hooks, Context API
-• Node.js and Express.js`);
-      setIsFirstLoad(false);
-    }
-  }, [isFirstLoad]);
-
-  // ==================== DOWNLOAD REPORT AS PDF ====================
   const downloadReportAsPDF = async () => {
     if (!analysisResult) {
       alert('Please analyze your resume first before downloading the report.');
@@ -116,7 +93,7 @@ REQUIRED SKILLS (Must Have)
       setFileName(file.name);
       setUploadStatus({
         type: 'success',
-        message: `📄 ${file.name} attached successfully. Click analyze to extract text via Django backend.`,
+        message: `📄 ${file.name} attached successfully.`,
       });
     } else if (file.type === 'text/plain') {
       setResumeFile(file);
@@ -135,7 +112,6 @@ REQUIRED SKILLS (Must Have)
     }
   };
 
-  // ==================== CONNECT TO BACKEND API WITH AUTH ====================
   const analyzeGap = async () => {
     if (!resumeFile && !resumeText.trim()) {
       alert('Please upload a resume file or enter resume text.');
@@ -146,12 +122,8 @@ REQUIRED SKILLS (Must Have)
       return;
     }
 
-    // Check for authentication token
     const token = getAuthToken();
-    console.log("Token being sent:", token);
-    
     if (!token) {
-      alert('Please login first to analyze your skill gap. Redirecting to login page...');
       navigate('/login');
       return;
     }
@@ -173,7 +145,7 @@ REQUIRED SKILLS (Must Have)
       formData.append('job_title', '');
       formData.append('company_name', '');
 
-      const response = await fetch('http://localhost:8000/api/analyze-skill-gap/', {
+      const response = await fetch('https://lernevo-backend-237359549871.us-central1.run.app/api/analyze-skill-gap/', {
         method: 'POST',
         headers: {
           'Authorization': `Token ${token}`,
@@ -181,32 +153,52 @@ REQUIRED SKILLS (Must Have)
         body: formData,
       });
 
-      console.log("Response status:", response.status);
-
-      // Handle 401 Unauthorized
       if (response.status === 401) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('auth_token');
-        sessionStorage.removeItem('token');
-        
-        alert('Session expired or invalid token. Please login again.');
-        navigate('/login');
+        setUploadStatus({
+          type: 'error',
+          message: 'Authentication error. Please try again.',
+        });
+        setIsLoading(false);
         return;
       }
 
       const result = await response.json();
       console.log("API Response:", result);
-
+      
       if (result.success) {
-        setAnalysisResult(result.data);
-        localStorage.setItem('analysisResult', JSON.stringify(result.data));
-        // Save resume text for AI Resume Detector in dashboard
-        // If PDF was uploaded, backend may return extracted_text — prefer that
-        const extractedText = result.data?.extracted_text || result.extracted_text || resumeText || '';
-        localStorage.setItem('resumeText', extractedText);
-        localStorage.setItem('jobDescription', jobDescription || '');
-        navigate('/skilldashboard');
+        const analysisData = result.data;
+        
+        // ✅ CRITICAL: Get the extracted text from backend response
+        // This is the text that will be used for AI detection
+        const extractedResumeText = analysisData.extracted_resume_text || resumeText;
+        
+        console.log("========================================");
+        console.log("EXTRACTED RESUME TEXT LENGTH:", extractedResumeText.length);
+        console.log("EXTRACTED TEXT PREVIEW:", extractedResumeText.substring(0, 200));
+        console.log("========================================");
+        
+        // ✅ Save detection data
+        if (analysisData.resume_detection) {
+          localStorage.setItem("resumeDetection", JSON.stringify(analysisData.resume_detection));
+          console.log("Detection saved");
+        }
+        
+        // ✅ CRITICAL: Save the extracted text to localStorage
+        localStorage.setItem("resumeText", extractedResumeText);
+        localStorage.setItem("jobDescription", jobDescription);
+        localStorage.setItem("latest_analysis_id", analysisData.id);
+        localStorage.setItem("latest_analysis", JSON.stringify(analysisData));
+        
+        // ✅ Verify localStorage was set
+        console.log("Verification - resumeText in localStorage:", localStorage.getItem("resumeText")?.length, "characters");
+
+        navigate('/skilldashboard', {
+          state: { 
+            analysis: analysisData,
+            detection: analysisData.resume_detection,
+            resumeText: extractedResumeText  // ✅ Pass the text
+          }
+        });
       } else {
         setUploadStatus({
           type: 'error',
@@ -217,7 +209,7 @@ REQUIRED SKILLS (Must Have)
       console.error('API Interaction Failed:', error);
       setUploadStatus({
         type: 'error',
-        message: 'Cannot reach backend server. Make sure your Django application is running on port 8000.',
+        message: 'Cannot reach backend server.',
       });
     } finally {
       setIsLoading(false);
@@ -226,7 +218,6 @@ REQUIRED SKILLS (Must Have)
 
   return (
     <div className="sgap-app">
-      {/* Background Decoration */}
       <div className="sgap-bg-decoration">
         <div className="sgap-circle sgap-circle-1"></div>
         <div className="sgap-circle sgap-circle-2"></div>
@@ -235,7 +226,6 @@ REQUIRED SKILLS (Must Have)
       </div>
 
       <div className="wellness-layout-wrapper">
-        {/* Left Side Ad */}
         <div className="side-ad left-ad">
           <div className="ad-track move-down">
             {[f1, f2, f3, f4, f5, f1, f2, f3, f4, f5].map((img, index) => (
@@ -244,7 +234,6 @@ REQUIRED SKILLS (Must Have)
           </div>
         </div>
 
-        {/* Right Side Ad */}
         <div className="side-ad right-ad">
           <div className="ad-track move-up">
             {[f6, f7, f8, f1, f6, f7, f8, f1].map((img, index) => (
@@ -253,7 +242,6 @@ REQUIRED SKILLS (Must Have)
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="sgap-container">
           {analysisResult && (
             <div className="sgap-download-report-btn-container">

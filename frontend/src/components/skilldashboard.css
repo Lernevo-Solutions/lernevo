@@ -5090,3 +5090,171 @@ circle[stroke="#eef2ff"] { stroke: #e8edff !important; }
   font-size: 9px !important;
   color: #94a3b8 !important;
 }
+/* ═══════════════════════════════════════════════════════
+   📱 MOBILE RESPONSIVE — SKILL DASHBOARD
+   Applies to all screens ≤ 768px
+   ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Dashboard shell ── */
+  .sd-dashboard {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  /* ── All rows → single column stack ── */
+  .sd-r1,
+  .sd-r2,
+  .sd-r3,
+  .sd-r4 {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* ── Cards: auto height, full width ── */
+  .sd-r1 .sd-card,
+  .sd-r2 .sd-card,
+  .sd-r3 .sd-card,
+  .sd-r4 .sd-card {
+    height: auto !important;
+    min-height: unset !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ── ATS card ── */
+  .sd-ats-card {
+    padding: 20px 16px !important;
+    gap: 12px !important;
+  }
+  .sd-ats-pct { font-size: 28px !important; }
+
+  /* ── Metrics card: 2x2 grid on mobile ── */
+  .sd-met-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .sd-met3 {
+    flex: unset !important;
+    padding: 10px !important;
+  }
+  .sd-met-val  { font-size: 18px !important; }
+  .sd-met.sd-sep { border-right: none !important; border-bottom: 1px solid #f1f5f9 !important; }
+
+  /* ── AI Summary card ── */
+  .sd-ai-card { padding: 16px !important; }
+  .sd-ai-body { font-size: 12px !important; }
+
+  /* ── Radar chart ── */
+  .sd-radar-container svg {
+    max-height: 220px !important;
+  }
+
+  /* ── Resume quality grid: 2 cols on mobile ── */
+  .sd-qv2-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .sd-qv2-divider {
+    display: none !important;
+  }
+
+  /* ── Job Match card body: stack vertically ── */
+  .sd-jm-body {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+  .sd-jm-roles { width: 100% !important; }
+
+  /* ── Market demand row: wrap ── */
+  .sd-jm-stats-row {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: center !important;
+  }
+
+  /* ── Daily Goals card ── */
+  .sd-dg-header {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* ── Skill Gap tags: wrap ── */
+  .sd-sg-tags {
+    flex-wrap: wrap !important;
+  }
+  .sd-sg-tag {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+  }
+
+  /* ── Focus areas ── */
+  .sd-focus-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+
+  /* ── AI Career Suggestions: stack cards ── */
+  .sd-acs-card [style*="flex:1"] {
+    flex: unset !important;
+    min-height: 60px !important;
+  }
+
+  /* ── Priority matrix ── */
+  .sd-pm-row {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  /* ── Shared text sizes ── */
+  .sd-ctitle { font-size: 14px !important; }
+  .sd-csub   { font-size: 11px !important; }
+
+  /* ── Ring size scale-down ── */
+  .sd-ring-wrap {
+    transform: scale(0.85) !important;
+    transform-origin: center !important;
+  }
+
+  /* ── Career Impact card items ── */
+  .sd-c-metric {
+    padding: 10px 0 !important;
+  }
+  .sd-c-val { font-size: 15px !important; }
+
+  /* ── Tips card rows ── */
+  .sd-tip-row {
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* ── AI Detector card ── */
+  .sd-ai-detector-card {
+    padding: 16px !important;
+  }
+}
+
+/* ── Extra small screens (< 400px) ── */
+@media (max-width: 400px) {
+  .sd-dashboard { padding: 8px !important; }
+
+  .sd-met-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .sd-qv2-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .sd-ats-pct { font-size: 24px !important; }
+
+  .sd-ring-wrap {
+    transform: scale(0.75) !important;
+  }
+
+  .sd-jm-stat-val { font-size: 11px !important; }
+}
