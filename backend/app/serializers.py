@@ -10,6 +10,7 @@ from .models import (
     Organization,
     Resume,
     ResumeCertification,
+    ResumeDetection,
     ResumeExperience,
     ResumeLanguage,
     ResumeOptionalSection,
@@ -530,3 +531,24 @@ class SkillGapAnalysisSerializer(serializers.ModelSerializer):
         fields = "__all__"
         # open_jobs, salary_range, growth_rate are direct model fields,
         # so fields = "__all__" already includes them automatically.
+        
+        
+
+
+class ResumeDetectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResumeDetection
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at')
+
+class ResumeDetectionResponseSerializer(serializers.Serializer):
+    resume_type = serializers.CharField()
+    detection_confidence = serializers.CharField()
+    ai_written_probability = serializers.IntegerField()
+    human_written_probability = serializers.IntegerField()
+    ai_signals = serializers.ListField()
+    human_signals = serializers.ListField()
+    strengths = serializers.ListField()
+    red_flags = serializers.ListField()
+    recommendation = serializers.CharField()
+    analyzed_from_text = serializers.BooleanField(default=False)

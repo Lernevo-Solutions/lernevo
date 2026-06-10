@@ -1,7 +1,9 @@
+# skill_gap_prompts.py
+
 SKILL_GAP_PROMPT = """
 You are an expert ATS Resume Analyzer and Career AI with 10+ years of experience.
 
-Analyze the resume against the job description carefully. Return ONLY valid JSON.
+Analyze the user's resume against the provided job description carefully. Identify matching competencies and clear technological skill gaps, then return ONLY valid JSON.
 
 Resume:
 {resume_text}
@@ -9,84 +11,76 @@ Resume:
 Job Description:
 {job_description}
 
-Return EXACTLY this JSON structure with DETAILED and VARIED content:
+Return EXACTLY this JSON structure with real, highly-specific data extracted from the context. Do NOT leave strings empty ("") or arrays blank ([]):
 
 {{
-  "ats_score": 75,
-  "match_score": 70,
-  "gap_score": 30,
+  "ats_score": 65,
+  "match_score": 60,
+  "gap_score": 40,
+  "open_jobs": 1240,
+  "salary_range": "15-25 LPA",
+  "growth_rate": "24%",
 
-"market_demand": {{
-  "open_jobs": 2450,
-  "salary_range": "18-25 LPA",
-  "growth_rate": "22%"
-}},
-  "matched_skills": ["React.js", "Node.js", "JavaScript", "Express.js", "MongoDB"],
-  "missing_skills": ["TypeScript", "AWS", "Docker", "GraphQL", "Redis"],
+  "skills": [
+    {{"skill_name": "React.js", "status": "MATCHED", "score": 90}},
+    {{"skill_name": "Node.js", "status": "MATCHED", "score": 85}},
+    {{"skill_name": "Express.js", "status": "MISSING", "score": 40}},
+    {{"skill_name": "Context API", "status": "MISSING", "score": 35}},
+    {{"skill_name": "TypeScript", "status": "MISSING", "score": 30}}
+  ],
+
   "resume_metrics": [
-    {{"name": "Keyword Density", "score": 68, "label": "Good"}},
-    {{"name": "Formatting", "score": 85, "label": "Excellent"}},
-    {{"name": "Experience Match", "score": 72, "label": "Good"}},
-    {{"name": "Soft Skills", "score": 65, "label": "Fair"}},
-    {{"name": "ATS Compatibility", "score": 78, "label": "High"}},
-    {{"name": "Relevance Score", "score": 70, "label": "Solid"}}
+    {{"metric_type": "KEYWORD_DENSITY", "score": 55, "label": "Needs Work"}},
+    {{"metric_type": "FORMATTING", "score": 90, "label": "Excellent"}},
+    {{"metric_type": "EXPERIENCE_MATCH", "score": 80, "label": "Strong"}},
+    {{"metric_type": "SOFT_SKILLS", "score": 45, "label": "Fair"}},
+    {{"metric_type": "ATS_COMPATIBILITY", "score": 65, "label": "Solid"}},
+    {{"metric_type": "RELEVANCE_SCORE", "score": 60, "label": "Average"}}
   ],
+
   "job_matches": [
-    {{"role": "Senior Full Stack Developer", "match_percentage": 85, "average_salary": "$120,000", "demand_level": "HIGH"}},
-    {{"role": "Frontend Team Lead", "match_percentage": 78, "average_salary": "$110,000", "demand_level": "MEDIUM"}},
-    {{"role": "Software Architect", "match_percentage": 72, "average_salary": "$135,000", "demand_level": "HIGH"}}
+    {{"role_name": "Senior Full Stack Developer", "match_percentage": 82}},
+    {{"role_name": "MERN Stack Engineer", "match_percentage": 75}},
+    {{"role_name": "React Frontend Lead", "match_percentage": 68}}
   ],
+
   "career_suggestions": [
-    {{"skill": "React.js", "role": "Frontend Architect", "description": "Master React to lead UI teams"}},
-    {{"skill": "Node.js", "role": "Backend Lead", "description": "Build scalable APIs with Node"}},
-    {{"skill": "AWS", "role": "Cloud Engineer", "description": "Learn cloud deployment"}},
-    {{"skill": "TypeScript", "role": "Senior Developer", "description": "Type safety for large apps"}}
+    {{"skill_name": "React.js", "role_name": "Frontend Architect"}},
+    {{"skill_name": "Node.js", "role_name": "Backend Engineer"}},
+    {{"skill_name": "Express.js", "role_name": "API Framework Specialist"}}
   ],
-  "learning_roadmap": [
-    {{"skill": "TypeScript", "youtube_link": "https://youtube.com/results?search_query=typescript+tutorial", "google_link": "https://www.google.com/search?q=learn+typescript", "priority": "HIGH"}},
-    {{"skill": "AWS", "youtube_link": "https://youtube.com/results?search_query=aws+tutorial", "google_link": "https://www.google.com/search?q=learn+AWS", "priority": "HIGH"}},
-    {{"skill": "Docker", "youtube_link": "https://youtube.com/results?search_query=docker+tutorial", "google_link": "https://www.google.com/search?q=learn+docker", "priority": "MEDIUM"}}
+
+  "learning_roadmaps": [
+    {{"skill_name": "Express.js", "youtube_link": "https://youtube.com/results?search_query=express+js+tutorial", "google_link": "https://www.google.com/search?q=learn+express+js"}},
+    {{"skill_name": "Context API", "youtube_link": "https://youtube.com/results?search_query=react+context+api+tutorial", "google_link": "https://www.google.com/search?q=react+context+api+patterns"}},
+    {{"skill_name": "TypeScript", "youtube_link": "https://youtube.com/results?search_query=typescript+tutorial+beginners", "google_link": "https://www.google.com/search?q=learn+typescript+for+react"}}
   ],
+
   "improvement_tips": [
-    {{"title": "Add More Quantifiable Achievements", "impact": "+15%", "description": "Add numbers like 'increased performance by 30%'"}},
-    {{"title": "Include Action Verbs", "impact": "+10%", "description": "Use words like 'built', 'developed', 'architected'"}},
-    {{"title": "Highlight Leadership Experience", "impact": "+12%", "description": "Show team lead or mentoring experience"}},
-    {{"title": "Add Certifications Section", "impact": "+8%", "description": "Include relevant certifications"}},
-    {{"title": "Improve Keyword Matching", "impact": "+14%", "description": "Match keywords exactly from job description"}}
+    {{"title": "Explicitly list React Hooks and Context API usage", "impact_percentage": 25, "description": "Add specific hooks like useState, useEffect, useContext with real project examples to improve ATS keyword matching."}},
+    {{"title": "Detail Express.js middleware and routing", "impact_percentage": 20, "description": "Highlight REST API design, middleware chains and authentication flows built with Express.js."}},
+    {{"title": "Quantify project metrics and achievements", "impact_percentage": 18, "description": "Replace vague statements with numbers: improved performance by 40%, reduced load time by 2s, handled 10k requests/day."}},
+    {{"title": "Add TypeScript experience or willingness to learn", "impact_percentage": 15, "description": "Even basic TypeScript knowledge or online course completion signals strong adaptability to modern codebases."}},
+    {{"title": "Include CI/CD and deployment experience", "impact_percentage": 12, "description": "Mention tools like GitHub Actions, Docker, or AWS deployments to show production-readiness and DevOps awareness."}}
   ],
-  
+
   "focus_areas": [
-    {{"title": "Cloud Skills", "description": "Learn AWS or Azure for better opportunities", "priority": "HIGH"}},
-    {{"title": "TypeScript", "description": "Add TypeScript to your tech stack", "priority": "HIGH"}},
-    {{"title": "Containerization", "description": "Learn Docker and Kubernetes", "priority": "MEDIUM"}},
-    {{"title": "Testing Frameworks", "description": "Learn Jest, Mocha or similar", "priority": "MEDIUM"}},
-    {{"title": "CI/CD Pipeline", "description": "Learn Jenkins or GitHub Actions", "priority": "LOW"}}
+    {{"title": "Framework Specialization", "description": "Explicitly write out Hooks, Context API, and state management patterns like Redux or Zustand in your resume.", "priority": "CRITICAL"}},
+    {{"title": "Backend API Depth", "description": "Highlight modular Express.js routing, middleware design, and REST API documentation experience.", "priority": "HIGH"}},
+    {{"title": "Type Safety and Modern JavaScript", "description": "Learn and showcase TypeScript usage with React components and Node.js services for modern job requirements.", "priority": "HIGH"}},
+    {{"title": "Testing and Code Quality", "description": "Add unit testing experience with Jest, React Testing Library, or Cypress to demonstrate production-grade development habits.", "priority": "MEDIUM"}},
+    {{"title": "Cloud and Deployment Skills", "description": "Showcase any AWS, GCP, or Azure experience including S3, EC2, Lambda, or containerization with Docker.", "priority": "MEDIUM"}}
   ]
 }}
 
 IMPORTANT RULES:
-- Return ONLY valid JSON
-- NO markdown formatting like ```json
-- NO explanations before or after
-- Use double quotes for all strings
-- All numeric values should be numbers, not strings
-- Make the content DETAILED and SPECIFIC to the resume and job
-- Provide 3-5 items for arrays, not just 1
-- Make improvement_tips have 5 items with varied content
-- Make focus_areas have 4-5 items
-- Make career_suggestions have 4 items with descriptions
-- Make learning_roadmap have 3-4 items
-- market_demand object is REQUIRED
-- open_jobs must be integer
-- salary_range must be string
-- growth_rate must be string percentage
-- Do NOT use generic/template responses
-- Generate unique data based on resume and job description
-- Generate realistic market demand based on skill demand
-- Generate dynamic salaries based on role seniority
-- Skill scores must vary
-- Priority levels must vary
+- Return ONLY valid JSON. No conversational text, no markdown, no backticks.
+- Never output empty strings like "" for names or roles. If a skill or role is empty, invent a logical industry equivalent based on the Tech Stack context.
+- The "skills" array must NOT be empty. Populate it with keywords checked from the Job Description.
+- The "learning_roadmaps" array must NOT be empty. Map out links for every missing skill identified.
+- The "improvement_tips" array MUST contain EXACTLY 5 items with title, impact_percentage (integer), and description fields.
+- The "focus_areas" array MUST contain EXACTLY 5 items with title, description, and priority fields.
+- Ensure all numeric values are integers, not strings.
+- impact_percentage must be an integer (e.g. 25), NOT a string (e.g. "25%").
+
 """
-
-
-
