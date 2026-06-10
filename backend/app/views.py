@@ -1,3 +1,4 @@
+from ast import Dict
 import token
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -25,62 +26,246 @@ from .models import UserProfile
 from .models import User, UserOTP
 from .serializers import DemoBookingSerializer, RegisterSerializer, LoginSerializer, OTPRequestSerializer
 from .serializers import ProfileSerializer, ProfileImageSerializer
-from .models import User as LernevoUser   
+from .models import User as LernevoUser 
+from django.db.models import Q
+from django.db import transaction  
+import random
 import logging
 logger = logging.getLogger(__name__)
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
+    @transaction.atomic
     def post(self, request):
+        print("=" * 60)
+        print("📝 REGISTRATION STARTED")
+        
         try:
-            email = (request.data.get("email") or "").strip().lower()
-
-            otp_verified = UserOTP.objects.filter(
+            # Get data from request
+            email = request.data.get("email", "").strip().lower()
+            username = request.data.get("username", "").strip().lower()
+            password = request.data.get("password")
+            mobile = request.data.get("mobile", "")
+            name = request.data.get("name", "")
+            user_code = request.data.get("user_code")
+            
+            print(f"Email: {email}")
+            print(f"Username: {username}")
+            print(f"Mobile: {mobile}")
+            
+            # Validation
+            if not email or not username or not password:
+                return Response(
+                    {"detail": "Email, username and password are required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if user already exists
+            if AuthUser.objects.filter(email__iexact=email).exists():
+                print(f"❌ Email already exists: {email}")
+                return Response(
+                    {"detail": "Email already registered"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if AuthUser.objects.filter(username__iexact=username).exists():
+                print(f"❌ Username already exists: {username}")
+                return Response(
+                    {"detail": "Username already taken"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check mobile in custom table
+            if mobile and LernevoUser.objects.filter(mobile=mobile, is_delete=False).exists():
+                print(f"❌ Mobile already exists: {mobile}")
+                return Response(
+                    {"detail": "Mobile number already registered"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # STEP 1: Create Django auth_user
+            print("Step 1: Creating Django auth_user...")
+            auth_user = AuthUser.objects.create_user(
+                username=username,
                 email=email,
-                is_used=True,
-                used_at__isnull=False,
-                used_at__gte=now() - timedelta(minutes=15),
-                is_delete=False,
-            ).exists()
-            if not otp_verified:
-                return Response({"detail": "Email not verified via OTP"}, status=400)
-
-            payload = request.data.copy()
-            payload["email"] = email
-
-            serializer = RegisterSerializer(data=payload)
-            serializer.is_valid(raise_exception=True)
-            auth_user = serializer.save()
-
-            UserOTP.objects.filter(
-                email=email,
-                is_used=True,
-                used_at__isnull=False,
-                is_delete=False,
-            ).update(is_delete=True, deleted_at=now())
-
-            custom_user = LernevoUser.objects.get(auth_user=auth_user)
-
-            token = None
-            try:
-                token = Token.objects.get(user=auth_user)
-            except Token.DoesNotExist:
-                token = Token.objects.create(user=auth_user)
-
-            if not token:
-                return Response({"detail": "Token creation failed"}, status=500)
-
-            return Response(
-                {
-                    "message": "User registered successfully",
-                    "token": token.key,
-                    "user_code": custom_user.user_code,
-                },
-                status=201,
+                password=password
             )
+            auth_user.first_name = name
+            auth_user.save()
+            print(f"✅ Auth user created: ID={auth_user.id}")
+            
+            # STEP 2: Generate unique user_code
+            if not user_code:
+                user_code = str(random.randint(100000, 999999))
+                while LernevoUser.objects.filter(user_code=user_code).exists():
+                    user_code = str(random.randint(100000, 999999))
+            
+            # STEP 3: Create custom LernevoUser
+            print("Step 2: Creating custom LernevoUser...")
+            custom_user = LernevoUser.objects.create(
+                auth_user=auth_user,
+                mobile=mobile,
+                user_code=user_code
+            )
+            print(f"✅ Custom user created: ID={custom_user.id}, Code={user_code}")
+            
+            # STEP 4: Create auth token
+            print("Step 3: Creating auth token...")
+            token, _ = Token.objects.get_or_create(user=auth_user)
+            
+            # VERIFY both records exist
+            print("\n📋 VERIFICATION:")
+            auth_exists = AuthUser.objects.filter(id=auth_user.id).exists()
+            custom_exists = LernevoUser.objects.filter(id=custom_user.id).exists()
+            print(f"  - Auth user in DB: {auth_exists}")
+            print(f"  - Custom user in DB: {custom_exists}")
+            
+            if not auth_exists or not custom_exists:
+                raise Exception("Failed to save user data to database")
+            
+            print("=" * 60)
+            print(f"✅ REGISTRATION SUCCESSFUL for {username}")
+            print("=" * 60)
+            
+            return Response({
+                "message": "User registered successfully",
+                "token": token.key,
+                "user_code": custom_user.user_code,
+                "user_name": auth_user.username,
+                "email": auth_user.email,
+                "name": auth_user.first_name,
+                "mobile": custom_user.mobile
+            }, status=status.HTTP_201_CREATED)
+            
         except Exception as e:
-            logger.error(f"RegisterView error: {str(e)}", exc_info=True)
-            return Response({"detail": "Internal server error"}, status=500)
+            print(f"❌ Registration error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {"detail": f"Registration failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# ============================================================
+# LOGIN VIEW - Finds user from both tables
+# ============================================================
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        print("=" * 60)
+        print("🔐 LOGIN ATTEMPT")
+        
+        # Get credentials
+        identifier = request.data.get("username", "").strip()
+        password = request.data.get("password", "")
+        
+        print(f"Identifier: {identifier}")
+        
+        if not identifier or not password:
+            return Response(
+                {"detail": "Username/email and password are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Find user in auth_user table (case insensitive)
+        user = AuthUser.objects.filter(
+            Q(username__iexact=identifier) | Q(email__iexact=identifier)
+        ).first()
+        
+        if not user:
+            print(f"❌ User not found: {identifier}")
+            
+            # Debug: Show all existing users
+            print("\n📋 Existing users in database:")
+            all_users = AuthUser.objects.all().values('username', 'email')
+            for u in all_users:
+                print(f"  - {u['username']} | {u['email']}")
+            
+            return Response(
+                {"detail": "User not found. Please register first."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        print(f"✅ User found: {user.username}")
+        
+        # Verify password
+        if not user.check_password(password):
+            print(f"❌ Invalid password")
+            return Response(
+                {"detail": "Invalid password"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        print(f"✅ Password verified")
+        
+        # Get or create token
+        token, _ = Token.objects.get_or_create(user=user)
+        
+        # Get custom user data
+        try:
+            custom_user = LernevoUser.objects.get(auth_user=user)
+            user_code = custom_user.user_code
+            mobile = custom_user.mobile
+            print(f"✅ Custom user found: code={user_code}, mobile={mobile}")
+        except LernevoUser.DoesNotExist:
+            print(f"⚠️ Custom user missing! Creating now...")
+            # Auto-create missing custom user (fix for old users)
+            user_code = str(random.randint(100000, 999999))
+            while LernevoUser.objects.filter(user_code=user_code).exists():
+                user_code = str(random.randint(100000, 999999))
+            
+            custom_user = LernevoUser.objects.create(
+                auth_user=user,
+                mobile="",
+                user_code=user_code
+            )
+            user_code = custom_user.user_code
+            mobile = ""
+            print(f"✅ Created missing custom user with code: {user_code}")
+        
+        print("=" * 60)
+        print(f"✅ LOGIN SUCCESSFUL for {user.username}")
+        print("=" * 60)
+        
+        return Response({
+            "message": "Login successful",
+            "token": token.key,
+            "user_name": user.username,
+            "email": user.email,
+            "name": user.first_name,
+            "user_code": user_code,
+            "mobile": mobile
+        }, status=status.HTTP_200_OK)
+
+class DBCheckView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from django.db import connection
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT 1")
+
+            user_count = AuthUser.objects.count()
+            lernevo_count = LernevoUser.objects.count()
+
+            return Response({
+                "status": "connected",
+                "db_engine": connection.vendor,
+                "db_name": connection.settings_dict.get("NAME", "unknown"),
+                "db_host": connection.settings_dict.get("HOST", "localhost (SQLite)"),
+                "auth_user_count": user_count,
+                "lernevo_user_count": lernevo_count,
+                "warning": (
+                    "⚠️ SQLite used - data LOST on container restart!"
+                    if connection.vendor == "sqlite"
+                    else "✅ Persistent DB connected"
+                )
+            }, status=200)
+        except Exception as e:
+            return Response({"status": "error", "error": str(e)}, status=500)
 # ---------------- OTP for registration only ----------------
 class OTPView(APIView):
     permission_classes = [AllowAny]
@@ -192,49 +377,6 @@ class OTPView(APIView):
 from django.db.models import Q
 
 
-class LoginView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        # input-ai eduthu trim seithu lower case-ku maathuvom
-        identifier = request.data.get("username", "").strip().lower() 
-        password = request.data.get("password")
-
-        if not identifier or not password:
-            return Response(
-                {"detail": "Username/email and password are required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Inga dhaan logic: identifier-ai username matrum email rendu koodavum match panni paarkurom
-        user = AuthUser.objects.filter(
-            Q(username__iexact=identifier) | Q(email__iexact=identifier)
-        ).first()
-
-        if not user:
-            return Response(
-                {"detail": "User not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Password correct-aa nu check pannuvom
-        if not user.check_password(password):
-            return Response(
-                {"detail": "Invalid password"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Token generate panni anupuvom
-        token, _ = Token.objects.get_or_create(user=user)
-
-        return Response(
-            {
-                "message": "Login successful", 
-                "token": token.key,
-                "user_name": user.username # Frontend-ku real username-aiye anupuvom
-            },
-            status=status.HTTP_200_OK
-        )
 
 
 class CheckAvailabilityView(APIView):
@@ -1467,7 +1609,12 @@ from .vertex_ai_service import (
     vertex_service
 )
 
-
+from .vertex_ai_service import (
+    vertex_service
+)
+import pytesseract
+from PIL import Image
+import io
 class AnalyzeSkillGapAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
@@ -1481,43 +1628,88 @@ class AnalyzeSkillGapAPIView(APIView):
             company_name = request.data.get("company_name", "")
 
             if not resume_file:
-                return Response({
-                    "success": False,
-                    "message": "Resume file required"
-                }, status=400)
+                return Response({"success": False, "message": "Resume file required"}, status=400)
 
             if not job_description:
-                return Response({
-                    "success": False,
-                    "message": "Job description required"
-                }, status=400)
+                return Response({"success": False, "message": "Job description required"}, status=400)
 
-            # Extract text from file
+            # ── Extract text from file ──────────────────────────────────────
             pdf_text = ""
+            resume_bytes = resume_file.read() # Read once to avoid cursor issues
+
             if resume_file.name.endswith('.txt'):
-                pdf_text = resume_file.read().decode('utf-8')
+                pdf_text = resume_bytes.decode('utf-8')
             else:
-                pdf_document = fitz.open(stream=resume_file.read(), filetype="pdf")
+                # 1. Try standard text extraction first
+                pdf_document = fitz.open(stream=resume_bytes, filetype="pdf")
                 for page in pdf_document:
                     pdf_text += page.get_text()
+                
+                # 2. 🔥 FIX: Fallback to OCR if extracted text is too short or missing (Scanned PDFs)
+                if len(pdf_text.strip()) < 150: 
+                    print("⚠️ Standard text extraction failed or insufficient. Switching to OCR...")
+                    pdf_text = "" # Reset
+                    for page in pdf_document:
+                        # Render page to a high-res image (pixmap)
+                        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2)) 
+                        image_data = pix.tobytes("png")
+                        image = Image.open(io.BytesIO(image_data))
+                        
+                        # Run OCR on the page image
+                        page_ocr_text = pytesseract.image_to_string(image)
+                        pdf_text += page_ocr_text + "\n"
+                
                 pdf_document.close()
 
-            # Store resume
+            print(f"📄 Total Extracted Text Length: {len(pdf_text)}")  # Debug
+
+            # Protect against entirely unreadable files
+            if len(pdf_text.strip()) < 10:
+                return Response({
+                    "success": False, 
+                    "message": "Could not read the resume text. Please ensure the file is not corrupted or password-protected."
+                }, status=400)
+
+            # ── Store resume ────────────────────────────────────────────────
             skill_gap_resume = SkillGapResume.objects.create(
                 user=user,
                 resume_pdf=resume_file,
                 extracted_text=pdf_text
             )
 
-            # AI Analysis
+            # ── AI Analysis ─────────────────────────────────────────────────
             ai_response = vertex_service.analyze_skill_gap(
                 resume_text=pdf_text,
                 job_description=job_description
             )
-            market_data = ai_response.get("market_demand", {})
-            print("AI Response received:", ai_response)  # Debug log
+            print("AI Response received:", ai_response)
+            
+            # Get resume detection result
+            detection_result = None
+            try:
+                detection_result = vertex_service.detect_resume_authenticity(
+                    resume_text=pdf_text,
+                    job_description=job_description,
+                    ats_score=ai_response.get("ats_score", 65)
+                )
+                detection_result['analyzed_from_text'] = bool(pdf_text and len(pdf_text) > 100)
+                print("Detection result received")
+            except Exception as detect_error:
+                print(f"Detection error (non-critical): {detect_error}")
+                detection_result = {
+                    "resume_type": "Hybrid",
+                    "detection_confidence": "Low",
+                    "ai_written_probability": 35,
+                    "human_written_probability": 65,
+                    "ai_signals": ["Detection service temporarily unavailable"],
+                    "human_signals": ["Unable to perform deep analysis"],
+                    "strengths": ["Basic resume structure detected"],
+                    "red_flags": ["Limited analysis available"],
+                    "recommendation": "Please try again later for complete detection.",
+                    "analyzed_from_text": False
+                }
 
-            # Save analysis
+            # ── Create Analysis Record ─────────────────────────────────────
             analysis = SkillGapAnalysis.objects.create(
                 user=user,
                 resume=skill_gap_resume,
@@ -1528,78 +1720,71 @@ class AnalyzeSkillGapAPIView(APIView):
                 match_score=ai_response.get("match_score", 60),
                 gap_score=ai_response.get("gap_score", 40),
                 resume_quality_score=ai_response.get("ats_score", 65),
-                open_jobs=market_data.get("open_jobs", 0),
-                salary_range=market_data.get("salary_range", ""),
-                growth_rate=market_data.get("growth_rate", "")
+                open_jobs=ai_response.get("open_jobs", 0),
+                salary_range=ai_response.get("salary_range", ""),
+                growth_rate=ai_response.get("growth_rate", ""),
             )
 
-            # Save Resume Metrics (NEW)
-            resume_metrics = ai_response.get("resume_metrics", [])
-            for metric in resume_metrics:
+            # ── Resume Metrics ─────────────────────────────────────────────
+            for metric in ai_response.get("resume_metrics", []):
                 ResumeMetric.objects.create(
                     analysis=analysis,
-                    metric_type=metric.get("name", "").upper().replace(" ", "_"),
+                    metric_type=metric.get("metric_type", "").upper().replace(" ", "_"),
                     score=metric.get("score", 70),
                     label=metric.get("label", "")
                 )
 
-            # Save matched skills
-            for skill in ai_response.get("matched_skills", []):
+            # ── Skills ─────────────────────────────────────────────────────
+            for skill in ai_response.get("skills", []):
                 SkillAnalysis.objects.create(
                     analysis=analysis,
-                    skill_name=skill,
-                    status="MATCHED",
-                    score=85
+                    skill_name=skill.get("skill_name", ""),
+                    status=skill.get("status", "MATCHED").upper(),
+                    priority="HIGH" if skill.get("status", "").upper() == "MISSING" else "MEDIUM",
+                    score=skill.get("score", 70)
                 )
 
-            # Save missing skills
-            for skill in ai_response.get("missing_skills", []):
-                SkillAnalysis.objects.create(
-                    analysis=analysis,
-                    skill_name=skill,
-                    status="MISSING",
-                    priority="HIGH",
-                    score=30
-                )
-
-            # Save job matches
+            # ── Job Matches ────────────────────────────────────────────────
             for item in ai_response.get("job_matches", []):
                 JobRoleMatch.objects.create(
                     analysis=analysis,
-                    role_name=item.get("role", ""),
+                    role_name=item.get("role_name", item.get("role", "")),
                     match_percentage=item.get("match_percentage", 0),
                     average_salary=item.get("average_salary", ""),
                     demand_level=item.get("demand_level", "")
                 )
 
-            # Save career suggestions
+            # ── Career Suggestions ─────────────────────────────────────────
             for item in ai_response.get("career_suggestions", []):
                 AICareerSuggestion.objects.create(
                     analysis=analysis,
-                    skill_name=item.get("skill", ""),
-                    role_name=item.get("role", ""),
+                    skill_name=item.get("skill_name", item.get("skill", "")),
+                    role_name=item.get("role_name", item.get("role", "")),
                     is_matched=True
                 )
 
-            # Save learning roadmap
-            for item in ai_response.get("learning_roadmap", []):
+            # ── Learning Roadmap ───────────────────────────────────────────
+            roadmap_data = ai_response.get("learning_roadmaps", ai_response.get("learning_roadmap", []))
+            for item in roadmap_data:
                 LearningRoadmap.objects.create(
                     analysis=analysis,
-                    skill_name=item.get("skill", ""),
+                    skill_name=item.get("skill_name", item.get("skill", "")),
                     youtube_link=item.get("youtube_link", ""),
                     google_link=item.get("google_link", "")
                 )
 
-            # Save improvement tips
+            # ── Improvement Tips ───────────────────────────────────────────
             for item in ai_response.get("improvement_tips", []):
-                ImprovementTip.objects.create(
+                raw_impact = item.get("impact_percentage", item.get("impact", ""))
+                impact_str = str(raw_impact) if raw_impact != "" else ""
+                ImproveTip = ImprovementTip.objects.create(
                     analysis=analysis,
                     title=item.get("title", ""),
-                    impact_percentage=item.get("impact", ""),
+                    impact_percentage=impact_str,
                     description=item.get("description", item.get("title", ""))
                 )
 
-            # Save focus areas
+            # ── Focus Areas ────────────────────────────────────────────────
             for item in ai_response.get("focus_areas", []):
                 FocusArea.objects.create(
                     analysis=analysis,
@@ -1607,26 +1792,152 @@ class AnalyzeSkillGapAPIView(APIView):
                     description=item.get("description", ""),
                     priority=item.get("priority", "MEDIUM")
                 )
+            
+            # Save detection result to database
+            try:
+                ResumeDetection.objects.create(
+                    user=user,
+                    analysis=analysis,
+                    resume_type=detection_result.get('resume_type', 'HYBRID').upper().replace('-', '_'),
+                    detection_confidence=detection_result.get('detection_confidence', 'MEDIUM').upper(),
+                    ai_written_probability=detection_result.get('ai_written_probability', 50),
+                    human_written_probability=detection_result.get('human_written_probability', 50),
+                    ai_signals=detection_result.get('ai_signals', []),
+                    human_signals=detection_result.get('human_signals', []),
+                    strengths=detection_result.get('strengths', []),
+                    red_flags=detection_result.get('red_flags', []),
+                    recommendation=detection_result.get('recommendation', '')
+                )
+            except Exception as e:
+                print(f"Could not save detection: {e}")
 
             serializer = SkillGapAnalysisSerializer(analysis)
+            
+            # Add extracted text to response
+            response_data = serializer.data
+            response_data['resume_detection'] = detection_result
+            response_data['extracted_resume_text'] = pdf_text 
+            
+            print(f"📝 Sending extracted text length: {len(pdf_text)}")
 
             return Response({
                 "success": True,
                 "message": "Skill Gap Analysis Completed",
-                "data": serializer.data
+                "data": response_data
             }, status=200)
 
         except Exception as e:
             import traceback
             traceback.print_exc()
+            return Response({"success": False, "message": str(e)}, status=500)
+# Add this import at the top of views.py if not already present
+from .models import ResumeDetection
+from .serializers import ResumeDetectionSerializer
+
+# Add this class at the end of views.py (before the final closing)
+# ============================================================
+# RESUME DETECTION API ENDPOINT
+# ============================================================
+
+class DetectResumeAPIView(APIView):
+    """
+    Detect if a resume is AI-written or human-written using Vertex AI.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            # Get request data
+            ats_score = request.data.get('ats_score', 65)
+            resume_text = request.data.get('resume_text', '')
+            job_description = request.data.get('job_description', '')
+            analysis_id = request.data.get('analysis_id')
+            
+            # Validate inputs
+            if not resume_text:
+                return Response({
+                    "success": False,
+                    "error": "Resume text is required for analysis",
+                    "data": self._get_fallback_detection_response("No resume text provided")
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # If analysis_id is provided, try to get more context from the analysis
+            analysis = None
+            if analysis_id:
+                try:
+                    analysis = SkillGapAnalysis.objects.get(id=analysis_id)
+                    # If job_description is empty, try to get it from stored analysis
+                    if not job_description:
+                        job_description = analysis.job_description
+                    # Use the stored ATS score if not provided
+                    if ats_score == 65:
+                        ats_score = analysis.ats_score
+                except SkillGapAnalysis.DoesNotExist:
+                    pass  # Continue without analysis context
+            
+            # Call Vertex AI for detection
+            result = vertex_service.detect_resume_authenticity(
+                resume_text=resume_text,
+                job_description=job_description or "No specific job description provided",
+                ats_score=ats_score
+            )
+            
+            # Add flag indicating whether analysis was done from actual text
+            result['analyzed_from_text'] = bool(resume_text and len(resume_text) > 100)
+            
+            # Save detection result to database
+            try:
+                # Get the LernevoUser instance
+                lernevo_user = User.objects.get(auth_user=request.user)
+                
+                detection = ResumeDetection.objects.create(
+                    user=lernevo_user,
+                    analysis=analysis if analysis_id else None,
+                    resume_type=result.get('resume_type', 'HYBRID').upper().replace('-', '_'),
+                    detection_confidence=result.get('detection_confidence', 'MEDIUM').upper(),
+                    ai_written_probability=result.get('ai_written_probability', 50),
+                    human_written_probability=result.get('human_written_probability', 50),
+                    ai_signals=result.get('ai_signals', []),
+                    human_signals=result.get('human_signals', []),
+                    strengths=result.get('strengths', []),
+                    red_flags=result.get('red_flags', []),
+                    recommendation=result.get('recommendation', '')
+                )
+                logger.info(f"Resume detection saved with ID: {detection.id}")
+            except Exception as e:
+                logger.warning(f"Could not save detection result: {e}")
+            
+            return Response({
+                "success": True,
+                "message": "Resume analysis completed successfully",
+                "data": result
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Resume detection error: {str(e)}", exc_info=True)
             return Response({
                 "success": False,
-                "message": str(e)
-            }, status=500)
-
-
-
-
-
-
-            
+                "error": str(e),
+                "data": self._get_fallback_detection_response(str(e))
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _get_fallback_detection_response(self, error_msg: str = "") -> Dict:
+        """Return fallback response when detection fails."""
+        return {
+            "resume_type": "Hybrid",
+            "detection_confidence": "Low",
+            "ai_written_probability": 30,
+            "human_written_probability": 70,
+            "ai_signals": [
+                "Analysis could not be completed: " + error_msg if error_msg else "AI detection service temporarily unavailable"
+            ],
+            "human_signals": [],
+            "strengths": [
+                "Please try again later for complete analysis"
+            ],
+            "red_flags": [
+                "Unable to perform deep content analysis"
+            ],
+            "recommendation": "Your resume appears to be human-written based on basic patterns. For better analysis, ensure your resume has sufficient content (at least 500 characters).",
+            "analyzed_from_text": False
+        }

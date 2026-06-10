@@ -675,3 +675,47 @@ class ResumeQualityMetric(models.Model):
 
     def __str__(self):
         return f"{self.metric_type} - {self.score}%"
+
+
+class ResumeDetection(models.Model):
+    RESUME_TYPE_CHOICES = [
+        ('AI_WRITTEN', 'AI Written'),
+        ('HUMAN_WRITTEN', 'Human Written'),
+        ('HYBRID', 'Hybrid'),
+    ]
+    
+    CONFIDENCE_CHOICES = [
+        ('HIGH', 'High'),
+        ('MEDIUM', 'Medium'),
+        ('LOW', 'Low'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    analysis = models.ForeignKey(
+        'SkillGapAnalysis',
+        on_delete=models.CASCADE,
+        related_name="resume_detections",
+        null=True,
+        blank=True
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="resume_detections"
+    )
+    
+    resume_type = models.CharField(max_length=20, choices=RESUME_TYPE_CHOICES)
+    detection_confidence = models.CharField(max_length=10, choices=CONFIDENCE_CHOICES)
+    ai_written_probability = models.IntegerField(default=50)
+    human_written_probability = models.IntegerField(default=50)
+    
+    ai_signals = models.JSONField(default=list, blank=True)
+    human_signals = models.JSONField(default=list, blank=True)
+    strengths = models.JSONField(default=list, blank=True)
+    red_flags = models.JSONField(default=list, blank=True)
+    recommendation = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user} - {self.resume_type} - {self.created_at}"

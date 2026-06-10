@@ -6,6 +6,8 @@ from rest_framework.routers import DefaultRouter
 from . import views  # ⬅️ ADD THIS LINE
 
 from .views import (
+    DBCheckView,
+    DetectResumeAPIView,
     ResumeViewSet,
     EnquiryCreateAPIView,
     OTPView,
@@ -33,6 +35,7 @@ urlpatterns = [
     path('login/', LoginView.as_view()),
     path('otp/', OTPView.as_view()),
     path('check-availability/', CheckAvailabilityView.as_view()),
+    path('db-check/', DBCheckView.as_view()),
 
     path("profile/", ProfileView.as_view()),
     path("profile/change-password/", ChangePasswordView.as_view()),
@@ -59,7 +62,7 @@ urlpatterns = [
         AnalyzeSkillGapAPIView.as_view(),
         name="analyze-skill-gap"
     ),
-
+  path('detect-resume/', DetectResumeAPIView.as_view(), name='detect-resume'),
     # 🔥 IMPORTANT (ADD THIS LINE)
     path('', include(router.urls)),
 ]
