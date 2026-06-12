@@ -63,6 +63,7 @@ urlpatterns = [
         name="analyze-skill-gap"
     ),
   path('detect-resume/', DetectResumeAPIView.as_view(), name='detect-resume'),
+  path('users/', views.user_management_api, name='user_management'),
     # 🔥 IMPORTANT (ADD THIS LINE)
     path('', include(router.urls)),
 ]

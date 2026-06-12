@@ -41,19 +41,21 @@ import Blog from "./components/Blog";
 import Contact from "./components/Contact";
 import HelpCenter from "./components/HelpCenter";
 
-
 import ResumeBuilder from "./components/Resumebuilderrouter";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
 import Skill from "./components/skill";
 import { APP_ENV, API_BASE_URL } from "./config";
 import SkilDashboard from "./components/skilldashboard"
+
+// ✅ Import User Component
+import User from "./components/user";
+
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
 
-   // 👉 Footer hide panna routes
-  // 👉 Footer hide panna routes
+  // Footer hide panna routes
   const hideFooterRoutes = [
     "/get-started",
     "/reset-password",
@@ -63,14 +65,15 @@ const AppLayout = () => {
     "/skill",
     "/skill-gap-analyzer",
     "/skilldashboard",
+    "/user",  // ✅ Added user route
   ];
 
-  // 👉 Navbar hide panna routes
+  // Navbar hide panna routes
   const hideNavbarRoutes = [
     "/my-resumes",
     "/builder",
     "/templates",
-    
+    "/user",  // ✅ Added user route
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
@@ -78,11 +81,12 @@ const AppLayout = () => {
 
   return (
     <>
-      {/* ✅ Navbar conditionally */}
+      {/* Navbar conditionally */}
       {!hideNavbar && <Navbar />}
 
       <ScrollToTop />
-
+      
+      {/* Routes */}
       <Routes>
         {/* Public Pages */}
         <Route path="/" element={<LandingPage />} />
@@ -105,6 +109,9 @@ const AppLayout = () => {
           path="/reset-password-confirm"
           element={<ResetPasswordConfirmPage />}
         />
+
+        {/* User Management Page - ONE URL only */}
+        <Route path="/user" element={<User />} />
 
         {/* Protected Pages */}
         <Route
@@ -137,7 +144,6 @@ const AppLayout = () => {
         <Route path="/features" element={<Features />} />
         <Route path="/resume-builder" element={<ResumeBuilderFeaturePage />} />
 
-      
         <Route
           path="/builder"
           element={
@@ -167,11 +173,13 @@ const AppLayout = () => {
         <Route path="/skilldashboard" element={<SkilDashboard/>} />
       </Routes>
 
-      {/* ✅ Footer conditionally */}
+      {/* Footer conditionally */}
       {!hideFooter && <Footer />}
     </>
   );
-};console.log("APP_ENV:", APP_ENV);
+};
+
+console.log("APP_ENV:", APP_ENV);
 console.log("API_BASE_URL:", API_BASE_URL);
 
 /* ---------------- APP ---------------- */
