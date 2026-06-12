@@ -150,6 +150,8 @@ class RegisterView(APIView):
 # ============================================================
 # LOGIN VIEW - Finds user from both tables
 # ============================================================
+from django.utils import timezone
+
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -157,11 +159,8 @@ class LoginView(APIView):
         print("=" * 60)
         print("🔐 LOGIN ATTEMPT")
         
-        # Get credentials
         identifier = request.data.get("username", "").strip()
         password = request.data.get("password", "")
-        
-        print(f"Identifier: {identifier}")
         
         if not identifier or not password:
             return Response(
@@ -169,49 +168,40 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Find user in auth_user table (case insensitive)
         user = AuthUser.objects.filter(
             Q(username__iexact=identifier) | Q(email__iexact=identifier)
         ).first()
         
         if not user:
-            print(f"❌ User not found: {identifier}")
-            
-            # Debug: Show all existing users
-            print("\n📋 Existing users in database:")
-            all_users = AuthUser.objects.all().values('username', 'email')
-            for u in all_users:
-                print(f"  - {u['username']} | {u['email']}")
-            
             return Response(
                 {"detail": "User not found. Please register first."},
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        print(f"✅ User found: {user.username}")
-        
-        # Verify password
         if not user.check_password(password):
-            print(f"❌ Invalid password")
             return Response(
                 {"detail": "Invalid password"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        print(f"✅ Password verified")
+        # ✅ ✅ ✅ ADD THIS - Update last_login in AuthUser
+        user.last_login = timezone.now()
+        user.save()
         
-        # Get or create token
         token, _ = Token.objects.get_or_create(user=user)
         
-        # Get custom user data
         try:
             custom_user = LernevoUser.objects.get(auth_user=user)
+            
+            # ✅ ✅ ✅ ADD THIS - Update last_login in custom User model
+            custom_user.last_login = timezone.now()
+            custom_user.is_first_login = False  # First login done
+            custom_user.save()
+            
             user_code = custom_user.user_code
             mobile = custom_user.mobile
-            print(f"✅ Custom user found: code={user_code}, mobile={mobile}")
+            
         except LernevoUser.DoesNotExist:
-            print(f"⚠️ Custom user missing! Creating now...")
-            # Auto-create missing custom user (fix for old users)
             user_code = str(random.randint(100000, 999999))
             while LernevoUser.objects.filter(user_code=user_code).exists():
                 user_code = str(random.randint(100000, 999999))
@@ -221,13 +211,8 @@ class LoginView(APIView):
                 mobile="",
                 user_code=user_code
             )
-            user_code = custom_user.user_code
-            mobile = ""
-            print(f"✅ Created missing custom user with code: {user_code}")
         
-        print("=" * 60)
-        print(f"✅ LOGIN SUCCESSFUL for {user.username}")
-        print("=" * 60)
+        print(f"✅ Last login updated: {custom_user.last_login}")
         
         return Response({
             "message": "Login successful",
@@ -236,9 +221,9 @@ class LoginView(APIView):
             "email": user.email,
             "name": user.first_name,
             "user_code": user_code,
-            "mobile": mobile
+            "mobile": mobile,
+            "last_login": custom_user.last_login.strftime('%Y-%m-%d %H:%M:%S') if custom_user.last_login else 'Never'
         }, status=status.HTTP_200_OK)
-
 class DBCheckView(APIView):
     permission_classes = [AllowAny]
 
@@ -266,6 +251,8 @@ class DBCheckView(APIView):
             }, status=200)
         except Exception as e:
             return Response({"status": "error", "error": str(e)}, status=500)
+
+
 # ---------------- OTP for registration only ----------------
 class OTPView(APIView):
     permission_classes = [AllowAny]
@@ -1941,3 +1928,179 @@ class DetectResumeAPIView(APIView):
             "recommendation": "Your resume appears to be human-written based on basic patterns. For better analysis, ensure your resume has sufficient content (at least 500 characters).",
             "analyzed_from_text": False
         }
+        
+        
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from .models import User
+import json
+
+@csrf_exempt
+@require_http_methods(["GET", "POST", "PUT", "DELETE"])
+def user_management_api(request):
+    """
+    ONE API FOR EVERYTHING
+    
+    GET    - Get all users
+    POST   - Update last login / Toggle freeze / Update status
+    """
+    
+    # ========== GET ALL USERS ==========
+    if request.method == 'GET':
+        try:
+            users = User.objects.select_related('auth_user').filter(is_delete=False)
+            
+            data = []
+            for user in users:
+                data.append({
+                    'id': str(user.id),
+                    'username': user.auth_user.username,
+                    'email': user.auth_user.email,
+                    'country_code': user.country_code,
+                    'mobile': user.mobile if user.mobile else '-',
+                    'user_code': user.user_code,
+                    'is_frozen': user.is_frozen,
+                    'is_first_login': user.is_first_login,
+                    'registered_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'Never',
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'action': 'get_all_users',
+                'count': len(data),
+                'users': data
+            })
+        
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    # ========== POST - Various Actions ==========
+    elif request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            action = body.get('action')
+            user_id = body.get('user_id')
+            
+            # ---------- Action 1: Update Last Login ----------
+            if action == 'update_last_login':
+                user = User.objects.get(id=user_id)
+                user.last_login = timezone.now()
+                user.is_first_login = False
+                user.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'action': 'update_last_login',
+                    'message': 'Last login updated successfully',
+                    'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S')
+                })
+            
+            # ---------- Action 2: Toggle Freeze/Unfreeze ----------
+            elif action == 'toggle_freeze':
+                user = User.objects.get(id=user_id)
+                user.is_frozen = not user.is_frozen
+                
+                if user.is_frozen:
+                    user.frozen_at = timezone.now()
+                    message = 'User frozen successfully'
+                else:
+                    user.unfrozen_at = timezone.now()
+                    message = 'User unfrozen successfully'
+                
+                user.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'action': 'toggle_freeze',
+                    'message': message,
+                    'is_frozen': user.is_frozen
+                })
+            
+            # ---------- Action 3: Get Single User ----------
+            elif action == 'get_user':
+                user = User.objects.select_related('auth_user').get(id=user_id)
+                
+                return JsonResponse({
+                    'success': True,
+                    'action': 'get_user',
+                    'user': {
+                        'id': str(user.id),
+                        'username': user.auth_user.username,
+                        'email': user.auth_user.email,
+                        'country_code': user.country_code,
+                        'mobile': user.mobile,
+                        'user_code': user.user_code,
+                        'is_frozen': user.is_frozen,
+                        'is_first_login': user.is_first_login,
+                        'registered_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                        'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'Never',
+                    }
+                })
+            
+            # ---------- Action 4: Update First Login Status ----------
+            elif action == 'update_first_login':
+                user = User.objects.get(id=user_id)
+                user.is_first_login = False
+                user.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'action': 'update_first_login',
+                    'message': 'First login status updated'
+                })
+            
+            # ---------- Action 5: Get Statistics ----------
+            elif action == 'get_stats':
+                total = User.objects.filter(is_delete=False).count()
+                active = User.objects.filter(is_delete=False, is_frozen=False).count()
+                frozen = User.objects.filter(is_delete=False, is_frozen=True).count()
+                first_login = User.objects.filter(is_delete=False, is_first_login=True).count()
+                
+                return JsonResponse({
+                    'success': True,
+                    'action': 'get_stats',
+                    'stats': {
+                        'total': total,
+                        'active': active,
+                        'frozen': frozen,
+                        'first_login': first_login
+                    }
+                })
+            
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid action. Available: update_last_login, toggle_freeze, get_user, update_first_login, get_stats'
+                }, status=400)
+        
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    # ========== DELETE - Soft Delete User ==========
+    elif request.method == 'DELETE':
+        try:
+            body = json.loads(request.body)
+            user_id = body.get('user_id')
+            
+            user = User.objects.get(id=user_id)
+            user.is_delete = True
+            user.deleted_at = timezone.now()
+            user.save()
+            
+            return JsonResponse({
+                'success': True,
+                'action': 'delete_user',
+                'message': 'User deleted successfully'
+            })
+        
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
