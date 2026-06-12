@@ -29,6 +29,7 @@ import Features from "./components/features";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import ResumeBuilderFeaturePage from "./components/ResumeBuilderFeaturePage";
 
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsOfService from "./components/TermsOfService";
@@ -42,7 +43,6 @@ import HelpCenter from "./components/HelpCenter";
 
 
 import ResumeBuilder from "./components/Resumebuilderrouter";
-import Homepage from "./components/HomePage";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
 import Skill from "./components/skill";
@@ -69,7 +69,6 @@ const AppLayout = () => {
   const hideNavbarRoutes = [
     "/my-resumes",
     "/builder",
-    "/home",
     "/templates",
     
   ];
@@ -136,6 +135,7 @@ const AppLayout = () => {
         <Route path="/ai-coaching" element={<AiCoaching />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/features" element={<Features />} />
+        <Route path="/resume-builder" element={<ResumeBuilderFeaturePage />} />
 
       
         <Route
@@ -146,14 +146,7 @@ const AppLayout = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute featureName="Resume Builder">
-              <Homepage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/home" element={<Navigate to="/resume-builder" replace />} />
         <Route
           path="/templates"
           element={

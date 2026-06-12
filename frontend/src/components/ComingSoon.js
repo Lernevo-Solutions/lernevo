@@ -95,18 +95,19 @@ export default function ComingSoon() {
             </div>
             <h3 className="cs-card-title">Resume Builder</h3>
             <p className="cs-card-text">
-              Create stunning, ATS-friendly resumes in minutes with our AI-powered templates and smart suggestions.
+              Explore the feature page first to understand the workflow, previews, and benefits
+              before you open the editor.
             </p>
             <div className="cs-card-features">
-              <span>✨ 50+ Templates</span>
-              <span>📄 ATS Optimized</span>
-              <span>⚡ One-click Download</span>
+              <span>Guided walkthrough</span>
+              <span>Template previews</span>
+              <span>ATS-friendly flow</span>
             </div>
             <button
-              onClick={() => handleProtectedNavigation("/home", "Resume Builder")}
+              onClick={() => navigate("/resume-builder")}
               className="cs-card-btn cs-btn-primary"
             >
-              <span>Build Your Resume</span>
+              <span>Open Feature Page</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12H19M19 12L12 5M19 12L12 19" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>

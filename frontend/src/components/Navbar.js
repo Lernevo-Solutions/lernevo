@@ -109,6 +109,24 @@ export default function Navbar({ onGetStarted }) {
     setMobileDropdownOpen(null);
   };
 
+  const featureItems = [
+    {
+      to: '/resume-builder',
+      title: 'Resume Builder',
+      subtitle: 'See how it works first',
+    },
+    {
+      to: '/skill-gap-analyzer',
+      title: 'Skill Gap Analysis',
+      subtitle: 'Compare skills with roles',
+    },
+    {
+      to: '/features/coming-soon',
+      title: 'Coming Soon',
+      subtitle: 'More exciting features',
+    },
+  ];
+
   return (
     <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-bg-overlay"></div>
@@ -199,10 +217,17 @@ export default function Navbar({ onGetStarted }) {
               FEATURES
             </span>
             <div className={`dropdown-menu ${mobileDropdownOpen === 'features' ? 'mobile-dropdown-open' : ''}`}>
-              <Link to="/features/coming-soon" className="dropdown-link" onClick={() => closeMobileMenu()}>
-                <strong>Coming Soon</strong>
-                <span>More exciting features</span>
-              </Link>
+              {featureItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="dropdown-link"
+                  onClick={() => closeMobileMenu()}
+                >
+                  <strong>{item.title}</strong>
+                  <span>{item.subtitle}</span>
+                </Link>
+              ))}
             </div>
           </div>
 

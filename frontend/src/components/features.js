@@ -183,7 +183,7 @@ const Features = () => {
     setTimeout(() => clearInterval(interval), 1500);
 
     if (cardIndex === 0) {
-      setTimeout(() => handleProtectedNavigation('/home', 'Resume Builder'), 180);
+      setTimeout(() => navigate('/resume-builder'), 180);
     }
 
     if (cardIndex === 1) {
@@ -286,24 +286,24 @@ const Features = () => {
           <div className="card-content">
             <div className="badge-coming-soon">
               <span className="dot-live"></span>
-              <span>Coming Soon</span>
-              <span className="badge-icon">🚀</span>
+              <span>Feature Spotlight</span>
+              <span className="badge-icon">→</span>
             </div>
             <h2>
-              AI-Powered <br />
-              Resume Builder
+              Resume Builder <br />
+              Feature Page
             </h2>
             <p>
-              Let our AI craft a job-winning resume tailored to your skills, experience, and target
-              role — in minutes, not hours.
+              See what the builder does, how it works, and why it helps before you enter the
+              actual resume editor.
             </p>
             <ul className="feature-list">
               {[
-                'Smart content suggestions based on your profile',
-                'ATS-optimized formatting & keywords',
-                'Role-specific templates curated by experts',
-                'One-click export to PDF or Word',
-                'Real-time AI feedback & scoring',
+                'Clear walkthrough before the editor opens',
+                'ATS-optimized formatting and keyword support',
+                'Template previews and guided onboarding',
+                'Start building only when you are ready',
+                'Designed to reduce setup friction',
               ].map((text, i) => (
                 <li key={i}>
                   <div className="check">
