@@ -11,6 +11,7 @@ const Features = () => {
 
   // Mouse position for parallax and spotlight
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  
 
   // Ripples + confetti
   const [ripples, setRipples] = useState([]);

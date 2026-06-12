@@ -7,6 +7,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
+
 import Navbar from "./components/Navbar";
 import LandingPage from "./components/landingpage";
 import AboutUs from "./components/AboutUs";
