@@ -150,7 +150,7 @@ export default function ComingSoon() {
                 handleProtectedNavigation("/skill-gap-analyzer", "Skill Gap Analyzer")
               }
             >
-              <span>Analyze Your Skills</span>
+              <span>Open Skill Gap Analyzer</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 8C20 8 22 10 22 12C22 15 18 18 12 18C6 18 2 15 2 12C2 10 4 8 6 8" strokeLinecap="round"/>
                 <path d="M12 2V12M12 12L15 9M12 12L9 9" strokeLinecap="round" strokeLinejoin="round"/>
@@ -158,10 +158,52 @@ export default function ComingSoon() {
             </button>
             <div className="cs-card-shine"></div>
           </div>
+
+          {/* Admin Dashboard Card - Coming Soon */}
+          <div className="cs-feature-card cs-card-coming">
+            <div className="cs-card-glow"></div>
+            <div className="cs-card-top">
+              <div className="cs-card-icon cs-icon-slate">
+                <div className="cs-icon-bg"></div>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 3L4.5 6V11.2C4.5 16 7.8 20.5 12 21.8C16.2 20.5 19.5 16 19.5 11.2V6L12 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M9.2 12.1L11.1 14L14.9 10.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="cs-card-badge cs-badge-soon">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <circle cx="12" cy="12" r="10"/>
+                </svg>
+                Coming Soon
+              </div>
+            </div>
+            <h3 className="cs-card-title">Admin Dashboard</h3>
+            <p className="cs-card-text">
+              Manage users, analytics, reports, and system settings from a central control panel designed for admins.
+            </p>
+            <div className="cs-card-features">
+              <span>User Management</span>
+              <span>Analytics</span>
+              <span>Reports</span>
+              <span>System Settings</span>
+            </div>
+            <button className="cs-card-btn cs-btn-disabled" type="button" disabled>
+              Coming Soon
+            </button>
+            <div className="cs-card-shine"></div>
+          </div>
         </div>
 
-       
+        {/* Floating decorative elements */}
+        <div className="cs-floating-dots">
+          <div className="cs-dot"></div>
+          <div className="cs-dot"></div>
+          <div className="cs-dot"></div>
+          <div className="cs-dot"></div>
+          <div className="cs-dot"></div>
+        </div>
       </div>
     </div>
   );
 }
+{}

@@ -12,7 +12,7 @@
 // 9) Experience: Calendar view for duration (same InlineDatePicker style)
 
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import GalleryPreview from "./GalleryPreview";
 import BlankCanvasBuilder from "./BlankCanvasBuilder";
 import jsPDF from "jspdf";
@@ -434,6 +434,97 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;}
 .rb-empty-text{font-size:13px;font-weight:600;opacity:.6;}
 .rb-empty-sub{font-size:11px;opacity:.4;}
 
+.rb-modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:2000;
+  background:rgba(15,23,42,.56);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.rb-modal{
+  width:min(100%, 560px);
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,250,252,.98));
+  border:1px solid rgba(203,213,225,.95);
+  border-radius:24px;
+  box-shadow:0 32px 80px rgba(15,23,42,.28);
+  padding:28px;
+  color:#0f172a;
+}
+.rb-modal-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(37,99,235,.08);
+  color:#1d4ed8;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.rb-modal-title{
+  font-size:28px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.03em;
+  margin:14px 0 10px;
+}
+.rb-modal-copy{
+  font-size:14px;
+  line-height:1.7;
+  color:#475569;
+}
+.rb-modal-status{
+  margin-top:14px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:#ecfdf5;
+  color:#065f46;
+  font-size:13px;
+  font-weight:700;
+  border:1px solid rgba(110,231,183,.8);
+}
+.rb-modal-status.error{
+  background:#fef2f2;
+  color:#b91c1c;
+  border-color:rgba(252,165,165,.85);
+}
+.rb-modal-actions{
+  display:flex;
+  gap:12px;
+  margin-top:22px;
+  flex-wrap:wrap;
+}
+.rb-modal-actions .rb-btn,
+.rb-modal-actions .rb-btn-dark{
+  flex:1 1 200px;
+  min-height:48px;
+  border-radius:14px;
+  font-size:14px;
+  justify-content:center;
+}
+.rb-modal-note{
+  margin-top:14px;
+  font-size:12px;
+  color:#94a3b8;
+  line-height:1.5;
+}
+
+@media (max-width: 640px){
+  .rb-modal-backdrop{padding:14px;}
+  .rb-modal{padding:22px 18px;border-radius:20px;}
+  .rb-modal-title{font-size:24px;}
+  .rb-modal-actions{flex-direction:column;}
+  .rb-modal-actions .rb-btn,
+  .rb-modal-actions .rb-btn-dark{width:100%;flex-basis:auto;}
+}
+
 /* Education */
 .edu-tab-bar{display:flex;gap:0;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:20px;border:1.5px solid #e2e8f0;}
 .edu-tab-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 8px;border:none;border-radius:9px;background:transparent;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;font-family:inherit;transition:all .2s ease;position:relative;}
@@ -548,6 +639,41 @@ function PreviewScaler({ children, containerRef }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+function ResumeSavedModal({ open, title, message, statusMessage, statusType = "success", onDownloadPdf, onChooseTemplate }) {
+  if (!open) return null;
+
+  return (
+    <div className="rb-modal-backdrop" role="presentation">
+      <div
+        className="rb-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="resume-saved-modal-title"
+      >
+        <span className="rb-modal-kicker">Resume Builder</span>
+        <h2 id="resume-saved-modal-title" className="rb-modal-title">{title}</h2>
+        <p className="rb-modal-copy">{message}</p>
+        {statusMessage ? (
+          <div className={`rb-modal-status ${statusType === "error" ? "error" : ""}`}>
+            {statusMessage}
+          </div>
+        ) : null}
+        <div className="rb-modal-actions">
+          <button className="rb-btn rb-btn-dark" onClick={onDownloadPdf}>
+            Download PDF
+          </button>
+          <button className="rb-btn" onClick={onChooseTemplate}>
+            Choose Another Template
+          </button>
+        </div>
+        <div className="rb-modal-note">
+          You can keep editing this resume while the modal stays open.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // STAR RATING WIDGET
 // ═══════════════════════════════════════════════════════════════════════════════
 function StarRating({ value, onChange, hovered, setHovered }) {
@@ -2422,6 +2548,7 @@ function normaliseEducation(raw) {
       school: Array.isArray(raw.school) ? raw.school : [makeSchool()],
     };
   }
+  {}
   if (Array.isArray(raw)) {
     const ug     = raw.filter(e => e.type==="ug" || e.type==="pg" || (!e.type && !e.schoolName));
     const school = raw.filter(e => e.type==="school" || e.schoolName);
@@ -4004,6 +4131,7 @@ function ContinuationPage({ tpl, accentColor, font, pageNumber }) {
 // TEMPLATE BUILDER — FIXED
 // ═══════════════════════════════════════════════════════════════════════════════
 function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
+  const navigate = useNavigate();
   const [st, setSt] = useState(() => ({
     ...INIT,
     activeSection: visibleIds[0],
@@ -4014,6 +4142,9 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   const [pages, setPages]     = useState(() => [{ id: uid() }]);
   const [order, setOrder]     = useState(() => [...DEFAULT_ORDER]);
   const [isSaved, setIsSaved] = useState(false);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [saveModalStatus, setSaveModalStatus] = useState("");
+  const [saveModalStatusType, setSaveModalStatusType] = useState("success");
 
   const showAddPageStructures = [
     "clean-centered", "classic-minimal", "bold-two-col",
@@ -4043,16 +4174,22 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     try {
       await saveResumeToBackend(st, order, pages.length - 1);
       setIsSaved(true);
-      alert("Resume successfully saved! ✅");
+      setSaveModalStatus("Your resume has been saved successfully.");
+      setSaveModalStatusType("success");
+      setSaveModalOpen(true);
     } catch (error) {
       console.error("Save error:", error);
-      alert("Error: Could not save resume. Check login.");
+      setSaveModalStatus("We couldn't save your resume. Please check your connection and try again.");
+      setSaveModalStatusType("error");
+      setSaveModalOpen(true);
     }
   };
 
   const handleDownload = async () => {
   if (!pageRef.current) {
-    alert("Preview not ready. Please wait a moment.");
+    setSaveModalStatus("Preview not ready. Please wait a moment.");
+    setSaveModalStatusType("error");
+    setSaveModalOpen(true);
     return;
   }
   
@@ -4062,7 +4199,9 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     const sheetElements = previewContainer?.querySelectorAll('.rb-pdf-page');
     
     if (!sheetElements || sheetElements.length === 0) {
-      alert("No resume content found to export.");
+      setSaveModalStatus("No resume content found to export.");
+      setSaveModalStatusType("error");
+      setSaveModalOpen(true);
       return;
     }
     
@@ -4138,11 +4277,13 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     }
     
     pdf.save("resume.pdf");
-    alert("✅ PDF downloaded successfully!");
+    setSaveModalStatus("PDF download started successfully.");
+    setSaveModalStatusType("success");
     
   } catch (error) {
     console.error("PDF error:", error);
-    alert("Failed to generate PDF: " + error.message);
+    setSaveModalStatus("Failed to generate PDF: " + error.message);
+    setSaveModalStatusType("error");
   }
 };
 
@@ -4170,6 +4311,11 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
       case "styling":        return <StylingSection data={st.styling} onChange={v => setFld("styling", v)} />;
       default:               return null;
     }
+  };
+
+  const handleChooseAnotherTemplate = () => {
+    setSaveModalOpen(false);
+    navigate("/templates");
   };
 
   return (
@@ -4305,6 +4451,17 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
           </div>
         </div>
       </div>
+      <ResumeSavedModal
+        open={saveModalOpen}
+        title={saveModalStatusType === "error" ? "Save Issue" : "Resume Saved Successfully ✅"}
+        message={saveModalStatusType === "error"
+          ? "Please review the message below and try again."
+          : "Your resume has been saved successfully."}
+        statusMessage={saveModalStatus}
+        statusType={saveModalStatusType}
+        onDownloadPdf={handleDownload}
+        onChooseTemplate={handleChooseAnotherTemplate}
+      />
     </>
   );
 }
