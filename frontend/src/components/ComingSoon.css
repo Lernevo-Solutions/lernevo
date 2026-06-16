@@ -267,15 +267,9 @@
 /* Features Grid */
 .cs-features-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 35px;
   margin-bottom: 40px;
-}
-
-@media (max-width: 1100px) {
-  .cs-features-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 800px) {
@@ -400,14 +394,6 @@
   color: #15803d;
 }
 
-.cs-badge-live .badge-dot {
-  width: 6px;
-  height: 6px;
-  background: #10b981;
-  border-radius: 50%;
-  animation: livePulse 1s ease infinite;
-}
-
 .badge-dot {
   width: 6px;
   height: 6px;
@@ -424,11 +410,6 @@
 .cs-badge-soon {
   background: #fef3c7;
   color: #b45309;
-}
-
-.cs-icon-slate {
-  background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
-  color: #334155;
 }
 
 .cs-card-title {
@@ -464,19 +445,6 @@
 .cs-card-features span:hover {
   background: #e2e8f0;
   transform: translateY(-2px);
-}
-
-.cs-btn-disabled {
-  background: linear-gradient(135deg, #cbd5e1, #e2e8f0);
-  color: #475569;
-  box-shadow: none;
-  cursor: not-allowed;
-  opacity: 0.9;
-}
-
-.cs-btn-disabled:hover {
-  transform: none;
-  box-shadow: none;
 }
 
 /* Enhanced Progress */
@@ -656,5 +624,83 @@
   .cs-signup-box input {
     width: 100%;
   }
+}.cs-features-grid {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
+.cs-features-grid .cs-feature-card {
+  max-width: 650px;
+  width: 100%;
+}/* SIDE RUNNING BANNERS */
+
+.cs-side-ad {
+  position: fixed;
+  top: 100px;
+  bottom: 0;
+  width: 180px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.cs-left-ad {
+  left: 10px;
+}
+
+.cs-right-ad {
+  right: 10px;
+}
+
+.cs-ad-track {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cs-ad-track img {
+  width: 100%;
+  border-radius: 18px;
+  object-fit: cover;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.cs-move-up {
+  animation: moveUp 20s linear infinite;
+}
+
+.cs-move-down {
+  animation: moveDown 20s linear infinite;
+}
+
+@keyframes moveUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes moveDown {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}.cs-container-clean {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 220px;
+}@media (max-width: 1200px) {
+  .cs-side-ad {
+    display: none;
+  }
+
+  .cs-container-clean {
+    padding: 40px 20px;
+  }
+}

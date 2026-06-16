@@ -1,7 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./ComingSoon.css";
-
+import f1 from "./f1.png";
+import f2 from "./f2.png";
+import f3 from "./f3.png";
+import f4 from "./f4.png";
+import f5 from "./f5.png";
+import f6 from "./f6.png";
+import f7 from "./f7.png";
+import f8 from "./f8.png";
 export default function ComingSoon() {
   const navigate = useNavigate();
 
@@ -28,7 +35,23 @@ export default function ComingSoon() {
         <div className="cs-bg-shape-3"></div>
         <div className="cs-bg-grid"></div>
       </div>
+      <div className="cs-side-ad cs-left-ad">
+  <div className="cs-ad-track cs-move-down">
+    <img src={f1} alt="banner" />
+    <img src={f2} alt="banner" />
+    <img src={f3} alt="banner" />
+    <img src={f4} alt="banner" />
+  </div>
+</div>
 
+<div className="cs-side-ad cs-right-ad">
+  <div className="cs-ad-track cs-move-up">
+    <img src={f5} alt="banner" />
+    <img src={f6} alt="banner" />
+    <img src={f7} alt="banner" />
+    <img src={f8} alt="banner" />
+  </div>
+</div>
       <div className="cs-container-clean">
         {/* Header Section - Enhanced */}
         <div className="cs-header-clean">
@@ -73,138 +96,106 @@ export default function ComingSoon() {
 </div>
         </div>
 
-        {/* Features Grid - Enhanced Cards */}
         <div className="cs-features-grid">
-          {/* Resume Builder Card - Enhanced Active */}
-          <div className="cs-feature-card cs-card-active">
-            <div className="cs-card-glow"></div>
-            <div className="cs-card-top">
-              <div className="cs-card-icon cs-icon-blue">
-                <div className="cs-icon-bg"></div>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M22 6L12 13L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M8 10H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M8 14H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <div className="cs-card-badge cs-badge-live">
-                <span className="badge-dot"></span>
-                Live Now
-              </div>
-            </div>
-            <h3 className="cs-card-title">Resume Builder</h3>
-            <p className="cs-card-text">
-              Explore the feature page first to understand the workflow, previews, and benefits
-              before you open the editor.
-            </p>
-            <div className="cs-card-features">
-              <span>Guided walkthrough</span>
-              <span>Template previews</span>
-              <span>ATS-friendly flow</span>
-            </div>
-            <button
-              onClick={() => navigate("/resume-builder")}
-              className="cs-card-btn cs-btn-primary"
-            >
-              <span>Open Feature Page</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12H19M19 12L12 5M19 12L12 19" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            <div className="cs-card-shine"></div>
-          </div>
+  <div className="cs-feature-card cs-card-coming">
+    <div className="cs-card-glow"></div>
 
-          {/* Skill Gap Analyzer Card - Enhanced Coming Soon */}
-          <div className="cs-feature-card cs-card-coming">
-            <div className="cs-card-glow"></div>
-            <div className="cs-card-top">
-              <div className="cs-card-icon cs-icon-indigo">
-                <div className="cs-icon-bg"></div>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <path d="M12 12V22" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="cs-card-badge cs-badge-live">
-                <span className="badge-dot"></span>
-                Live Now
-              </div>
-            </div>
-            <h3 className="cs-card-title">Skill Gap Analyzer</h3>
-            <p className="cs-card-text">
-              Compare your skills with job roles and identify missing skills instantly. Get personalized learning recommendations.
-            </p>
-            <div className="cs-card-features">
-              <span>🎯 Job Role Matching</span>
-              <span>📊 Skill Assessment</span>
-              <span>📚 Learning Paths</span>
-            </div>
-            
-            
-            
-            <button
-              className="cs-card-btn cs-btn-primary"
-              onClick={() =>
-                handleProtectedNavigation("/skill-gap-analyzer", "Skill Gap Analyzer")
-              }
-            >
-              <span>Open Skill Gap Analyzer</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 8C20 8 22 10 22 12C22 15 18 18 12 18C6 18 2 15 2 12C2 10 4 8 6 8" strokeLinecap="round"/>
-                <path d="M12 2V12M12 12L15 9M12 12L9 9" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            <div className="cs-card-shine"></div>
-          </div>
+    <div className="cs-card-top">
+      <div className="cs-card-icon cs-icon-indigo">
+        <div className="cs-icon-bg"></div>
 
-          {/* Admin Dashboard Card - Coming Soon */}
-          <div className="cs-feature-card cs-card-coming">
-            <div className="cs-card-glow"></div>
-            <div className="cs-card-top">
-              <div className="cs-card-icon cs-icon-slate">
-                <div className="cs-icon-bg"></div>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 3L4.5 6V11.2C4.5 16 7.8 20.5 12 21.8C16.2 20.5 19.5 16 19.5 11.2V6L12 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M9.2 12.1L11.1 14L14.9 10.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="cs-card-badge cs-badge-soon">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <circle cx="12" cy="12" r="10"/>
-                </svg>
-                Coming Soon
-              </div>
-            </div>
-            <h3 className="cs-card-title">Admin Dashboard</h3>
-            <p className="cs-card-text">
-              Manage users, analytics, reports, and system settings from a central control panel designed for admins.
-            </p>
-            <div className="cs-card-features">
-              <span>User Management</span>
-              <span>Analytics</span>
-              <span>Reports</span>
-              <span>System Settings</span>
-            </div>
-            <button className="cs-card-btn cs-btn-disabled" type="button" disabled>
-              Coming Soon
-            </button>
-            <div className="cs-card-shine"></div>
-          </div>
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            x="3"
+            y="3"
+            width="8"
+            height="8"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="13"
+            y="3"
+            width="8"
+            height="5"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="13"
+            y="10"
+            width="8"
+            height="11"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="3"
+            y="13"
+            width="8"
+            height="8"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+        </svg>
+      </div>
+
+      <div className="cs-card-badge cs-badge-soon">
+        🚀 Coming Soon
+      </div>
+    </div>
+
+    <h3 className="cs-card-title">Admin Dashboard</h3>
+
+    <p className="cs-card-text">
+      A powerful dashboard designed for administrators to manage users,
+      monitor platform activity, track analytics, and gain valuable
+      insights from one centralized workspace.
+    </p>
+
+    <div className="cs-card-features">
+      <span>👥 User Management</span>
+      <span>📊 Analytics & Reports</span>
+      <span>🛡️ Role-Based Access</span>
+      <span>📈 Real-Time Insights</span>
+      <span>⚡ Activity Monitoring</span>
+    </div>
+
+    <div className="cs-progress-section">
+      <div className="cs-progress-label">
+  <span>Current Status</span>
+  <span className="percent-number">Planning Phase</span>
+</div>
+
+      <div className="cs-progress-bar">
+        <div
+          className="cs-progress-fill"
+          style={{ width: "85%" }}
+        >
+          <div className="progress-shine"></div>
         </div>
+      </div>
+    </div>
 
-        {/* Floating decorative elements */}
-        <div className="cs-floating-dots">
-          <div className="cs-dot"></div>
-          <div className="cs-dot"></div>
-          <div className="cs-dot"></div>
-          <div className="cs-dot"></div>
-          <div className="cs-dot"></div>
-        </div>
+    <button className="cs-card-btn cs-btn-outline">
+      <span>Launching Soon</span>
+    </button>
+
+    <div className="cs-card-shine"></div>
+  </div>
+</div>
+       
       </div>
     </div>
   );
 }
-
