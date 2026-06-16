@@ -83,9 +83,10 @@
 .cs-container-clean {
   position: relative;
   z-index: 2;
-  max-width: 1200px;
+  width: calc(100vw - 380px);
+  max-width: none;
   margin: 0 auto;
-  padding: 60px 40px;
+  padding: 60px 0;
 }
 
 /* Enhanced Header */
@@ -145,7 +146,10 @@
   margin-bottom: 16px;
   letter-spacing: -0.02em;
 }
-
+.cs-main-title {
+  max-width: 1600px;
+  margin: 0 auto;
+}
 .cs-gradient-text {
   background: linear-gradient(135deg, #1e40af, #3b82f6, #60a5fa, #3b82f6);
   background-size: 300% 300%;
@@ -266,14 +270,16 @@
 
 /* Features Grid */
 .cs-features-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
   gap: 35px;
   margin-bottom: 40px;
 }
 
 @media (max-width: 800px) {
   .cs-features-grid {
+    display: grid;
     grid-template-columns: 1fr;
   }
 }
@@ -624,16 +630,22 @@
   .cs-signup-box input {
     width: 100%;
   }
-}.cs-features-grid {
+}
+
+.cs-features-grid {
   display: flex;
   justify-content: center;
+  width: 100%;
   margin-top: 20px;
 }
 
 .cs-features-grid .cs-feature-card {
-  max-width: 650px;
-  width: 100%;
-}/* SIDE RUNNING BANNERS */
+  width: 85%;      /* width reduce */
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+/* SIDE RUNNING BANNERS */
 
 .cs-side-ad {
   position: fixed;
@@ -689,18 +701,15 @@
   100% {
     transform: translateY(0);
   }
-}.cs-container-clean {
-  position: relative;
-  z-index: 2;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 60px 220px;
-}@media (max-width: 1200px) {
+}
+
+@media (max-width: 1200px) {
   .cs-side-ad {
     display: none;
   }
 
   .cs-container-clean {
+    width: 100%;
     padding: 40px 20px;
   }
 }
