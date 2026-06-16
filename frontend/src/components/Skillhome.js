@@ -187,7 +187,7 @@ const SkillHome = () => {
             {/* ── FEATURES SECTION ── */}
             <section id="features" className="skill-section">
               <div className="skill-section-label">✦ Features</div>
-              <h2 className="skill-section-title">Analyze, Improve, and Prepare for Your Next Opportunity</h2>
+              <h2 className="skill-section-title">AI-Powered Tools for Smarter Career Growth</h2>
               <p className="skill-section-sub">
                 One powerful tool — resume analysis, skill gap detection, and ATS optimization, all in one place.
               </p>
