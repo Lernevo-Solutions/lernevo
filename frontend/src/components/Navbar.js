@@ -111,12 +111,12 @@ export default function Navbar({ onGetStarted }) {
 
   const featureItems = [
     {
-      to: '/resume-builder',
+      to: '/home',
       title: 'Resume Builder',
       subtitle: 'See how it works first',
     },
     {
-      to: '/skill-gap-analyzer',
+      to: '/skillhome',
       title: 'Skill Gap Analysis',
       subtitle: 'Compare skills with roles',
     },

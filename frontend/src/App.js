@@ -7,7 +7,6 @@ import {
   useLocation,
 } from "react-router-dom";
 
-
 import Navbar from "./components/Navbar";
 import LandingPage from "./components/landingpage";
 import AboutUs from "./components/AboutUs";
@@ -30,7 +29,6 @@ import Features from "./components/features";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
-import ResumeBuilderFeaturePage from "./components/ResumeBuilderFeaturePage";
 
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsOfService from "./components/TermsOfService";
@@ -43,6 +41,7 @@ import Contact from "./components/Contact";
 import HelpCenter from "./components/HelpCenter";
 
 import ResumeBuilder from "./components/Resumebuilderrouter";
+import Homepage from "./components/HomePage";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
 import Skill from "./components/skill";
@@ -51,7 +50,7 @@ import SkilDashboard from "./components/skilldashboard"
 
 // ✅ Import User Component
 import User from "./components/user";
-
+import SkillHome from "./components/Skillhome";
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
@@ -73,6 +72,7 @@ const AppLayout = () => {
   const hideNavbarRoutes = [
     "/my-resumes",
     "/builder",
+    "/home",
     "/templates",
     "/user",  // ✅ Added user route
   ];
@@ -113,6 +113,7 @@ const AppLayout = () => {
 
         {/* User Management Page - ONE URL only */}
         <Route path="/user" element={<User />} />
+       <Route path="/skillhome" element={<SkillHome />} />
 
         {/* Protected Pages */}
         <Route
@@ -143,7 +144,6 @@ const AppLayout = () => {
         <Route path="/ai-coaching" element={<AiCoaching />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/features" element={<Features />} />
-        <Route path="/resume-builder" element={<ResumeBuilderFeaturePage />} />
 
         <Route
           path="/builder"
@@ -153,7 +153,14 @@ const AppLayout = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="/home" element={<Navigate to="/resume-builder" replace />} />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute featureName="Resume Builder">
+              <Homepage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/templates"
           element={
