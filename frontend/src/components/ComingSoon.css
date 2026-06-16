@@ -713,3 +713,202 @@
     padding: 40px 20px;
   }
 }
+/* Container width-ஐ FAQ போல சீராக்குதல் */
+.cs-container-clean {
+  position: relative;
+  z-index: 2;
+  width: 100%;             /* Fixed calc-ஐ நீக்கி 100% ஆக்குங்கள் */
+  max-width: 1000px;        /* FAQ-ன் (.faq-main-container) அதே அளவு */
+  margin: 0 auto;
+  padding: 60px 20px;       /* சுற்றிலும் சரியான ஸ்பேசிங் */
+  box-sizing: border-box;
+}
+
+/* Side Ads-ஐ FAQ-வில் உள்ளது போல் Screen Corners-க்கு கொண்டு செல்லுதல் */
+.cs-side-ad {
+  position: fixed;
+  top: 100px;
+  bottom: 0;
+  width: 200px;             /* FAQ அட்வர்டைஸ்மென்ட் அளவு */
+  overflow: hidden;
+  z-index: 5;               /* கார்டுகளுக்கு மேலே தெரிய z-index */
+}
+
+.cs-left-ad {
+  left: 10px;               /* FAQ-ல் உள்ள அதே பொசிஷன்[cite: 2] */
+}
+
+.cs-right-ad {
+  right: 10px;              /* FAQ-ல் உள்ள அதே பொசிஷன்[cite: 2] */
+}
+
+/* Wrapper-க்கு தேவையான Padding (பேனர்கள் கன்டென்ட்டை மறைக்காமல் இருக்க) */
+.cs-new-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #eef2ff 25%, #ffffff 50%, #f0f9ff 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  padding: 0 220px !important; /* FAQ-ல் நீங்கள் பயன்படுத்திய அதே மேஜிக் பேடிங்[cite: 2] */
+}
+
+/* Mobile-ல் பேனர்களை மறைத்து கன்டென்ட் சுருங்காமல் தடுப்பது (Responsive Fix) */
+@media (max-width: 1200px) {
+  .cs-new-wrapper {
+    padding: 0 20px !important;
+  }
+  .cs-side-ad {
+    display: none;          /* FAQ-ல் உள்ள அதே மொபைல் ஆப்டிமைசேஷன்[cite: 2] */
+  }
+}.cs-features-grid .cs-feature-card {
+  width: 100%;             /* கன்டெய்னருக்குள் முழுமையாகப் பொருந்த */
+  max-width: 800px;        /* வாசிப்பதற்குத் தகுந்த பிரீமியம் லுக் */
+  margin: 0 auto;
+}/* ComingSoon பக்கத்தில் இருக்கும் அனிமேஷன் இமேஜ் சைஸ் ஃபிக்ஸ் */
+/* Animation image size fix for ComingSoon page */
+.cs-ad-track img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}/* FAQ பக்கத்தில் இருக்கும் அனிமேஷன் இமேஜ் சைஸ் ஃபிக்ஸ் */
+.faq-page-wrapper .side-ad .ad-track img {
+  width: 100%;
+  height: 250px;           /* 👈 Coming Soon-ல் கொடுத்த அதே ஹைட் */
+  object-fit: cover;       /* 👈 இமேஜ் ரேஷியோ மாறாமல் இருக்க */
+  border-radius: 18px;     /* டிசைன் மேட்ச் ஆக வளைவான ஓரங்கள் */
+  margin-bottom: 16px;     /* ஒவ்வொரு இமேஜுக்கும் இடையில் சீரான கேப் */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}/* Update the wrapper to remove deep side paddings and expand background */
+.cs-new-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #eef2ff 25%, #ffffff 50%, #f0f9ff 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  padding: 0 190px !important; /* Kept just enough space so cards won't slide under fixed side ads */
+}
+
+/* Make container take full width of the screen */
+.cs-container-clean {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 100%; /* Changed from 1000px to full-screen wide */
+  margin: 0 auto;
+  padding: 60px 40px;
+  box-sizing: border-box;
+}
+
+/* Center grid section update to stretch clean across screen */
+.cs-features-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Card alignment inside full-screen view */
+.cs-features-grid .cs-feature-card {
+  width: 100%;
+  max-width: 1100px; /* Expands card wide nicely without squeezing layout */
+  margin: 0 auto;
+}
+
+/* FIXED SIDE BANNERS LAYOUT CONTROL */
+.cs-side-ad {
+  position: fixed;
+  top: 100px;
+  bottom: 0;
+  width: 180px;
+  overflow: hidden;
+  z-index: 10; /* Brought forward so they safely sit on corners */
+}
+
+.cs-left-ad {
+  left: 5px;
+}
+
+.cs-right-ad {
+  right: 5px;
+}
+
+/* Responsive breakpoint for smaller screens */
+@media (max-width: 1200px) {
+  .cs-new-wrapper {
+    padding: 0 20px !important;
+  }
+  .cs-side-ad {
+    display: none;
+  }
+}.cs-new-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #eef2ff 25%, #ffffff 50%, #f0f9ff 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  padding: 0 240px !important;
+}
+
+.cs-container-clean {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 60px 0;
+  box-sizing: border-box;
+}
+
+.cs-left-ad {
+  position: fixed;
+  top: 100px;
+  bottom: 0;
+  width: 200px;
+  left: 0;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.cs-right-ad {
+  position: fixed;
+  top: 100px;
+  bottom: 0;
+  width: 200px;
+  right: 0;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.cs-ad-track img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.cs-features-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.cs-features-grid .cs-feature-card {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+  .cs-new-wrapper {
+    padding: 0 20px !important;
+  }
+  .cs-side-ad {
+    display: none;
+  }
+}

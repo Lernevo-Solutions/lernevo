@@ -167,18 +167,18 @@ const SkillHome = () => {
                     </div>
                   </div>
                   <div className="skill-hero-stat">
-                    <div className="skill-hero-stat-icon">📈</div>
-                    <div className="skill-hero-stat-text">
-                      <strong>10k+</strong>
-                      <span>Resumes Analyzed</span>
-                    </div>
+                    <div className="skill-hero-stat-icon">⚡</div>
+<div className="skill-hero-stat-text">
+  <strong>Instant</strong>
+  <span>Skill Assessment</span>
+</div>
                   </div>
                   <div className="skill-hero-stat">
-                    <div className="skill-hero-stat-icon">🆓</div>
-                    <div className="skill-hero-stat-text">
-                      <strong>Free</strong>
-                      <span>No Sign-up Needed</span>
-                    </div>
+                   <div className="skill-hero-stat-icon">🔍</div>
+<div className="skill-hero-stat-text">
+  <strong>Skill Gap</strong>
+  <span>Smart Detection</span>
+</div>
                   </div>
                 </div>
               </div>
