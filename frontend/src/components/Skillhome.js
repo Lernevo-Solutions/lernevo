@@ -16,7 +16,13 @@ import g8 from "./gym8.png";
 import g9 from "./gym9.png";
 import g10 from "./gym10.png";
 import g11 from "./gym11.png";
-
+import {
+  Target,
+  BrainCircuit,
+  GraduationCap,
+  Wand2,
+  FileSearch
+} from "lucide-react";
 const SkillHome = () => {
   const navigate = useNavigate();
 
@@ -24,22 +30,22 @@ const SkillHome = () => {
 
   const features = [
     {
-      icon: '🎯',
+      icon: <Target size={32} strokeWidth={2.2} />,
       title: 'ATS Score Analysis',
       desc: 'Instantly check how well your resume matches ATS requirements and boost your visibility.',
     },
     {
-      icon: '🧠',
+     icon: <Wand2 size={32} strokeWidth={2.2} />,
       title: 'AI Skill Gap Detection',
       desc: 'Compare your resume against any job description and identify exactly what skills you are missing.',
     },
     {
-      icon: '📚',
+        icon: <GraduationCap size={32} strokeWidth={2.2} />,
       title: 'Learning Recommendations',
       desc: 'Get personalized course and resource suggestions to close your skill gaps fast.',
     },
     {
-      icon: '📄',
+       icon: <FileSearch size={32} strokeWidth={2.2} />,
       title: 'Resume Optimization Tips',
       desc: 'Receive actionable tips to make your resume more recruiter-friendly and keyword-optimized.',
     },

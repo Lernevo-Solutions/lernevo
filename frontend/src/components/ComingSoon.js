@@ -104,50 +104,27 @@ export default function ComingSoon() {
       <div className="cs-card-icon cs-icon-indigo">
         <div className="cs-icon-bg"></div>
 
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect
-            x="3"
-            y="3"
-            width="8"
-            height="8"
-            rx="2"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-          <rect
-            x="13"
-            y="3"
-            width="8"
-            height="5"
-            rx="2"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-          <rect
-            x="13"
-            y="10"
-            width="8"
-            height="11"
-            rx="2"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-          <rect
-            x="3"
-            y="13"
-            width="8"
-            height="8"
-            rx="2"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-        </svg>
+       <svg
+  width="32"
+  height="32"
+  viewBox="0 0 24 24"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <circle
+    cx="12"
+    cy="8"
+    r="4"
+    stroke="currentColor"
+    strokeWidth="1.8"
+  />
+  <path
+    d="M4 20C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 20"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+  />
+</svg>
       </div>
 
       <div className="cs-card-badge cs-badge-soon">
@@ -155,22 +132,21 @@ export default function ComingSoon() {
       </div>
     </div>
 
-    <h3 className="cs-card-title">Admin Dashboard</h3>
+    <h3 className="cs-card-title">User Dashboard</h3>
 
-    <p className="cs-card-text">
-      A powerful dashboard designed for administrators to manage users,
-      monitor platform activity, track analytics, and gain valuable
-      insights from one centralized workspace.
-    </p>
+<p className="cs-card-text">
+  A personalized dashboard that helps users track their progress,
+  manage their profile, access important resources, and stay updated
+  with all activities from one convenient place.
+</p>
 
-    <div className="cs-card-features">
-      <span>👥 User Management</span>
-      <span>📊 Analytics & Reports</span>
-      <span>🛡️ Role-Based Access</span>
-      <span>📈 Real-Time Insights</span>
-      <span>⚡ Activity Monitoring</span>
-    </div>
-
+<div className="cs-card-features">
+  <span>👤 Profile Management</span>
+  <span>📋 Activity Tracking</span>
+  <span>📂 Resource Access</span>
+  <span>🔔 Notifications & Updates</span>
+  <span>⚡ Personalized Experience</span>
+</div>
     <div className="cs-progress-section">
       <div className="cs-progress-label">
   <span>Current Status</span>

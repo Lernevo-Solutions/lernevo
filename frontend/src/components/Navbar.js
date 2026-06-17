@@ -113,12 +113,12 @@ export default function Navbar({ onGetStarted }) {
     {
       to: '/home',
       title: 'Resume Builder',
-      subtitle: 'See how it works first',
+      subtitle: 'Create your resume in minutes',
     },
     {
       to: '/skillhome',
       title: 'Skill Gap Analysis',
-      subtitle: 'Compare skills with roles',
+      subtitle: 'Compare Resume with Job Description',
     },
     {
       to: '/features/coming-soon',
