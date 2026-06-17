@@ -40,14 +40,26 @@ function User() {
     if (!email) return "-";
     const value = String(email).trim();
     if (value === "-") return "-";
-    if (value.length <= 6) {
-      return `${value.slice(0, 2)}***${value.slice(-1)}`;
+    const [localPart, domainPart] = value.split("@");
+    if (!domainPart) {
+      if (value.length <= 6) {
+        return `${value.slice(0, 2)}***${value.slice(-1)}`;
+      }
+
+      const visibleStart = value.slice(0, 4);
+      const visibleEnd = value.slice(-2);
+      const maskedLength = Math.max(value.length - visibleStart.length - visibleEnd.length, 3);
+      return `${visibleStart}${"*".repeat(maskedLength)}${visibleEnd}`;
     }
 
-    const visibleStart = value.slice(0, 4);
-    const visibleEnd = value.slice(-2);
-    const maskedLength = Math.max(value.length - visibleStart.length - visibleEnd.length, 3);
-    return `${visibleStart}${"*".repeat(maskedLength)}${visibleEnd}`;
+    if (localPart.length <= 6) {
+      return `${localPart.slice(0, 2)}***${localPart.slice(-1)}@${domainPart}`;
+    }
+
+    const visibleStart = localPart.slice(0, 4);
+    const visibleEnd = localPart.slice(-2);
+    const maskedLength = Math.max(localPart.length - visibleStart.length - visibleEnd.length, 3);
+    return `${visibleStart}${"*".repeat(maskedLength)}${visibleEnd}@${domainPart}`;
   };
 
   const maskPhone = (phone = "") => {
@@ -93,7 +105,7 @@ function User() {
     setSaving(true);
     try {
       const response = await fetch(API_URL, {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
