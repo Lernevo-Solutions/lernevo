@@ -1595,11 +1595,12 @@ from .serializers import (
 from .vertex_ai_service import (
     vertex_service
 )
-
-from .vertex_ai_service import (
-    vertex_service
-)
-import pytesseract
+import importlib
+try:
+    pytesseract = importlib.import_module('pytesseract')
+except ModuleNotFoundError:
+    # Optional dependency: OCR will be disabled if pytesseract is not installed
+    pytesseract = None
 from PIL import Image
 import io
 class AnalyzeSkillGapAPIView(APIView):
@@ -1956,11 +1957,11 @@ def user_management_api(request):
             for user in users:
                 data.append({
                     'id': str(user.id),
+                    'user_code': user.user_code,
                     'username': user.auth_user.username,
                     'email': user.auth_user.email,
                     'country_code': user.country_code,
                     'mobile': user.mobile if user.mobile else '-',
-                    'user_code': user.user_code,
                     'is_frozen': user.is_frozen,
                     'is_first_login': user.is_first_login,
                     'registered_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -2028,11 +2029,11 @@ def user_management_api(request):
                     'action': 'get_user',
                     'user': {
                         'id': str(user.id),
+                        'user_code': user.user_code,
                         'username': user.auth_user.username,
                         'email': user.auth_user.email,
                         'country_code': user.country_code,
                         'mobile': user.mobile,
-                        'user_code': user.user_code,
                         'is_frozen': user.is_frozen,
                         'is_first_login': user.is_first_login,
                         'registered_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -2069,11 +2070,70 @@ def user_management_api(request):
                         'first_login': first_login
                     }
                 })
+
+            # ---------- Action 6: Update User ----------
+            elif action == 'update_user':
+                user = User.objects.select_related('auth_user').get(id=user_id)
+
+                new_username = (body.get('username') or user.auth_user.username or "").strip().lower()
+                new_email = (body.get('email') or user.auth_user.email or "").strip().lower()
+                new_country_code = (body.get('country_code') or user.country_code or "").strip()
+                new_mobile = (body.get('mobile') or user.mobile or "").strip()
+
+                if not new_username or not new_email:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Username and email are required'
+                    }, status=400)
+
+                if AuthUser.objects.exclude(id=user.auth_user.id).filter(username__iexact=new_username).exists():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Username already exists'
+                    }, status=400)
+
+                if AuthUser.objects.exclude(id=user.auth_user.id).filter(email__iexact=new_email).exists():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Email already exists'
+                    }, status=400)
+
+                if new_mobile and User.objects.exclude(id=user.id).filter(mobile=new_mobile, is_delete=False).exists():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Mobile number already exists'
+                    }, status=400)
+
+                user.auth_user.username = new_username
+                user.auth_user.email = new_email
+                user.auth_user.save()
+
+                user.country_code = new_country_code or user.country_code
+                user.mobile = new_mobile
+                user.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'action': 'update_user',
+                    'message': 'User updated successfully',
+                    'user': {
+                        'id': str(user.id),
+                        'user_code': user.user_code,
+                        'username': user.auth_user.username,
+                        'email': user.auth_user.email,
+                        'country_code': user.country_code,
+                        'mobile': user.mobile if user.mobile else '-',
+                        'is_frozen': user.is_frozen,
+                        'is_first_login': user.is_first_login,
+                        'registered_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                        'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'Never',
+                    }
+                })
             
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Invalid action. Available: update_last_login, toggle_freeze, get_user, update_first_login, get_stats'
+                    'error': 'Invalid action. Available: update_last_login, toggle_freeze, get_user, update_first_login, get_stats, update_user'
                 }, status=400)
         
         except User.DoesNotExist:
