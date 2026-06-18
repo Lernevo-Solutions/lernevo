@@ -49,9 +49,13 @@ class RegisterView(APIView):
             name = request.data.get("name", "")
             user_code = request.data.get("user_code")
             
+           
+            country_code = request.data.get("country_code", "+91").strip()
+            
             print(f"Email: {email}")
             print(f"Username: {username}")
             print(f"Mobile: {mobile}")
+            print(f"Country Code: {country_code}") 
             
             # Validation
             if not email or not username or not password:
@@ -93,21 +97,22 @@ class RegisterView(APIView):
             auth_user.first_name = name
             auth_user.save()
             print(f"✅ Auth user created: ID={auth_user.id}")
-            
-            # STEP 2: Generate unique user_code
+           
             if not user_code:
                 user_code = str(random.randint(100000, 999999))
                 while LernevoUser.objects.filter(user_code=user_code).exists():
                     user_code = str(random.randint(100000, 999999))
             
-            # STEP 3: Create custom LernevoUser
+           
             print("Step 2: Creating custom LernevoUser...")
+            #
             custom_user = LernevoUser.objects.create(
                 auth_user=auth_user,
                 mobile=mobile,
+                country_code=country_code,
                 user_code=user_code
             )
-            print(f"✅ Custom user created: ID={custom_user.id}, Code={user_code}")
+            print(f"✅ Custom user created: ID={custom_user.id}, Code={user_code}, Country={country_code}")
             
             # STEP 4: Create auth token
             print("Step 3: Creating auth token...")
@@ -134,7 +139,8 @@ class RegisterView(APIView):
                 "user_name": auth_user.username,
                 "email": auth_user.email,
                 "name": auth_user.first_name,
-                "mobile": custom_user.mobile
+                "mobile": custom_user.mobile,
+                "country_code": custom_user.country_code 
             }, status=status.HTTP_201_CREATED)
             
         except Exception as e:
@@ -1595,12 +1601,11 @@ from .serializers import (
 from .vertex_ai_service import (
     vertex_service
 )
-import importlib
-try:
-    pytesseract = importlib.import_module('pytesseract')
-except ModuleNotFoundError:
-    # Optional dependency: OCR will be disabled if pytesseract is not installed
-    pytesseract = None
+
+from .vertex_ai_service import (
+    vertex_service
+)
+import pytesseract
 from PIL import Image
 import io
 class AnalyzeSkillGapAPIView(APIView):
@@ -1930,6 +1935,7 @@ class DetectResumeAPIView(APIView):
             "analyzed_from_text": False
         }
         
+         
         
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt

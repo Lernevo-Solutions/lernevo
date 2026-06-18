@@ -77,7 +77,7 @@ class User(models.Model):
         related_name="lernevo_user"
     )
 
-    country_code = models.CharField(max_length=5, default="+91")
+    country_code = models.CharField(max_length=5, default="+91", null=True, blank=True)
     mobile = models.CharField(
         max_length=15,
         null=True,
