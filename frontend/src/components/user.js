@@ -52,12 +52,12 @@ function User() {
       return `${visibleStart}${"*".repeat(maskedLength)}${visibleEnd}`;
     }
 
-    if (localPart.length <= 6) {
-      return `${localPart.slice(0, 2)}***${localPart.slice(-1)}@${domainPart}`;
+    if (localPart.length <= 7) {
+      return `${localPart.slice(0, 4)}***${localPart.slice(-3)}@${domainPart}`;
     }
 
     const visibleStart = localPart.slice(0, 4);
-    const visibleEnd = localPart.slice(-2);
+    const visibleEnd = localPart.slice(-3);
     const maskedLength = Math.max(localPart.length - visibleStart.length - visibleEnd.length, 3);
     return `${visibleStart}${"*".repeat(maskedLength)}${visibleEnd}@${domainPart}`;
   };
