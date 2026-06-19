@@ -27,7 +27,13 @@ const AuthPage = () => {
   const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [phoneError, setPhoneError] = useState('');
-
+  // AuthPage இன் ஆரம்பத்தில் சேர்க்கப்பட்ட ஸ்டேட்கள்[cite: 1]:
+const [mustUpdatePassword, setMustUpdatePassword] = useState(false);
+const [updatePasswords, setUpdatePasswords] = useState({
+  currentPassword: '',
+  newPassword: '',
+  confirmNewPassword: ''
+});
   // Form States
   const [formData, setFormData] = useState({
     name: '',
@@ -360,56 +366,68 @@ const AuthPage = () => {
 
   // Login User
   const handleLogin = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!loginData.username || !loginData.password) {
-      alert('Please enter both username/email and password');
-      return;
+  if (!loginData.username || !loginData.password) {
+    alert('Please enter both username/email and password');
+    return;
+  }
+  
+  setIsLoading(true);
+  setLoadingMessage('Logging in... Please wait');
+
+  const payload = {
+    username: loginData.username.trim().toLowerCase(), 
+    password: loginData.password
+  };
+
+  try {
+    const res = await api.post('/login/', payload);
+
+    if (res.data.token) {
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('auth_token', res.data.token);
+      localStorage.setItem('user_name', res.data.user_name || payload.username);
+      localStorage.setItem('user_email', res.data.email || '');
+      localStorage.setItem('user_code', res.data.user_code || '');
+
+      if (res.data.needs_password_reset) {
+        setIsLoading(false);
+        setLoadingMessage('');
+        
+        setMustUpdatePassword(true); 
+        
+        setUpdatePasswords(prev => ({ ...prev, currentPassword: loginData.password })); 
+        return; 
+      }
+
+      alert('✅ Login successful! Redirecting...');
+      navigate('/');
+    } else {
+      throw new Error('No token received');
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    let errorMsg = 'Login failed. ';
+    
+    if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+      errorMsg = 'Server is slow. Please try again in a moment.';
+    } else if (err.response?.status === 404) {
+      errorMsg = 'User not found. Please register first.';
+    } else if (err.response?.status === 400) {
+      errorMsg = err.response?.data?.detail || 'Invalid credentials';
+    } else {
+      errorMsg = err.response?.data?.detail || 'Invalid login credentials';
     }
     
-    setIsLoading(true);
-    setLoadingMessage('Logging in... Please wait');
-
-    const payload = {
-      username: loginData.username.trim().toLowerCase(), 
-      password: loginData.password
-    };
-
-    try {
-      const res = await api.post('/login/', payload);
-
-      if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('auth_token', res.data.token);
-        localStorage.setItem('user_name', res.data.user_name || payload.username);
-        localStorage.setItem('user_email', res.data.email || '');
-        localStorage.setItem('user_code', res.data.user_code || '');
-
-        alert('✅ Login successful! Redirecting...');
-        navigate('/');
-      } else {
-        throw new Error('No token received');
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      let errorMsg = 'Login failed. ';
-      
-      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        errorMsg = 'Server is slow. Please try again in a moment.';
-      } else if (err.response?.status === 404) {
-        errorMsg = 'User not found. Please register first.';
-      } else if (err.response?.status === 400) {
-        errorMsg = err.response?.data?.detail || 'Invalid credentials';
-      } else {
-        errorMsg = err.response?.data?.detail || 'Invalid login credentials';
-      }
-      
-      alert(`❌ ${errorMsg}`);
-    } finally {
+    alert(`❌ ${errorMsg}`);
+  } finally {
+    if (!mustUpdatePassword) {
       setIsLoading(false);
       setLoadingMessage('');
     }
-  };
+  }
+};
 
   // Handle phone change with validation
   const handlePhoneChange = (e) => {
@@ -432,7 +450,35 @@ const AuthPage = () => {
     setFormData(prev => ({ ...prev, phone: '' }));
     setPhoneError('');
   };
+const handleForceUpdateSubmit = async (e) => {
+  e.preventDefault();
+  if (updatePasswords.newPassword !== updatePasswords.confirmNewPassword) {
+    alert("New passwords do not match!");
+    return;
+  }
+  if (updatePasswords.newPassword.length < 6) {
+    alert("Password must be longer");
+    return;
+  }
 
+  setIsLoading(true);
+  setLoadingMessage('Updating forced password reset rule...');
+
+  try {
+   
+    await api.put('auth/force-update-password/', {
+      old_password: updatePasswords.currentPassword,
+      new_password: updatePasswords.newPassword
+    });
+    alert('Password updated successfully! Logged in.');
+    setMustUpdatePassword(false);
+    navigate('/'); 
+  } catch (err) {
+    alert(err.response?.data?.detail || 'Failed updating');
+  } finally {
+    setIsLoading(false);
+  }
+};
   // Close country dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -543,7 +589,93 @@ const AuthPage = () => {
           </div>
 
           <div className="auth-content-area">
-            {!isLogin ? (
+            {mustUpdatePassword ? (
+              <form className="login-form step-fade-in" onSubmit={handleForceUpdateSubmit}>
+                <h3 style={{ marginBottom: '5px' }}>Strict Password Reset Required</h3>
+                <p style={{ fontSize: '13px', color: '#666', marginBottom: '20px' }}>
+                  An administrator has initiated a hard reset on your profile. You must change your temporary password now.
+                </p>
+
+                <div className="input-group">
+                  <label>Current Temporary Password</label>
+                  <input 
+                    type="password" 
+                    value={updatePasswords.currentPassword} 
+                    onChange={(e) => setUpdatePasswords({ ...updatePasswords, currentPassword: e.target.value })} 
+                    required 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>New Secure Password</label>
+                  <input 
+                    type="password" 
+                    placeholder="Min 8 characters" 
+                    value={updatePasswords.newPassword} 
+                    onChange={(e) => setUpdatePasswords({ ...updatePasswords, newPassword: e.target.value })} 
+                    required 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Confirm New Secure Password</label>
+                  <input 
+                    type="password" 
+                    placeholder="Repeat password" 
+                    value={updatePasswords.confirmNewPassword} 
+                    onChange={(e) => setUpdatePasswords({ ...updatePasswords, confirmNewPassword: e.target.value })} 
+                    required 
+                  />
+                </div>
+
+                <button type="submit" className="login-btn primary">Update Password & Login</button>
+              </form>
+            ) : isLogin ? (
+              <form className="login-form step-fade-in" onSubmit={handleLogin}>
+                <div className="input-group">
+                  <label>Username or Email</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your credentials"
+                    value={loginData.username}
+                    onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Password</label>
+                  <div className="pw-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password"
+                      value={loginData.password}
+                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      disabled={isLoading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="pw-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="login-actions">
+                  <button type="submit" className="login-btn primary" disabled={isLoading}>
+                    {isLoading ? loadingMessage : 'Login to Account'}
+                  </button>
+                  <Link to="/reset-password" style={{ textDecoration: 'none' }}>
+                    <p className="forgot-pw">Forgot Password?</p>
+                  </Link>
+                </div>
+              </form>
+            ) : (
               <div className={`signup-step-content step-${step}`}>
                 {step === 1 && (
                   <div className="step-fade-in">
@@ -838,51 +970,6 @@ const AuthPage = () => {
                   </div>
                 )}
               </div>
-            ) : (
-              <form className="login-form step-fade-in" onSubmit={handleLogin}>
-                <div className="input-group">
-                  <label>Username or Email</label>
-                  <input
-                    type="text"
-                    placeholder="Enter your credentials"
-                    value={loginData.username}
-                    onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label>Password</label>
-                  <div className="pw-wrapper">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter password"
-                      value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      disabled={isLoading}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="pw-toggle"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="login-actions">
-                  <button type="submit" className="login-btn primary" disabled={isLoading}>
-                    {isLoading ? loadingMessage : 'Login to Account'}
-                  </button>
-                  <Link to="/reset-password" style={{ textDecoration: 'none' }}>
-                    <p className="forgot-pw">Forgot Password?</p>
-                  </Link>
-                </div>
-              </form>
             )}
           </div>
         </div>
