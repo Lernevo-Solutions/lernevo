@@ -8,6 +8,7 @@ from . import views  # ⬅️ ADD THIS LINE
 from .views import (
     DBCheckView,
     DetectResumeAPIView,
+    ForcePasswordUpdateView,
     ResumeViewSet,
     EnquiryCreateAPIView,
     OTPView,
@@ -64,6 +65,7 @@ urlpatterns = [
     ),
   path('detect-resume/', DetectResumeAPIView.as_view(), name='detect-resume'),
   path('users/', views.user_management_api, name='user_management'),
+  path('auth/force-update-password/', ForcePasswordUpdateView.as_view(), name='force_password_update'),
     # 🔥 IMPORTANT (ADD THIS LINE)
     path('', include(router.urls)),
 ]

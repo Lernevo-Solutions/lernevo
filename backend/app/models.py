@@ -94,7 +94,7 @@ class User(models.Model):
     is_frozen = models.BooleanField(default=False)
     frozen_at = models.DateTimeField(null=True, blank=True)
     unfrozen_at = models.DateTimeField(null=True, blank=True)
-
+    needs_password_reset = models.BooleanField(default=False)
     is_delete = models.BooleanField(default=False)
     is_first_login = models.BooleanField(default=True)
 

@@ -157,7 +157,6 @@ class RegisterView(APIView):
 # LOGIN VIEW - Finds user from both tables
 # ============================================================
 from django.utils import timezone
-
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -190,24 +189,28 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # ✅ ✅ ✅ ADD THIS - Update last_login in AuthUser
-        user.last_login = timezone.now()
-        user.save()
-        
         token, _ = Token.objects.get_or_create(user=user)
         
         try:
             custom_user = LernevoUser.objects.get(auth_user=user)
             
-            # ✅ ✅ ✅ ADD THIS - Update last_login in custom User model
-            custom_user.last_login = timezone.now()
-            custom_user.is_first_login = False  # First login done
-            custom_user.save()
+           
+            needs_reset = custom_user.needs_password_reset
+            
+           
+            if not needs_reset:
+                user.last_login = timezone.now()
+                user.save()
+                
+                custom_user.last_login = timezone.now()
+                custom_user.is_first_login = False  # First login done
+                custom_user.save()
             
             user_code = custom_user.user_code
             mobile = custom_user.mobile
             
         except LernevoUser.DoesNotExist:
+            needs_reset = False  
             user_code = str(random.randint(100000, 999999))
             while LernevoUser.objects.filter(user_code=user_code).exists():
                 user_code = str(random.randint(100000, 999999))
@@ -220,6 +223,7 @@ class LoginView(APIView):
         
         print(f"✅ Last login updated: {custom_user.last_login}")
         
+        
         return Response({
             "message": "Login successful",
             "token": token.key,
@@ -228,6 +232,7 @@ class LoginView(APIView):
             "name": user.first_name,
             "user_code": user_code,
             "mobile": mobile,
+            "needs_password_reset": needs_reset,  
             "last_login": custom_user.last_login.strftime('%Y-%m-%d %H:%M:%S') if custom_user.last_login else 'Never'
         }, status=status.HTTP_200_OK)
 class DBCheckView(APIView):
@@ -1936,7 +1941,6 @@ class DetectResumeAPIView(APIView):
         }
         
          
-        
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -1951,7 +1955,7 @@ def user_management_api(request):
     ONE API FOR EVERYTHING
     
     GET    - Get all users
-    POST   - Update last login / Toggle freeze / Update status
+    POST   - Update last login / Toggle freeze / Update status / Admin Hard Reset
     """
     
     # ========== GET ALL USERS ==========
@@ -2136,10 +2140,29 @@ def user_management_api(request):
                     }
                 })
             
+           
+            elif action == 'admin_hard_reset_password':
+                user = User.objects.select_related('auth_user').get(id=user_id)
+                
+              
+                temporary_password = "Lernevo@123"
+                user.auth_user.set_password(temporary_password)
+                user.auth_user.save()
+                
+               
+                user.needs_password_reset = True
+                user.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'action': 'admin_hard_reset_password',
+                    'message': f'Password successfully reset to default "Lernevo@123" for {user.auth_user.username}. Forced update pattern is active on next login.'
+                })
+            
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Invalid action. Available: update_last_login, toggle_freeze, get_user, update_first_login, get_stats, update_user'
+                    'error': 'Invalid action. Available: update_last_login, toggle_freeze, get_user, update_first_login, get_stats, update_user, admin_hard_reset_password'
                 }, status=400)
         
         except User.DoesNotExist:
@@ -2170,3 +2193,32 @@ def user_management_api(request):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
     return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+
+class ForcePasswordUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+
+        if not old_password or not new_password:
+            return Response({"detail": "Both current and new passwords are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(old_password):
+            return Response({"detail": "Current password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.last_login = timezone.now()
+        user.save()
+
+        try:
+            custom_user = LernevoUser.objects.get(auth_user=user)
+            custom_user.needs_password_reset = False 
+            custom_user.last_login = timezone.now()
+            custom_user.is_first_login = False
+            custom_user.save()
+        except LernevoUser.DoesNotExist:
+            pass
+
+        return Response({"success": True, "message": "Password updated successfully."}, status=status.HTTP_200_OK)
