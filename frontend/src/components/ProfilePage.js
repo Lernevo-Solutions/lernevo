@@ -31,7 +31,7 @@ const ProfilePage = () => {
           username: response.data.username || localStorage.getItem('user_name'),
           email: response.data.email,
           phone: response.data.mobile || response.data.phone,
-          role: response.data.role || 'Member'
+          role: response.data.role || localStorage.getItem('user_role') || 'USER'
         });
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -173,7 +173,25 @@ const ProfilePage = () => {
           </label>
         </div>
         <h1 className="profile-display-name">{userData.username}</h1>
-        <span className="profile-badge">{userData.role}</span>
+        
+        {/* ✅ FIXED: Pure authentic dynamically generated state verification look */}
+        <span 
+          className="profile-badge" 
+          style={{
+            textTransform: 'uppercase',
+            fontWeight: '700',
+            letterSpacing: '0.5px',
+            backgroundColor: userData.role === 'ADMIN' ? '#7c3aed' : '#10b981',
+            color: 'white',
+            padding: '4px 14px',
+            borderRadius: '12px',
+            fontSize: '11px',
+            display: 'inline-block',
+            marginTop: '5px'
+          }}
+        >
+          {userData.role ? userData.role : 'USER'}
+        </span>
       </div>
 
       <div className="profile-details">

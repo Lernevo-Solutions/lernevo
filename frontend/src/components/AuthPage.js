@@ -27,7 +27,15 @@ const AuthPage = () => {
   const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [phoneError, setPhoneError] = useState('');
-
+  
+  // AuthPage states
+  const [mustUpdatePassword, setMustUpdatePassword] = useState(false);
+  const [updatePasswords, setUpdatePasswords] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+  
   // Form States
   const [formData, setFormData] = useState({
     name: '',
@@ -37,7 +45,8 @@ const AuthPage = () => {
     username: '',
     password: '',
     confirmPassword: '',
-    userId: ''
+    userId: '',
+    role: 'USER'
   });
 
   // Country codes with specific phone number lengths
@@ -76,6 +85,7 @@ const AuthPage = () => {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(null);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [userRole, setUserRole] = useState('USER');
 
   const userIdSectionRef = useRef(null);
   const [loginData, setLoginData] = useState({
@@ -262,7 +272,6 @@ const AuthPage = () => {
 
   // Register User
   const handleGenerateUserId = async () => {
-    // Validation checks
     if (!isUsernameAvailable) {
       alert('Please choose an available username');
       return;
@@ -298,12 +307,14 @@ const AuthPage = () => {
         mobile: fullPhoneNumber,
         country_code: selectedCountryCode,
         user_code: generatedId,
+        role: formData.role,
       });
 
       const { token, user_code: issuedUserCode } = res.data;
       
       if (token) {
-        // Store all user data in localStorage
+        const role = res.data.role || 'USER';
+
         localStorage.setItem('token', token);
         localStorage.setItem('auth_token', token);
         localStorage.setItem('user_code', issuedUserCode || generatedId);
@@ -311,23 +322,27 @@ const AuthPage = () => {
         localStorage.setItem('user_email', formData.email);
         localStorage.setItem('user_mobile', fullPhoneNumber);
         localStorage.setItem('country_code', selectedCountryCode);
+        localStorage.setItem('user_role', role);
         
+        setUserRole(role);
         setIsAuthenticated(true);
         setUser(formData.name);
         setFormData(prev => ({ ...prev, userId: issuedUserCode || generatedId }));
 
-        // Scroll to show user ID
         setTimeout(() => {
           userIdSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
 
-        alert('✅ Registration successful! Redirecting to home...');
+        alert('✅ Registration successful! Redirecting...');
         
-        // Redirect to home
         setTimeout(() => {
           setIsRedirecting(true);
           setTimeout(() => {
-            navigate('/');
+            if (role === 'ADMIN') {
+              navigate('/');
+            } else {
+              navigate('/');
+            }
           }, 1500);
         }, 1000);
       } else {
@@ -358,7 +373,6 @@ const AuthPage = () => {
     }
   };
 
-  // Login User
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -379,14 +393,31 @@ const AuthPage = () => {
       const res = await api.post('/login/', payload);
 
       if (res.data.token) {
+        const role = res.data.role || 'USER';
+        
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('auth_token', res.data.token);
         localStorage.setItem('user_name', res.data.user_name || payload.username);
         localStorage.setItem('user_email', res.data.email || '');
         localStorage.setItem('user_code', res.data.user_code || '');
+        localStorage.setItem('user_role', role);
+        setUserRole(role);
+
+        if (res.data.needs_password_reset) {
+          setIsLoading(false);
+          setLoadingMessage('');
+          setMustUpdatePassword(true); 
+          setUpdatePasswords(prev => ({ ...prev, currentPassword: loginData.password })); 
+          return; 
+        }
 
         alert('✅ Login successful! Redirecting...');
-        navigate('/');
+        
+        if (role === 'ADMIN') {
+          navigate('/');
+        } else {
+          navigate('/');
+        }
       } else {
         throw new Error('No token received');
       }
@@ -406,18 +437,18 @@ const AuthPage = () => {
       
       alert(`❌ ${errorMsg}`);
     } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
+      if (!mustUpdatePassword) {
+        setIsLoading(false);
+        setLoadingMessage('');
+      }
     }
   };
 
   // Handle phone change with validation
   const handlePhoneChange = (e) => {
-    // Allow only numbers
     const value = e.target.value.replace(/[^0-9]/g, '');
     const country = getCurrentCountryConfig();
     
-    // Limit to max length of the selected country
     if (value.length <= country.maxLength) {
       handleInputChange({ target: { name: 'phone', value } });
       validatePhoneNumber(value);
@@ -428,9 +459,37 @@ const AuthPage = () => {
   const handleCountryChange = (country) => {
     setSelectedCountryCode(country.code);
     setShowCountryDropdown(false);
-    // Clear phone number when country changes
     setFormData(prev => ({ ...prev, phone: '' }));
     setPhoneError('');
+  };
+
+  const handleForceUpdateSubmit = async (e) => {
+    e.preventDefault();
+    if (updatePasswords.newPassword !== updatePasswords.confirmNewPassword) {
+      alert("New passwords do not match!");
+      return;
+    }
+    if (updatePasswords.newPassword.length < 6) {
+      alert("Password must be longer");
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadingMessage('Updating forced password reset rule...');
+
+    try {
+      await api.put('auth/force-update-password/', {
+        old_password: updatePasswords.currentPassword,
+        new_password: updatePasswords.newPassword
+      });
+      alert('Password updated successfully! Logged in.');
+      setMustUpdatePassword(false);
+      navigate('/'); 
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed updating');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Close country dropdown when clicking outside
@@ -443,6 +502,36 @@ const AuthPage = () => {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showCountryDropdown]);
+
+  // Get role badge color
+  const getRoleBadgeColor = (role) => {
+    const roleMap = {
+      'ADMIN': '#7c3aed',
+      'USER': '#10b981',
+
+    };
+    return roleMap[role] || '#6b7280';
+  };
+
+  // Get role icon
+  const getRoleIcon = (role) => {
+    const iconMap = {
+      'ADMIN': '🛡️',
+      'USER': '👤',
+      
+    };
+    return iconMap[role] || '👤';
+  };
+
+  // Get role description
+  const getRoleDescription = (role) => {
+    const descMap = {
+      'ADMIN': 'You have administrative access to manage users and system settings.',
+      'USER': 'Standard user with access to all wellness features.',
+      
+    };
+    return descMap[role] || 'Standard user with access to all wellness features.';
+  };
 
   const currentCountry = getCurrentCountryConfig();
 
@@ -543,7 +632,93 @@ const AuthPage = () => {
           </div>
 
           <div className="auth-content-area">
-            {!isLogin ? (
+            {mustUpdatePassword ? (
+              <form className="login-form step-fade-in" onSubmit={handleForceUpdateSubmit}>
+                <h3 style={{ marginBottom: '5px' }}>Strict Password Reset Required</h3>
+                <p style={{ fontSize: '13px', color: '#666', marginBottom: '20px' }}>
+                  An administrator has initiated a hard reset on your profile. You must change your temporary password now.
+                </p>
+
+                <div className="input-group">
+                  <label>Current Temporary Password</label>
+                  <input 
+                    type="password" 
+                    value={updatePasswords.currentPassword} 
+                    onChange={(e) => setUpdatePasswords({ ...updatePasswords, currentPassword: e.target.value })} 
+                    required 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>New Secure Password</label>
+                  <input 
+                    type="password" 
+                    placeholder="Min 8 characters" 
+                    value={updatePasswords.newPassword} 
+                    onChange={(e) => setUpdatePasswords({ ...updatePasswords, newPassword: e.target.value })} 
+                    required 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Confirm New Secure Password</label>
+                  <input 
+                    type="password" 
+                    placeholder="Repeat password" 
+                    value={updatePasswords.confirmNewPassword} 
+                    onChange={(e) => setUpdatePasswords({ ...updatePasswords, confirmNewPassword: e.target.value })} 
+                    required 
+                  />
+                </div>
+
+                <button type="submit" className="login-btn primary">Update Password & Login</button>
+              </form>
+            ) : isLogin ? (
+              <form className="login-form step-fade-in" onSubmit={handleLogin}>
+                <div className="input-group">
+                  <label>Username or Email</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your credentials"
+                    value={loginData.username}
+                    onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Password</label>
+                  <div className="pw-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password"
+                      value={loginData.password}
+                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      disabled={isLoading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="pw-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="login-actions">
+                  <button type="submit" className="login-btn primary" disabled={isLoading}>
+                    {isLoading ? loadingMessage : 'Login to Account'}
+                  </button>
+                  <Link to="/reset-password" style={{ textDecoration: 'none' }}>
+                    <p className="forgot-pw">Forgot Password?</p>
+                  </Link>
+                </div>
+              </form>
+            ) : (
               <div className={`signup-step-content step-${step}`}>
                 {step === 1 && (
                   <div className="step-fade-in">
@@ -699,6 +874,27 @@ const AuthPage = () => {
                         </div>
                       </div>
                     </div>
+                    <div className="input-group">
+  <label>Role</label>
+  <select 
+    name="role" 
+    value={formData.role} 
+    onChange={handleInputChange}
+    disabled={isLoading}
+    className="role-select-dropdown"
+    style={{
+      width: '100%',
+      padding: '10px',
+      borderRadius: '8px',
+      border: '1px solid #ccc',
+      backgroundColor: 'white',
+      fontSize: '14px'
+    }}
+  >
+    <option value="USER">User</option>
+    <option value="ADMIN">Admin</option>
+  </select>
+</div>
                     <div className="step-footer">
                       <button className="back-btn" onClick={prevStep} disabled={isLoading}>Back</button>
                       <button 
@@ -823,8 +1019,36 @@ const AuthPage = () => {
                                 disabled
                               />
                             </div>
+                            
+                            {/* ✅ ROLE DISPLAY SECTION - COMPLETE */}
+                            <div className="role-display-container">
+                              <div className="role-badge">
+                                <span className="role-icon">{getRoleIcon(userRole)}</span>
+                                <span className="role-label">Your Role:</span>
+                                <span 
+                                  className={`role-value ${userRole.toLowerCase()}`}
+                                  style={{
+                                    backgroundColor: getRoleBadgeColor(userRole),
+                                    color: 'white'
+                                  }}
+                                >
+                                  {userRole}
+                                </span>
+                              </div>
+                              <p className="role-description">
+                                {getRoleDescription(userRole)}
+                              </p>
+                              {userRole === 'ADMIN' && (
+                                <div className="role-admin-badge">
+                                  ⚡ You have admin privileges - You can manage users from the admin panel
+                                </div>
+                              )}
+                            </div>
+                            
                             {isRedirecting && (
-                              <p className="redirect-text">Redirecting you to Home...</p>
+                              <p className="redirect-text">
+                                Redirecting you to {userRole === 'ADMIN' ? 'Admin Dashboard' : 'Home'}...
+                              </p>
                             )}
                           </div>
                         )}
@@ -838,51 +1062,6 @@ const AuthPage = () => {
                   </div>
                 )}
               </div>
-            ) : (
-              <form className="login-form step-fade-in" onSubmit={handleLogin}>
-                <div className="input-group">
-                  <label>Username or Email</label>
-                  <input
-                    type="text"
-                    placeholder="Enter your credentials"
-                    value={loginData.username}
-                    onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label>Password</label>
-                  <div className="pw-wrapper">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter password"
-                      value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      disabled={isLoading}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="pw-toggle"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="login-actions">
-                  <button type="submit" className="login-btn primary" disabled={isLoading}>
-                    {isLoading ? loadingMessage : 'Login to Account'}
-                  </button>
-                  <Link to="/reset-password" style={{ textDecoration: 'none' }}>
-                    <p className="forgot-pw">Forgot Password?</p>
-                  </Link>
-                </div>
-              </form>
             )}
           </div>
         </div>
