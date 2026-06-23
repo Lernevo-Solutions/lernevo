@@ -41,96 +41,53 @@ class RegisterView(APIView):
         print("📝 REGISTRATION STARTED")
         
         try:
-            # Get data from request
             email = request.data.get("email", "").strip().lower()
             username = request.data.get("username", "").strip().lower()
             password = request.data.get("password")
             mobile = request.data.get("mobile", "")
             name = request.data.get("name", "")
             user_code = request.data.get("user_code")
-            
-           
             country_code = request.data.get("country_code", "+91").strip()
+            # 1. Frontend-la irunthu vara 'role' (USER / ADMIN) vangarom
+            role_name = request.data.get("role", "USER").strip().upper() 
             
-            print(f"Email: {email}")
-            print(f"Username: {username}")
-            print(f"Mobile: {mobile}")
-            print(f"Country Code: {country_code}") 
-            
-            # Validation
             if not email or not username or not password:
-                return Response(
-                    {"detail": "Email, username and password are required"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"detail": "Email, username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
             
-            # Check if user already exists
             if AuthUser.objects.filter(email__iexact=email).exists():
-                print(f"❌ Email already exists: {email}")
-                return Response(
-                    {"detail": "Email already registered"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"detail": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
             
             if AuthUser.objects.filter(username__iexact=username).exists():
-                print(f"❌ Username already exists: {username}")
-                return Response(
-                    {"detail": "Username already taken"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            # Check mobile in custom table
+                return Response({"detail": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+
             if mobile and LernevoUser.objects.filter(mobile=mobile, is_delete=False).exists():
-                print(f"❌ Mobile already exists: {mobile}")
-                return Response(
-                    {"detail": "Mobile number already registered"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"detail": "Mobile number already registered"}, status=status.HTTP_400_BAD_REQUEST)
             
-            # STEP 1: Create Django auth_user
-            print("Step 1: Creating Django auth_user...")
-            auth_user = AuthUser.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
+            auth_user = AuthUser.objects.create_user(username=username, email=email, password=password)
             auth_user.first_name = name
             auth_user.save()
-            print(f"✅ Auth user created: ID={auth_user.id}")
-           
+            
             if not user_code:
                 user_code = str(random.randint(100000, 999999))
                 while LernevoUser.objects.filter(user_code=user_code).exists():
                     user_code = str(random.randint(100000, 999999))
             
-           
-            print("Step 2: Creating custom LernevoUser...")
-            #
+            # 2. Inga static-aa 'USER' nu irunthathai, ippo dynamic-aa unga variable 'role_name'-ku mathiyachu
+            from .models import Role
+            selected_role, _ = Role.objects.get_or_create(
+                name=role_name, 
+                defaults={'description': f'Standard {role_name} User'}
+            )
+            
             custom_user = LernevoUser.objects.create(
                 auth_user=auth_user,
                 mobile=mobile,
                 country_code=country_code,
-                user_code=user_code
+                user_code=user_code,
+                role=selected_role  # 3. Ippo exact dynamic role mapping database-la accurate-aa save aagum!
             )
-            print(f"✅ Custom user created: ID={custom_user.id}, Code={user_code}, Country={country_code}")
             
-            # STEP 4: Create auth token
-            print("Step 3: Creating auth token...")
             token, _ = Token.objects.get_or_create(user=auth_user)
-            
-            # VERIFY both records exist
-            print("\n📋 VERIFICATION:")
-            auth_exists = AuthUser.objects.filter(id=auth_user.id).exists()
-            custom_exists = LernevoUser.objects.filter(id=custom_user.id).exists()
-            print(f"  - Auth user in DB: {auth_exists}")
-            print(f"  - Custom user in DB: {custom_exists}")
-            
-            if not auth_exists or not custom_exists:
-                raise Exception("Failed to save user data to database")
-            
-            print("=" * 60)
-            print(f"✅ REGISTRATION SUCCESSFUL for {username}")
-            print("=" * 60)
             
             return Response({
                 "message": "User registered successfully",
@@ -140,24 +97,18 @@ class RegisterView(APIView):
                 "email": auth_user.email,
                 "name": auth_user.first_name,
                 "mobile": custom_user.mobile,
-                "country_code": custom_user.country_code 
+                "country_code": custom_user.country_code,
+                "role": custom_user.role.name if custom_user.role else "USER"
             }, status=status.HTTP_201_CREATED)
             
         except Exception as e:
-            print(f"❌ Registration error: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            return Response(
-                {"detail": f"Registration failed: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"detail": f"Registration failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ============================================================
 # LOGIN VIEW - Finds user from both tables
 # ============================================================
 from django.utils import timezone
-
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -169,56 +120,47 @@ class LoginView(APIView):
         password = request.data.get("password", "")
         
         if not identifier or not password:
-            return Response(
-                {"detail": "Username/email and password are required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": "Username/email and password are required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        user = AuthUser.objects.filter(
-            Q(username__iexact=identifier) | Q(email__iexact=identifier)
-        ).first()
+        user = AuthUser.objects.filter(Q(username__iexact=identifier) | Q(email__iexact=identifier)).first()
         
         if not user:
-            return Response(
-                {"detail": "User not found. Please register first."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "User not found. Please register first."}, status=status.HTTP_404_NOT_FOUND)
         
         if not user.check_password(password):
-            return Response(
-                {"detail": "Invalid password"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # ✅ ✅ ✅ ADD THIS - Update last_login in AuthUser
-        user.last_login = timezone.now()
-        user.save()
+            return Response({"detail": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
         
         token, _ = Token.objects.get_or_create(user=user)
         
         try:
-            custom_user = LernevoUser.objects.get(auth_user=user)
+            custom_user = LernevoUser.objects.select_related('role').get(auth_user=user)
             
-            # ✅ ✅ ✅ ADD THIS - Update last_login in custom User model
-            custom_user.last_login = timezone.now()
-            custom_user.is_first_login = False  # First login done
-            custom_user.save()
+            needs_reset = custom_user.needs_password_reset
+            if not needs_reset:
+                user.last_login = timezone.now()
+                user.save()
+                custom_user.last_login = timezone.now()
+                custom_user.is_first_login = False
+                custom_user.save()
             
             user_code = custom_user.user_code
             mobile = custom_user.mobile
+            user_role = custom_user.role.name if custom_user.role else "USER"
             
         except LernevoUser.DoesNotExist:
+            needs_reset = False  
             user_code = str(random.randint(100000, 999999))
-            while LernevoUser.objects.filter(user_code=user_code).exists():
-                user_code = str(random.randint(100000, 999999))
+            
+            from .models import Role
+            default_role, _ = Role.objects.get_or_create(name='USER')
             
             custom_user = LernevoUser.objects.create(
                 auth_user=user,
                 mobile="",
-                user_code=user_code
+                user_code=user_code,
+                role=default_role
             )
-        
-        print(f"✅ Last login updated: {custom_user.last_login}")
+            user_role = "USER"
         
         return Response({
             "message": "Login successful",
@@ -228,6 +170,8 @@ class LoginView(APIView):
             "name": user.first_name,
             "user_code": user_code,
             "mobile": mobile,
+            "role": user_role,
+            "needs_password_reset": needs_reset,  
             "last_login": custom_user.last_login.strftime('%Y-%m-%d %H:%M:%S') if custom_user.last_login else 'Never'
         }, status=status.HTTP_200_OK)
 class DBCheckView(APIView):
@@ -396,35 +340,28 @@ from rest_framework import status
 
 from .models import User as LernevoUser
 from .serializers import ProfileSerializer
-
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            lernevo_user = LernevoUser.objects.get(auth_user=request.user)
-        except LernevoUser.DoesNotExist:
-            return Response(
-                {"detail": "Profile not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        # ✅ Get or create LernevoUser
+        lernevo_user, _ = LernevoUser.objects.get_or_create(auth_user=request.user)
+        # ✅ Get or create UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=lernevo_user)
 
-        serializer = ProfileSerializer(lernevo_user)
+        # ✅ FIXED: True database object framework response structure parsing
         return Response({
             "username": lernevo_user.auth_user.username,
             "email": lernevo_user.auth_user.email,
             "mobile": lernevo_user.mobile,
-            "role": "Member"
+            "role": lernevo_user.role.name if lernevo_user.role else "USER"
         })
 
     def put(self, request):
-        try:
-            lernevo_user = LernevoUser.objects.get(auth_user=request.user)
-        except LernevoUser.DoesNotExist:
-            return Response(
-                {"detail": "Profile not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        # ✅ Get or create LernevoUser
+        lernevo_user, _ = LernevoUser.objects.get_or_create(auth_user=request.user)
+        # ✅ Get or create UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=lernevo_user)
 
         serializer = ProfileSerializer(
             lernevo_user,
@@ -434,15 +371,15 @@ class ProfileView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            # ✅ FIXED: Update response profile data to emit authentic role context
             return Response({
                 "username": lernevo_user.auth_user.username,
                 "email": lernevo_user.auth_user.email,
                 "mobile": lernevo_user.mobile,
-                "role": ""
+                "role": lernevo_user.role.name if lernevo_user.role else "USER"
             })
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.contrib.auth import authenticate
@@ -480,46 +417,6 @@ class ChangePasswordView(APIView):
             {"message": "Password updated successfully"},
             status=status.HTTP_200_OK
         )
-class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # ✅ Get or create LernevoUser
-        lernevo_user, _ = LernevoUser.objects.get_or_create(auth_user=request.user)
-        # ✅ Get or create UserProfile
-        profile, _ = UserProfile.objects.get_or_create(user=lernevo_user)
-
-        serializer = ProfileSerializer(lernevo_user)
-        return Response({
-            "username": lernevo_user.auth_user.username,
-            "email": lernevo_user.auth_user.email,
-            "mobile": lernevo_user.mobile,
-            "role": "Member"
-        })
-
-    def put(self, request):
-        # ✅ Get or create LernevoUser
-        lernevo_user, _ = LernevoUser.objects.get_or_create(auth_user=request.user)
-        # ✅ Get or create UserProfile
-        profile, _ = UserProfile.objects.get_or_create(user=lernevo_user)
-
-        serializer = ProfileSerializer(
-            lernevo_user,
-            data=request.data,
-            partial=True
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "username": lernevo_user.auth_user.username,
-                "email": lernevo_user.auth_user.email,
-                "mobile": lernevo_user.mobile,
-                "role": "Member"
-            })
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 # ---------------- Profile Image Upload ----------------
 class ProfileImageUploadView(APIView):
@@ -1936,7 +1833,6 @@ class DetectResumeAPIView(APIView):
         }
         
          
-        
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -1951,7 +1847,7 @@ def user_management_api(request):
     ONE API FOR EVERYTHING
     
     GET    - Get all users
-    POST   - Update last login / Toggle freeze / Update status
+    POST   - Update last login / Toggle freeze / Update status / Admin Hard Reset
     """
     
     # ========== GET ALL USERS ==========
@@ -2136,10 +2032,29 @@ def user_management_api(request):
                     }
                 })
             
+           
+            elif action == 'admin_hard_reset_password':
+                user = User.objects.select_related('auth_user').get(id=user_id)
+                
+              
+                temporary_password = "Lernevo@123"
+                user.auth_user.set_password(temporary_password)
+                user.auth_user.save()
+                
+               
+                user.needs_password_reset = True
+                user.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'action': 'admin_hard_reset_password',
+                    'message': f'Password successfully reset to default "Lernevo@123" for {user.auth_user.username}. Forced update pattern is active on next login.'
+                })
+            
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Invalid action. Available: update_last_login, toggle_freeze, get_user, update_first_login, get_stats, update_user'
+                    'error': 'Invalid action. Available: update_last_login, toggle_freeze, get_user, update_first_login, get_stats, update_user, admin_hard_reset_password'
                 }, status=400)
         
         except User.DoesNotExist:
@@ -2170,3 +2085,32 @@ def user_management_api(request):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
     return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+
+class ForcePasswordUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+
+        if not old_password or not new_password:
+            return Response({"detail": "Both current and new passwords are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(old_password):
+            return Response({"detail": "Current password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.last_login = timezone.now()
+        user.save()
+
+        try:
+            custom_user = LernevoUser.objects.get(auth_user=user)
+            custom_user.needs_password_reset = False 
+            custom_user.last_login = timezone.now()
+            custom_user.is_first_login = False
+            custom_user.save()
+        except LernevoUser.DoesNotExist:
+            pass
+
+        return Response({"success": True, "message": "Password updated successfully."}, status=status.HTTP_200_OK)

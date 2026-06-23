@@ -99,8 +99,11 @@ class ProfileSerializer(serializers.Serializer):
     mobile = serializers.CharField(required=False)
     role = serializers.SerializerMethodField()
 
+    # ✅ FIXED: Hardcode panni iruntha 'Member'-ku pathila true database role-ai anupuratha mathiyachu!
     def get_role(self, obj):
-        return "Member"
+        if hasattr(obj, 'role') and obj.role:
+            return obj.role.name
+        return "USER"
 
     def update(self, instance, validated_data):
         auth_user = instance.auth_user
