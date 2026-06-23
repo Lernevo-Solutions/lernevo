@@ -1,11 +1,10 @@
 // src/components/LandingPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Dumbbell, Apple, Moon, Award } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import './LandingPage.css';
 import Navbar from './Navbar';
 import Hero from './Hero';
-import GetStartedFlow from './GetStartedFlow';
 
 import aiImg from "./ai powerd.png";
 import mentalImg from "./health.png";
@@ -71,7 +70,6 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [activeTab, setActiveTab] = useState("daily");
-  const [isGetStartedOpen, setIsGetStartedOpen] = useState(false);
 
   // Hero Image Logic
   const heroImages = [
@@ -178,7 +176,6 @@ const LandingPage = () => {
 
       <Hero heroImage={heroImage} onGetStarted={() => navigate('/get-started')} />
 
-      <GetStartedFlow isOpen={isGetStartedOpen} onClose={() => setIsGetStartedOpen(false)} />
      <div className="wellness-layout-wrapper">
   
   {/* Left Sidebar Ad */}
@@ -737,7 +734,7 @@ const LandingPage = () => {
           </div>
 
           <div className="transform-actions">
-            <button className="trial-btn" onClick={() => setIsGetStartedOpen(true)}>
+            <button className="trial-btn" onClick={() => navigate('/get-started')}>
               Start Your Free Trial
             </button>
           </div>
