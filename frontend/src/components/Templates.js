@@ -28,7 +28,7 @@ const ACCENT = '#2563eb';
 // template_5.avif  → Andrew O'Sullivan: photo+name header, skills col → data-pro-ats     ✅
 // Template_6.webp  → Jacob McLaren: centered name, bold ALL-CAPS      → bold-two-col     ✅
 // Template_7.webp  → Meghana Hegde: large bold centered name          → minimalist-top   ✅
-// template_8.webp  → Meghana Hegde (same layout as 7)                 → minimalist-top   ✅ FIXED (was section-shade ❌)
+// template_8.webp  → Meghana Hegde (clean-centered layout)            → clean-centered   ✅
 // template_9.webp  → Elio Giordano: circle photo, gold, 2-col         → section-shade    ✅ FIXED (was photo-ats ❌)
 // template_10.webp → Anna Field (no photo): shaded centered titles    → photo-ats        ✅ FIXED (was teal-split ❌)
 // template_11.webp → Andrew Kim: gray left sidebar                    → teal-split       ✅ FIXED (was two-column ❌)
@@ -45,7 +45,7 @@ const ALL_TEMPLATES = [
   { id: 5,  name: 'Data Pro ATS',      structure: 'data-pro-ats',    image: imgTemplate5  },
   { id: 6,  name: 'Bold Two-Column',   structure: 'bold-two-col',    image: imgTemplate6  },
   { id: 7,  name: 'Minimalist Top',    structure: 'minimalist-top',  image: imgTemplate7  },
-  { id: 8,  name: 'Minimalist Pro',    structure: 'minimalist-pro',  image: imgTemplate8  },  // ← FIXED: was 'section-shade'
+  { id: 8,  name: 'Minimalist Pro',    structure: 'clean-centered',   image: imgTemplate8  },
   { id: 9,  name: 'Section Shade',     structure: 'section-shade',   image: imgTemplate9  },  // ← FIXED: was 'photo-ats'
   { id: 10, name: 'Photo ATS',         structure: 'photo-ats',       image: imgTemplate10 },  // ← FIXED: was 'teal-split'
   { id: 11, name: 'Teal Split',        structure: 'teal-split',      image: imgTemplate11 },  // ← FIXED: was 'two-column'

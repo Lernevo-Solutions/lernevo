@@ -485,9 +485,10 @@ export default function GalleryPreview({
   const languageRating = ['stars', 'dots', 'bars', 'blocks'].includes(languagesRatingStyle)
     ? languagesRatingStyle
     : 'stars';
+  const renderStructure = tpl.structure === 'minimalist-pro' ? 'clean-centered' : tpl.structure;
 
   // Only show extra pages for supported templates
-  const supportsExtra   = MULTI_PAGE_OK.has(tpl.structure);
+  const supportsExtra   = MULTI_PAGE_OK.has(renderStructure);
   const validExtraPages = supportsExtra ? extraPages : 0;
   const totalPages      = 1 + validExtraPages;
 
@@ -851,7 +852,7 @@ export default function GalleryPreview({
     }
   };
 
-  if (tpl.structure === 'bold-two-col') {
+  if (renderStructure === 'bold-two-col') {
     const pages = buildBoldTwoColPages();
     const totalPages = pages.length;
 
@@ -934,7 +935,7 @@ export default function GalleryPreview({
 
   // ── Page 1 rendering ───────────────────────────────────────────────────────
   const renderPage1 = () => {
-    switch (tpl.structure) {
+    switch (renderStructure) {
       case 'blank-start':
         return (
           <div style={{ ...fontStyle, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 500 }}>
@@ -2137,8 +2138,8 @@ export default function GalleryPreview({
           <React.Fragment key={`continuation-page-${i}`}>
             <PageBreakDivider />
             <div style={{ background: '#fff', minHeight: 842, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
-              <ContinuationHeader structure={tpl.structure} personal={personal} accentColor={col} font={font} />
-              <BlankBody structure={tpl.structure} accentColor={col} font={font} />
+              <ContinuationHeader structure={renderStructure} personal={personal} accentColor={col} font={font} />
+              <BlankBody structure={renderStructure} accentColor={col} font={font} />
               <div style={{ marginTop: 'auto' }}>
                 <PageFooter cur={i + 2} total={totalPages} font={font} />
               </div>
