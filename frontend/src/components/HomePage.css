@@ -271,6 +271,22 @@ body {
   border-color: transparent;
 }
 
+.rb-btn-soft {
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--primary-dark);
+  border: 1.5px solid rgba(37, 99, 235, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.1);
+}
+
+.rb-btn-soft:hover {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.26);
+  box-shadow: 0 18px 32px rgba(37, 99, 235, 0.14);
+}
+
 .rb-btn-arrow {
   transition: transform 0.2s;
 }

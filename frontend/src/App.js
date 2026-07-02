@@ -39,9 +39,11 @@ import Enquire from "./components/Enquire";
 import Blog from "./components/Blog";
 import Contact from "./components/Contact";
 import HelpCenter from "./components/HelpCenter";
+import FeedbackWidget from "./components/feedback/FeedbackWidget";
 
 import ResumeBuilder from "./components/Resumebuilderrouter";
 import Homepage from "./components/HomePage";
+import MyResumes from "./components/MyResumes";
 import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
 import Skill from "./components/skill";
@@ -62,6 +64,7 @@ const AppLayout = () => {
     "/reset-password-confirm",
     "/features/coming-soon",
     "/builder",
+    "/my-resumes",
     "/skill",
     "/skill-gap-analyzer",
     "/skilldashboard",
@@ -161,6 +164,7 @@ const AppLayout = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/my-resumes" element={<MyResumes />} />
         <Route
           path="/templates"
           element={
@@ -183,6 +187,8 @@ const AppLayout = () => {
 
       {/* Footer conditionally */}
       {!hideFooter && <Footer />}
+
+      <FeedbackWidget />
     </>
   );
 };

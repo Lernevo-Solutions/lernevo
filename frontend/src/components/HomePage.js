@@ -353,10 +353,13 @@ useEffect(() => {
 </div>
 
       <div className="rb-hero-buttons">
-        <a href="/builder" className="rb-btn rb-btn-primary rb-btn-3d">
+        <Link to="/builder" className="rb-btn rb-btn-primary rb-btn-3d">
           <span>Start Building Now</span>
-          <span className="rb-btn-arrow">→</span>
-        </a>
+          <span className="rb-btn-arrow">{"\u2192"}</span>
+        </Link>
+        <Link to="/my-resumes" className="rb-btn rb-btn-soft rb-btn-3d-outline">
+          <span>My Resumes</span>
+        </Link>
       </div>
     </div>
 
@@ -533,9 +536,9 @@ useEffect(() => {
   <div className="rb-container">
     <h2>Ready to Build Your Perfect Resume?</h2>
     <p>Join thousands of job seekers who've landed their dream jobs with our resume builder.</p>
-    <a href="/builder" className="rb-cta-btn rb-btn-pulse">
-      Start Building Now <span className="rb-btn-arrow">→</span>
-    </a>
+    <Link to="/builder" className="rb-cta-btn rb-btn-pulse">
+      Start Building Now <span className="rb-btn-arrow">?</span>
+    </Link>
   </div>
 </section>
 </>
@@ -543,3 +546,6 @@ useEffect(() => {
 };
 
 export default HomePage;
+
+
+

@@ -20,6 +20,71 @@ import html2canvas from "html2canvas";
 import axios from 'axios';
 import vertexAIService from '../services/vertexAIService';
 import { API_BASE_URL } from "../config";
+import {
+  DEFAULT_TEMPLATE_DESCRIPTOR,
+  buildResumeEditorState,
+  buildResumeTemplatePayload,
+  getResumePageCount,
+  resolveTemplateDescriptor,
+} from "./resumeLibraryUtils";
+
+const RESUME_LIBRARY_KEY = "lernevo_resume_library";
+
+const readResumeLibrary = () => {
+  try {
+    const raw = localStorage.getItem(RESUME_LIBRARY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeResumeLibrary = (items) => {
+  localStorage.setItem(RESUME_LIBRARY_KEY, JSON.stringify(items.slice(0, 5)));
+};
+
+const upsertResumeLibraryEntry = (entry) => {
+  const existing = readResumeLibrary();
+  const next = existing.filter((item) => String(item.id) !== String(entry.id));
+  next.unshift(entry);
+  writeResumeLibrary(next);
+};
+
+const syncResumeLibraryFromApi = async (token) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/resumes/`, {
+      headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const items = Array.isArray(response.data)
+      ? response.data
+      : Array.isArray(response.data?.results)
+        ? response.data.results
+        : [];
+
+    const mapped = items.map((resume) => ({
+      id: resume.id,
+      title:
+        resume.title ||
+        resume.personal_info?.full_name ||
+        resume.personal_info?.job_title ||
+        "My Resume",
+      template: resume.template || resume.layout || "Modern",
+      updated: resume.updated_at || resume.updated || resume.modified_at || new Date().toISOString(),
+    }));
+
+    if (mapped.length) {
+      writeResumeLibrary(mapped);
+    }
+
+    return mapped;
+  } catch (error) {
+    return readResumeLibrary();
+  }
+};
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const ALL_SECTIONS = [
@@ -51,6 +116,28 @@ const SECTION_META = {
   certifications: { title:"Certifications",         desc:"Professional certifications" },
   languages:      { title:"Languages",              desc:"Languages you speak" },
   styling:        { title:"Resume Styling",         desc:"Customize fonts & theme colors" },
+};
+
+const getVisibleSectionsForStructure = (structure) => {
+  const base = ["personal", "summary", "experience", "education", "skills", "styling"];
+  switch (structure) {
+    case "classic-minimal":
+      return [...base, "certifications"];
+    case "bold-two-col":
+      return [...base, "projects", "languages"];
+    case "minimalist-top":
+    case "minimalist-pro":
+    case "photo-ats":
+    case "graphic-split":
+    case "clean-centered":
+      return [...base, "projects", "languages", "certifications"];
+    case "serif-pro":
+      return [...base, "languages"];
+    case "blank-start":
+      return ALL_SECTIONS.map((section) => section.id);
+    default:
+      return ALL_SECTIONS.map((section) => section.id);
+  }
 };
 
 const AI = {
@@ -115,9 +202,21 @@ const INIT = {
   },
 };
 // BACKEND SAVE LOGIC
-const saveResumeToBackend = async (st, order, pages) => {
+const saveResumeToBackend = async (st, order, pages, resumeMeta = {}) => {
   const token = localStorage.getItem('token');
   const resumeId = localStorage.getItem('resumeId');
+  const resumeTitle = st.personal?.name ? `${st.personal.name} Resume` : "My Resume";
+  const templatePayload = buildResumeTemplatePayload({
+    template: resumeMeta.template,
+    templateName: resumeMeta.templateName,
+    templateStructure: resumeMeta.templateStructure,
+    structure: resumeMeta.templateStructure,
+    templateId: resumeMeta.templateId,
+  });
+  const pageCount = Array.isArray(pages)
+    ? pages.length
+    : Math.max(1, Number.isFinite(Number(pages)) ? Number(pages) + 1 : 1);
+  const extraPages = Math.max(0, pageCount - 1);
 
   const clean = (val) => (val === undefined || val === null ? "" : val);
 
@@ -130,7 +229,10 @@ const saveResumeToBackend = async (st, order, pages) => {
     photo_size: st.styling?.photoSize || "medium",
     canvas_states: {
       order: order || [],
-      pages: pages || []
+      pageCount,
+      extraPages,
+      pages: Array.isArray(pages) ? pages : [],
+      template: templatePayload,
     },
     personal_info: {
       full_name: clean(st.personal?.name),
@@ -192,13 +294,24 @@ const saveResumeToBackend = async (st, order, pages) => {
     }))
   };
 
+  if (!resumeId) {
+    await syncResumeLibraryFromApi(token);
+  }
+
   if (resumeId) {
-    return await axios.patch(`${API_BASE_URL}/resumes/${resumeId}/`, payload, { // Fixed template literal
+    const response = await axios.patch(`${API_BASE_URL}/resumes/${resumeId}/`, payload, { // Fixed template literal
       headers: {
         Authorization: `Token ${token}`, // Fixed token string
         "Content-Type": "application/json"
       }
     });
+    upsertResumeLibraryEntry({
+      id: resumeId,
+      title: resumeTitle,
+      template: templatePayload?.name || resumeMeta.templateName || DEFAULT_TEMPLATE_DESCRIPTOR.name,
+      updated: new Date().toLocaleDateString(),
+    });
+    return response;
   } else {
     const res = await axios.post(`${API_BASE_URL}/resumes/`, payload, { // Fixed template literal
       headers: {
@@ -207,6 +320,12 @@ const saveResumeToBackend = async (st, order, pages) => {
       }
     });
     localStorage.setItem("resumeId", res.data.id);
+    upsertResumeLibraryEntry({
+      id: res.data.id,
+      title: resumeTitle,
+      template: templatePayload?.name || resumeMeta.templateName || DEFAULT_TEMPLATE_DESCRIPTOR.name,
+      updated: new Date().toLocaleDateString(),
+    });
     return res;
   }
 };
@@ -3731,58 +3850,24 @@ function BlankBuilder({ galleryColor }) {
   // 4. Handle Save Function
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token'); 
-      
-      const payload = {
-        title: st.personal.name ? `${st.personal.name} Resume` : "My Resume",
-        styling: st.styling,
-        canvas_states: {
-          order: order,
-          pages: pages
-        },
-        personal_info: {
-          full_name: st.personal.name,
-          job_title: st.personal.title,
-          email: st.personal.email,
-          phone: st.personal.phone,
-          location: st.personal.location,
-          linkedin: st.personal.linkedin,
-          github: st.personal.github,
-          photo: st.personal.photo 
-        },
-        experiences: st.experience,
-        educations: [
-          ...(st.education.ug || []).map(e => ({ ...e, edu_type: 'ug' })),
-          ...(st.education.school || []).map(e => ({ ...e, edu_type: 'school' }))
-        ],
-        skills: st.skills,
-        projects: st.projects,
-        certifications: st.certifications,
-        languages: st.languages
-      };
-
-      const response = await fetch(`${API_BASE_URL}/resumes/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+      await saveResumeToBackend(st, order, pages, {
+        templateName: "Blank Resume",
+        template: { id: 0, name: "Blank Resume", structure: "blank-start" },
       });
 
-      if (response.ok) {
-        setIsSaved(true);
-        alert("Resume successfully saved to backend! ✅");
-      } else {
-        const errorData = await response.json();
-        alert("Failed to save: " + (errorData.detail || "Check your connection."));
-      }
+      setIsSaved(true);
+      alert("Resume successfully saved to backend!");
     } catch (error) {
       console.error("Save error:", error);
-      alert("An error occurred while saving.");
+      const detail = error?.response?.data?.detail || error?.message || "";
+      if (String(detail).includes("5 resumes") || String(detail).includes("Resume limit reached")) {
+        alert("You can store up to 5 resumes only. Open My Resumes to manage your saved drafts.");
+      } else {
+        alert(detail || "An error occurred while saving.");
+      }
     }
   };
-  
+
   // 5. Handle Download PDF - FIXED MULTI-PAGE VERSION
 const handleDownload = async () => {
   if (!previewRef.current) {
@@ -4130,11 +4215,14 @@ function ContinuationPage({ tpl, accentColor, font, pageNumber }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // TEMPLATE BUILDER — FIXED
 // ═══════════════════════════════════════════════════════════════════════════════
-function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
+function TemplateBuilder({ galleryTemplate, galleryColor }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const resumeIdToLoad = location.state?.resumeId || localStorage.getItem("resumeId");
+  const [selectedTemplate, setSelectedTemplate] = useState(() => galleryTemplate || DEFAULT_TEMPLATE_DESCRIPTOR);
   const [st, setSt] = useState(() => ({
     ...INIT,
-    activeSection: visibleIds[0],
+    activeSection: getVisibleSectionsForStructure((galleryTemplate || DEFAULT_TEMPLATE_DESCRIPTOR).structure)[0],
     styling: { ...INIT.styling, accentColor: galleryColor || "#2563eb" },
   }));
 
@@ -4145,20 +4233,25 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [saveModalStatus, setSaveModalStatus] = useState("");
   const [saveModalStatusType, setSaveModalStatusType] = useState("success");
+  const [isLoadingResume, setIsLoadingResume] = useState(Boolean(location.state?.resumeId || localStorage.getItem("resumeId")));
+  const [, setLoadError] = useState("");
+  const templateVisibleIds = getVisibleSectionsForStructure(
+    selectedTemplate?.structure || galleryTemplate?.structure || DEFAULT_TEMPLATE_DESCRIPTOR.structure
+  );
 
   const showAddPageStructures = [
     "clean-centered", "classic-minimal", "bold-two-col",
     "minimalist-top", "minimalist-pro", "photo-ats", "graphic-split",
   ];
-  const showAddPage = showAddPageStructures.includes(galleryTemplate.structure);
+  const showAddPage = showAddPageStructures.includes(selectedTemplate?.structure || galleryTemplate?.structure);
   const continuationPages = pages.slice(1).map((page, index) => ({
     ...page,
     pageNumber: index + 2,
     sections: [],
   }));
 
-  const filteredSidebar = ALL_SECTIONS.filter(s => visibleIds.includes(s.id));
-  const currentIdx      = filteredSidebar.findIndex(s => s.id === st.activeSection);
+  const filteredSidebar = ALL_SECTIONS.filter((section) => templateVisibleIds.includes(section.id));
+  const currentIdx      = filteredSidebar.findIndex((section) => section.id === st.activeSection);
   const previewRef      = useRef(null);
   const pageRef         = useRef(null);
   const meta            = SECTION_META[st.activeSection];
@@ -4167,19 +4260,102 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
   const setFld = (k, v) => setSt(s => ({ ...s, [k]: v }));
 
   // ── Add / remove pages
+  useEffect(() => {
+    setSelectedTemplate(galleryTemplate || DEFAULT_TEMPLATE_DESCRIPTOR);
+  }, [galleryTemplate]);
+
+  useEffect(() => {
+    const targetVisibleIds = getVisibleSectionsForStructure(
+      selectedTemplate?.structure || galleryTemplate?.structure || DEFAULT_TEMPLATE_DESCRIPTOR.structure
+    );
+    setSt((current) => ({
+      ...current,
+      activeSection: targetVisibleIds.includes(current.activeSection)
+        ? current.activeSection
+        : targetVisibleIds[0] || "personal",
+    }));
+  }, [selectedTemplate?.structure, galleryTemplate?.structure]);
+
+  useEffect(() => {
+    if (!resumeIdToLoad) return undefined;
+
+    let cancelled = false;
+
+    const loadResume = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsLoadingResume(false);
+        setLoadError("Sign in to continue editing a saved resume.");
+        return;
+      }
+
+      setIsLoadingResume(true);
+      setLoadError("");
+
+      try {
+        const response = await axios.get(`${API_BASE_URL}/resumes/${resumeIdToLoad}/`, {
+          headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (cancelled) return;
+
+        const resume = response.data || {};
+        const template = resolveTemplateDescriptor(
+          resume,
+          selectedTemplate || galleryTemplate || DEFAULT_TEMPLATE_DESCRIPTOR
+        );
+        const loadedState = buildResumeEditorState(resume, template);
+        const pageCount = getResumePageCount(resume.canvas_states);
+
+        setSelectedTemplate(template);
+        setSt(loadedState);
+        setOrder(Array.isArray(resume.canvas_states?.order) && resume.canvas_states.order.length > 0
+          ? resume.canvas_states.order
+          : [...DEFAULT_ORDER]);
+        setPages(Array.from({ length: Math.max(1, pageCount) }, () => ({ id: uid() })));
+        setIsSaved(true);
+        localStorage.setItem("resumeId", String(resume.id));
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError("We couldn't load that resume right now. You can continue from the current draft if needed.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingResume(false);
+        }
+      }
+    };
+
+    loadResume();
+    return () => {
+      cancelled = true;
+    };
+  }, [resumeIdToLoad]);
+
   const addPage    = () => setPages(p => [...p, { id: uid() }]);
   const removePage = id => setPages(p => p.length > 1 ? p.filter(x => x.id !== id) : p);
 
   const handleSave = async () => {
     try {
-      await saveResumeToBackend(st, order, pages.length - 1);
+      await saveResumeToBackend(st, order, pages, {
+        template: selectedTemplate,
+        templateName: selectedTemplate?.name,
+        templateStructure: selectedTemplate?.structure,
+        templateId: selectedTemplate?.id,
+      });
       setIsSaved(true);
       setSaveModalStatus("Your resume has been saved successfully.");
       setSaveModalStatusType("success");
       setSaveModalOpen(true);
     } catch (error) {
       console.error("Save error:", error);
-      setSaveModalStatus("We couldn't save your resume. Please check your connection and try again.");
+      const detail = error?.response?.data?.detail || error?.message || "We couldn't save your resume. Please check your connection and try again.";
+      setSaveModalStatus(detail.includes("5 resumes")
+        ? "You can save up to 5 resumes. Please delete one before creating another."
+        : detail);
       setSaveModalStatusType("error");
       setSaveModalOpen(true);
     }
@@ -4318,6 +4494,38 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
     navigate("/templates");
   };
 
+  if (isLoadingResume && resumeIdToLoad) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%)",
+        color: "#334155",
+        fontFamily: "Inter, sans-serif",
+        padding: 24,
+      }}>
+        <div style={{
+          padding: "24px 28px",
+          borderRadius: 24,
+          background: "rgba(255,255,255,0.9)",
+          border: "1px solid rgba(191,219,254,0.8)",
+          boxShadow: "0 20px 50px rgba(37,99,235,0.12)",
+          textAlign: "center",
+          maxWidth: 520,
+        }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
+            Loading your saved resume
+          </div>
+          <div style={{ fontSize: 14, lineHeight: 1.7, color: "#475569" }}>
+            We’re restoring the template, fields, and page structure so you can continue from where you left off.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <style>{CSS}</style>
@@ -4325,7 +4533,7 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
       {/* ── Top bar ── */}
       <div className="rb-bar">
         <span className="rb-bar-title">Resume Builder</span>
-        <span className="rb-badge">📄 {galleryTemplate?.name}</span>
+        <span className="rb-badge">📄 {selectedTemplate?.name}</span>
         <div className="rb-sep" />
 
         {showAddPage && (
@@ -4409,7 +4617,7 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                 </svg>
-                Live Preview — {galleryTemplate?.name}
+                Live Preview — {selectedTemplate?.name}
               </div>
               {pages.length > 1 && (
                 <button
@@ -4431,7 +4639,7 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
                 <PreviewScaler containerRef={previewRef}>
                   <div className="rb-sheet rb-pdf-page" ref={pageRef}>
                     <GalleryPreview
-                      tpl={galleryTemplate}
+                      tpl={selectedTemplate}
                       data={resumeData}
                       accentColor={st.styling.accentColor}
                       font={st.styling.font}
@@ -4471,23 +4679,10 @@ function TemplateBuilder({ galleryTemplate, galleryColor, visibleIds }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ResumeBuilderRouter() {
   const location = useLocation();
-  const galleryTemplate = location.state?.template || { id:6, name:'Bold Two-Column', structure:'bold-two-col' };
+  const galleryTemplate = location.state?.template || DEFAULT_TEMPLATE_DESCRIPTOR;
   const galleryColor    = location.state?.selectedColor || "#2563eb";
-  const getVisibleSections = (structure) => {
-    const base = ["personal","summary","experience","education","skills","styling"];
-    switch (structure) {
-      case 'classic-minimal':  return [...base,"certifications"];
-      case 'bold-two-col':     return [...base,"projects","languages"];
-      case 'minimalist-top':
-      case 'minimalist-pro':
-      case 'photo-ats':
-      case 'graphic-split':
-      case 'clean-centered':   return [...base,"projects","languages","certifications"];
-      case 'serif-pro':        return [...base,"languages"];
-      case 'blank-start':      return ALL_SECTIONS.map(s => s.id);
-      default:                 return ALL_SECTIONS.map(s => s.id);
-    }
-  };
   if (galleryTemplate?.structure === "blank-start") return <BlankCanvasBuilder/>;
-  return <TemplateBuilder galleryTemplate={galleryTemplate} galleryColor={galleryColor} visibleIds={getVisibleSections(galleryTemplate.structure)}/>;
+  return <TemplateBuilder galleryTemplate={galleryTemplate} galleryColor={galleryColor} />;
 }
+
+
