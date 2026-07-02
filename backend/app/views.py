@@ -716,7 +716,7 @@ class ResumeViewSet(viewsets.ModelViewSet):
             return Resume.objects.filter(
                 user__auth_user=auth_user,
                 is_delete=False
-            )
+            ).order_by("-updated_at", "-created_at")
 
         except Exception as e:
             print("❌ QUERY ERROR:", str(e))
@@ -742,6 +742,16 @@ class ResumeViewSet(viewsets.ModelViewSet):
                 print("✅ app.User CREATED")
 
             print("✅ USING USER:", app_user)
+
+            active_resumes = Resume.objects.filter(
+                user=app_user,
+                is_delete=False
+            ).order_by("created_at")
+
+            if active_resumes.count() >= 5:
+                raise Exception(
+                    "Resume limit reached: you can save up to 5 resumes. Delete one before creating another."
+                )
 
             serializer.save(user=app_user)
 
