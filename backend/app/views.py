@@ -13,8 +13,8 @@ from django.core.exceptions import ImproperlyConfigured
 from smtplib import SMTPException
 from django.utils.timezone import now
 from rest_framework import viewsets, permissions
-from .models import Resume
-from .serializers import ResumeSerializer
+from .models import Resume, Feedback
+from .serializers import ResumeSerializer, FeedbackListSerializer
 from datetime import timedelta
 import uuid
 from rest_framework.decorators import api_view
@@ -48,8 +48,10 @@ class RegisterView(APIView):
             name = request.data.get("name", "")
             user_code = request.data.get("user_code")
             country_code = request.data.get("country_code", "+91").strip()
-            # 1. Frontend-la irunthu vara 'role' (USER / ADMIN) vangarom
-            role_name = request.data.get("role", "USER").strip().upper() 
+            
+            # ❌ பழைய கோடை நீக்கியாச்சு: role_name = request.data.get("role", "USER").strip().upper() 
+            # ✅ புதிய லாஜிக்: எல்லாரும் சாதாரணமாக 'USER' ரோலோட தான் ரிஜிஸ்டர் ஆக முடியும்
+            role_name = "USER" 
             
             if not email or not username or not password:
                 return Response({"detail": "Email, username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -63,6 +65,11 @@ class RegisterView(APIView):
             if mobile and LernevoUser.objects.filter(mobile=mobile, is_delete=False).exists():
                 return Response({"detail": "Mobile number already registered"}, status=status.HTTP_400_BAD_REQUEST)
             
+            # ✅ settings.py-ல இருக்குற மெயில் ஐடிக்கு மட்டும் அட்மின் ரோல் தருதல்
+            manager_email = getattr(settings, 'PRIMARY_MANAGER_EMAIL', "").strip().lower()
+            if manager_email and email == manager_email:
+                role_name = "ADMIN"
+
             auth_user = AuthUser.objects.create_user(username=username, email=email, password=password)
             auth_user.first_name = name
             auth_user.save()
@@ -72,7 +79,6 @@ class RegisterView(APIView):
                 while LernevoUser.objects.filter(user_code=user_code).exists():
                     user_code = str(random.randint(100000, 999999))
             
-            # 2. Inga static-aa 'USER' nu irunthathai, ippo dynamic-aa unga variable 'role_name'-ku mathiyachu
             from .models import Role
             selected_role, _ = Role.objects.get_or_create(
                 name=role_name, 
@@ -84,7 +90,7 @@ class RegisterView(APIView):
                 mobile=mobile,
                 country_code=country_code,
                 user_code=user_code,
-                role=selected_role  # 3. Ippo exact dynamic role mapping database-la accurate-aa save aagum!
+                role=selected_role  
             )
             
             token, _ = Token.objects.get_or_create(user=auth_user)
@@ -103,8 +109,6 @@ class RegisterView(APIView):
             
         except Exception as e:
             return Response({"detail": f"Registration failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 # ============================================================
 # LOGIN VIEW - Finds user from both tables
 # ============================================================
@@ -135,6 +139,15 @@ class LoginView(APIView):
         try:
             custom_user = LernevoUser.objects.select_related('role').get(auth_user=user)
             
+            # 🌟 லாகின் செக்: settings-ல் இருக்கும் மெயில் ஐடி மேட்ச் ஆனால் உடனே ரோலை ADMIN ஆக மாற்றி சேவ் செய்யும்!
+            manager_email = getattr(settings, 'PRIMARY_MANAGER_EMAIL', "").strip().lower()
+            if manager_email and user.email.strip().lower() == manager_email:
+                from .models import Role
+                admin_role, _ = Role.objects.get_or_create(name="ADMIN")
+                if custom_user.role != admin_role:
+                    custom_user.role = admin_role
+                    custom_user.save()
+            
             needs_reset = custom_user.needs_password_reset
             if not needs_reset:
                 user.last_login = timezone.now()
@@ -152,7 +165,14 @@ class LoginView(APIView):
             user_code = str(random.randint(100000, 999999))
             
             from .models import Role
-            default_role, _ = Role.objects.get_or_create(name='USER')
+            default_role_name = "USER"
+            
+            # ஒருவேளை LernevoUser டேபிள்ல உங்க ப்ரொபைல் இல்லைனாலும், இங்கேயும் ADMIN ஆக மாற்றி கிரியேட் செய்திடும்!
+            manager_email = getattr(settings, 'PRIMARY_MANAGER_EMAIL', "").strip().lower()
+            if manager_email and user.email.strip().lower() == manager_email:
+                default_role_name = "ADMIN"
+                
+            default_role, _ = Role.objects.get_or_create(name=default_role_name)
             
             custom_user = LernevoUser.objects.create(
                 auth_user=user,
@@ -160,7 +180,7 @@ class LoginView(APIView):
                 user_code=user_code,
                 role=default_role
             )
-            user_role = "USER"
+            user_role = default_role_name
         
         return Response({
             "message": "Login successful",
@@ -1855,15 +1875,13 @@ import json
 def user_management_api(request):
     """
     ONE API FOR EVERYTHING
-    
-    GET    - Get all users
-    POST   - Update last login / Toggle freeze / Update status / Admin Hard Reset
     """
     
     # ========== GET ALL USERS ==========
     if request.method == 'GET':
         try:
-            users = User.objects.select_related('auth_user').filter(is_delete=False)
+            # ✅ select_related('role') சேர்த்தாச்சு, இதன் மூலம் ரோல் ஆப்ஜெக்ட்டை எடுக்கலாம்
+            users = User.objects.select_related('auth_user', 'role').filter(is_delete=False)
             
             data = []
             for user in users:
@@ -1878,6 +1896,7 @@ def user_management_api(request):
                     'is_first_login': user.is_first_login,
                     'registered_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                     'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'Never',
+                    'role': user.role.name if user.role else 'USER', # ✅ ரோல் இப்போ ரெஸ்பான்ஸ்ல போகும்
                 })
             
             return JsonResponse({
@@ -1897,124 +1916,28 @@ def user_management_api(request):
             action = body.get('action')
             user_id = body.get('user_id')
             
-            # ---------- Action 1: Update Last Login ----------
-            if action == 'update_last_login':
-                user = User.objects.get(id=user_id)
-                user.last_login = timezone.now()
-                user.is_first_login = False
-                user.save()
-                
-                return JsonResponse({
-                    'success': True,
-                    'action': 'update_last_login',
-                    'message': 'Last login updated successfully',
-                    'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S')
-                })
+            # ... (பழைய ஆக்ஷன்கள் update_last_login, toggle_freeze, get_user, update_user எல்லாம் அப்படியே இருக்கட்டும்) ...
             
-            # ---------- Action 2: Toggle Freeze/Unfreeze ----------
-            elif action == 'toggle_freeze':
-                user = User.objects.get(id=user_id)
-                user.is_frozen = not user.is_frozen
-                
-                if user.is_frozen:
-                    user.frozen_at = timezone.now()
-                    message = 'User frozen successfully'
-                else:
-                    user.unfrozen_at = timezone.now()
-                    message = 'User unfrozen successfully'
-                
-                user.save()
-                
-                return JsonResponse({
-                    'success': True,
-                    'action': 'toggle_freeze',
-                    'message': message,
-                    'is_frozen': user.is_frozen
-                })
-            
-            # ---------- Action 3: Get Single User ----------
-            elif action == 'get_user':
-                user = User.objects.select_related('auth_user').get(id=user_id)
-                
-                return JsonResponse({
-                    'success': True,
-                    'action': 'get_user',
-                    'user': {
-                        'id': str(user.id),
-                        'user_code': user.user_code,
-                        'username': user.auth_user.username,
-                        'email': user.auth_user.email,
-                        'country_code': user.country_code,
-                        'mobile': user.mobile,
-                        'is_frozen': user.is_frozen,
-                        'is_first_login': user.is_first_login,
-                        'registered_at': user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                        'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'Never',
-                    }
-                })
-            
-            # ---------- Action 4: Update First Login Status ----------
-            elif action == 'update_first_login':
-                user = User.objects.get(id=user_id)
-                user.is_first_login = False
-                user.save()
-                
-                return JsonResponse({
-                    'success': True,
-                    'action': 'update_first_login',
-                    'message': 'First login status updated'
-                })
-            
-            # ---------- Action 5: Get Statistics ----------
-            elif action == 'get_stats':
-                total = User.objects.filter(is_delete=False).count()
-                active = User.objects.filter(is_delete=False, is_frozen=False).count()
-                frozen = User.objects.filter(is_delete=False, is_frozen=True).count()
-                first_login = User.objects.filter(is_delete=False, is_first_login=True).count()
-                
-                return JsonResponse({
-                    'success': True,
-                    'action': 'get_stats',
-                    'stats': {
-                        'total': total,
-                        'active': active,
-                        'frozen': frozen,
-                        'first_login': first_login
-                    }
-                })
-
             # ---------- Action 6: Update User ----------
-            elif action == 'update_user':
+            if action == 'update_user':
+                # உங்களோட பழைய update_user கோடு அப்படியே இங்க இருக்கட்டும்...
                 user = User.objects.select_related('auth_user').get(id=user_id)
-
                 new_username = (body.get('username') or user.auth_user.username or "").strip().lower()
                 new_email = (body.get('email') or user.auth_user.email or "").strip().lower()
                 new_country_code = (body.get('country_code') or user.country_code or "").strip()
                 new_mobile = (body.get('mobile') or user.mobile or "").strip()
 
                 if not new_username or not new_email:
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Username and email are required'
-                    }, status=400)
+                    return JsonResponse({'success': False, 'error': 'Username and email are required'}, status=400)
 
                 if AuthUser.objects.exclude(id=user.auth_user.id).filter(username__iexact=new_username).exists():
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Username already exists'
-                    }, status=400)
+                    return JsonResponse({'success': False, 'error': 'Username already exists'}, status=400)
 
                 if AuthUser.objects.exclude(id=user.auth_user.id).filter(email__iexact=new_email).exists():
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Email already exists'
-                    }, status=400)
+                    return JsonResponse({'success': False, 'error': 'Email already exists'}, status=400)
 
                 if new_mobile and User.objects.exclude(id=user.id).filter(mobile=new_mobile, is_delete=False).exists():
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Mobile number already exists'
-                    }, status=400)
+                    return JsonResponse({'success': False, 'error': 'Mobile number already exists'}, status=400)
 
                 user.auth_user.username = new_username
                 user.auth_user.email = new_email
@@ -2041,36 +1964,56 @@ def user_management_api(request):
                         'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'Never',
                     }
                 })
-            
-           
-            elif action == 'admin_hard_reset_password':
-                user = User.objects.select_related('auth_user').get(id=user_id)
+
+            # ---------- ✅ புதிய ஆக்ஷன் 7: Update User Role (GCP IAM Style) ----------
+            elif action == 'update_user_role':
+                requested_role_name = body.get('role', '').strip().upper()
+                if not requested_role_name:
+                    return JsonResponse({'success': False, 'error': 'Role field is required'}, status=400)
                 
-              
-                temporary_password = "Lernevo@123"
+                user = User.objects.get(id=user_id)
+                from .models import Role
+                
+                # ஒருவேளை புதிய ரோல் டேட்டாபேஸ்ல இல்லைனா கிரியேட் பண்ணிக்கும்
+                assigned_role, _ = Role.objects.get_or_create(name=requested_role_name)
+                
+                user.role = assigned_role
+                user.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'action': 'update_user_role',
+                    'message': f'Successfully changed role of {user.auth_user.username} to {requested_role_name}'
+                })
+
+            # ---------- Action 8: Admin Hard Reset ----------
+            elif action == 'admin_hard_reset_password':
+                # உங்களோட பழைய admin_hard_reset_password கோடு அப்படியே இங்க இருக்கட்டும்...
+                user = User.objects.select_related('auth_user').get(id=user_id)
+                temporary_password = "Temp@123"
                 user.auth_user.set_password(temporary_password)
                 user.auth_user.save()
-                
-               
                 user.needs_password_reset = True
                 user.save()
                 
                 return JsonResponse({
                     'success': True,
                     'action': 'admin_hard_reset_password',
-                    'message': f'Password successfully reset to default "Lernevo@123" for {user.auth_user.username}. Forced update pattern is active on next login.'
+                    'message': f'Password successfully reset to default "Temp@123" for {user.auth_user.username}. Forced update pattern is active on next login.'
                 })
             
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Invalid action. Available: update_last_login, toggle_freeze, get_user, update_first_login, get_stats, update_user, admin_hard_reset_password'
+                    'error': 'Invalid action.'
                 }, status=400)
         
         except User.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+            
+
     
     # ========== DELETE - Soft Delete User ==========
     elif request.method == 'DELETE':
@@ -2124,3 +2067,94 @@ class ForcePasswordUpdateView(APIView):
             pass
 
         return Response({"success": True, "message": "Password updated successfully."}, status=status.HTTP_200_OK)
+    
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from .serializers import FeedbackSerializer
+class FeedbackAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        serializer = FeedbackSerializer(data=request.data)
+
+        if serializer.is_valid():
+
+            lernevo_user = User.objects.get(
+                auth_user=request.user
+            )
+
+            serializer.save(
+                user=lernevo_user
+            )
+
+            return Response(
+                {
+                    "message": "Feedback submitted successfully"
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+import traceback
+class FeedbackListAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        try:
+
+            current_user = User.objects.select_related(
+                "role"
+            ).get(
+                auth_user=request.user
+            )
+
+            if (
+                not current_user.role
+                or current_user.role.name != "ADMIN"
+            ):
+                return Response(
+                    {
+                        "detail": "Permission denied"
+                    },
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            feedbacks = Feedback.objects.select_related(
+                "user",
+                "user__auth_user"
+            ).order_by("-created_at")
+
+            serializer = FeedbackListSerializer(
+                feedbacks,
+                many=True
+            )
+
+            return Response(serializer.data)
+
+        except User.DoesNotExist:
+
+            return Response(
+                {
+                    "detail": "User not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except Exception as e:
+
+            return Response(
+                {
+                    "detail": str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

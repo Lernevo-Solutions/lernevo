@@ -724,3 +724,26 @@ class ResumeDetection(models.Model):
     
     def __str__(self):
         return f"{self.user} - {self.resume_type} - {self.created_at}"
+    
+   
+    
+from django.conf import settings
+from django.db import models
+
+
+class Feedback(models.Model):
+    user = models.ForeignKey(
+    User,
+    on_delete=models.CASCADE,
+    related_name="feedbacks"
+)
+
+    rating = models.PositiveSmallIntegerField()
+
+    liked = models.TextField(blank=True)
+
+    improve = models.TextField(blank=True)
+
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
