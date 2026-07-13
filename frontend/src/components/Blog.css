@@ -1,91 +1,211 @@
+/* src/pages/Blog.css */
+
 .blog-wrapper {
   display: flex;
   justify-content: center;
-  padding: 3rem 1rem;
-  background: #ffffff;
+  padding: 80px 20px;
+  background-color: var(--page-bg);
+  font-family: inherit; /* site global font follow aagum */
 }
 
 .blog-single {
   max-width: 1280px;
   width: 100%;
-  border-radius: 2.5rem;
+  border-radius: 24px;
   padding: 2.5rem;
-  box-shadow: 0 20px 40px -10px rgba(0,70,150,0.15);
-  border: 1px solid rgba(0,112,243,0.12);
+  background: white;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
+  border: 1px solid #E5E7EB;
 }
 
+/* Header */
 .blog-header {
   display: flex;
+  align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 2px solid #e5f0ff;
+  border-bottom: 2px solid #EFF6FF;
   padding-bottom: 1.25rem;
 }
 
 .brand-icon {
-  background: linear-gradient(145deg, #0070f3, #47a3ff);
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
   width: 52px;
   height: 52px;
-  border-radius: 18px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  font-size: 1.4rem;
+  flex-shrink: 0;
 }
 
+.title-section h1 {
+  font-size: 1.6rem;
+  color: #1E293B;
+  margin: 0 0 4px;
+}
+
+.tagline {
+  font-size: 0.9rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tagline i {
+  color: #2563EB;
+}
+
+/* Insight Banner */
+.insight-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 1.5rem 0 2rem;
+}
+
+.insight-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.insight-item i {
+  color: #2563EB;
+  font-size: 1rem;
+}
+
+.insight-item small {
+  font-weight: 400;
+  color: #94A3B8;
+  margin-left: 4px;
+}
+
+/* Blog Grid */
 .blog-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin-top: 2rem;
+  gap: 24px;
+  margin-top: 1rem;
 }
 
 .post-card {
-  background: #ffffff;
-  border-radius: 2rem;
+  background: white;
+  border-radius: 20px;
   padding: 1.5rem;
-  box-shadow: 0 18px 30px -12px rgba(0,90,200,0.12);
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.06);
   display: flex;
   flex-direction: column;
-  transition: 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .post-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.12);
 }
 
 .card-category {
-  font-size: 0.75rem;
-  background: #e5f0ff;
-  color: #0066d4;
-  padding: 0.35rem 1rem;
+  font-size: 0.72rem;
+  background: #EFF6FF;
+  color: #2563EB;
+  padding: 5px 14px;
   border-radius: 30px;
   margin-bottom: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  align-self: flex-start;
+  letter-spacing: 0.03em;
+}
+
+.post-card h3 {
+  font-size: 1.1rem;
+  color: #1E293B;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-card h3 i {
+  color: #2563EB;
+  font-size: 1rem;
+}
+
+.post-card p {
+  font-size: 0.9rem;
+  color: #64748B;
+  line-height: 1.6;
+  flex-grow: 1;
 }
 
 .post-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 0.85rem;
-  border-top: 1px dashed #c8dcff;
+  color: #64748B;
+  border-top: 1px dashed #E2E8F0;
   padding-top: 1rem;
-  margin-top: auto;
+  margin-top: 1rem;
+}
+
+.post-meta i {
+  margin-right: 4px;
+  color: #94A3B8;
 }
 
 .read-link {
   background: none;
   border: none;
-  color: #0070f3;
-  font-weight: 600;
+  color: #2563EB;
+  font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  transition: color 0.2s;
 }
 
+.read-link:hover {
+  color: #1D4ED8;
+}
+
+/* Bottom Pillars */
 .pillar-row {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-top: 2rem;
-  background: #f8fcff;
-  padding: 1rem;
-  border-radius: 30px;
+  background: #F8FAFC;
+  padding: 16px 20px;
+  border-radius: 16px;
+}
+
+.pillar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #1E293B;
+}
+
+.pillar i {
+  color: #2563EB;
+}
+
+@media (max-width: 992px) {
+  .blog-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .blog-grid { grid-template-columns: 1fr; }
+  .blog-single { padding: 1.5rem; }
+  .pillar-row { flex-direction: column; align-items: flex-start; }
 }

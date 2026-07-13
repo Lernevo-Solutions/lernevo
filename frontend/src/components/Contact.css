@@ -8,9 +8,15 @@
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  font-family: 'Inter', sans-serif;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.contact-page *,
+.contact-page *::before,
+.contact-page *::after {
+  box-sizing: border-box;
 }
 
 /* Floating background blobs */
@@ -24,6 +30,7 @@
   border-radius: 50%;
   filter: blur(90px);
   animation: float 14s ease-in-out infinite alternate;
+  z-index: 0;
 }
 
 .contact-page::before {
@@ -47,6 +54,7 @@
   width: 100%;
   max-width: 1200px;
   display: flex;
+  align-items: stretch;
   gap: 40px;
   backdrop-filter: blur(30px);
   background: rgba(255, 255, 255, 0.65);
@@ -61,13 +69,15 @@
 /* ===== LEFT SIDE ===== */
 .contact-left {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 18px;
   color: #2563eb;
 }
@@ -75,8 +85,9 @@
 .contact-left h1 {
   margin-top: 25px;
   font-size: 26px;
-  font-weight: 700;
+  font-weight: 500;
   color: #0f172a;
+  line-height: 1.3;
 }
 
 .contact-left p {
@@ -89,6 +100,7 @@
 /* Glass info card */
 .contact-card {
   display: flex;
+  align-items: flex-start;
   gap: 14px;
   padding: 18px;
   background: rgba(255, 255, 255, 0.75);
@@ -98,6 +110,33 @@
   box-shadow: 0 10px 25px rgba(37, 99, 235, 0.08);
   margin-bottom: 25px;
   transition: 0.3s;
+}
+
+.contact-card svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #2563eb;
+}
+
+.contact-card h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.contact-card p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.contact-card small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .contact-card:hover {
@@ -110,9 +149,11 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  margin-top: auto;
 }
 
 .quick-link {
+  width: 100%;
   padding: 12px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.6);
@@ -121,8 +162,10 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 6px;
   font-size: 13px;
+  color: #334155;
   transition: 0.3s;
 }
 
@@ -135,11 +178,13 @@
 /* ===== RIGHT SIDE ===== */
 .contact-right {
   flex: 1.2;
+  display: flex;
+  flex-direction: column;
 }
 
 .contact-right h2 {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 500;
   margin-bottom: 20px;
   color: #0f172a;
 }
@@ -149,16 +194,25 @@ form {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  width: 100%;
 }
 
 /* Inputs */
 input, textarea {
+  width: 100%;
   padding: 12px 16px;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   background: rgba(248, 250, 252, 0.9);
   font-size: 14px;
+  font-family: inherit;
+  color: #0f172a;
   transition: 0.2s;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
 }
 
 input:focus,
@@ -181,16 +235,24 @@ textarea {
 }
 
 .inquiry-option {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px;
+  padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  font-size: 12px;
+  font-size: 13px;
+  color: #334155;
   cursor: pointer;
   transition: 0.2s;
   background: #f9fbff;
+}
+
+.inquiry-option input[type="radio"] {
+  width: auto;
+  margin: 0;
+  accent-color: #2563eb;
 }
 
 .inquiry-option:hover {
@@ -200,13 +262,15 @@ textarea {
 
 /* Submit Button */
 .submit-btn {
+  width: 100%;
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: white;
   padding: 14px;
   border-radius: 18px;
   border: none;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 14px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -224,6 +288,7 @@ textarea {
 .success-message {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: #e6fffa;
   padding: 12px;
@@ -237,5 +302,20 @@ textarea {
   .contact-container {
     flex-direction: column;
     padding: 30px;
+  }
+
+  .contact-left,
+  .contact-right {
+    flex: 1;
+  }
+
+  .quick-links {
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inquiry-grid {
+    grid-template-columns: 1fr;
   }
 }

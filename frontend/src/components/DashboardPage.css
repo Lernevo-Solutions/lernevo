@@ -2,6 +2,8 @@
   min-height: 100vh;
   background-color: var(--page-bg); /* page blue tone */
   padding-top: 80px;
+  position: relative;
+  overflow-x: hidden;
 }
 
 .dashboard-main {
@@ -31,6 +33,7 @@
   gap: 60px;
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .banner-left {
@@ -118,6 +121,8 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
+  position: relative;
+  z-index: 1;
 }
 
 .section-header {
@@ -163,6 +168,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 32px; /* 28-32px gap */
+  align-items: stretch;
 }
 
 /* Premium Card Container */
@@ -170,10 +176,12 @@
   background: #FFFFFF;
   border-radius: 20px; /* 16-20px radius */
   padding: 32px; /* 28-32px padding */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* Soft subtle shadow */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  height: 480px; /* Ensure equal height */
+  min-height: 420px; /* min-height instead of fixed height, avoids dead space */
+  position: relative;
+  overflow: hidden;
   transition: transform 0.3s ease;
 }
 
@@ -190,20 +198,20 @@
 
 .card-title {
   font-size: 18px;
-  font-weight: 600; /* Medium-bold */
+  font-weight: 600;
   color: #1f2937;
   margin: 0;
 }
 
 .muted-icon {
-  color: #9ca3af; /* Muted icon */
+  color: #9ca3af;
 }
 
 .card-body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Balanced spacing */
+  justify-content: space-between; /* distributes content evenly, no big empty gap */
   align-items: stretch;
 }
 
@@ -228,7 +236,10 @@
 .circular-container {
   width: 140px;
   height: 140px;
-  margin-bottom: 24px;
+  margin: 0 auto 24px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate; /* prevents SVG/text from the progressbar library escaping the card */
 }
 
 .calories-centered {
@@ -276,13 +287,12 @@
 .fitness-list {
   display: flex;
   flex-direction: column;
-  gap: 28px; /* Balanced vertical gaps */
-  margin-bottom: auto;
+  gap: 24px;
 }
 
 .fitness-row {
   display: flex;
-  align-items: baseline; /* Same baseline alignment */
+  align-items: baseline;
   gap: 16px;
 }
 
@@ -300,7 +310,7 @@
 }
 
 .card-footer-text {
-  margin-top: 24px;
+  margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid #f3f4f6;
 }
@@ -330,7 +340,7 @@
 
 .thin-progress-bg {
   flex: 1;
-  height: 6px; /* Thin progress bar */
+  height: 6px;
   background-color: #f3f4f6;
   border-radius: 10px;
   overflow: hidden;
@@ -349,7 +359,7 @@
 }
 
 .goal-box {
-  background-color: #f8fafc; /* Lighter box */
+  background-color: #f8fafc;
   padding: 16px;
   border-radius: 12px;
   margin-bottom: 24px;
@@ -386,18 +396,17 @@
   .metrics-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .metric-card {
-    height: auto;
-    min-height: 400px;
+    min-height: auto;
   }
-  
+
   .coming-soon-banner {
     padding: 40px;
     flex-direction: column;
     text-align: center;
   }
-  
+
   .banner-left {
     align-items: center;
   }

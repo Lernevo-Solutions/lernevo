@@ -93,14 +93,13 @@ export default function TrustSafetyPage() {
 
   return (
     <div
-      style={{
-        width: "100%",
-        background:
-          "linear-gradient(135deg, #f0f6ff 0%, #e8f0fe 50%, #f5f8ff 100%)",
-        fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-      }}
-    >
+  style={{
+    width: "100%",
+    background:
+      "linear-gradient(135deg, #f0f6ff 0%, #e8f0fe 50%, #f5f8ff 100%)",
+    fontFamily: "inherit",
+  }}
+>
       {/* ===== CONTAINER ===== */}
       <div
         style={{

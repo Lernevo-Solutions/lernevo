@@ -73,13 +73,9 @@ export default function TermsOfService() {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900;1000&display=swap');
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { font-family: 'Nunito', sans-serif !important; background: #f0f6ff; }
-
-        .tos * { font-family: 'Nunito', sans-serif !important; }
+     <style>{`
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #f0f6ff; }
 
         /* Scrollbar */
         .sidebar::-webkit-scrollbar { width: 4px; }

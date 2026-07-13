@@ -1,13 +1,30 @@
 // src/pages/Careers.js
 import React from 'react';
-import { FaGlobeAmericas, FaClock, FaHeart, FaUserTie } from 'react-icons/fa';
+import { FaGlobeAmericas, FaClock, FaHeart, FaRocket, FaUsers, FaLightbulb, FaHandsHelping } from 'react-icons/fa';
 import './Careers.css';
 
 const Careers = () => {
-  const jobOpenings = [
-    { title: "Senior AI Engineer", type: "Full-Time", location: "Remote" },
-    { title: "Wellness Content Curator", type: "Full-Time", location: "Remote" },
-    { title: "Certified Fitness Trainer", type: "Full-Time", location: "Remote" }
+  const cultureValues = [
+    {
+      icon: <FaRocket />,
+      title: "Move Fast, Build Real",
+      desc: "We're an early-stage startup — every person here shapes the product, not just executes on it."
+    },
+    {
+      icon: <FaLightbulb />,
+      title: "Ownership Over Instructions",
+      desc: "We look for people who spot problems and fix them, not people waiting to be told what to do."
+    },
+    {
+      icon: <FaUsers />,
+      title: "Small Team, Big Trust",
+      desc: "No layers, no red tape. Your ideas reach decision-makers directly."
+    },
+    {
+      icon: <FaHandsHelping />,
+      title: "Growth Alongside the Company",
+      desc: "As Lernevo grows, so does your scope. Early team members shape what comes next."
+    }
   ];
 
   return (
@@ -44,25 +61,28 @@ const Careers = () => {
         </div>
       </section>
 
-      {/* Current Openings */}
-      <section className="openings-section container">
-        <h2>Current Openings</h2>
-        <div className="job-list">
-          {jobOpenings.map((job, index) => (
-            <div key={index} className="job-card">
-              <div>
-                <h3>{job.title}</h3>
-                <p>{job.type} • {job.location}</p>
-              </div>
-              <button className="apply-btn">Apply Now</button>
+      {/* Our Culture & Vision - Replaces fake job listings */}
+      <section className="culture-section container">
+        <h2>Our Culture & Vision</h2>
+        <p className="culture-intro">
+          We're a growing startup and aren't actively hiring right now — but we're always
+          building the kind of team we'd want to work with.
+        </p>
+        <div className="culture-grid">
+          {cultureValues.map((item, index) => (
+            <div key={index} className="culture-card">
+              <div className="culture-icon">{item.icon}</div>
+              <h3>{item.title}</h3>
+              <p>{item.desc}</p>
             </div>
           ))}
         </div>
-      </section>
-
-      {/* Hiring Process Note */}
-      <section className="process-note container">
-        <p>* All offers are contingent upon background verification and a 3-month probation period.</p>
+        <div className="culture-closing">
+          <p>
+            Not hiring at the moment, but always excited to connect with passionate people.
+            Follow our journey and check back as we grow.
+          </p>
+        </div>
       </section>
     </div>
   );

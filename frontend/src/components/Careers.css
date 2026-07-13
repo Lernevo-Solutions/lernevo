@@ -47,44 +47,77 @@
   margin-bottom: 20px;
 }
 
-.job-list {
-  margin-top: 40px;
+/* Our Culture & Vision Section */
+.culture-section {
+  padding: 80px 20px;
 }
 
-.job-card {
-  background: white;
-  padding: 25px 40px;
-  border-radius: 16px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #E5E7EB;
+.culture-section h2 {
+  text-align: center;
+  margin-bottom: 16px;
 }
 
-.apply-btn {
-  background: #2563EB;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.apply-btn:hover {
-  background: #1D4ED8;
-}
-
-.process-note {
+.culture-intro {
   text-align: center;
   color: #64748B;
+  max-width: 600px;
+  margin: 0 auto 50px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.culture-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+}
+
+.culture-card {
+  background: white;
+  padding: 35px 25px;
+  border-radius: 16px;
+  border: 1px solid #E5E7EB;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.culture-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);
+}
+
+.culture-icon {
+  font-size: 2rem;
+  color: #2563EB;
+  margin-bottom: 16px;
+}
+
+.culture-card h3 {
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+  color: #1E293B;
+}
+
+.culture-card p {
+  font-size: 0.9rem;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+.culture-closing {
+  text-align: center;
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.culture-closing p {
+  color: #64748B;
   font-style: italic;
-  padding: 40px 0;
+  font-size: 0.95rem;
 }
 
 @media (max-width: 768px) {
   .benefits-grid { grid-template-columns: 1fr; }
-  .job-card { flex-direction: column; text-align: center; gap: 20px; }
+  .culture-grid { grid-template-columns: 1fr; }
 }
