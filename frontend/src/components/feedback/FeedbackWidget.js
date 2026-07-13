@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation } from "react-router-dom";
 import './FeedbackWidget.css';
-
+import api from '../../api';
 const MAX_CHARS = 300;
 const RATING_OPTIONS = [
   { value: 1, emoji: '😞', label: 'Poor' },
@@ -330,6 +331,9 @@ function FeedbackModal({
 }
 
 export default function FeedbackWidget() {
+    const location = useLocation();
+
+  
   const [isOpen, setIsOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [submitState, setSubmitState] = useState('idle');
@@ -340,7 +344,7 @@ export default function FeedbackWidget() {
     liked: '',
     improve: '',
   });
-
+  
   const modalCopy = useMemo(
     () => ({
       title: 'Help Us Improve',
@@ -384,23 +388,35 @@ export default function FeedbackWidget() {
     };
   };
 
-  const handleSubmit = () => {
-    const payload = {
-      rating,
-      ...draftRef.current,
-      submittedAt: new Date().toISOString(),
-    };
+  const handleSubmit = async () => {
 
-    console.log('Lernevo feedback submitted:', payload);
-    setSubmitState('submitting');
-    setStatusMessage('Submitting your feedback...');
-
-    submitTimerRef.current = window.setTimeout(() => {
-      setStatusMessage('Thanks again for your feedback.');
-      setSubmitState('success');
-      submitTimerRef.current = null;
-    }, 900);
+  const payload = {
+    rating,
+    liked: draftRef.current.liked,
+    improve: draftRef.current.improve,
+  
   };
+
+  try {
+
+    setSubmitState("submitting");
+    setStatusMessage("Submitting your feedback...");
+
+    await api.post("/feedback/", payload);
+
+    setStatusMessage("Thanks again for your feedback.");
+    setSubmitState("success");
+
+  } catch (error) {
+
+    console.error(error);
+
+    setSubmitState("idle");
+    setStatusMessage("Failed to submit feedback.");
+
+  }
+
+};
 
   useEffect(() => {
     return () => {
@@ -409,7 +425,9 @@ export default function FeedbackWidget() {
       }
     };
   }, []);
-
+ if (location.pathname.startsWith("/admin")) {
+  return null;
+}
   return (
     <>
       {!isOpen && submitState !== 'submitting' && submitState !== 'success' ? (

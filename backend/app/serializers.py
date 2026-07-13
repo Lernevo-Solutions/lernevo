@@ -555,3 +555,44 @@ class ResumeDetectionResponseSerializer(serializers.Serializer):
     red_flags = serializers.ListField()
     recommendation = serializers.CharField()
     analyzed_from_text = serializers.BooleanField(default=False)
+
+
+
+from rest_framework import serializers
+from .models import Feedback
+
+
+class FeedbackSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Feedback
+        fields = [
+            "rating",
+            "liked",
+            "improve",
+            
+        ]
+class FeedbackListSerializer(serializers.ModelSerializer):
+
+    username = serializers.CharField(
+        source="user.auth_user.username",
+        read_only=True
+    )
+
+    email = serializers.EmailField(
+        source="user.auth_user.email",
+        read_only=True
+    )
+
+    class Meta:
+        model = Feedback
+        fields = [
+            "id",
+            "username",
+            "email",
+            "rating",
+            "liked",
+            "improve",
+            "submitted_at",
+            "created_at",
+        ]

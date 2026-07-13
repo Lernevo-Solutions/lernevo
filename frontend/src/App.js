@@ -53,6 +53,7 @@ import SkilDashboard from "./components/skilldashboard"
 // ✅ Import User Component
 import User from "./components/user";
 import SkillHome from "./components/Skillhome";
+import FeedbackList from './components/FeedbackList';
 /* ---------------- LAYOUT ---------------- */
 const AppLayout = () => {
   const location = useLocation();
@@ -68,7 +69,8 @@ const AppLayout = () => {
     "/skill",
     "/skill-gap-analyzer",
     "/skilldashboard",
-    "/user",  // ✅ Added user route
+    "/user", 
+    "/feedback", // ✅ Added user route
   ];
 
   // Navbar hide panna routes
@@ -77,12 +79,17 @@ const AppLayout = () => {
     "/builder",
     "/home",
     "/templates",
-    "/user",  // ✅ Added user route
+    
+     // ✅ Added user route
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
-
+const hideFeedbackWidget = [
+  "/feedback",
+  "/user",
+  
+].includes(location.pathname);
   return (
     <>
       {/* Navbar conditionally */}
@@ -147,7 +154,8 @@ const AppLayout = () => {
         <Route path="/ai-coaching" element={<AiCoaching />} />
         <Route path="/careers" element={<Careers />} />
         <Route path="/features" element={<Features />} />
-
+        <Route path="/feedback" element={<FeedbackList />} />
+       
         <Route
           path="/builder"
           element={
@@ -188,7 +196,7 @@ const AppLayout = () => {
       {/* Footer conditionally */}
       {!hideFooter && <Footer />}
 
-      <FeedbackWidget />
+      {!hideFeedbackWidget && <FeedbackWidget />}
     </>
   );
 };

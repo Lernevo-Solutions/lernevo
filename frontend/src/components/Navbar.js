@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import "./Navbar.css";
-import { User, LogOut, Key, Users, LayoutDashboard, Shield } from "lucide-react";
+import { User, LogOut, Key, Users, LayoutDashboard, Shield, Eye, ExternalLink, MessageSquare } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
@@ -13,6 +13,12 @@ export default function Navbar({ onGetStarted }) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(null);
+  
+  // ✅ பக்கங்களை மாறினாலும் ஸ்டேட் அழியாமல் இருக்க localStorage-ல் சேமிக்கிறோம்
+  const [isUserViewMode, setIsUserViewMode] = useState(() => {
+    return localStorage.getItem('admin_as_user_view') === 'true';
+  });
+
   const dropdownRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,6 +70,11 @@ export default function Navbar({ onGetStarted }) {
     return () => window.removeEventListener('storage', checkAuth);
   }, [location.pathname]);
 
+  // லோக்கல் ஸ்டோரேஜில் மோடு மாறும்போதெல்லாம் அப்டேட் செய்ய
+  useEffect(() => {
+    localStorage.setItem('admin_as_user_view', isUserViewMode);
+  }, [isUserViewMode]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -100,6 +111,7 @@ export default function Navbar({ onGetStarted }) {
     setIsAuthenticated(false);
     setUser(null);
     setUserRole('USER');
+    setIsUserViewMode(false);
     setShowProfileDropdown(false);
     setMobileMenuOpen(false);
     navigate('/');
@@ -137,21 +149,9 @@ export default function Navbar({ onGetStarted }) {
   };
 
   const featureItems = [
-    {
-      to: '/home',
-      title: 'Resume Builder',
-      subtitle: 'Create your resume in minutes',
-    },
-    {
-      to: '/skillhome',
-      title: 'Skill Gap Analysis',
-      subtitle: 'Compare Resume with Job Description',
-    },
-    {
-      to: '/features/coming-soon',
-      title: 'Coming Soon',
-      subtitle: 'More exciting features',
-    },
+    { to: '/home', title: 'Resume Builder', subtitle: 'Create your resume in minutes' },
+    { to: '/skillhome', title: 'Skill Gap Analysis', subtitle: 'Compare Resume with Job Description' },
+    { to: '/features/coming-soon', title: 'Coming Soon', subtitle: 'More exciting features' },
   ];
 
   const handleLogoClick = () => {
@@ -175,12 +175,9 @@ export default function Navbar({ onGetStarted }) {
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        {/* Nav menu - Left aligned */}
         <nav className={`nav-menu ${mobileMenuOpen ? "mobile-open" : ""}`}>
-          {/* ✅ ADMIN NAVIGATION - ONLY USER MANAGEMENT */}
-          {userRole === 'ADMIN' ? (
+          {userRole === 'ADMIN' && !isUserViewMode ? (
             <>
-              {/* ✅ Only User Management - No Dashboard, No Admin */}
               <Link
                 to="/user"
                 onClick={() => closeMobileMenu()}
@@ -189,16 +186,21 @@ export default function Navbar({ onGetStarted }) {
                 <Users size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
                 USER MANAGEMENT
               </Link>
+              {/* ✅ NEW FEEDBACK BUTTON FOR ADMIN */}
+              <Link
+                to="/feedback"
+                onClick={() => closeMobileMenu()}
+                className={`nav-item nav-admin-feedback ${location.pathname === "/feedback" ? "active" : ""}`}
+              >
+                <MessageSquare size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                FEEDBACK
+              </Link>
             </>
           ) : (
-            // ✅ USER NAVIGATION
             <>
               <Link
                 to="/"
-                onClick={(e) => {
-                  handleNavClick(e, 'home', true);
-                  closeMobileMenu();
-                }}
+                onClick={(e) => { handleNavClick(e, 'home', true); closeMobileMenu(); }}
                 className={`nav-item nav-home ${location.pathname === "/" && !location.hash ? "active" : ""}`}
               >
                 HOME
@@ -229,49 +231,33 @@ export default function Navbar({ onGetStarted }) {
               </Link>
 
               <div className="nav-item dropdown nav-services">
-                <span 
-                  className="dropdown-trigger"
-                  onClick={() => toggleMobileDropdown('services')}
-                >
+                <span className="dropdown-trigger" onClick={() => toggleMobileDropdown('services')}>
                   SERVICES
                 </span>
                 <div className={`dropdown-menu ${mobileDropdownOpen === 'services' ? 'mobile-dropdown-open' : ''}`}>
                   <Link to="/services/fitness" className="dropdown-link" onClick={() => closeMobileMenu()}>
-                    <strong>FITNESS</strong>
-                    <span>Smart Workouts</span>
+                    <strong>FITNESS</strong><span>Smart Workouts</span>
                   </Link>
                   <Link to="/services/nutrition" className="dropdown-link" onClick={() => closeMobileMenu()}>
-                    <strong>NUTRITION</strong>
-                    <span>Smart Macros</span>
+                    <strong>NUTRITION</strong><span>Smart Macros</span>
                   </Link>
                   <Link to="/services/mental-health" className="dropdown-link" onClick={() => closeMobileMenu()}>
-                    <strong>Mental Health</strong>
-                    <span>Mindful Focus</span>
+                    <strong>Mental Health</strong><span>Mindful Focus</span>
                   </Link>
                   <Link to="/services/learning" className="dropdown-link" onClick={() => closeMobileMenu()}>
-                    <strong>LEARNING</strong>
-                    <span>Adaptive Growth</span>
+                    <strong>LEARNING</strong><span>Adaptive Growth</span>
                   </Link>
                 </div>
               </div>
               
               <div className="nav-item dropdown nav-features">
-                <span 
-                  className="dropdown-trigger"
-                  onClick={() => toggleMobileDropdown('features')}
-                >
+                <span className="dropdown-trigger" onClick={() => toggleMobileDropdown('features')}>
                   FEATURES
                 </span>
                 <div className={`dropdown-menu ${mobileDropdownOpen === 'features' ? 'mobile-dropdown-open' : ''}`}>
                   {featureItems.map((item) => (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      className="dropdown-link"
-                      onClick={() => closeMobileMenu()}
-                    >
-                      <strong>{item.title}</strong>
-                      <span>{item.subtitle}</span>
+                    <Link key={item.to} to={item.to} className="dropdown-link" onClick={() => closeMobileMenu()}>
+                      <strong>{item.title}</strong><span>{item.subtitle}</span>
                     </Link>
                   ))}
                 </div>
@@ -301,7 +287,6 @@ export default function Navbar({ onGetStarted }) {
                 Welcome, {username ? username.charAt(0).toUpperCase() + username.slice(1) : "User"}!
               </span>
               
-              
               <div className="profile-container" ref={dropdownRef}>
                 <div 
                   className="profile-avatar" 
@@ -323,7 +308,7 @@ export default function Navbar({ onGetStarted }) {
                         <span 
                           className="role-indicator"
                           style={{
-                            backgroundColor: getRoleBadgeColor(userRole),
+                            backgroundColor: getRoleBadgeColor(userRole === 'ADMIN' && isUserViewMode ? 'USER' : userRole),
                             color: 'white',
                             padding: '2px 12px',
                             borderRadius: '12px',
@@ -332,24 +317,57 @@ export default function Navbar({ onGetStarted }) {
                             display: 'inline-block'
                           }}
                         >
-                          {getRoleIcon(userRole)} {userRole}
+                          {getRoleIcon(userRole === 'ADMIN' && isUserViewMode ? 'USER' : userRole)} {userRole === 'ADMIN' && isUserViewMode ? 'USER' : userRole}
                         </span>
                       </p>
                     </div>
+                    
                     <div className="dropdown-divider"></div>
+                    
+                    {/* ✅ அட்மினுக்கான ஸ்விட்ச் வியூ மற்றும் ஸ்டேஜிங் சைட் பட்டன்கள் */}
+                    {userRole === 'ADMIN' && (
+                      <>
+                        {!isUserViewMode ? (
+                          <button 
+                            className="dropdown-item" 
+                            onClick={() => { setIsUserViewMode(true); setShowProfileDropdown(false); navigate('/'); }}
+                            style={{ color: '#10b981', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}
+                          >
+                            <Eye size={16} />
+                            <span>👁️ Switch to User View</span>
+                          </button>
+                        ) : (
+                          <button 
+                            className="dropdown-item" 
+                            onClick={() => { setIsUserViewMode(false); setShowProfileDropdown(false); navigate('/'); }}
+                            style={{ color: '#7c3aed', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}
+                          >
+                            <Shield size={16} />
+                            <span>🛡️ Return to Admin View</span>
+                          </button>
+                        )}
+                        
+                        {/* ✅ புதிய ஸ்டேஜிங் சைட் லிங்க் பட்டன் (மட்டும் ADMIN-களுக்கு மட்டும்) */}
+                        <a 
+                          href="https://staging.lernevo.com/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="dropdown-item"
+                          onClick={() => setShowProfileDropdown(false)}
+                          style={{ color: '#2563eb', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+                        >
+                          <ExternalLink size={16} />
+                          <span>🚀 Go to Staging Site</span>
+                        </a>
+                        <div className="dropdown-divider"></div>
+                      </>
+                    )}
+
                     <button className="dropdown-item" onClick={() => {navigate('/profile'); setShowProfileDropdown(false); closeMobileMenu();}}>
                       <User size={16} />
                       <span>View Profile</span>
                     </button>
                     
-                    {/* ✅ Admin users see User Management in dropdown too */}
-                    {userRole === 'ADMIN' && (
-                      <button className="dropdown-item" onClick={() => {navigate('/user'); setShowProfileDropdown(false); closeMobileMenu();}}>
-                        <Users size={16} />
-                        <span>User Management</span>
-                      </button>
-                    )}
-
                     <button className="dropdown-item" onClick={() => {navigate('/profile/change-password'); setShowProfileDropdown(false); closeMobileMenu();}}>
                       <Key size={16} />
                       <span>Change Password</span>
