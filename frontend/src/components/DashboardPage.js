@@ -53,6 +53,7 @@ const DashboardPage = () => {
                 and cognitive growth in one beautiful interface.
               </p>
             </div>
+            
 
             <div className="banner-right">
               <div className="preview-grid">

@@ -78,6 +78,7 @@ const Blog = () => {
               </button>
             </div>
           </div>
+          
 
           <div className="post-card">
             <span className="card-category">HEALTH DASHBOARD</span>

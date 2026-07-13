@@ -161,6 +161,7 @@ export default function TermsOfService() {
         padding: "36px 52px 28px",
         gap: "28px",
       }}>
+        
 
         {/* ── TOP HEADER ── */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>

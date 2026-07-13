@@ -53,6 +53,7 @@ const Contact = () => {
         inquiry_type: formData.inquiryType, // IMPORTANT: match Django field name
       }),
     });
+    
 
     if (response.ok) {
       setIsSubmitted(true);
