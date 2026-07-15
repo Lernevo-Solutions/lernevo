@@ -17,13 +17,15 @@ const defaultApiBaseUrl = isLocalHost
   : "https://staging-api.lernevo.com/api";
 
 const defaultAiBaseUrl = `${defaultApiBaseUrl}/ai`;
+const apiBaseUrl = isLocalHost
+  ? localApiBaseUrl
+  : process.env.REACT_APP_API_URL || defaultApiBaseUrl;
+const aiApiBaseUrl = isLocalHost
+  ? `${localApiBaseUrl}/ai`
+  : process.env.REACT_APP_AI_API_URL || defaultAiBaseUrl;
 
-export const API_BASE_URL = trimTrailingSlash(
-  process.env.REACT_APP_API_URL || defaultApiBaseUrl
-);
+export const API_BASE_URL = trimTrailingSlash(apiBaseUrl);
 
-export const AI_API_BASE_URL = trimTrailingSlash(
-  process.env.REACT_APP_AI_API_URL || defaultAiBaseUrl
-);
+export const AI_API_BASE_URL = trimTrailingSlash(aiApiBaseUrl);
 
 export const APP_ENV = rawEnv || "staging";
