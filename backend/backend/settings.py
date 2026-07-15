@@ -5,7 +5,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR / ".env", override=True)
 
 ENV = os.environ.get("ENV", "DEV").strip().upper()
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "lernevo-dev1").strip()
@@ -168,7 +168,8 @@ def _clean_vertex_value(key: str, default: str) -> str:
 
 VERTEX_PROJECT_ID = _clean_vertex_value("GOOGLE_CLOUD_PROJECT", PROJECT_ID)
 VERTEX_LOCATION = _clean_vertex_value("VERTEX_LOCATION", "global")
-VERTEX_MODEL = _clean_vertex_value("VERTEX_MODEL", "gemini-3.1-flash-lite-preview")
+VERTEX_MODEL = _clean_vertex_value("VERTEX_MODEL", "gemini-3.1-flash-lite")
+print(f"Vertex AI model configured: {VERTEX_MODEL}")
 
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
