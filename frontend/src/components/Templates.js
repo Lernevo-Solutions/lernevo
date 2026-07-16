@@ -64,8 +64,9 @@ export default function AllTemplatesPage() {
   const [activeCard, setActiveCard] = useState(null);
 
   const handleUse = useCallback((tpl) => {
-    navigate('/builder', { state: { template: tpl, selectedColor: ACCENT } });
-  }, [navigate]);
+  localStorage.removeItem('resumeId');  // 👈 ADD THIS LINE
+  navigate('/builder', { state: { template: tpl, selectedColor: ACCENT } });
+}, [navigate]);
 
   return (
     <div className="atp-root">
