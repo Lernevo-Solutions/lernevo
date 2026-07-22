@@ -30,8 +30,10 @@ from .models import User as LernevoUser
 from django.db.models import Q
 from django.db import transaction  
 import random
+from .models import User as LernevoUser, Role
 import logging
 logger = logging.getLogger(__name__)
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -49,8 +51,7 @@ class RegisterView(APIView):
             user_code = request.data.get("user_code")
             country_code = request.data.get("country_code", "+91").strip()
             
-            # ❌ பழைய கோடை நீக்கியாச்சு: role_name = request.data.get("role", "USER").strip().upper() 
-            # ✅ புதிய லாஜிக்: எல்லாரும் சாதாரணமாக 'USER' ரோலோட தான் ரிஜிஸ்டர் ஆக முடியும்
+            # Default role
             role_name = "USER" 
             
             if not email or not username or not password:
@@ -65,10 +66,10 @@ class RegisterView(APIView):
             if mobile and LernevoUser.objects.filter(mobile=mobile, is_delete=False).exists():
                 return Response({"detail": "Mobile number already registered"}, status=status.HTTP_400_BAD_REQUEST)
             
-            # ✅ settings.py-ல இருக்குற மெயில் ஐடிக்கு மட்டும் அட்மின் ரோல் தருதல்
+            # ✅ Primary Manager Email-kku SUPER_ADMIN Role auto-assign aagum
             manager_email = getattr(settings, 'PRIMARY_MANAGER_EMAIL', "").strip().lower()
             if manager_email and email == manager_email:
-                role_name = "ADMIN"
+                role_name = "SUPER_ADMIN"
 
             auth_user = AuthUser.objects.create_user(username=username, email=email, password=password)
             auth_user.first_name = name
@@ -79,7 +80,6 @@ class RegisterView(APIView):
                 while LernevoUser.objects.filter(user_code=user_code).exists():
                     user_code = str(random.randint(100000, 999999))
             
-            from .models import Role
             selected_role, _ = Role.objects.get_or_create(
                 name=role_name, 
                 defaults={'description': f'Standard {role_name} User'}
@@ -109,10 +109,11 @@ class RegisterView(APIView):
             
         except Exception as e:
             return Response({"detail": f"Registration failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 # ============================================================
-# LOGIN VIEW - Finds user from both tables
+# LOGIN VIEW - Multi-Role Dynamic Support
 # ============================================================
-from django.utils import timezone
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -139,13 +140,12 @@ class LoginView(APIView):
         try:
             custom_user = LernevoUser.objects.select_related('role').get(auth_user=user)
             
-            # 🌟 லாகின் செக்: settings-ல் இருக்கும் மெயில் ஐடி மேட்ச் ஆனால் உடனே ரோலை ADMIN ஆக மாற்றி சேவ் செய்யும்!
+            # ✅ Primary Manager Email-a irundha mattum SUPER_ADMIN nu update pannum
             manager_email = getattr(settings, 'PRIMARY_MANAGER_EMAIL', "").strip().lower()
             if manager_email and user.email.strip().lower() == manager_email:
-                from .models import Role
-                admin_role, _ = Role.objects.get_or_create(name="ADMIN")
-                if custom_user.role != admin_role:
-                    custom_user.role = admin_role
+                super_admin_role, _ = Role.objects.get_or_create(name="SUPER_ADMIN")
+                if custom_user.role != super_admin_role:
+                    custom_user.role = super_admin_role
                     custom_user.save()
             
             needs_reset = custom_user.needs_password_reset
@@ -158,19 +158,19 @@ class LoginView(APIView):
             
             user_code = custom_user.user_code
             mobile = custom_user.mobile
+            
+            # ✅ DB-la irukura exact role name-a return pannum (e.g., SUPER_ADMIN, ADMIN, TRAINER, USER, etc.)
             user_role = custom_user.role.name if custom_user.role else "USER"
             
         except LernevoUser.DoesNotExist:
             needs_reset = False  
             user_code = str(random.randint(100000, 999999))
             
-            from .models import Role
             default_role_name = "USER"
             
-            # ஒருவேளை LernevoUser டேபிள்ல உங்க ப்ரொபைல் இல்லைனாலும், இங்கேயும் ADMIN ஆக மாற்றி கிரியேட் செய்திடும்!
             manager_email = getattr(settings, 'PRIMARY_MANAGER_EMAIL', "").strip().lower()
             if manager_email and user.email.strip().lower() == manager_email:
-                default_role_name = "ADMIN"
+                default_role_name = "SUPER_ADMIN"
                 
             default_role, _ = Role.objects.get_or_create(name=default_role_name)
             
@@ -190,7 +190,7 @@ class LoginView(APIView):
             "name": user.first_name,
             "user_code": user_code,
             "mobile": mobile,
-            "role": user_role,
+            "role": user_role, # 👈 Role Name Response
             "needs_password_reset": needs_reset,  
             "last_login": custom_user.last_login.strftime('%Y-%m-%d %H:%M:%S') if custom_user.last_login else 'Never'
         }, status=status.HTTP_200_OK)

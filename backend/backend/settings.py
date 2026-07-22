@@ -179,4 +179,4 @@ CSRF_TRUSTED_ORIGINS = os.environ.get(
 ).split(",")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-PRIMARY_MANAGER_EMAIL = "thangajanani6@gmail.com"
+PRIMARY_MANAGER_EMAIL = "saran@gmail.com"
