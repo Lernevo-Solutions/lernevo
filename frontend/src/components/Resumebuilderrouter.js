@@ -4275,6 +4275,13 @@ function TemplateBuilder({ galleryTemplate, galleryColor }) {
         : targetVisibleIds[0] || "personal",
     }));
   }, [selectedTemplate?.structure, galleryTemplate?.structure]);
+  useEffect(() => {
+  // If this is NOT loading a saved resume (no resumeId in location state)
+  // and we have a galleryTemplate, clear localStorage resumeId
+  if (!location.state?.resumeId && galleryTemplate) {
+    localStorage.removeItem('resumeId');
+  }
+}, [galleryTemplate, location.state?.resumeId]);
 
   useEffect(() => {
     if (!resumeIdToLoad) return undefined;
@@ -4303,10 +4310,8 @@ function TemplateBuilder({ galleryTemplate, galleryColor }) {
         if (cancelled) return;
 
         const resume = response.data || {};
-        const template = resolveTemplateDescriptor(
-          resume,
-          selectedTemplate || galleryTemplate || DEFAULT_TEMPLATE_DESCRIPTOR
-        );
+        const savedTemplate = resume.template || resume.layout || resume.template_name || DEFAULT_TEMPLATE_DESCRIPTOR;
+const template = resolveTemplateDescriptor(resume, savedTemplate);
         const loadedState = buildResumeEditorState(resume, template);
         const pageCount = getResumePageCount(resume.canvas_states);
 
