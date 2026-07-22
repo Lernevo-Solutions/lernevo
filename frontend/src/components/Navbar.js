@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import "./Navbar.css";
-import { User, LogOut, Key, Users, LayoutDashboard, Shield, Eye, ExternalLink, MessageSquare } from "lucide-react";
+import { User, LogOut, Key, Users, Shield, Eye, ExternalLink, MessageSquare, Menu, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
 
 export default function Navbar({ onGetStarted }) {
   const [scrolled, setScrolled] = useState(false);
@@ -14,7 +13,7 @@ export default function Navbar({ onGetStarted }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(null);
   
-  // ✅ பக்கங்களை மாறினாலும் ஸ்டேட் அழியாமல் இருக்க localStorage-ல் சேமிக்கிறோம்
+  // பக்கங்களை மாறினாலும் ஸ்டேட் அழியாமல் இருக்க localStorage-ல் சேமிக்கிறோம்
   const [isUserViewMode, setIsUserViewMode] = useState(() => {
     return localStorage.getItem('admin_as_user_view') === 'true';
   });
@@ -23,7 +22,7 @@ export default function Navbar({ onGetStarted }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Get role badge color
+  // Role Badge Color
   const getRoleBadgeColor = (role) => {
     const roleMap = {
       'ADMIN': '#7c3aed',
@@ -33,9 +32,8 @@ export default function Navbar({ onGetStarted }) {
     };
     return roleMap[role] || '#6b7280';
   };
-  
 
-  // Get role icon
+  // Role Icon
   const getRoleIcon = (role) => {
     const iconMap = {
       'ADMIN': '🛡️',
@@ -71,7 +69,6 @@ export default function Navbar({ onGetStarted }) {
     return () => window.removeEventListener('storage', checkAuth);
   }, [location.pathname]);
 
-  // லோக்கல் ஸ்டோரேஜில் மோடு மாறும்போதெல்லாம் அப்டேட் செய்ய
   useEffect(() => {
     localStorage.setItem('admin_as_user_view', isUserViewMode);
   }, [isUserViewMode]);
@@ -159,6 +156,9 @@ export default function Navbar({ onGetStarted }) {
     navigate('/');
   };
 
+  // Current active role determination considering user view mode toggle
+  const activeRole = (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && isUserViewMode ? 'USER' : userRole;
+
   return (
     <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-bg-overlay"></div>
@@ -177,7 +177,9 @@ export default function Navbar({ onGetStarted }) {
         </button>
 
         <nav className={`nav-menu ${mobileMenuOpen ? "mobile-open" : ""}`}>
-          {userRole === 'ADMIN' && !isUserViewMode ? (
+          
+          {/* 👑 1. SUPER ADMIN NAV BAR LINKS */}
+          {userRole === 'SUPER_ADMIN' && !isUserViewMode && (
             <>
               <Link
                 to="/admin/roles"
@@ -187,7 +189,6 @@ export default function Navbar({ onGetStarted }) {
                 <Users size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
                 USER MANAGEMENT
               </Link>
-              {/* ✅ NEW FEEDBACK BUTTON FOR ADMIN */}
               <Link
                 to="/feedback"
                 onClick={() => closeMobileMenu()}
@@ -197,7 +198,22 @@ export default function Navbar({ onGetStarted }) {
                 FEEDBACK
               </Link>
             </>
-          ) : (
+          )}
+
+          {/* 🛡️ 2. ADMIN & TRAINER NAV BAR LINKS */}
+          {(userRole === 'ADMIN' || userRole === 'TRAINER') && !isUserViewMode && (
+            <Link
+              to="/admin/roles"
+              onClick={() => closeMobileMenu()}
+              className={`nav-item nav-admin-users ${location.pathname === "/admin/roles" ? "active" : ""}`}
+            >
+              <Users size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+              USER MANAGEMENT
+            </Link>
+          )}
+
+          {/* 👤 3. USER NAV BAR LINKS (Or when Switch to User Mode is ACTIVE) */}
+          {(userRole === 'USER' || isUserViewMode) && (
             <>
               <Link
                 to="/"
@@ -273,6 +289,7 @@ export default function Navbar({ onGetStarted }) {
               </Link>
             </>
           )}
+
         </nav>
 
         <div className="nav-actions">
@@ -309,7 +326,7 @@ export default function Navbar({ onGetStarted }) {
                         <span 
                           className="role-indicator"
                           style={{
-                            backgroundColor: getRoleBadgeColor(userRole === 'ADMIN' && isUserViewMode ? 'USER' : userRole),
+                            backgroundColor: getRoleBadgeColor(activeRole),
                             color: 'white',
                             padding: '2px 12px',
                             borderRadius: '12px',
@@ -318,15 +335,15 @@ export default function Navbar({ onGetStarted }) {
                             display: 'inline-block'
                           }}
                         >
-                          {getRoleIcon(userRole === 'ADMIN' && isUserViewMode ? 'USER' : userRole)} {userRole === 'ADMIN' && isUserViewMode ? 'USER' : userRole}
+                          {getRoleIcon(activeRole)} {activeRole}
                         </span>
                       </p>
                     </div>
                     
                     <div className="dropdown-divider"></div>
                     
-                    {/* ✅ அட்மினுக்கான ஸ்விட்ச் வியூ மற்றும் ஸ்டேஜிங் சைட் பட்டன்கள் */}
-                    {userRole === 'ADMIN' && (
+                    {/* 👑 🛡️ SUPER_ADMIN & ADMIN PROFILE DROPDOWN OPTIONS */}
+                    {(userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && (
                       <>
                         {!isUserViewMode ? (
                           <button 
@@ -348,7 +365,7 @@ export default function Navbar({ onGetStarted }) {
                           </button>
                         )}
                         
-                        {/* ✅ புதிய ஸ்டேஜிங் சைட் லிங்க் பட்டன் (மட்டும் ADMIN-களுக்கு மட்டும்) */}
+                        {/* Go to Staging Site Link */}
                         <a 
                           href="https://staging.lernevo.com/"
                           target="_blank"
