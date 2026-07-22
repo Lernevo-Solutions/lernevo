@@ -37,6 +37,7 @@ const AuthPage = () => {
     confirmNewPassword: ''
   });
   
+  
   // Form States
   const [formData, setFormData] = useState({
     name: '',

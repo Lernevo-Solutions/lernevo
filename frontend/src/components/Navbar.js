@@ -33,6 +33,7 @@ export default function Navbar({ onGetStarted }) {
     };
     return roleMap[role] || '#6b7280';
   };
+  
 
   // Get role icon
   const getRoleIcon = (role) => {
