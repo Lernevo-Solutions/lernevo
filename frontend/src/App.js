@@ -48,17 +48,14 @@ import Templates from "./components/Templates";
 import ComingSoon from "./components/ComingSoon";
 import Skill from "./components/skill";
 import { APP_ENV, API_BASE_URL } from "./config";
-import SkilDashboard from "./components/skilldashboard"
-
-// ✅ Import User Component
-import User from "./components/user";
+import SkilDashboard from "./components/skilldashboard";
 import SkillHome from "./components/Skillhome";
-import FeedbackList from './components/FeedbackList';
-/* ---------------- LAYOUT ---------------- */
+import FeedbackList from "./components/FeedbackList";
+import AdminRolesPage from "./components/user";
+
 const AppLayout = () => {
   const location = useLocation();
 
-  // Footer hide panna routes
   const hideFooterRoutes = [
     "/get-started",
     "/reset-password",
@@ -69,42 +66,36 @@ const AppLayout = () => {
     "/skill",
     "/skill-gap-analyzer",
     "/skilldashboard",
-    "/user", 
-    "/feedback", // ✅ Added user route
+    "/user",
+    "/admin/roles",
+    "/feedback",
   ];
 
-  // Navbar hide panna routes
   const hideNavbarRoutes = [
     "/my-resumes",
     "/builder",
     "/home",
     "/templates",
-    
-     // ✅ Added user route
+    "/admin/roles",
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
-const hideFeedbackWidget = [
-  "/feedback",
-  "/user",
-  
-].includes(location.pathname);
+  const hideFeedbackWidget = ["/feedback", "/user", "/admin/roles"].includes(
+    location.pathname
+  );
+
   return (
     <>
-      {/* Navbar conditionally */}
       {!hideNavbar && <Navbar />}
-
       <ScrollToTop />
-      
-      {/* Routes */}
       <Routes>
-        {/* Public Pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/our-approach" element={<OurApproachPage />} />
         <Route path="/get-started" element={<AuthPage />} />
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/book-demo" element={<BookaDemo />} />
         <Route path="/trust-safety" element={<TrustandSafety />} />
@@ -121,11 +112,10 @@ const hideFeedbackWidget = [
           element={<ResetPasswordConfirmPage />}
         />
 
-        {/* User Management Page - ONE URL only */}
-        <Route path="/user" element={<User />} />
-       <Route path="/skillhome" element={<SkillHome />} />
+        <Route path="/admin/roles" element={<AdminRolesPage />} />
+        <Route path="/user" element={<Navigate to="/admin/roles" replace />} />
+        <Route path="/skillhome" element={<SkillHome />} />
 
-        {/* Protected Pages */}
         <Route
           path="/profile"
           element={
@@ -134,7 +124,6 @@ const hideFeedbackWidget = [
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/profile/change-password"
           element={
@@ -143,10 +132,7 @@ const hideFeedbackWidget = [
             </ProtectedRoute>
           }
         />
-
         <Route path="/dashboard" element={<DashboardPage />} />
-
-        {/* Services */}
         <Route path="/services/nutrition" element={<Nutrition />} />
         <Route path="/services/fitness" element={<Fitness />} />
         <Route path="/services/learning" element={<Learning />} />
@@ -155,7 +141,6 @@ const hideFeedbackWidget = [
         <Route path="/careers" element={<Careers />} />
         <Route path="/features" element={<Features />} />
         <Route path="/feedback" element={<FeedbackList />} />
-       
         <Route
           path="/builder"
           element={
@@ -189,13 +174,14 @@ const hideFeedbackWidget = [
             </ProtectedRoute>
           }
         />
-        <Route path="/skill" element={<Navigate to="/skill-gap-analyzer" replace />} />
-        <Route path="/skilldashboard" element={<SkilDashboard/>} />
+        <Route
+          path="/skill"
+          element={<Navigate to="/skill-gap-analyzer" replace />}
+        />
+        <Route path="/skilldashboard" element={<SkilDashboard />} />
       </Routes>
 
-      {/* Footer conditionally */}
       {!hideFooter && <Footer />}
-
       {!hideFeedbackWidget && <FeedbackWidget />}
     </>
   );
@@ -204,7 +190,6 @@ const hideFeedbackWidget = [
 console.log("APP_ENV:", APP_ENV);
 console.log("API_BASE_URL:", API_BASE_URL);
 
-/* ---------------- APP ---------------- */
 function App() {
   useEffect(() => {
     document.title = "Lernevo - Transform Your Life The Smarter Way";

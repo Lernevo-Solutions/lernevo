@@ -8,6 +8,7 @@ import api from '../api';
 const AuthPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const invitationToken = new URLSearchParams(location.search).get('invitation_token');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isLogin, setIsLogin] = useState(location.search.includes('mode=login'));
@@ -86,6 +87,14 @@ const AuthPage = () => {
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(null);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [userRole, setUserRole] = useState('USER');
+  const [invitationData, setInvitationData] = useState(null);
+  const [invitationLoading, setInvitationLoading] = useState(false);
+  const [invitationError, setInvitationError] = useState('');
+  const [invitationForm, setInvitationForm] = useState({
+    name: '',
+    password: '',
+    confirmPassword: ''
+  });
 
   const userIdSectionRef = useRef(null);
   const [loginData, setLoginData] = useState({
@@ -116,17 +125,40 @@ const AuthPage = () => {
   };
 
   useEffect(() => {
+    if (invitationToken) {
+      setIsLogin(false);
+    }
+
     if (location.search.includes('mode=login')) {
       setIsLogin(true);
     }
     const existingToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
-    if (existingToken && existingToken !== 'undefined' && existingToken !== 'null') {
+    if (!invitationToken && existingToken && existingToken !== 'undefined' && existingToken !== 'null') {
       navigate('/');
       return;
     }
     setIsAuthenticated(false);
     setUser(null);
-  }, [location.search, navigate]);
+  }, [invitationToken, location.search, navigate]);
+
+  useEffect(() => {
+    if (!invitationToken) return;
+
+    const loadInvitation = async () => {
+      setInvitationLoading(true);
+      setInvitationError('');
+      try {
+        const res = await api.get(`/roles/invitation/${invitationToken}/`);
+        setInvitationData(res.data.invitation || null);
+      } catch (err) {
+        setInvitationError(err.response?.data?.detail || 'Invitation is unavailable');
+      } finally {
+        setInvitationLoading(false);
+      }
+    };
+
+    loadInvitation();
+  }, [invitationToken]);
 
   // Password Rules States
   const passwordRules = {
@@ -492,6 +524,59 @@ const AuthPage = () => {
     }
   };
 
+  const handleAcceptInvitation = async (e) => {
+    e.preventDefault();
+
+    if (!invitationData?.token && !invitationToken) {
+      alert('Invitation token is missing');
+      return;
+    }
+
+    if (!invitationForm.name.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+
+    if (!invitationForm.password || invitationForm.password.length < 8) {
+      alert('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (invitationForm.password !== invitationForm.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadingMessage('Creating your account...');
+
+    try {
+      const res = await api.post('/roles/accept/', {
+        token: invitationData?.token || invitationToken,
+        name: invitationForm.name.trim(),
+        password: invitationForm.password
+      });
+
+      if (res.data?.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('auth_token', res.data.token);
+        localStorage.setItem('user_email', res.data.user?.email || invitationData?.principal_email || '');
+        localStorage.setItem('user_name', res.data.user?.name || invitationForm.name.trim());
+        localStorage.setItem('user_role', res.data.user?.role || invitationData?.role || 'USER');
+        setUserRole(res.data.user?.role || invitationData?.role || 'USER');
+        alert('Invitation accepted successfully');
+        navigate('/');
+      } else {
+        throw new Error('No authentication token returned');
+      }
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to accept invitation');
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
   // Close country dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -534,6 +619,150 @@ const AuthPage = () => {
   };
 
   const currentCountry = getCurrentCountryConfig();
+
+  if (invitationToken) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'grid',
+        placeItems: 'center',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
+        padding: '24px'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '560px',
+          background: '#fff',
+          borderRadius: '24px',
+          boxShadow: '0 28px 80px rgba(15, 23, 42, 0.12)',
+          overflow: 'hidden',
+          border: '1px solid rgba(148, 163, 184, 0.18)'
+        }}>
+          <div style={{
+            padding: '26px 28px',
+            background: 'linear-gradient(135deg, #111827 0%, #4f46e5 100%)',
+            color: '#fff'
+          }}>
+            <div style={{ textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: '11px', fontWeight: 800, opacity: 0.8 }}>
+              Invitation
+            </div>
+            <h1 style={{ margin: '8px 0 6px', fontSize: '28px', lineHeight: 1.05 }}>Accept your invite</h1>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.82)', lineHeight: 1.6 }}>
+              Create your account to join Lernevo with the role assigned by your admin.
+            </p>
+          </div>
+
+          <div style={{ padding: '28px' }}>
+            {invitationLoading ? (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <Loader2 size={38} style={{ animation: 'spin 1s linear infinite', marginBottom: '12px' }} />
+                <div>Loading invitation...</div>
+              </div>
+            ) : invitationError ? (
+              <div style={{
+                padding: '18px',
+                borderRadius: '16px',
+                background: '#fef2f2',
+                color: '#b91c1c',
+                fontWeight: 700
+              }}>
+                {invitationError}
+              </div>
+            ) : (
+              <>
+                <div style={{
+                  display: 'grid',
+                  gap: '10px',
+                  marginBottom: '20px',
+                  padding: '16px',
+                  borderRadius: '18px',
+                  background: '#f8fafc',
+                  border: '1px solid rgba(148, 163, 184, 0.18)'
+                }}>
+                  <div><strong>Email:</strong> {invitationData?.principal_email || '-'}</div>
+                  <div><strong>Role:</strong> {invitationData?.role || 'USER'}</div>
+                </div>
+
+                <form onSubmit={handleAcceptInvitation} style={{ display: 'grid', gap: '14px' }}>
+                  <label style={{ display: 'grid', gap: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>Name</span>
+                    <input
+                      type="text"
+                      value={invitationForm.name}
+                      onChange={(e) => setInvitationForm((prev) => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter your name"
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '13px 14px',
+                        borderRadius: '14px',
+                        border: '1px solid #cbd5e1',
+                        outline: 'none'
+                      }}
+                      required
+                    />
+                  </label>
+                  <label style={{ display: 'grid', gap: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>Password</span>
+                    <input
+                      type="password"
+                      value={invitationForm.password}
+                      onChange={(e) => setInvitationForm((prev) => ({ ...prev, password: e.target.value }))}
+                      placeholder="Create a strong password"
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '13px 14px',
+                        borderRadius: '14px',
+                        border: '1px solid #cbd5e1',
+                        outline: 'none'
+                      }}
+                      required
+                    />
+                  </label>
+                  <label style={{ display: 'grid', gap: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>Confirm Password</span>
+                    <input
+                      type="password"
+                      value={invitationForm.confirmPassword}
+                      onChange={(e) => setInvitationForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                      placeholder="Confirm password"
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '13px 14px',
+                        borderRadius: '14px',
+                        border: '1px solid #cbd5e1',
+                        outline: 'none'
+                      }}
+                      required
+                    />
+                  </label>
+
+                  <button
+                    type="submit"
+                    style={{
+                      marginTop: '6px',
+                      border: 'none',
+                      borderRadius: '14px',
+                      padding: '14px 16px',
+                      background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
+                      color: '#fff',
+                      fontWeight: 800,
+                      fontSize: '15px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Create Account
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page-container">

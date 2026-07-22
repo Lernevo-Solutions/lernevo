@@ -179,9 +179,9 @@ export default function Navbar({ onGetStarted }) {
           {userRole === 'ADMIN' && !isUserViewMode ? (
             <>
               <Link
-                to="/user"
+                to="/admin/roles"
                 onClick={() => closeMobileMenu()}
-                className={`nav-item nav-admin-users ${location.pathname === "/user" ? "active" : ""}`}
+                className={`nav-item nav-admin-users ${location.pathname === "/admin/roles" ? "active" : ""}`}
               >
                 <Users size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
                 USER MANAGEMENT
