@@ -123,6 +123,42 @@ class User(models.Model):
 
     def __str__(self):
         return f"{self.auth_user.username} - {self.user_code}"
+
+
+class Invitation(models.Model):
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("ACCEPTED", "Accepted"),
+        ("CANCELLED", "Cancelled"),
+        ("EXPIRED", "Expired"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField()
+    role = models.ForeignKey(Role, on_delete=models.PROTECT)
+    invited_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sent_invitations",
+    )
+    token = models.CharField(max_length=128, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    expires_at = models.DateTimeField()
+    accepted_by = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accepted_invitation",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.email} - {self.role.name} - {self.status}"
  
 
 # =========================

@@ -25,6 +25,16 @@ from .views import (
     DemoBookingCreateAPIView,
     FeedbackAPIView,
 )
+from .roles_views import (
+    RolesAcceptAPIView,
+    RolesCancelAPIView,
+    RolesChangeRoleAPIView,
+    RolesInvitationLookupAPIView,
+    RolesInviteAPIView,
+    RolesMembersAPIView,
+    RolesResendAPIView,
+    RolesStatsAPIView,
+)
 
 # ✅ ROUTER
 router = DefaultRouter()
@@ -66,6 +76,14 @@ urlpatterns = [
     ),
   path('detect-resume/', DetectResumeAPIView.as_view(), name='detect-resume'),
   path('users/', views.user_management_api, name='user_management'),
+  path('roles/members/', RolesMembersAPIView.as_view(), name='roles-members'),
+  path('roles/stats/', RolesStatsAPIView.as_view(), name='roles-stats'),
+  path('roles/invite/', RolesInviteAPIView.as_view(), name='roles-invite'),
+  path('roles/resend/', RolesResendAPIView.as_view(), name='roles-resend'),
+  path('roles/cancel/', RolesCancelAPIView.as_view(), name='roles-cancel'),
+  path('roles/change-role/', RolesChangeRoleAPIView.as_view(), name='roles-change-role'),
+  path('roles/invitation/<str:token>/', RolesInvitationLookupAPIView.as_view(), name='roles-invitation'),
+  path('roles/accept/', RolesAcceptAPIView.as_view(), name='roles-accept'),
   path('auth/force-update-password/', ForcePasswordUpdateView.as_view(), name='force_password_update'),
   path('feedback/', views.FeedbackAPIView.as_view(), name='feedback'),
   path('feedback/list/', views.FeedbackListAPIView.as_view(), name='feedback-list'),
