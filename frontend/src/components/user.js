@@ -68,6 +68,9 @@ function AdminRolesPage() {
   const [editRole, setEditRole] = useState("USER");
   const menuRef = useRef(null);
 
+  const getMemberUserId = (member) =>
+    member.user_id || member.user_code || member.member_id || "-";
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -279,14 +282,14 @@ function AdminRolesPage() {
   };
 
   const exportCsv = () => {
-    const headers = ["Type", "Principal Email", "Name", "Role", "Status", "Joined On"];
+    const headers = ["User ID", "Principal Email", "Name", "Type", "Role", "Status"];
     const rows = filteredMembers.map((member) => [
-      member.kind === "INVITATION" ? "Invitation" : "User",
+      getMemberUserId(member),
       member.principal_email || "",
       member.name || "",
+      member.kind === "INVITATION" ? "Invitation" : "User",
       member.role || "",
       member.status || "",
-      member.joined_on || "",
     ]);
 
     const csvContent = [headers, ...rows]
@@ -471,12 +474,12 @@ function AdminRolesPage() {
                         onChange={toggleSelectAll}
                       />
                     </th>
-                    <th style={styles.th}>Type</th>
+                    <th style={styles.th}>User ID</th>
                     <th style={styles.th}>Principal (Email)</th>
                     <th style={styles.th}>Name</th>
+                    <th style={styles.th}>Type</th>
                     <th style={styles.th}>Role</th>
                     <th style={styles.th}>Status</th>
-                    <th style={styles.th}>Joined On</th>
                     <th style={styles.th}>Actions</th>
                   </tr>
                 </thead>
@@ -495,14 +498,17 @@ function AdminRolesPage() {
                           />
                         </td>
                         <td style={styles.td}>
-                          <span style={styles.typePill}>
-                            {isPending ? "Invitation" : "User"}
-                          </span>
+                          <code style={styles.codeCell}>{getMemberUserId(member)}</code>
                         </td>
                         <td style={styles.td}>
                           <strong>{member.principal_email || "-"}</strong>
                         </td>
                         <td style={styles.td}>{member.name || "-"}</td>
+                        <td style={styles.td}>
+                          <span style={styles.typePill}>
+                            {isPending ? "Invitation" : "User"}
+                          </span>
+                        </td>
                         <td style={styles.td}>
                           <span style={{ ...styles.badge, ...(badgeStyles[(member.role || "USER").toUpperCase()] || badgeStyles.USER) }}>
                             {member.role || "USER"}
@@ -518,7 +524,6 @@ function AdminRolesPage() {
                             {member.status || "Active"}
                           </span>
                         </td>
-                        <td style={styles.td}>{member.joined_on || "-"}</td>
                         <td style={styles.td}>
                           <div style={styles.actionWrap} ref={isMenuOpen ? menuRef : undefined}>
                             <button
@@ -961,7 +966,7 @@ const styles = {
   table: {
     width: "100%",
     borderCollapse: "collapse",
-    minWidth: "1020px",
+    minWidth: "1180px",
   },
   th: {
     textAlign: "left",
@@ -978,6 +983,16 @@ const styles = {
     borderBottom: "1px solid rgba(148, 163, 184, 0.12)",
     color: "#0f172a",
     verticalAlign: "middle",
+  },
+  codeCell: {
+    display: "inline-block",
+    padding: "6px 10px",
+    borderRadius: "999px",
+    background: "rgba(15, 23, 42, 0.06)",
+    fontSize: "12px",
+    fontWeight: 800,
+    letterSpacing: "0.04em",
+    color: "#334155",
   },
   selectedRow: {
     background: "rgba(124, 58, 237, 0.05)",
