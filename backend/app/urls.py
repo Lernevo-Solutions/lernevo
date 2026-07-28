@@ -34,6 +34,12 @@ from .roles_views import (
     RolesMembersAPIView,
     RolesResendAPIView,
     RolesStatsAPIView,
+    TrainerRolesCancelAPIView,
+    TrainerRolesChangeRoleAPIView,
+    TrainerRolesInviteAPIView,
+    TrainerRolesMembersAPIView,
+    TrainerRolesResendAPIView,
+    TrainerRolesStatsAPIView,
 )
 
 # ✅ ROUTER
@@ -84,6 +90,12 @@ urlpatterns = [
   path('roles/change-role/', RolesChangeRoleAPIView.as_view(), name='roles-change-role'),
   path('roles/invitation/<str:token>/', RolesInvitationLookupAPIView.as_view(), name='roles-invitation'),
   path('roles/accept/', RolesAcceptAPIView.as_view(), name='roles-accept'),
+  path('trainer/roles/members/', TrainerRolesMembersAPIView.as_view(), name='trainer-roles-members'),
+  path('trainer/roles/stats/', TrainerRolesStatsAPIView.as_view(), name='trainer-roles-stats'),
+  path('trainer/roles/invite/', TrainerRolesInviteAPIView.as_view(), name='trainer-roles-invite'),
+  path('trainer/roles/resend/', TrainerRolesResendAPIView.as_view(), name='trainer-roles-resend'),
+  path('trainer/roles/cancel/', TrainerRolesCancelAPIView.as_view(), name='trainer-roles-cancel'),
+  path('trainer/roles/change-role/', TrainerRolesChangeRoleAPIView.as_view(), name='trainer-roles-change-role'),
   path('auth/force-update-password/', ForcePasswordUpdateView.as_view(), name='force_password_update'),
   path('feedback/', views.FeedbackAPIView.as_view(), name='feedback'),
   path('feedback/list/', views.FeedbackListAPIView.as_view(), name='feedback-list'),
