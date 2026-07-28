@@ -158,6 +158,7 @@ export default function Navbar({ onGetStarted }) {
 
   // Current active role determination considering user view mode toggle
   const activeRole = (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && isUserViewMode ? 'USER' : userRole;
+  const rolesPath = userRole === 'TRAINER' ? '/trainer/roles' : '/admin/roles';
 
   return (
     <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
@@ -203,9 +204,9 @@ export default function Navbar({ onGetStarted }) {
           {/* 🛡️ 2. ADMIN & TRAINER NAV BAR LINKS */}
           {(userRole === 'ADMIN' || userRole === 'TRAINER') && !isUserViewMode && (
             <Link
-              to="/admin/roles"
+              to={rolesPath}
               onClick={() => closeMobileMenu()}
-              className={`nav-item nav-admin-users ${location.pathname === "/admin/roles" ? "active" : ""}`}
+              className={`nav-item nav-admin-users ${location.pathname === rolesPath ? "active" : ""}`}
             >
               <Users size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
               USER MANAGEMENT

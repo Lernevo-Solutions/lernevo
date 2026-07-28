@@ -21,14 +21,56 @@ import {
   X,
 } from "lucide-react";
 
-const ROLE_OPTIONS = [
+const ADMIN_ROLE_OPTIONS = [
   { value: "USER", label: "User" },
   { value: "TRAINER", label: "Trainer" },
   { value: "ADMIN", label: "Admin" },
 ];
 
+const TRAINER_ROLE_OPTIONS = [
+  { value: "USER", label: "User" },
+  { value: "TRAINER", label: "Trainer" },
+];
+
 const STATUS_OPTIONS = ["All", "Active", "Pending"];
-const ROLE_FILTER_OPTIONS = ["All", "User", "Trainer", "Admin"];
+const ADMIN_ROLE_FILTER_OPTIONS = ["All", "User", "Trainer", "Admin"];
+const TRAINER_ROLE_FILTER_OPTIONS = ["All", "User", "Trainer"];
+
+const ACCESS_CONFIG = {
+  admin: {
+    kicker: "Admin only",
+    title: "Roles & Access",
+    subtitle:
+      "Manage users, trainers, and invitations from one place. Super Admin never appears in this module.",
+    apiBase: "/roles",
+    roleOptions: ADMIN_ROLE_OPTIONS,
+    roleFilterOptions: ADMIN_ROLE_FILTER_OPTIONS,
+    allowDeactivate: true,
+    allowRemoveAccess: true,
+    summaryCards: (stats) => [
+      { label: "Total Users", value: stats.total_users || 0, icon: Users, accent: "#0f766e" },
+      { label: "Trainers", value: stats.trainers || 0, icon: UserCog, accent: "#d97706" },
+      { label: "Admins", value: stats.admins || 0, icon: ShieldCheck, accent: "#7c3aed" },
+      { label: "Pending Invites", value: stats.pending_invites || 0, icon: Mail, accent: "#b45309" },
+    ],
+  },
+  trainer: {
+    kicker: "Trainer only",
+    title: "Trainer Access",
+    subtitle:
+      "Manage users and trainers within your scope. Super Admin never appears in this module.",
+    apiBase: "/trainer/roles",
+    roleOptions: TRAINER_ROLE_OPTIONS,
+    roleFilterOptions: TRAINER_ROLE_FILTER_OPTIONS,
+    allowDeactivate: false,
+    allowRemoveAccess: false,
+    summaryCards: (stats) => [
+      { label: "Total Users", value: stats.total_users || 0, icon: Users, accent: "#0f766e" },
+      { label: "Trainers", value: stats.trainers || 0, icon: UserCog, accent: "#d97706" },
+      { label: "Pending Invites", value: stats.pending_invites || 0, icon: Mail, accent: "#b45309" },
+    ],
+  },
+};
 
 const badgeStyles = {
   ADMIN: { background: "rgba(124, 58, 237, 0.14)", color: "#7c3aed" },
@@ -41,7 +83,8 @@ const badgeStyles = {
 const makeInviteLink = (token) =>
   `${window.location.origin}/get-started?mode=register&invitation_token=${token}`;
 
-function AdminRolesPage() {
+function RolesAccessPage({ mode = "admin" }) {
+  const accessConfig = ACCESS_CONFIG[mode] || ACCESS_CONFIG.admin;
   const [members, setMembers] = useState([]);
   const [stats, setStats] = useState({
     total_users: 0,
@@ -67,6 +110,7 @@ function AdminRolesPage() {
   });
   const [editRole, setEditRole] = useState("USER");
   const menuRef = useRef(null);
+  const apiPrefix = accessConfig.apiBase;
 
   const getMemberUserId = (member) =>
     member.user_id || member.user_code || member.member_id || "-";
@@ -75,8 +119,8 @@ function AdminRolesPage() {
     setLoading(true);
     try {
       const [membersRes, statsRes] = await Promise.all([
-        api.get("/roles/members/"),
-        api.get("/roles/stats/"),
+        api.get(`${apiPrefix}/members/`),
+        api.get(`${apiPrefix}/stats/`),
       ]);
       setMembers(Array.isArray(membersRes.data.members) ? membersRes.data.members : []);
       setStats(statsRes.data.stats || stats);
@@ -91,7 +135,7 @@ function AdminRolesPage() {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [apiPrefix]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -104,6 +148,32 @@ function AdminRolesPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const allowedDefaultRole =
+      accessConfig.roleOptions.find((option) => option.value === inviteForm.role)?.value ||
+      accessConfig.roleOptions[0]?.value ||
+      "USER";
+    setInviteForm((prev) =>
+      prev.role === allowedDefaultRole
+        ? prev
+        : {
+            ...prev,
+            role: allowedDefaultRole,
+          }
+    );
+    setEditRole((prev) =>
+      accessConfig.roleOptions.some((option) => option.value === prev)
+        ? prev
+        : accessConfig.roleOptions[0]?.value || "USER"
+    );
+  }, [accessConfig, inviteForm.role]);
+
+  useEffect(() => {
+    if (!accessConfig.roleFilterOptions.includes(roleFilter)) {
+      setRoleFilter("All");
+    }
+  }, [accessConfig, roleFilter]);
 
   const filteredMembers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -136,7 +206,7 @@ function AdminRolesPage() {
 
   const refreshStatsOnly = async () => {
     try {
-      const statsRes = await api.get("/roles/stats/");
+      const statsRes = await api.get(`${apiPrefix}/stats/`);
       setStats(statsRes.data.stats || stats);
     } catch (error) {
       console.error("Failed to refresh stats", error);
@@ -163,7 +233,7 @@ function AdminRolesPage() {
 
     setSaving(true);
     try {
-      const response = await api.post("/roles/invite/", {
+      const response = await api.post(`${apiPrefix}/invite/`, {
         email: inviteForm.email.trim().toLowerCase(),
         role: inviteForm.role,
       });
@@ -197,7 +267,7 @@ function AdminRolesPage() {
     if (!editMember) return;
     setSaving(true);
     try {
-      const response = await api.patch("/roles/change-role/", {
+      const response = await api.patch(`${apiPrefix}/change-role/`, {
         member_id: editMember.id,
         member_type: editMember.member_type || editMember.kind,
         role: editRole,
@@ -219,7 +289,7 @@ function AdminRolesPage() {
   const resendInvitation = async (member) => {
     setSaving(true);
     try {
-      const response = await api.post("/roles/resend/", { id: member.id });
+      const response = await api.post(`${apiPrefix}/resend/`, { id: member.id });
       if (response.data?.member) {
         updateMemberInState(response.data.member);
       }
@@ -236,7 +306,7 @@ function AdminRolesPage() {
     if (!window.confirm(`Cancel invitation for ${member.principal_email}?`)) return;
     setSaving(true);
     try {
-      await api.post("/roles/cancel/", { id: member.id });
+      await api.post(`${apiPrefix}/cancel/`, { id: member.id });
       removeMemberFromState(member.id);
       alert("Invitation cancelled");
       await refreshStatsOnly();
@@ -328,6 +398,16 @@ function AdminRolesPage() {
       return;
     }
 
+    if (action === "deactivate" && accessConfig.allowDeactivate) {
+      await removeAccess(member, "Deactivate User");
+      return;
+    }
+
+    if (action === "remove-access" && accessConfig.allowRemoveAccess) {
+      await removeAccess(member, "Remove Access");
+      return;
+    }
+
     if (action === "resend") {
       await resendInvitation(member);
       return;
@@ -342,23 +422,8 @@ function AdminRolesPage() {
       await cancelInvitation(member);
       return;
     }
-
-    if (action === "deactivate") {
-      await removeAccess(member, "Deactivate User");
-      return;
-    }
-
-    if (action === "remove-access") {
-      await removeAccess(member, "Remove Access");
-    }
   };
-
-  const summaryCards = [
-    { label: "Total Users", value: stats.total_users || 0, icon: Users, accent: "#0f766e" },
-    { label: "Trainers", value: stats.trainers || 0, icon: UserCog, accent: "#d97706" },
-    { label: "Admins", value: stats.admins || 0, icon: ShieldCheck, accent: "#7c3aed" },
-    { label: "Pending Invites", value: stats.pending_invites || 0, icon: Mail, accent: "#b45309" },
-  ];
+  const summaryCards = accessConfig.summaryCards(stats);
 
   return (
     <div style={styles.page}>
@@ -368,12 +433,9 @@ function AdminRolesPage() {
       <div style={styles.shell}>
         <div style={styles.hero}>
           <div>
-            <div style={styles.kicker}>Admin only</div>
-            <h1 style={styles.title}>Roles & Access</h1>
-            <p style={styles.subtitle}>
-              Manage users, trainers, and invitations from one place. Super Admin
-              never appears in this module.
-            </p>
+            <div style={styles.kicker}>{accessConfig.kicker}</div>
+            <h1 style={styles.title}>{accessConfig.title}</h1>
+            <p style={styles.subtitle}>{accessConfig.subtitle}</p>
           </div>
 
           <div style={styles.heroActions}>
@@ -428,7 +490,7 @@ function AdminRolesPage() {
                 onChange={(event) => setRoleFilter(event.target.value)}
                 style={styles.select}
               >
-                {ROLE_FILTER_OPTIONS.map((option) => (
+                {accessConfig.roleFilterOptions.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -584,22 +646,26 @@ function AdminRolesPage() {
                                       <Eye size={14} />
                                       View Profile
                                     </button>
-                                    <button
-                                      type="button"
-                                      style={styles.menuItemDanger}
-                                      onClick={() => handleMenuAction(member, "deactivate")}
-                                    >
-                                      <Ban size={14} />
-                                      Deactivate User
-                                    </button>
-                                    <button
-                                      type="button"
-                                      style={styles.menuItemDanger}
-                                      onClick={() => handleMenuAction(member, "remove-access")}
-                                    >
-                                      <Trash2 size={14} />
-                                      Remove Access
-                                    </button>
+                                    {accessConfig.allowDeactivate && (
+                                      <button
+                                        type="button"
+                                        style={styles.menuItemDanger}
+                                        onClick={() => handleMenuAction(member, "deactivate")}
+                                      >
+                                        <Ban size={14} />
+                                        Deactivate User
+                                      </button>
+                                    )}
+                                    {accessConfig.allowRemoveAccess && (
+                                      <button
+                                        type="button"
+                                        style={styles.menuItemDanger}
+                                        onClick={() => handleMenuAction(member, "remove-access")}
+                                      >
+                                        <Trash2 size={14} />
+                                        Remove Access
+                                      </button>
+                                    )}
                                   </>
                                 )}
                               </div>
@@ -617,7 +683,11 @@ function AdminRolesPage() {
       </div>
 
       {inviteOpen && (
-        <ModalFrame title="Invite Member" onClose={() => setInviteOpen(false)}>
+        <ModalFrame
+          title="Invite Member"
+          subtitle={mode === "trainer" ? "Trainer controls only" : "Admin controls only"}
+          onClose={() => setInviteOpen(false)}
+        >
           <form onSubmit={handleInviteSubmit} style={styles.modalBody}>
             <label style={styles.field}>
               <span style={styles.label}>Email</span>
@@ -641,7 +711,7 @@ function AdminRolesPage() {
                 }
                 style={styles.input}
               >
-                {ROLE_OPTIONS.map((option) => (
+                {accessConfig.roleOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -668,7 +738,11 @@ function AdminRolesPage() {
       )}
 
       {editOpen && editMember && (
-        <ModalFrame title="Edit Role" onClose={() => setEditOpen(false)}>
+        <ModalFrame
+          title="Edit Role"
+          subtitle={mode === "trainer" ? "Trainer controls only" : "Admin controls only"}
+          onClose={() => setEditOpen(false)}
+        >
           <div style={styles.modalBody}>
             <div style={styles.currentRoleCard}>
               <div style={styles.currentRoleLabel}>Current Role</div>
@@ -684,7 +758,7 @@ function AdminRolesPage() {
                 onChange={(event) => setEditRole(event.target.value)}
                 style={styles.input}
               >
-                {ROLE_OPTIONS.map((option) => (
+                {accessConfig.roleOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -716,7 +790,11 @@ function AdminRolesPage() {
       )}
 
       {profileOpen && profileMember && (
-        <ModalFrame title="View Profile" onClose={() => setProfileOpen(false)}>
+        <ModalFrame
+          title="View Profile"
+          subtitle={mode === "trainer" ? "Trainer controls only" : "Admin controls only"}
+          onClose={() => setProfileOpen(false)}
+        >
           <div style={styles.profileBody}>
             <div style={styles.profileRow}>
               <span style={styles.profileLabel}>Principal Email</span>
@@ -745,14 +823,14 @@ function AdminRolesPage() {
   );
 }
 
-function ModalFrame({ title, children, onClose }) {
+function ModalFrame({ title, subtitle = "Admin controls only", children, onClose }) {
   return (
     <div style={styles.backdrop} role="presentation" onClick={onClose}>
       <div style={styles.modalShell} role="dialog" onClick={(event) => event.stopPropagation()}>
         <div style={styles.modalHeader}>
           <div>
             <div style={styles.modalTitle}>{title}</div>
-            <div style={styles.modalSubtitle}>Admin controls only</div>
+            <div style={styles.modalSubtitle}>{subtitle}</div>
           </div>
           <button type="button" style={styles.closeButton} onClick={onClose}>
             <X size={18} />
@@ -1216,5 +1294,13 @@ const styles = {
     textAlign: "right",
   },
 };
+
+export function AdminRolesPage() {
+  return <RolesAccessPage mode="admin" />;
+}
+
+export function TrainerRolesPage() {
+  return <RolesAccessPage mode="trainer" />;
+}
 
 export default AdminRolesPage;

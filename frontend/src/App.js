@@ -51,10 +51,21 @@ import { APP_ENV, API_BASE_URL } from "./config";
 import SkilDashboard from "./components/skilldashboard";
 import SkillHome from "./components/Skillhome";
 import FeedbackList from "./components/FeedbackList";
-import AdminRolesPage from "./components/user";
+import AdminRolesPage, { TrainerRolesPage } from "./components/user";
 
 const AppLayout = () => {
   const location = useLocation();
+  const currentRole = localStorage.getItem("user_role") || "USER";
+
+  const RolesRedirect = () => {
+    if (currentRole === "ADMIN") {
+      return <Navigate to="/admin/roles" replace />;
+    }
+    if (currentRole === "TRAINER") {
+      return <Navigate to="/trainer/roles" replace />;
+    }
+    return <Navigate to="/" replace />;
+  };
 
   const hideFooterRoutes = [
     "/get-started",
@@ -68,6 +79,7 @@ const AppLayout = () => {
     "/skilldashboard",
     "/user",
     "/admin/roles",
+    "/trainer/roles",
     "/feedback",
   ];
 
@@ -77,11 +89,12 @@ const AppLayout = () => {
     "/home",
     "/templates",
     "/admin/roles",
+    "/trainer/roles",
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
-  const hideFeedbackWidget = ["/feedback", "/user", "/admin/roles"].includes(
+  const hideFeedbackWidget = ["/feedback", "/user", "/admin/roles", "/trainer/roles"].includes(
     location.pathname
   );
 
@@ -113,7 +126,8 @@ const AppLayout = () => {
         />
 
         <Route path="/admin/roles" element={<AdminRolesPage />} />
-        <Route path="/user" element={<Navigate to="/admin/roles" replace />} />
+        <Route path="/trainer/roles" element={<TrainerRolesPage />} />
+        <Route path="/user" element={<RolesRedirect />} />
         <Route path="/skillhome" element={<SkillHome />} />
 
         <Route
