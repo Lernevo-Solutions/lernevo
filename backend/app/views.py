@@ -2158,3 +2158,46 @@ class FeedbackListAPIView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+            
+            
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, permissions
+from .models import User as LernevoUser, UserProfile
+
+class AssignTrainerAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        # Current user check
+        current_admin = LernevoUser.objects.filter(auth_user=request.user, is_delete=False).first()
+        if not current_admin or not current_admin.role or current_admin.role.name not in ("ADMIN", "SUPER_ADMIN"):
+            return Response({"detail": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+
+        user_id = request.data.get("user_id")
+        trainer_id = request.data.get("trainer_id")
+
+        if not user_id:
+            return Response({"detail": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            target_user = LernevoUser.objects.get(id=user_id, is_delete=False)
+            
+            trainer = None
+            if trainer_id:
+                trainer = LernevoUser.objects.get(id=trainer_id, role__name="TRAINER", is_delete=False)
+
+            # Profile-இல் assigned_trainer-ஐ update செய்கிறோம்
+            profile, _ = UserProfile.objects.get_or_create(user=target_user)
+            profile.assigned_trainer = trainer
+            profile.save()
+
+            return Response({
+                "success": True,
+                "message": f"Trainer assigned successfully"
+            }, status=status.HTTP_200_OK)
+
+        except LernevoUser.DoesNotExist:
+            return Response({"detail": "User or Trainer not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
