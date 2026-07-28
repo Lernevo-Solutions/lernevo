@@ -13,7 +13,6 @@ export default function Navbar({ onGetStarted }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(null);
   
-  // பக்கங்களை மாறினாலும் ஸ்டேட் அழியாமல் இருக்க localStorage-ல் சேமிக்கிறோம்
   const [isUserViewMode, setIsUserViewMode] = useState(() => {
     return localStorage.getItem('admin_as_user_view') === 'true';
   });
@@ -156,9 +155,7 @@ export default function Navbar({ onGetStarted }) {
     navigate('/');
   };
 
-  // Current active role determination considering user view mode toggle
   const activeRole = (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && isUserViewMode ? 'USER' : userRole;
-  const rolesPath = userRole === 'TRAINER' ? '/trainer/roles' : '/admin/roles';
 
   return (
     <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
@@ -183,9 +180,9 @@ export default function Navbar({ onGetStarted }) {
           {userRole === 'SUPER_ADMIN' && !isUserViewMode && (
             <>
               <Link
-                to="/admin/roles"
+                to="/user"
                 onClick={() => closeMobileMenu()}
-                className={`nav-item nav-admin-users ${location.pathname === "/admin/roles" ? "active" : ""}`}
+                className={`nav-item nav-admin-users ${location.pathname === "/user" ? "active" : ""}`}
               >
                 <Users size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
                 USER MANAGEMENT
@@ -204,16 +201,18 @@ export default function Navbar({ onGetStarted }) {
           {/* 🛡️ 2. ADMIN & TRAINER NAV BAR LINKS */}
           {(userRole === 'ADMIN' || userRole === 'TRAINER') && !isUserViewMode && (
             <Link
-              to={rolesPath}
+              to={userRole === 'TRAINER' ? "/trainer/roles" : "/admin/roles"}
               onClick={() => closeMobileMenu()}
-              className={`nav-item nav-admin-users ${location.pathname === rolesPath ? "active" : ""}`}
+              className={`nav-item nav-admin-users ${
+                location.pathname === "/admin/roles" || location.pathname === "/trainer/roles" ? "active" : ""
+              }`}
             >
               <Users size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
               USER MANAGEMENT
             </Link>
           )}
 
-          {/* 👤 3. USER NAV BAR LINKS (Or when Switch to User Mode is ACTIVE) */}
+          {/* 👤 3. USER NAV BAR LINKS */}
           {(userRole === 'USER' || isUserViewMode) && (
             <>
               <Link
@@ -343,7 +342,6 @@ export default function Navbar({ onGetStarted }) {
                     
                     <div className="dropdown-divider"></div>
                     
-                    {/* 👑 🛡️ SUPER_ADMIN & ADMIN PROFILE DROPDOWN OPTIONS */}
                     {(userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && (
                       <>
                         {!isUserViewMode ? (
@@ -365,19 +363,21 @@ export default function Navbar({ onGetStarted }) {
                             <span>🛡️ Return to Admin View</span>
                           </button>
                         )}
-                        
-                        {/* Go to Staging Site Link */}
-                        <a 
-                          href="https://staging.lernevo.com/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="dropdown-item"
-                          onClick={() => setShowProfileDropdown(false)}
-                          style={{ color: '#2563eb', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
-                        >
-                          <ExternalLink size={16} />
-                          <span>🚀 Go to Staging Site</span>
-                        </a>
+
+                        {userRole === 'SUPER_ADMIN' && (
+                          <a 
+                            href="https://staging.lernevo.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="dropdown-item"
+                            onClick={() => setShowProfileDropdown(false)}
+                            style={{ color: '#2563eb', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+                          >
+                            <ExternalLink size={16} />
+                            <span>🚀 Go to Staging Site</span>
+                          </a>
+                        )}
+
                         <div className="dropdown-divider"></div>
                       </>
                     )}

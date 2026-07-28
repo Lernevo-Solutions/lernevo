@@ -37,7 +37,6 @@ const AuthPage = () => {
     confirmNewPassword: ''
   });
   
-  
   // Form States
   const [formData, setFormData] = useState({
     name: '',
@@ -103,12 +102,22 @@ const AuthPage = () => {
     password: ''
   });
 
-  // Get current country config
+  // Helper function for Navigation based on Role
+  const redirectBasedOnRole = (role) => {
+    const normalizedRole = (role || 'USER').toUpperCase();
+    if (normalizedRole === 'ADMIN' || normalizedRole === 'SUPER_ADMIN') {
+      navigate('/admin/dashboard');
+    } else if (normalizedRole === 'TRAINER') {
+      navigate('/trainer/dashboard'); // 👈 Change path according to your App.js routes
+    } else {
+      navigate('/');
+    }
+  };
+
   const getCurrentCountryConfig = () => {
     return countryCodes.find(c => c.code === selectedCountryCode) || countryCodes[0];
   };
 
-  // Validate phone number based on country
   const validatePhoneNumber = (phone) => {
     const country = getCurrentCountryConfig();
     if (!phone) return true;
@@ -135,7 +144,8 @@ const AuthPage = () => {
     }
     const existingToken = localStorage.getItem('token') || localStorage.getItem('auth_token');
     if (!invitationToken && existingToken && existingToken !== 'undefined' && existingToken !== 'null') {
-      navigate('/');
+      const storedRole = localStorage.getItem('user_role') || 'USER';
+      redirectBasedOnRole(storedRole);
       return;
     }
     setIsAuthenticated(false);
@@ -161,7 +171,6 @@ const AuthPage = () => {
     loadInvitation();
   }, [invitationToken]);
 
-  // Password Rules States
   const passwordRules = {
     length: formData.password.length >= 8,
     alphabet: /[a-zA-Z]/.test(formData.password),
@@ -173,17 +182,14 @@ const AuthPage = () => {
   const isPasswordStrong = Object.values(passwordRules).every(Boolean);
   const passwordsMatch = formData.password === formData.confirmPassword && formData.password !== '';
 
-  // Validation
   const isStep1Valid = formData.name && formData.email && formData.phone && emailAvailable && phoneAvailable && !phoneError;
   const isStep2Valid = isEmailVerified;
   const isStep3Valid = isUsernameAvailable === true && isPasswordStrong && passwordsMatch;
 
-  // Get full phone number with country code
   const getFullPhoneNumber = () => {
     return `${selectedCountryCode}${formData.phone}`;
   };
 
-  // Username Availability Check
   useEffect(() => {
     if (!formData.username) {
       setIsUsernameAvailable(null);
@@ -202,7 +208,6 @@ const AuthPage = () => {
     return () => clearTimeout(timer);
   }, [formData.username]);
 
-  // Check email/phone availability
   useEffect(() => {
     if (!formData.email && !formData.phone) return;
 
@@ -253,7 +258,6 @@ const AuthPage = () => {
 
   const strength = getPasswordStrength();
 
-  // Send OTP
   const handleSendOtp = async () => {
     if (!formData.email) {
       alert('Please enter email first');
@@ -277,7 +281,6 @@ const AuthPage = () => {
     }
   };
 
-  // Verify OTP
   const handleVerifyEmail = async () => {
     if (!formData.emailOtp || formData.emailOtp.length < 6) {
       alert('Please enter valid 6-digit OTP');
@@ -303,7 +306,6 @@ const AuthPage = () => {
     }
   };
 
-  // Register User
   const handleGenerateUserId = async () => {
     if (!isUsernameAvailable) {
       alert('Please choose an available username');
@@ -326,7 +328,7 @@ const AuthPage = () => {
     }
     
     setIsLoading(true);
-    setLoadingMessage('Creating your account... Please wait (may take 30-60 seconds)');
+    setLoadingMessage('Creating your account... Please wait');
     
     const generatedId = Math.floor(100000 + Math.random() * 900000).toString();
     const fullPhoneNumber = getFullPhoneNumber();
@@ -371,34 +373,20 @@ const AuthPage = () => {
         setTimeout(() => {
           setIsRedirecting(true);
           setTimeout(() => {
-            if (role === 'ADMIN') {
-              navigate('/');
-            } else {
-              navigate('/');
-            }
-          }, 1500);
-        }, 1000);
+            redirectBasedOnRole(role);
+          }, 1200);
+        }, 800);
       } else {
         throw new Error('No token received from server');
       }
     } catch (err) {
       console.error('Registration error:', err);
       let errorMsg = 'Registration failed. ';
-      
-      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        errorMsg = 'Server is slow. Please try again in a moment.';
-      } else if (err.response?.data?.detail) {
+      if (err.response?.data?.detail) {
         errorMsg = err.response.data.detail;
-      } else if (err.response?.data?.email) {
-        errorMsg = 'Email already registered';
-      } else if (err.response?.data?.username) {
-        errorMsg = 'Username already taken';
-      } else if (err.response?.data?.mobile) {
-        errorMsg = 'Phone number already registered';
       } else {
         errorMsg = err.response?.data?.message || 'Please try again.';
       }
-      
       alert(`❌ ${errorMsg}`);
     } finally {
       setIsLoading(false);
@@ -406,6 +394,7 @@ const AuthPage = () => {
     }
   };
 
+  // 🔥 LOGIN HANDLER WITH ROLE-BASED REDIRECT FIX
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -446,28 +435,15 @@ const AuthPage = () => {
 
         alert('✅ Login successful! Redirecting...');
         
-        if (role === 'ADMIN') {
-          navigate('/');
-        } else {
-          navigate('/');
-        }
+        // 🚀 ROLE BASED REDIRECT CALL
+        redirectBasedOnRole(role);
+
       } else {
         throw new Error('No token received');
       }
     } catch (err) {
       console.error('Login error:', err);
-      let errorMsg = 'Login failed. ';
-      
-      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        errorMsg = 'Server is slow. Please try again in a moment.';
-      } else if (err.response?.status === 404) {
-        errorMsg = 'User not found. Please register first.';
-      } else if (err.response?.status === 400) {
-        errorMsg = err.response?.data?.detail || 'Invalid credentials';
-      } else {
-        errorMsg = err.response?.data?.detail || 'Invalid login credentials';
-      }
-      
+      let errorMsg = err.response?.data?.detail || 'Invalid login credentials';
       alert(`❌ ${errorMsg}`);
     } finally {
       if (!mustUpdatePassword) {
@@ -477,7 +453,6 @@ const AuthPage = () => {
     }
   };
 
-  // Handle phone change with validation
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     const country = getCurrentCountryConfig();
@@ -488,7 +463,6 @@ const AuthPage = () => {
     }
   };
 
-  // Handle country change
   const handleCountryChange = (country) => {
     setSelectedCountryCode(country.code);
     setShowCountryDropdown(false);
@@ -517,7 +491,9 @@ const AuthPage = () => {
       });
       alert('Password updated successfully! Logged in.');
       setMustUpdatePassword(false);
-      navigate('/'); 
+      
+      const storedRole = localStorage.getItem('user_role') || 'USER';
+      redirectBasedOnRole(storedRole);
     } catch (err) {
       alert(err.response?.data?.detail || 'Failed updating');
     } finally {
@@ -525,6 +501,7 @@ const AuthPage = () => {
     }
   };
 
+  // 🔥 INVITATION ACCEPTANCE WITH ROLE-BASED REDIRECT FIX
   const handleAcceptInvitation = async (e) => {
     e.preventDefault();
 
@@ -559,14 +536,19 @@ const AuthPage = () => {
       });
 
       if (res.data?.token) {
+        const assignedRole = res.data.user?.role || invitationData?.role || 'USER';
+
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('auth_token', res.data.token);
         localStorage.setItem('user_email', res.data.user?.email || invitationData?.principal_email || '');
         localStorage.setItem('user_name', res.data.user?.name || invitationForm.name.trim());
-        localStorage.setItem('user_role', res.data.user?.role || invitationData?.role || 'USER');
-        setUserRole(res.data.user?.role || invitationData?.role || 'USER');
+        localStorage.setItem('user_role', assignedRole);
+        setUserRole(assignedRole);
+        
         alert('Invitation accepted successfully');
-        navigate('/');
+        
+        // 🚀 REDIRECT DEPENDING ON INVITATION ROLE (TRAINER / ADMIN / USER)
+        redirectBasedOnRole(assignedRole);
       } else {
         throw new Error('No authentication token returned');
       }
@@ -578,7 +560,6 @@ const AuthPage = () => {
     }
   };
 
-  // Close country dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showCountryDropdown && !event.target.closest('.country-code-selector')) {
@@ -589,32 +570,29 @@ const AuthPage = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showCountryDropdown]);
 
-  // Get role badge color
   const getRoleBadgeColor = (role) => {
     const roleMap = {
       'ADMIN': '#7c3aed',
+      'TRAINER': '#d97706',
       'USER': '#10b981',
-
     };
     return roleMap[role] || '#6b7280';
   };
 
-  // Get role icon
   const getRoleIcon = (role) => {
     const iconMap = {
       'ADMIN': '🛡️',
+      'TRAINER': '🏋️‍♂️',
       'USER': '👤',
-      
     };
     return iconMap[role] || '👤';
   };
 
-  // Get role description
   const getRoleDescription = (role) => {
     const descMap = {
       'ADMIN': 'You have administrative access to manage users and system settings.',
+      'TRAINER': 'Trainer access with permissions to view clients and fitness modules.',
       'USER': 'Standard user with access to all wellness features.',
-      
     };
     return descMap[role] || 'Standard user with access to all wellness features.';
   };
@@ -767,7 +745,6 @@ const AuthPage = () => {
 
   return (
     <div className="auth-page-container">
-      {/* Loading Overlay */}
       {isLoading && (
         <div style={{
           position: 'fixed',
@@ -795,7 +772,6 @@ const AuthPage = () => {
         </div>
       )}
 
-      {/* Left Side */}
       <div className="auth-left-panel">
         <div className="auth-image-content">
           <img src={wellnessImg} alt="Holistic Wellness" className="wellness-diagram" />
@@ -820,7 +796,6 @@ const AuthPage = () => {
         </div>
       </div>
 
-      {/* Right Side */}
       <div className="auth-right-panel">
         <div className="auth-card">
           <div className="auth-header">
@@ -1038,9 +1013,6 @@ const AuthPage = () => {
                         {formData.phone && !phoneError && phoneAvailable && !isCheckingAvailability && formData.phone.length >= currentCountry.minLength && (
                           <span className="success-text">✓ Phone number available</span>
                         )}
-                        {formData.phone && !phoneError && formData.phone.length < currentCountry.minLength && (
-                          <span className="error-text">Need {currentCountry.minLength - formData.phone.length} more digit(s)</span>
-                        )}
                       </div>
                     </div>
                     <div className="step-footer">
@@ -1105,26 +1077,27 @@ const AuthPage = () => {
                       </div>
                     </div>
                     <div className="input-group">
-  <label>Role</label>
-  <select 
-    name="role" 
-    value={formData.role} 
-    onChange={handleInputChange}
-    disabled={isLoading}
-    className="role-select-dropdown"
-    style={{
-      width: '100%',
-      padding: '10px',
-      borderRadius: '8px',
-      border: '1px solid #ccc',
-      backgroundColor: 'white',
-      fontSize: '14px'
-    }}
-  >
-    <option value="USER">User</option>
-    <option value="ADMIN">Admin</option>
-  </select>
-</div>
+                      <label>Role</label>
+                      <select 
+                        name="role" 
+                        value={formData.role} 
+                        onChange={handleInputChange}
+                        disabled={isLoading}
+                        className="role-select-dropdown"
+                        style={{
+                          width: '100%',
+                          padding: '10px',
+                          borderRadius: '8px',
+                          border: '1px solid #ccc',
+                          backgroundColor: 'white',
+                          fontSize: '14px'
+                        }}
+                      >
+                        <option value="USER">User</option>
+                        <option value="TRAINER">Trainer</option>
+                        <option value="ADMIN">Admin</option>
+                      </select>
+                    </div>
                     <div className="step-footer">
                       <button className="back-btn" onClick={prevStep} disabled={isLoading}>Back</button>
                       <button 
@@ -1250,7 +1223,6 @@ const AuthPage = () => {
                               />
                             </div>
                             
-                            {/* ✅ ROLE DISPLAY SECTION - COMPLETE */}
                             <div className="role-display-container">
                               <div className="role-badge">
                                 <span className="role-icon">{getRoleIcon(userRole)}</span>
@@ -1277,7 +1249,7 @@ const AuthPage = () => {
                             
                             {isRedirecting && (
                               <p className="redirect-text">
-                                Redirecting you to {userRole === 'ADMIN' ? 'Admin Dashboard' : 'Home'}...
+                                Redirecting you to {userRole === 'TRAINER' ? 'Trainer Dashboard' : userRole === 'ADMIN' ? 'Admin Dashboard' : 'Home'}...
                               </p>
                             )}
                           </div>

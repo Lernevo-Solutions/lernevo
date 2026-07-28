@@ -51,21 +51,12 @@ import { APP_ENV, API_BASE_URL } from "./config";
 import SkilDashboard from "./components/skilldashboard";
 import SkillHome from "./components/Skillhome";
 import FeedbackList from "./components/FeedbackList";
-import AdminRolesPage, { TrainerRolesPage } from "./components/user";
+import AdminRolesPage from "./components/user1";
+import TrainerRolesPage from "./components/Trainer";
+import UserPage from "./components/user";
 
 const AppLayout = () => {
   const location = useLocation();
-  const currentRole = localStorage.getItem("user_role") || "USER";
-
-  const RolesRedirect = () => {
-    if (currentRole === "ADMIN") {
-      return <Navigate to="/admin/roles" replace />;
-    }
-    if (currentRole === "TRAINER") {
-      return <Navigate to="/trainer/roles" replace />;
-    }
-    return <Navigate to="/" replace />;
-  };
 
   const hideFooterRoutes = [
     "/get-started",
@@ -88,15 +79,17 @@ const AppLayout = () => {
     "/builder",
     "/home",
     "/templates",
-    "/admin/roles",
-    "/trainer/roles",
+  
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
   const hideNavbar = hideNavbarRoutes.includes(location.pathname);
-  const hideFeedbackWidget = ["/feedback", "/user", "/admin/roles", "/trainer/roles"].includes(
-    location.pathname
-  );
+  const hideFeedbackWidget = [
+    "/feedback",
+    "/user",
+    "/admin/roles",
+    "/trainer/roles",
+  ].includes(location.pathname);
 
   return (
     <>
@@ -104,6 +97,7 @@ const AppLayout = () => {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
+
         <Route path="/about" element={<AboutUs />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/our-approach" element={<OurApproachPage />} />
@@ -125,11 +119,14 @@ const AppLayout = () => {
           element={<ResetPasswordConfirmPage />}
         />
 
+        {/* ✅ Trainer and Admin Routes */}
         <Route path="/admin/roles" element={<AdminRolesPage />} />
         <Route path="/trainer/roles" element={<TrainerRolesPage />} />
-        <Route path="/user" element={<RolesRedirect />} />
-        <Route path="/skillhome" element={<SkillHome />} />
+        <Route path="/trainer/dashboard" element={<Navigate to="/" replace />} />
+        <Route path="/admin/dashboard" element={<Navigate to="/" replace />} />
 
+        <Route path="/skillhome" element={<SkillHome />} />
+        <Route path="/user" element={<UserPage />} />
         <Route
           path="/profile"
           element={
@@ -201,9 +198,6 @@ const AppLayout = () => {
   );
 };
 
-console.log("APP_ENV:", APP_ENV);
-console.log("API_BASE_URL:", API_BASE_URL);
-
 function App() {
   useEffect(() => {
     document.title = "Lernevo - Transform Your Life The Smarter Way";
@@ -215,6 +209,5 @@ function App() {
     </Router>
   );
 }
-
 
 export default App;
