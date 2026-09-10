@@ -54,7 +54,9 @@ import FeedbackList from "./components/FeedbackList";
 import AdminRolesPage from "./components/user1";
 import TrainerRolesPage from "./components/Trainer";
 import UserPage from "./components/user";
-
+import JobCode from "./components/jobcode";
+import Organizations from "./components/Organizations";
+import AdminDashboardContent from "./components/AdminDashboardContent";
 const AppLayout = () => {
   const location = useLocation();
 
@@ -72,6 +74,7 @@ const AppLayout = () => {
     "/admin/roles",
     "/trainer/roles",
     "/feedback",
+    "/organizations",
   ];
 
   const hideNavbarRoutes = [
@@ -79,6 +82,9 @@ const AppLayout = () => {
     "/builder",
     "/home",
     "/templates",
+    "/job",
+    "/organizations",
+    "/admin-dashboard",
   
   ];
 
@@ -190,6 +196,9 @@ const AppLayout = () => {
           element={<Navigate to="/skill-gap-analyzer" replace />}
         />
         <Route path="/skilldashboard" element={<SkilDashboard />} />
+        <Route path="/job" element={<JobCode />} />
+        <Route path="/organizations" element={<Organizations />} />
+        <Route path="/admin-dashboard" element={<AdminDashboardContent />} />
       </Routes>
 
       {!hideFooter && <Footer />}
