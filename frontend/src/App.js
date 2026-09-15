@@ -56,6 +56,7 @@ import TrainerRolesPage from "./components/Trainer";
 import UserPage from "./components/user";
 import JobCode from "./components/jobcode";
 import Organizations from "./components/Organizations";
+import UserAssignments from "./components/UserAssignments";
 import AdminDashboardContent from "./components/AdminDashboardContent";
 const AppLayout = () => {
   const location = useLocation();
@@ -75,6 +76,7 @@ const AppLayout = () => {
     "/trainer/roles",
     "/feedback",
     "/organizations",
+    "/user-assignments",
   ];
 
   const hideNavbarRoutes = [
@@ -84,6 +86,7 @@ const AppLayout = () => {
     "/templates",
     "/job",
     "/organizations",
+    "/user-assignments",
     "/admin-dashboard",
   
   ];
@@ -198,6 +201,7 @@ const AppLayout = () => {
         <Route path="/skilldashboard" element={<SkilDashboard />} />
         <Route path="/job" element={<JobCode />} />
         <Route path="/organizations" element={<Organizations />} />
+        <Route path="/user-assignments" element={<UserAssignments />} />
         <Route path="/admin-dashboard" element={<AdminDashboardContent />} />
       </Routes>
 

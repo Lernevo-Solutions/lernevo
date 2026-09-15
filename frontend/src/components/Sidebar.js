@@ -32,6 +32,7 @@ const ROUTE_MAP = {
   Users: "/user",
   Organizations: "/organizations",
   "Job Codes": "/job",
+  "User Assignments": "/user-assignments",
   Profile: "/profile",
 };
 
