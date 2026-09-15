@@ -42,9 +42,11 @@ from .trainer_views import (
     TrainerRolesInviteAPIView,
     TrainerRolesChangeRoleAPIView,
 )
+from .views import UserAssignmentOptionsView, UserAssignmentViewSet
 # ✅ ROUTER
 router = DefaultRouter()
 router.register(r'resumes', ResumeViewSet, basename='resume')
+router.register(r'assignments', UserAssignmentViewSet, basename='assignment')
 
 urlpatterns = [
 
@@ -97,7 +99,8 @@ urlpatterns = [
     path('trainer/roles/members/', TrainerRolesMembersAPIView.as_view(), name='trainer-roles-members'),
     path('trainer/roles/invite/', TrainerRolesInviteAPIView.as_view(), name='trainer-roles-invite'),
     path('trainer/roles/change-role/', TrainerRolesChangeRoleAPIView.as_view(), name='trainer-roles-change-role'),
-    path('roles/assign-trainer/', AssignTrainerAPIView.as_view(), name='roles-assign-trainer'),
+  path('roles/assign-trainer/', AssignTrainerAPIView.as_view(), name='roles-assign-trainer'),
+  path('assignment-options/', UserAssignmentOptionsView.as_view(), name='assignment-options'),
     # 🔥 IMPORTANT (ADD THIS LINE)
     path('', include(router.urls)),
 ]

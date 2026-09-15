@@ -8,6 +8,7 @@ from .models import (
     DemoBooking,
     Enquiry,
     Organization,
+    JobCode,
     Resume,
     ResumeCertification,
     ResumeDetection,
@@ -22,9 +23,32 @@ from .models import (
     ResumeUGEducation,
     Role,
     User,
+    UserAssignment,
     UserProfile,
     WellnessType,
 )
+
+
+class UserAssignmentSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source="user.auth_user.username", read_only=True)
+    user_code = serializers.CharField(source="user.user_code", read_only=True)
+    organization_name = serializers.CharField(source="organization.name", read_only=True)
+    job_code_value = serializers.CharField(source="job_code.code", read_only=True)
+    status_label = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = UserAssignment
+        fields = [
+            "id", "user", "user_name", "user_code", "organization", "organization_name",
+            "job_code", "job_code_value", "start_date", "end_date", "status", "status_label",
+        ]
+
+    def validate(self, attrs):
+        start_date = attrs.get("start_date", getattr(self.instance, "start_date", None))
+        end_date = attrs.get("end_date", getattr(self.instance, "end_date", None))
+        if end_date and start_date and end_date < start_date:
+            raise serializers.ValidationError({"end_date": "End date cannot be before start date."})
+        return attrs
 
 
 class RegisterSerializer(serializers.Serializer):

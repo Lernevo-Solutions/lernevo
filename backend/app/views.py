@@ -13,8 +13,8 @@ from django.core.exceptions import ImproperlyConfigured
 from smtplib import SMTPException
 from django.utils.timezone import now
 from rest_framework import viewsets, permissions
-from .models import Resume, Feedback
-from .serializers import ResumeSerializer, FeedbackListSerializer
+from .models import Resume, Feedback, JobCode, Organization, UserAssignment
+from .serializers import ResumeSerializer, FeedbackListSerializer, UserAssignmentSerializer
 from datetime import timedelta
 import uuid
 from rest_framework.decorators import api_view
@@ -33,6 +33,50 @@ import random
 from .models import User as LernevoUser, Role
 import logging
 logger = logging.getLogger(__name__)
+
+
+class UserAssignmentViewSet(viewsets.ModelViewSet):
+    """CRUD endpoint for assignments displayed in the admin dashboard."""
+
+    serializer_class = UserAssignmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = UserAssignment.objects.select_related(
+            "user__auth_user", "organization", "job_code"
+        ).order_by("-start_date", "-created_at")
+        query = self.request.query_params.get("search", "").strip()
+        organization = self.request.query_params.get("organization")
+        assignment_status = self.request.query_params.get("status")
+        if query:
+            queryset = queryset.filter(
+                Q(user__auth_user__username__icontains=query)
+                | Q(user__user_code__icontains=query)
+                | Q(organization__name__icontains=query)
+                | Q(job_code__code__icontains=query)
+            )
+        if organization:
+            queryset = queryset.filter(organization_id=organization)
+        if assignment_status:
+            queryset = queryset.filter(status=assignment_status)
+        return queryset
+
+
+class UserAssignmentOptionsView(APIView):
+    """Form options kept separate so the UI can load its selects in one request."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        users = User.objects.select_related("auth_user").filter(is_delete=False).order_by("auth_user__username")
+        organizations = Organization.objects.filter(is_delete=False).order_by("name")
+        job_codes = JobCode.objects.filter(is_active=True).select_related("organization").order_by("code")
+        return Response({
+            "users": [{"id": str(user.id), "name": user.auth_user.username, "user_code": user.user_code or ""} for user in users],
+            "organizations": [{"id": organization.id, "name": organization.name} for organization in organizations],
+            "job_codes": [{"id": job_code.id, "code": job_code.code, "title": job_code.title, "organization": job_code.organization_id} for job_code in job_codes],
+            "statuses": [{"value": value, "label": label} for value, label in UserAssignment.STATUS_CHOICES],
+        })
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]

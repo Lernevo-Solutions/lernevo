@@ -45,6 +45,23 @@ class Organization(models.Model):
         return self.name
 
 
+class JobCode(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    title = models.CharField(max_length=255)
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="job_codes",
+        null=True,
+        blank=True,
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.code
+
+
 # =========================
 # WELLNESS TYPE
 # =========================
@@ -123,6 +140,26 @@ class User(models.Model):
 
     def __str__(self):
         return f"{self.auth_user.username} - {self.user_code}"
+
+
+class UserAssignment(models.Model):
+    STATUS_CHOICES = [
+        ("ACTIVE", "Active"),
+        ("PENDING", "Pending"),
+        ("INACTIVE", "Inactive"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="assignments")
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name="assignments")
+    job_code = models.ForeignKey(JobCode, on_delete=models.PROTECT, related_name="assignments")
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="ACTIVE")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.job_code}"
 
 
 class Invitation(models.Model):
