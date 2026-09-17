@@ -29,10 +29,10 @@ import {
 // Add an entry here whenever a real page exists for that item.
 const ROUTE_MAP = {
   Dashboard: "/admin-dashboard",
-  Users: "/user",
+  Users:"/user-assignments",
   Organizations: "/organizations",
   "Job Codes": "/job",
-  "User Assignments": "/user-assignments",
+ 
   Profile: "/profile",
 };
 

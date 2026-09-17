@@ -1,66 +1,458 @@
-import React, { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Search, Trash2, UserCog, X } from "lucide-react";
-import Sidebar from "./Sidebar";
-import "./Organizations.css";
+// UserAssignments.js
+// User Assignments page: assign users to organizations / job codes with
+// start dates. Separate from the Users master list.
+
+import { useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
+import {
+  UserCog,
+  Search,
+  Download,
+  Upload,
+  Plus,
+  Eye,
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
+
 import "./UserAssignments.css";
+import Sidebar from "./Sidebar";
+const PAGE_SIZE = 10;
 
-const OPTIONS = {
-  users: [{ id: "1", name: "Arav Kumar", user_code: "USR-001" }, { id: "2", name: "Meera Iyer", user_code: "USR-002" }, { id: "3", name: "Priya Sharma", user_code: "USR-003" }, { id: "4", name: "Dev Patel", user_code: "USR-004" }],
-  organizations: [{ id: "1", name: "Lernevo Tech" }, { id: "2", name: "GreenLeaf Wellness" }, { id: "3", name: "Northwind Logistics" }, { id: "4", name: "Acme Retail" }],
-  job_codes: [{ id: "1", code: "ENG-2", title: "Software Engineer II", organization: "1" }, { id: "2", code: "PPL-1", title: "People Operations Coordinator", organization: "2" }, { id: "3", code: "DES-3", title: "Senior Product Designer", organization: "3" }, { id: "4", code: "MKT-3", title: "Growth Marketing Manager", organization: "4" }],
-  statuses: [{ value: "ACTIVE", label: "Active" }, { value: "PENDING", label: "Pending" }, { value: "INACTIVE", label: "Inactive" }],
-};
-const INITIAL_ASSIGNMENTS = [
-  { id: 1, user: "1", user_name: "Arav Kumar", user_code: "USR-001", organization: "1", organization_name: "Lernevo Tech", job_code: "1", job_code_value: "ENG-2", start_date: "2026-01-15", end_date: "", status: "ACTIVE", status_label: "Active" },
-  { id: 2, user: "2", user_name: "Meera Iyer", user_code: "USR-002", organization: "2", organization_name: "GreenLeaf Wellness", job_code: "2", job_code_value: "PPL-1", start_date: "2026-02-01", end_date: "", status: "ACTIVE", status_label: "Active" },
-  { id: 3, user: "3", user_name: "Priya Sharma", user_code: "USR-003", organization: "3", organization_name: "Northwind Logistics", job_code: "3", job_code_value: "DES-3", start_date: "2026-03-10", end_date: "2026-08-31", status: "INACTIVE", status_label: "Inactive" },
-  { id: 4, user: "4", user_name: "Dev Patel", user_code: "USR-004", organization: "4", organization_name: "Acme Retail", job_code: "4", job_code_value: "MKT-3", start_date: "2026-04-04", end_date: "", status: "PENDING", status_label: "Pending" },
-];
-const EMPTY_FORM = { user: "", organization: "", job_code: "", start_date: "", end_date: "", status: "ACTIVE" };
-const PAGE_SIZE = 8;
-const formatDate = (value) => value ? new Intl.DateTimeFormat("en", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`)) : "—";
-const toForm = (item) => ({ user: item.user, organization: item.organization, job_code: item.job_code, start_date: item.start_date, end_date: item.end_date || "", status: item.status });
+/* ============================== EXCEL HELPERS ============================== */
 
-export default function UserAssignments() {
-  const [assignments, setAssignments] = useState(INITIAL_ASSIGNMENTS);
-  const [query, setQuery] = useState("");
-  const [organization, setOrganization] = useState("");
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-  const [modal, setModal] = useState(null);
-  const filtered = useMemo(() => assignments.filter((item) => {
-    const text = `${item.user_name} ${item.user_code} ${item.organization_name} ${item.job_code_value}`.toLowerCase();
-    return (!query || text.includes(query.toLowerCase())) && (!organization || item.organization === organization) && (!status || item.status === status);
-  }), [assignments, query, organization, status]);
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const rows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const resetPage = (setter) => (event) => { setter(event.target.value); setPage(1); };
-  const remove = (item) => { if (window.confirm(`Delete the assignment for ${item.user_name}?`)) setAssignments((current) => current.filter((assignment) => assignment.id !== item.id)); };
-  const saveAssignment = (form, source) => {
-    const user = OPTIONS.users.find((item) => item.id === form.user);
-    const org = OPTIONS.organizations.find((item) => item.id === form.organization);
-    const job = OPTIONS.job_codes.find((item) => item.id === form.job_code);
-    const state = OPTIONS.statuses.find((item) => item.value === form.status);
-    const next = { ...form, id: source?.id || Date.now(), user_name: user.name, user_code: user.user_code, organization_name: org.name, job_code_value: job.code, status_label: state.label };
-    setAssignments((current) => source ? current.map((item) => item.id === source.id ? next : item) : [next, ...current]);
-  };
-  return <div style={{ display: "flex" }}><Sidebar /><div style={{ flex: 1, overflowY: "auto", height: "100vh" }}><main className="orgs-page user-assignments-page">
-    <div className="orgs-header"><div className="orgs-header-left"><div className="orgs-icon-box"><UserCog /></div><div><div className="orgs-title">User Assignments</div><div className="orgs-subtitle">Assign users to organizations and job codes.</div></div></div><button className="orgs-add-btn" type="button" onClick={() => setModal({ mode: "add", form: EMPTY_FORM })}><Plus size={16} /> Add Assignment</button></div>
-    <div className="orgs-toolbar"><div className="orgs-search"><Search /><input value={query} onChange={resetPage(setQuery)} type="search" placeholder="Search assignments..." aria-label="Search assignments" /></div><div className="user-assignments-filters"><label className="orgs-status-filter"><span className="orgs-status-label">Organization:</span><select className="orgs-status-btn user-assignments-filter-select" value={organization} onChange={resetPage(setOrganization)}><option value="">All</option>{OPTIONS.organizations.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="orgs-status-filter"><span className="orgs-status-label">Status:</span><select className="orgs-status-btn user-assignments-filter-select" value={status} onChange={resetPage(setStatus)}><option value="">All</option>{OPTIONS.statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label></div></div>
-    <div className="orgs-table-wrap"><table className="orgs-table user-assignments-table"><thead><tr><th>User</th><th>Organization</th><th>Job Code</th><th>Start Date</th><th>End Date</th><th>Status</th><th className="orgs-actions-col">Actions</th></tr></thead><tbody>{rows.length === 0 ? <tr><td className="orgs-empty-row" colSpan={7}>No assignments found.</td></tr> : rows.map((item) => <tr key={item.id}><td className="user-assignments-user-cell"><span className="orgs-name-cell">{item.user_name}</span><span>{item.user_code}</span></td><td className="orgs-dim-cell">{item.organization_name}</td><td><span className="user-assignments-code">{item.job_code_value}</span></td><td className="orgs-dim-cell">{formatDate(item.start_date)}</td><td className="orgs-dim-cell">{formatDate(item.end_date)}</td><td><span className={`orgs-status-badge ${item.status === "ACTIVE" ? "orgs-status-active" : "orgs-status-inactive"}`}>{item.status_label}</span></td><td className="orgs-actions-col"><button className="orgs-icon-btn" type="button" title="View assignment" onClick={() => setModal({ mode: "view", assignment: item, form: toForm(item) })}><Eye size={15} /></button><button className="orgs-icon-btn" type="button" title="Edit assignment" onClick={() => setModal({ mode: "edit", assignment: item, form: toForm(item) })}><Pencil size={15} /></button><button className="orgs-icon-btn orgs-icon-btn-danger" type="button" title="Delete assignment" onClick={() => remove(item)}><Trash2 size={15} /></button></td></tr>)}</tbody></table></div>
-    <div className="orgs-footer"><div className="orgs-showing">Showing <strong>{filtered.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–{Math.min(currentPage * PAGE_SIZE, filtered.length)}</strong> of <strong>{filtered.length}</strong></div><div className="orgs-pagination"><button className="orgs-page-btn" type="button" disabled={currentPage === 1} onClick={() => setPage((value) => value - 1)}><ChevronLeft size={14} /> Prev</button><span className="orgs-page-label">Page {currentPage} / {pageCount}</span><button className="orgs-page-btn" type="button" disabled={currentPage === pageCount} onClick={() => setPage((value) => value + 1)}>Next <ChevronRight size={14} /></button></div></div>
-  </main></div>{modal && <AssignmentModal modal={modal} onClose={() => setModal(null)} onSaved={saveAssignment} />}</div>;
+function readExcelFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        resolve(rows);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
 }
 
-function AssignmentModal({ modal, onClose, onSaved }) {
-  const [form, setForm] = useState(modal.form);
-  const [error, setError] = useState("");
-  const viewOnly = modal.mode === "view";
-  const selectedUser = OPTIONS.users.find((item) => item.id === form.user);
-  const jobCodes = OPTIONS.job_codes.filter((item) => !form.organization || item.organization === form.organization);
-  const change = (field) => (event) => { setForm((current) => ({ ...current, [field]: event.target.value, ...(field === "organization" ? { job_code: "" } : {}) })); };
-  const save = (event) => { event.preventDefault(); if (form.end_date && form.end_date < form.start_date) return setError("End date cannot be before start date."); onSaved(form, modal.assignment); onClose(); };
-  const title = viewOnly ? "Assignment Details" : modal.mode === "add" ? "Add Assignment" : "Edit Assignment";
-  return <div className="orgs-modal-overlay" onClick={onClose}><section className="orgs-modal" aria-modal="true" aria-labelledby="assignment-modal-title" role="dialog" onClick={(event) => event.stopPropagation()}><div className="orgs-modal-header"><div className="orgs-modal-title" id="assignment-modal-title">{title}</div><button className="orgs-modal-close" type="button" aria-label="Close" onClick={onClose}><X size={18} /></button></div><form onSubmit={save}><div className="orgs-modal-body">{error && <div className="user-assignments-message" role="alert">{error}</div>}<label className="orgs-field"><span>User Name *</span><select required disabled={viewOnly} value={form.user} onChange={change("user")}><option value="">Select a user</option>{OPTIONS.users.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="orgs-field"><span>User ID</span><input type="text" value={selectedUser?.user_code || ""} placeholder="Selected user ID" readOnly /></label><label className="orgs-field"><span>Organization *</span><select required disabled={viewOnly} value={form.organization} onChange={change("organization")}><option value="">Select an organization</option>{OPTIONS.organizations.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="orgs-field"><span>Job Code *</span><select required disabled={viewOnly} value={form.job_code} onChange={change("job_code")}><option value="">Select a job code</option>{jobCodes.map((item) => <option key={item.id} value={item.id}>{item.code} — {item.title}</option>)}</select></label><div className="user-assignments-date-grid"><label className="orgs-field"><span>Start Date *</span><input required disabled={viewOnly} type="date" value={form.start_date} onChange={change("start_date")} /></label><label className="orgs-field"><span>End Date</span><input disabled={viewOnly} type="date" value={form.end_date} onChange={change("end_date")} /></label></div><label className="orgs-field"><span>Status *</span><select required disabled={viewOnly} value={form.status} onChange={change("status")}>{OPTIONS.statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label></div><div className="orgs-modal-footer"><button className="orgs-btn-secondary" type="button" onClick={onClose}>{viewOnly ? "Close" : "Cancel"}</button>{!viewOnly && <button className="orgs-btn-primary" type="submit">Save Assignment</button>}</div></form></section></div>;
+function mapRow(row, keyMap) {
+  const normalize = (s) => String(s).trim().toLowerCase().replace(/\s+/g, "");
+  const rowKeysNormalized = {};
+  Object.keys(row).forEach((k) => {
+    rowKeysNormalized[normalize(k)] = row[k];
+  });
+  const result = {};
+  Object.entries(keyMap).forEach(([internalKey, possibleHeaders]) => {
+    const match = possibleHeaders.map(normalize).find((h) => h in rowKeysNormalized);
+    result[internalKey] = match !== undefined ? rowKeysNormalized[match] : "";
+  });
+  return result;
+}
+
+function uniqueValues(rows, key) {
+  return Array.from(new Set(rows.map((r) => r[key]).filter(Boolean)));
+}
+
+function initials(name) {
+  if (!name) return "?";
+  const parts = String(name).trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+/* ============================== SEED DATA ============================== */
+
+const seedAssignments = [
+  {
+    id: 1,
+    userName: "Saranya P",
+    email: "saranyapandiyarajan30@gmail.com",
+    organization: "Lernevo Tech",
+    jobCode: "React Developer",
+    startDate: "2025-04-01",
+    endDate: "",
+    status: "Active",
+  },
+  {
+    id: 2,
+    userName: "Thanga Janani",
+    email: "thangajanani6@gmail.com",
+    organization: "Lernevo Tech",
+    jobCode: "UI Designer",
+    startDate: "2025-05-15",
+    endDate: "",
+    status: "Active",
+  },
+];
+
+/* ============================== SMALL BITS ============================== */
+
+function StatusBadge({ status }) {
+  const cls =
+    status === "Active" ? "badge badge-success" :
+    status === "Pending" ? "badge badge-warning" :
+    status === "Inactive" ? "badge badge-muted" : "badge badge-neutral";
+  return <span className={cls}>{status || "—"}</span>;
+}
+
+function Dash({ value }) {
+  return value ? <span>{value}</span> : <span className="muted">—</span>;
+}
+
+function Filter({ label, value, onChange, options }) {
+  return (
+    <div className="admin-filter">
+      <span>{label}:</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        <option>All</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function Footer({ countLabel, page, totalPages, onPrev, onNext }) {
+  return (
+    <div className="admin-footer">
+      <span>{countLabel}</span>
+      <div className="pagination">
+        <button onClick={onPrev} disabled={page <= 1}><ChevronLeft size={13} /> Prev</button>
+        <span className="page-label">Page {page} / {totalPages}</span>
+        <button onClick={onNext} disabled={page >= totalPages}>Next <ChevronRight size={13} /></button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================== ASSIGN MODAL ============================== */
+
+function AssignModal({ initial, onClose, onSave }) {
+  const [form, setForm] = useState(
+    initial || {
+      userName: "",
+      email: "",
+      organization: "",
+      jobCode: "",
+      startDate: "",
+      endDate: "",
+      status: "Active",
+    }
+  );
+
+  const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+
+  return (
+    <div className="admin-modal-backdrop" onClick={onClose}>
+      <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-modal-header">
+          <h2>{initial ? "Edit Assignment" : "Assign User"}</h2>
+          <button className="icon-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+
+        <div className="admin-modal-body">
+          <label>
+            User Name
+            <input
+              value={form.userName}
+              onChange={(e) => update("userName", e.target.value)}
+              placeholder="e.g. Saranya P"
+            />
+          </label>
+          <label>
+            Email
+            <input
+              value={form.email}
+              onChange={(e) => update("email", e.target.value)}
+              placeholder="name@company.com"
+            />
+          </label>
+          <label>
+            Organization
+            <input
+              value={form.organization}
+              onChange={(e) => update("organization", e.target.value)}
+              placeholder="e.g. Lernevo Tech"
+            />
+          </label>
+          <label>
+            Job Code
+            <input
+              value={form.jobCode}
+              onChange={(e) => update("jobCode", e.target.value)}
+              placeholder="e.g. React Developer"
+            />
+          </label>
+
+          {/* End Date removed — Start Date only */}
+          <label>
+            Start Date
+            <input
+              type="date"
+              value={form.startDate}
+              onChange={(e) => update("startDate", e.target.value)}
+            />
+          </label>
+
+          <label>
+            Status
+            <select
+              value={form.status}
+              onChange={(e) => update("status", e.target.value)}
+            >
+              <option>Active</option>
+              <option>Pending</option>
+              <option>Inactive</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="admin-modal-footer">
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              if (!form.userName.trim()) return;
+              onSave(form);
+            }}
+          >
+            {initial ? "Save Changes" : "Assign"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================== USER ASSIGNMENTS PAGE ============================== */
+
+export default function UserAssignments() {
+  const [assignments, setAssignments] = useState(seedAssignments);
+  const [search, setSearch] = useState("");
+  const [orgFilter, setOrgFilter] = useState("All");
+  const [jobFilter, setJobFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const [importError, setImportError] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const orgs = useMemo(() => uniqueValues(assignments, "organization"), [assignments]);
+  const jobs = useMemo(() => uniqueValues(assignments, "jobCode"), [assignments]);
+  const statuses = useMemo(() => uniqueValues(assignments, "status"), [assignments]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return assignments.filter((a) => {
+      const matchesSearch =
+        !q ||
+        a.userName?.toLowerCase().includes(q) ||
+        a.email?.toLowerCase().includes(q);
+      const matchesOrg = orgFilter === "All" || a.organization === orgFilter;
+      const matchesJob = jobFilter === "All" || a.jobCode === jobFilter;
+      const matchesStatus = statusFilter === "All" || a.status === statusFilter;
+      return matchesSearch && matchesOrg && matchesJob && matchesStatus;
+    });
+  }, [assignments, search, orgFilter, jobFilter, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  async function handleImport(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportError("");
+    try {
+      const rows = await readExcelFile(file);
+      const mapped = rows.map((r) =>
+        mapRow(r, {
+          userName: ["User Name", "Name", "User"],
+          email: ["Email"],
+          organization: ["Organization", "Org"],
+          jobCode: ["Job Code", "JobCode"],
+          startDate: ["Start Date", "StartDate"],
+          endDate: ["End Date", "EndDate"],
+          status: ["Status"],
+        })
+      );
+      setAssignments(mapped.map((m, i) => ({ ...m, id: i + 1 })));
+      setPage(1);
+    } catch (err) {
+      setImportError("Couldn't read that file. Please upload a valid Excel (.xlsx) file.");
+    } finally {
+      e.target.value = "";
+    }
+  }
+
+  function exportCsv() {
+    const headers = ["User Name", "Email", "Organization", "Job Code", "Start Date", "End Date", "Status"];
+    const lines = [headers.join(",")].concat(
+      filtered.map((a) =>
+        [a.userName, a.email, a.organization, a.jobCode, a.startDate, a.endDate, a.status]
+          .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`)
+          .join(",")
+      )
+    );
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "user-assignments.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleSave(form) {
+    if (editing) {
+      setAssignments((list) => list.map((a) => (a.id === editing.id ? { ...a, ...form } : a)));
+    } else {
+      setAssignments((list) => [
+        { ...form, id: Date.now() },
+        ...list,
+      ]);
+    }
+    setModalOpen(false);
+    setEditing(null);
+  }
+
+  function handleDelete(id) {
+    setAssignments((list) => list.filter((a) => a.id !== id));
+  }
+
+  return (
+    <div className="admin-layout">
+      <Sidebar />
+
+      <div className="admin-main">
+        {/* ===== Header ===== */}
+        <div className="admin-header">
+          <div className="admin-header-left">
+            <div className="admin-icon-badge"><UserCog size={20} /></div>
+            <div>
+              <h1 className="admin-title">User Assignments</h1>
+              <p className="admin-subtitle">Assign users to organizations and job codes.</p>
+            </div>
+          </div>
+          <div className="admin-header-actions">
+            <button className="btn" onClick={exportCsv}><Download size={15} /> Export</button>
+            <label className="btn">
+              <Upload size={15} /> Import Excel
+              <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} />
+            </label>
+            <button className="btn btn-primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
+              <Plus size={15} /> Assign User
+            </button>
+          </div>
+        </div>
+
+        {importError && <div className="import-error">{importError}</div>}
+
+        {/* ===== Toolbar ===== */}
+        <div className="admin-toolbar">
+          <div className="admin-search">
+            <Search size={15} />
+            <input
+              placeholder="Search by user name or email..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            />
+          </div>
+          <div className="admin-filters">
+            <Filter label="Org" value={orgFilter} onChange={setOrgFilter} options={orgs} />
+            <Filter label="Job Code" value={jobFilter} onChange={setJobFilter} options={jobs} />
+            <Filter label="Status" value={statusFilter} onChange={setStatusFilter} options={statuses} />
+          </div>
+        </div>
+
+        {/* ===== Table ===== */}
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th className="col-check"><input type="checkbox" className="checkbox" /></th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Organization</th>
+                <th>Job Code</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+                <th className="col-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageRows.length === 0 ? (
+                <tr><td colSpan={9} className="admin-empty">No assignments found.</td></tr>
+              ) : (
+                pageRows.map((a) => (
+                  <tr key={a.id}>
+                    <td><input type="checkbox" className="checkbox" /></td>
+                    <td>
+                      <div className="name-cell">
+                        <span className="avatar">{initials(a.userName)}</span>
+                        {a.userName}
+                      </div>
+                    </td>
+                    <td className="email-cell">{a.email}</td>
+                    <td><Dash value={a.organization} /></td>
+                    <td><Dash value={a.jobCode} /></td>
+                    <td><Dash value={a.startDate} /></td>
+                    <td><Dash value={a.endDate} /></td>
+                    <td><StatusBadge status={a.status} /></td>
+                    <td>
+                      <div className="actions-cell">
+                        <button className="icon-btn" title="View"><Eye size={16} /></button>
+                        <button
+                          className="icon-btn"
+                          title="Edit"
+                          onClick={() => { setEditing(a); setModalOpen(true); }}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          className="icon-btn danger"
+                          title="Delete"
+                          onClick={() => handleDelete(a.id)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ===== Footer ===== */}
+        <Footer
+          countLabel={`Showing ${filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}\u2013${Math.min(page * PAGE_SIZE, filtered.length)} of ${filtered.length}`}
+          page={page}
+          totalPages={totalPages}
+          onPrev={() => setPage((p) => Math.max(1, p - 1))}
+          onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+        />
+
+        {/* ===== Modal ===== */}
+        {modalOpen && (
+          <AssignModal
+            initial={editing}
+            onClose={() => { setModalOpen(false); setEditing(null); }}
+            onSave={handleSave}
+          />
+        )}
+      </div>
+    </div>
+  );
 }
