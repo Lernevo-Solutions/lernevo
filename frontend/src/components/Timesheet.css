@@ -1,0 +1,556 @@
+.ts-page {
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --border: #e7eaef;
+  --text: #14161a;
+  --text-dim: #6b7280;
+  --text-faint: #9aa1ac;
+  --blue-tint: #eaf0ff;
+  --blue-icon: #3b6bf5;
+  --dark-btn: #16181d;
+  --green-bg: #e5f6ea;
+  --green-text: #1e8a4c;
+  --grey-bg: #eef0f3;
+  --grey-text: #6b7280;
+  --red-bg: #fdecec;
+  --red-text: #c0392b;
+
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  padding: 28px 32px 40px 32px;
+  box-sizing: border-box;
+}
+
+.ts-page * {
+  box-sizing: border-box;
+}
+
+/* Header */
+.ts-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ts-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.ts-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: #fdf1de;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 18px;
+}
+
+.ts-header-left h1 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.ts-header-left p {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 3px 0 0;
+}
+
+.ts-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: 9px;
+  border: none;
+  background: var(--dark-btn);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ts-add-btn:hover {
+  background: #000000;
+}
+
+/* Timezone strip */
+.ts-tz-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.ts-tz-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.ts-tz-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ts-tz-chip {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.ts-tz-chip:hover {
+  border-color: #c9d0da;
+}
+
+.ts-tz-chip.active {
+  background: var(--dark-btn);
+  color: #fff;
+  border-color: var(--dark-btn);
+}
+
+/* Tabs */
+.ts-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--grey-bg);
+  border-radius: 10px;
+  padding: 4px;
+  width: fit-content;
+  margin-bottom: 16px;
+}
+
+.ts-tab {
+  border: none;
+  background: transparent;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.ts-tab.active {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* Toolbar */
+.ts-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.ts-search {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+  max-width: 320px;
+  display: flex;
+  align-items: center;
+}
+
+.ts-search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 13px;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.ts-search input {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+
+.ts-search input:focus {
+  border-color: var(--blue-icon);
+  box-shadow: 0 0 0 3px rgba(59, 107, 245, 0.12);
+}
+
+.ts-status-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ts-status-filter label {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.ts-status-filter select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* Table */
+.ts-table-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.ts-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+.ts-table thead th {
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.ts-table tbody td {
+  padding: 15px 18px;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.ts-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ts-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.ts-checkbox-col {
+  width: 44px;
+}
+
+.ts-actions-col {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ts-employee-name {
+  font-weight: 600;
+}
+
+.ts-employee-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+
+.ts-region-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--grey-bg);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.ts-style-tag {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 2px 8px;
+  cursor: default;
+}
+
+.ts-style-fixed { background: #eef2ff; color: #4338ca; }
+.ts-style-rota { background: var(--blue-tint); color: var(--blue-icon); }
+.ts-style-dynamic { background: #fef3e2; color: #b45309; }
+.ts-style-split { background: #fce7f3; color: #be185d; }
+.ts-style-oncall { background: #ecfeff; color: #0e7490; }
+.ts-style-compressed { background: var(--green-bg); color: var(--green-text); }
+
+.ts-empty {
+  text-align: center;
+  padding: 32px 18px;
+  color: var(--text-dim);
+  font-size: 13.5px;
+}
+
+/* Status pills */
+.status-pill {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-submitted { background: var(--blue-tint); color: var(--blue-icon); }
+.status-approved { background: var(--green-bg); color: var(--green-text); }
+.status-rejected { background: var(--red-bg); color: var(--red-text); }
+.status-draft { background: var(--grey-bg); color: var(--grey-text); }
+
+/* Row icon buttons */
+.ts-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  font-size: 14px;
+}
+
+.ts-icon-btn:hover {
+  background: #f2f4f7;
+  color: var(--text);
+}
+
+/* Footer */
+.ts-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ts-footer > span {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.ts-pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ts-pagination button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+/* Modal (Add / Edit / View / Delete) */
+.ts-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 22, 26, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.ts-modal {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(20, 22, 26, 0.25);
+  padding: 20px 22px 22px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  color: #14161a;
+}
+
+.ts-modal-small {
+  max-width: 380px;
+}
+
+.ts-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.ts-modal-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.ts-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ts-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #14161a;
+}
+
+.ts-form input,
+.ts-form select {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #e7eaef;
+  background: #ffffff;
+  font-size: 13.5px;
+  font-weight: 400;
+  color: #14161a;
+  outline: none;
+}
+
+.ts-form input:focus,
+.ts-form select:focus {
+  border-color: #3b6bf5;
+  box-shadow: 0 0 0 3px rgba(59, 107, 245, 0.12);
+}
+
+.ts-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ts-form-error {
+  color: var(--red-text);
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.ts-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.ts-btn-primary,
+.ts-btn-secondary,
+.ts-btn-danger {
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.ts-btn-primary { background: #16181d; color: #ffffff; }
+.ts-btn-primary:hover { background: #000000; }
+
+.ts-btn-secondary { background: #ffffff; color: #14161a; border-color: #e7eaef; }
+.ts-btn-secondary:hover { background: #f2f4f7; }
+
+.ts-btn-danger { background: #dc2626; color: #ffffff; }
+.ts-btn-danger:hover { background: #b91c1c; }
+
+.ts-view-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.ts-view-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ts-view-grid span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.ts-view-grid strong {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #14161a;
+}
+
+.ts-delete-text {
+  font-size: 13.5px;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .ts-page {
+    padding: 20px 16px 32px 16px;
+  }
+  .ts-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ts-add-btn {
+    align-self: flex-start;
+  }
+  .ts-form-row {
+    grid-template-columns: 1fr;
+  }
+  .ts-view-grid {
+    grid-template-columns: 1fr;
+  }
+}

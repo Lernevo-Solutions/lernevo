@@ -32,7 +32,10 @@ const ROUTE_MAP = {
   Users:"/user-assignments",
   Organizations: "/organizations",
   "Job Codes": "/job",
- 
+  Timesheets: "/timesheet",
+
+  Payslips: "/payslips",
+  "Compliance Documents": "/document",
   Profile: "/profile",
 };
 
@@ -47,7 +50,7 @@ const NAV_SECTIONS = [
       { icon: Building2, label: "Organizations" },
       { icon: Users, label: "Users" },
       { icon: Briefcase, label: "Job Codes" },
-      { icon: UserCog, label: "User Assignments" },
+      
     ],
   },
   {

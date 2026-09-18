@@ -1,0 +1,14 @@
+.admin-layout {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Sidebar itself is width: 272px, height: 100vh (set in Sidebar.js) and
+   should stay fixed-width; the page content takes the remaining space. */
+.admin-main {
+  flex: 1;
+  min-width: 0;   /* lets tables/content scroll instead of overflowing the flex row */
+  overflow-x: auto;
+}
