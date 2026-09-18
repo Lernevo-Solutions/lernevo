@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { BriefcaseBusiness, Eye, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import Sidebar from "./Sidebar";
-import "./JobCode.css";
+import "./jobcode.css";
 
 const INITIAL_JOB_CODES = [
   { id: 1, title: "Python Full Stack Developer", department: "Engineering", description: "Build and maintain full-stack Python applications.", status: "Active", organization: "Lernevo Tech" },

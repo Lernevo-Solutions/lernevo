@@ -79,39 +79,7 @@ const INITIAL_TIMESHEETS = [
     breakMin: 60,
     status: "Submitted",
   },
-  {
-    id: "t4",
-    employee: "Rohan Das",
-    homeRegion: "IN",
-    scheduleStyle: "COMPRESSED",
-    workDate: "2026-09-07",
-    checkIn: "2026-09-07T04:30:00Z", // 10:00 IST
-    checkOut: "2026-09-07T10:30:00Z", // 16:00 IST
-    breakMin: 30,
-    status: "Draft",
-  },
-  {
-    id: "t5",
-    employee: "Sara Khan",
-    homeRegion: "US",
-    scheduleStyle: "DYNAMIC",
-    workDate: "2026-09-06",
-    checkIn: "2026-09-06T13:00:00Z", // 09:00 ET
-    checkOut: "2026-09-06T19:00:00Z", // 15:00 ET
-    breakMin: 30,
-    status: "Rejected",
-  },
-  {
-    id: "t6",
-    employee: "Arav Kumar",
-    homeRegion: "IN",
-    scheduleStyle: "ROTA",
-    workDate: "2026-09-06",
-    checkIn: "2026-09-06T03:30:00Z", // 09:00 IST
-    checkOut: "2026-09-06T11:30:00Z", // 17:00 IST
-    breakMin: 45,
-    status: "Approved",
-  },
+
 ];
 
 const TABS = ["All", "Draft", "Submitted", "Approved", "Rejected"];

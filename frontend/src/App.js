@@ -54,10 +54,13 @@ import FeedbackList from "./components/FeedbackList";
 import AdminRolesPage from "./components/user1";
 import TrainerRolesPage from "./components/Trainer";
 import UserPage from "./components/user";
-import JobCode from "./components/Jobcode";
+import JobCode from "./components/jobcode";
 import Organizations from "./components/Organizations";
 import UserAssignments from "./components/UserAssignments";
 import AdminDashboardContent from "./components/AdminDashboardContent";
+import Timesheet from "./components/Timesheet";
+import AdminLayout from "./components/Adminlayout";
+import Document from "./components/Document";
 const AppLayout = () => {
   const location = useLocation();
 
@@ -77,6 +80,8 @@ const AppLayout = () => {
     "/feedback",
     "/organizations",
     "/user-assignments",
+    "/timesheet",
+    "/document",
   ];
 
   const hideNavbarRoutes = [
@@ -88,6 +93,8 @@ const AppLayout = () => {
     "/organizations",
     "/user-assignments",
     "/admin-dashboard",
+    "/timesheet",
+    "/document",
   
   ];
 
@@ -203,6 +210,22 @@ const AppLayout = () => {
         <Route path="/organizations" element={<Organizations />} />
         <Route path="/user-assignments" element={<UserAssignments />} />
         <Route path="/admin-dashboard" element={<AdminDashboardContent />} />
+        <Route
+          path="/timesheet"
+          element={
+            <AdminLayout>
+              <Timesheet />
+            </AdminLayout>
+          }
+        />
+<Route
+          path="/document"
+          element={
+            <AdminLayout>
+              <Document />
+            </AdminLayout>
+          }
+        />
       </Routes>
 
       {!hideFooter && <Footer />}
