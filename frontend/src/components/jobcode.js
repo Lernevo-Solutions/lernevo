@@ -1,311 +1,76 @@
-// jobcode.js
-import React, { useState } from "react";
-import "./jobcode.css";
+import React, { useMemo, useState } from "react";
+import { BriefcaseBusiness, Eye, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import Sidebar from "./Sidebar";
+import "./JobCode.css";
 
-const JOB_CODES = [
-  {
-    code: "DES-3",
-    title: "Senior Product Designer",
-    department: "Design",
-    level: "Senior",
-    description: "Leads end-to-end design for core experiences.",
-    employees: 1,
-    icon: "🎨",
-  },
-  {
-    code: "ENG-2",
-    title: "Software Engineer II",
-    department: "Engineering",
-    level: "Mid",
-    description: "Builds and ships product features across the stack.",
-    employees: 2,
-    icon: "🛠️",
-  },
-  {
-    code: "ENG-4",
-    title: "Staff Engineer",
-    department: "Engineering",
-    level: "Lead",
-    description: "Owns technical direction for a product area.",
-    employees: 1,
-    icon: "🧭",
-  },
-  {
-    code: "MKT-3",
-    title: "Growth Marketing Manager",
-    department: "Marketing",
-    level: "Senior",
-    description: "Runs acquisition and lifecycle campaigns.",
-    employees: 1,
-    icon: "📈",
-  },
-  {
-    code: "PPL-1",
-    title: "People Operations Coordinator",
-    department: "People",
-    level: "Junior",
-    description: "Supports onboarding, benefits and employee programs.",
-    employees: 1,
-    icon: "🤝",
-  },
+const INITIAL_JOB_CODES = [
+  { id: 1, title: "Python Full Stack Developer", department: "Engineering", description: "Build and maintain full-stack Python applications.", status: "Active", organization: "Lernevo Tech" },
+  { id: 2, title: "Frontend Engineer", department: "Engineering", description: "Craft user interfaces with React and modern tooling.", status: "Active", organization: "Lernevo Tech" },
+  { id: 3, title: "HR Specialist", department: "People Ops", description: "Manage employee relations and compliance.", status: "Active", organization: "GreenLeaf Wellness" },
+  { id: 4, title: "Operations Manager", department: "Operations", description: "Oversee logistics and warehouse operations.", status: "Active", organization: "Northwind Logistics" },
+  { id: 5, title: "Fitness Coach", department: "Wellness", description: "Lead fitness and training programs.", status: "Active", organization: "GreenLeaf Wellness" },
 ];
 
-export default function JobCodesPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [jobCodes, setJobCodes] = useState(JOB_CODES);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newJob, setNewJob] = useState({
-    code: "",
-    title: "",
-    department: "",
-    level: "Mid",
-    description: "",
-    employees: 1,
-    icon: "💼",
-  });
+const EMPTY_FORM = { title: "", department: "", description: "", organization: "", status: "Active" };
 
-  const totalEmployees = jobCodes.reduce((sum, j) => sum + j.employees, 0);
-  const totalDepartments = new Set(jobCodes.map((j) => j.department)).size;
+export default function JobCode() {
+  const [jobCodes, setJobCodes] = useState(INITIAL_JOB_CODES);
+  const [query, setQuery] = useState("");
+  const [organization, setOrganization] = useState("All");
+  const [status, setStatus] = useState("All");
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [modal, setModal] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
 
-  const filteredJobs = jobCodes.filter(
-    (job) =>
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const organizations = useMemo(() => ["All", ...new Set(jobCodes.map((item) => item.organization).filter(Boolean))], [jobCodes]);
+  const filteredJobCodes = useMemo(() => {
+    const searchTerm = query.trim().toLowerCase();
+    return jobCodes.filter((item) =>
+      (!searchTerm || `${item.title} ${item.department} ${item.description} ${item.organization}`.toLowerCase().includes(searchTerm)) &&
+      (organization === "All" || item.organization === organization) &&
+      (status === "All" || item.status === status)
+    );
+  }, [jobCodes, organization, query, status]);
 
-  const handleAddJob = () => {
-    if (!newJob.code || !newJob.title || !newJob.department) {
-      alert("Please fill in Code, Title, and Department");
-      return;
-    }
-    setJobCodes([...jobCodes, { ...newJob, employees: parseInt(newJob.employees) }]);
-    setNewJob({
-      code: "",
-      title: "",
-      department: "",
-      level: "Mid",
-      description: "",
-      employees: 1,
-      icon: "💼",
-    });
-    setShowAddForm(false);
+  const allVisibleSelected = filteredJobCodes.length > 0 && filteredJobCodes.every((item) => selectedIds.includes(item.id));
+  const isFormModal = modal?.mode === "add" || modal?.mode === "edit";
+  const closeModal = () => { setModal(null); setForm(EMPTY_FORM); };
+  const openAdd = () => { setForm(EMPTY_FORM); setModal({ mode: "add" }); };
+  const openEdit = (jobCode) => { setForm({ ...jobCode }); setModal({ mode: "edit", jobCode }); };
+  const updateForm = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+
+  const toggleAll = () => {
+    const visibleIds = filteredJobCodes.map((item) => item.id);
+    setSelectedIds((current) => allVisibleSelected ? current.filter((id) => !visibleIds.includes(id)) : [...new Set([...current, ...visibleIds])]);
   };
-
-  const handleDeleteJob = (codeToDelete) => {
-    if (window.confirm(`Delete job code ${codeToDelete}?`)) {
-      setJobCodes(jobCodes.filter((job) => job.code !== codeToDelete));
-    }
+  const toggleJobCode = (id) => setSelectedIds((current) => current.includes(id) ? current.filter((selectedId) => selectedId !== id) : [...current, id]);
+  const handleSave = (event) => {
+    event.preventDefault();
+    if (!form.title.trim() || !form.organization || !form.status) return;
+    const jobCode = { ...form, title: form.title.trim(), department: form.department.trim(), description: form.description.trim() };
+    if (modal.mode === "add") setJobCodes((current) => [...current, { ...jobCode, id: Date.now() }]);
+    else setJobCodes((current) => current.map((item) => item.id === modal.jobCode.id ? { ...jobCode, id: item.id } : item));
+    closeModal();
+  };
+  const confirmDelete = () => {
+    const id = modal.jobCode.id;
+    setJobCodes((current) => current.filter((item) => item.id !== id));
+    setSelectedIds((current) => current.filter((selectedId) => selectedId !== id));
+    closeModal();
   };
 
   return (
-    <div className="jc-page">
-      <div className="jc-container">
-        {/* ===== BANNER ===== */}
-        <div className="jc-banner">
-          <div className="jc-org-block">
-            <div className="jc-logo">NC</div>
-            <div>
-              <p className="jc-org-label">Organization</p>
-              <h1 className="jc-org-name">Northwind Collective</h1>
-              <p className="jc-org-sub">
-                Software &amp; Services · San Francisco, CA · 51-200 employees
-              </p>
-            </div>
-          </div>
-          <div className="jc-header-actions">
-            <button className="jc-btn">
-              <i className="fas fa-pen" /> Edit company
-            </button>
-            <button className="jc-btn jc-btn-icon-only" title="Log out">
-              <i className="fas fa-sign-out-alt" />
-            </button>
-          </div>
-        </div>
-
-        {/* ===== STATS ===== */}
-        <div className="jc-stats">
-          <div className="jc-stat">
-            <span className="jc-stat-value">{jobCodes.length}</span>
-            <span className="jc-stat-label">Job codes</span>
-          </div>
-          <div className="jc-stat-divider" />
-          <div className="jc-stat">
-            <span className="jc-stat-value">{totalDepartments}</span>
-            <span className="jc-stat-label">Departments</span>
-          </div>
-          <div className="jc-stat-divider" />
-          <div className="jc-stat">
-            <span className="jc-stat-value">{totalEmployees}</span>
-            <span className="jc-stat-label">Employees classified</span>
-          </div>
-        </div>
-
-        {/* ===== TOOLBAR WITH SEARCH & ADD BUTTON ===== */}
-        <div className="jc-toolbar">
-          <div>
-            <h2 className="jc-toolbar-title">Job Codes</h2>
-            <p className="jc-toolbar-sub">
-              Standardized roles used to classify employees.
-            </p>
-          </div>
-          <div className="jc-toolbar-actions">
-            <div className="nav-search">
-              <i className="fas fa-search" />
-              <input
-                type="text"
-                placeholder="Search job codes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <button
-              className="jc-btn jc-btn-primary"
-              onClick={() => setShowAddForm(!showAddForm)}
-            >
-              <i className="fas fa-plus" /> {showAddForm ? "Cancel" : "Add job code"}
-            </button>
-          </div>
-        </div>
-
-        {/* ===== ADD FORM ===== */}
-        {showAddForm && (
-          <div className="jc-add-form">
-            <div className="jc-form-grid">
-              <div className="jc-form-group">
-                <label>Job Code *</label>
-                <input
-                  type="text"
-                  placeholder="e.g., ENG-5"
-                  value={newJob.code}
-                  onChange={(e) => setNewJob({ ...newJob, code: e.target.value })}
-                />
-              </div>
-              <div className="jc-form-group">
-                <label>Title *</label>
-                <input
-                  type="text"
-                  placeholder="Job title"
-                  value={newJob.title}
-                  onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
-                />
-              </div>
-              <div className="jc-form-group">
-                <label>Department *</label>
-                <input
-                  type="text"
-                  placeholder="Department"
-                  value={newJob.department}
-                  onChange={(e) => setNewJob({ ...newJob, department: e.target.value })}
-                />
-              </div>
-              <div className="jc-form-group">
-                <label>Level</label>
-                <select
-                  value={newJob.level}
-                  onChange={(e) => setNewJob({ ...newJob, level: e.target.value })}
-                >
-                  <option value="Junior">Junior</option>
-                  <option value="Mid">Mid</option>
-                  <option value="Senior">Senior</option>
-                  <option value="Lead">Lead</option>
-                </select>
-              </div>
-              <div className="jc-form-group jc-form-full">
-                <label>Description</label>
-                <input
-                  type="text"
-                  placeholder="Brief description"
-                  value={newJob.description}
-                  onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
-                />
-              </div>
-              <div className="jc-form-group">
-                <label>Employees</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={newJob.employees}
-                  onChange={(e) => setNewJob({ ...newJob, employees: e.target.value })}
-                />
-              </div>
-              <div className="jc-form-group">
-                <label>Icon (emoji)</label>
-                <input
-                  type="text"
-                  placeholder="🎯"
-                  value={newJob.icon}
-                  onChange={(e) => setNewJob({ ...newJob, icon: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="jc-form-actions">
-              <button className="jc-btn jc-btn-secondary" onClick={() => setShowAddForm(false)}>
-                Cancel
-              </button>
-              <button className="jc-btn jc-btn-primary" onClick={handleAddJob}>
-                <i className="fas fa-save" /> Save Job Code
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ===== CARDS ===== */}
-        <div className="jc-grid">
-          {filteredJobs.length === 0 ? (
-            <div className="jc-empty-state">
-              <i className="fas fa-search" />
-              <p>No job codes found matching "{searchTerm}"</p>
-            </div>
-          ) : (
-            filteredJobs.map((job) => (
-              <div className="jc-card" key={job.code} data-dept={job.department}>
-                <button
-                  className="jc-card-delete"
-                  onClick={() => handleDeleteJob(job.code)}
-                  title="Delete job code"
-                >
-                  <i className="fas fa-trash-alt" />
-                </button>
-                <div className="jc-card-top">
-                  <span className="jc-card-icon">{job.icon}</span>
-                  <span className="jc-code-tag">{job.code}</span>
-                </div>
-                <h3 className="jc-card-title">{job.title}</h3>
-                <p className="jc-card-meta">
-                  {job.department} <span className="jc-dot">•</span> {job.level}
-                </p>
-                <p className="jc-card-desc">{job.description}</p>
-                <div className="jc-card-footer">
-                  <span className="jc-avatar-stack">
-                    {Array.from({ length: Math.min(job.employees, 3) }).map(
-                      (_, i) => (
-                        <span className="jc-avatar" key={i} />
-                      )
-                    )}
-                  </span>
-                  <span className="jc-employee-count">
-                    <i className="fas fa-user" /> {job.employees} employee{job.employees !== 1 ? "s" : ""}
-                  </span>
-                </div>
-              </div>
-            ))
-          )}
-
-          {/* Add new card - only show if no form */}
-          {!showAddForm && (
-            <button
-              className="jc-card jc-card-add"
-              onClick={() => setShowAddForm(true)}
-            >
-              <span className="jc-add-icon"><i className="fas fa-plus-circle" /></span>
-              <span className="jc-add-text">Add a new job code</span>
-            </button>
-          )}
-        </div>
-
-      
-      </div>
+    <div className="job-codes-layout"><Sidebar /><div className="job-codes-content-scroll"><main className="job-codes-page">
+      <header className="job-codes-header"><div className="job-codes-header-left"><div className="job-codes-icon-box" aria-hidden="true"><BriefcaseBusiness /></div><div><h1>Job Codes</h1><p>Define job titles and departments.</p></div></div><button className="job-codes-add-button" type="button" onClick={openAdd}><Plus size={16} />Add Job Code</button></header>
+      <section className="job-codes-toolbar" aria-label="Job code filters"><div className="job-codes-search"><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Search job codes..." aria-label="Search job codes" /></div><div className="job-codes-filters"><label><span>Organization:</span><select value={organization} onChange={(event) => setOrganization(event.target.value)} aria-label="Filter by organization">{organizations.map((option) => <option key={option} value={option}>{option}</option>)}</select></label><label><span>Status:</span><select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter by status"><option value="All">All</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select></label></div></section>
+      <div className="job-codes-table-wrap"><table className="job-codes-table"><thead><tr><th className="job-codes-check-column"><input checked={allVisibleSelected} onChange={toggleAll} type="checkbox" aria-label="Select all visible job codes" /></th><th>Title</th><th>Department</th><th>Description</th><th>Status</th><th className="job-codes-actions-column">Actions</th></tr></thead><tbody>{filteredJobCodes.length === 0 ? <tr><td colSpan={6} className="job-codes-empty">No job codes found.</td></tr> : filteredJobCodes.map((item) => <tr key={item.id}><td className="job-codes-check-column"><input checked={selectedIds.includes(item.id)} onChange={() => toggleJobCode(item.id)} type="checkbox" aria-label={`Select ${item.title}`} /></td><td className="job-codes-title-cell">{item.title}</td><td className="job-codes-muted-cell">{item.department}</td><td className="job-codes-description-cell">{item.description}</td><td><span className={`job-codes-status ${item.status === "Inactive" ? "job-codes-status-inactive" : ""}`}>{item.status}</span></td><td className="job-codes-actions-column"><button type="button" className="job-codes-action" title={`View ${item.title}`} aria-label={`View ${item.title}`} onClick={() => setModal({ mode: "view", jobCode: item })}><Eye size={15} /></button><button type="button" className="job-codes-action" title={`Edit ${item.title}`} aria-label={`Edit ${item.title}`} onClick={() => openEdit(item)}><Pencil size={15} /></button><button type="button" className="job-codes-action job-codes-delete-action" title={`Delete ${item.title}`} aria-label={`Delete ${item.title}`} onClick={() => setModal({ mode: "delete", jobCode: item })}><Trash2 size={15} /></button></td></tr>)}</tbody></table></div>
+    </main></div>
+    {isFormModal && <div className="job-codes-modal-overlay" onMouseDown={closeModal}><form className="job-codes-modal" onSubmit={handleSave} onMouseDown={(event) => event.stopPropagation()}><ModalHeader title={modal.mode === "add" ? "Add Job Code" : "Edit Job Code"} onClose={closeModal} /><div className="job-codes-modal-body"><label className="job-codes-field"><span>Job Title <b>*</b></span><input value={form.title} onChange={(event) => updateForm("title", event.target.value)} required autoFocus /></label><label className="job-codes-field"><span>Department</span><input value={form.department} onChange={(event) => updateForm("department", event.target.value)} /></label><label className="job-codes-field"><span>Description</span><textarea value={form.description} onChange={(event) => updateForm("description", event.target.value)} /></label><label className="job-codes-field"><span>Organization</span><select value={form.organization} onChange={(event) => updateForm("organization", event.target.value)} required><option value="" disabled>Select...</option>{organizations.filter((option) => option !== "All").map((option) => <option key={option} value={option}>{option}</option>)}</select></label><label className="job-codes-field"><span>Status</span><select value={form.status} onChange={(event) => updateForm("status", event.target.value)} required><option value="Active">Active</option><option value="Inactive">Inactive</option></select></label></div><div className="job-codes-modal-actions"><button type="button" className="job-codes-cancel-button" onClick={closeModal}>Cancel</button><button type="submit" className="job-codes-save-button">{modal.mode === "add" ? "Save Job Code" : "Save Changes"}</button></div></form></div>}
+    {modal?.mode === "view" && <div className="job-codes-modal-overlay" onMouseDown={closeModal}><section className="job-codes-modal job-codes-view-modal" onMouseDown={(event) => event.stopPropagation()}><ModalHeader title="Job Code Details" onClose={closeModal} /><div className="job-codes-view-body"><Detail label="Job Title" value={modal.jobCode.title} /><Detail label="Department" value={modal.jobCode.department} /><Detail label="Description" value={modal.jobCode.description} paragraph /><Detail label="Organization" value={modal.jobCode.organization} /><Detail label="Status" value={modal.jobCode.status} /></div><div className="job-codes-modal-actions"><button type="button" className="job-codes-save-button" onClick={closeModal}>Close</button></div></section></div>}
+    {modal?.mode === "delete" && <div className="job-codes-modal-overlay" onMouseDown={closeModal}><section className="job-codes-modal job-codes-confirm-modal" onMouseDown={(event) => event.stopPropagation()}><ModalHeader title="Delete Job Code" onClose={closeModal} /><div className="job-codes-confirm-body">Are you sure you want to delete <strong>{modal.jobCode.title}</strong>? This action cannot be undone.</div><div className="job-codes-modal-actions"><button type="button" className="job-codes-cancel-button" onClick={closeModal}>Cancel</button><button type="button" className="job-codes-delete-button" onClick={confirmDelete}>Delete</button></div></section></div>}
     </div>
   );
 }
+
+function ModalHeader({ title, onClose }) { return <div className="job-codes-modal-header"><h2>{title}</h2><button type="button" className="job-codes-modal-close" onClick={onClose} aria-label="Close"><X size={19} /></button></div>; }
+function Detail({ label, value, paragraph }) { return <div><span>{label}</span>{paragraph ? <p>{value || "—"}</p> : <strong>{value || "—"}</strong>}</div>; }

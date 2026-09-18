@@ -54,7 +54,7 @@ import FeedbackList from "./components/FeedbackList";
 import AdminRolesPage from "./components/user1";
 import TrainerRolesPage from "./components/Trainer";
 import UserPage from "./components/user";
-import JobCode from "./components/jobcode";
+import JobCode from "./components/Jobcode";
 import Organizations from "./components/Organizations";
 import UserAssignments from "./components/UserAssignments";
 import AdminDashboardContent from "./components/AdminDashboardContent";
