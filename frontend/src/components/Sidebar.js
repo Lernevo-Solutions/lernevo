@@ -29,12 +29,11 @@ import {
 // Add an entry here whenever a real page exists for that item.
 const ROUTE_MAP = {
   Dashboard: "/admin-dashboard",
-  Users:"/user-assignments",
+  Users: "/user-assignments",
   Organizations: "/organizations",
   "Job Codes": "/job",
   Timesheets: "/timesheet",
-
-  Payslips: "/payslips",
+  Payslips: "/payslip",
   "Compliance Documents": "/document",
   Profile: "/profile",
 };
@@ -50,7 +49,6 @@ const NAV_SECTIONS = [
       { icon: Building2, label: "Organizations" },
       { icon: Users, label: "Users" },
       { icon: Briefcase, label: "Job Codes" },
-      
     ],
   },
   {
@@ -114,17 +112,28 @@ export default function Sidebar() {
   const [role, setRole] = useState("Super Admin");
   const [roleOpen, setRoleOpen] = useState(false);
 
+  // Track which sections are expanded (dropdown open)
+  const [openSections, setOpenSections] = useState({
+    Overview: true,
+    "People & Organization": true,
+  });
+
   const roles = ["Super Admin", "Org Admin", "Manager", "Employee"];
 
-  // Keep the highlighted item in sync with the current URL,
-  // so refreshing or navigating directly to /organizations still
-  // shows "Organizations" as active.
+  // Keep the highlighted item in sync with the current URL
   useEffect(() => {
     const matchedLabel = Object.keys(ROUTE_MAP).find(
       (label) => ROUTE_MAP[label] === location.pathname
     );
     if (matchedLabel) {
       setActive(matchedLabel);
+      // Auto-open the section that contains the active item
+      const section = NAV_SECTIONS.find((s) =>
+        s.items.some((it) => it.label === matchedLabel)
+      );
+      if (section) {
+        setOpenSections((prev) => ({ ...prev, [section.label]: true }));
+      }
     }
   }, [location.pathname]);
 
@@ -134,6 +143,13 @@ export default function Sidebar() {
     if (path) {
       navigate(path);
     }
+  };
+
+  const toggleSection = (label) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
   };
 
   return (
@@ -275,15 +291,68 @@ export default function Sidebar() {
         .lv-nav::-webkit-scrollbar { width: 6px; }
         .lv-nav::-webkit-scrollbar-thumb { background: rgba(47,107,255,0.15); border-radius: 3px; }
 
-        .lv-section { margin-top: 20px; }
+        .lv-section { margin-top: 8px; }
         .lv-section:first-child { margin-top: 4px; }
+
+        /* Clickable section header (acts as dropdown toggle) */
+        .lv-section-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 8px 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          user-select: none;
+          transition: background 0.12s ease;
+        }
+
+        .lv-section-header:hover {
+          background: #eef3ff;
+        }
 
         .lv-section-label {
           font-size: 10.5px;
           font-weight: 700;
           letter-spacing: 0.08em;
           color: var(--text-faint);
-          padding: 0 10px 8px 10px;
+        }
+
+        .lv-section-header:hover .lv-section-label {
+          color: var(--blue-1);
+        }
+
+        .lv-section-chevron {
+          width: 14px;
+          height: 14px;
+          color: var(--text-faint);
+          transition: transform 0.2s ease;
+          flex-shrink: 0;
+        }
+
+        .lv-section-header[data-open="true"] .lv-section-chevron {
+          transform: rotate(180deg);
+        }
+
+        .lv-section-header[data-open="true"] .lv-section-label {
+          color: var(--blue-1);
+        }
+
+        /* Smooth expand/collapse of items */
+        .lv-section-items {
+          overflow: hidden;
+          transition: max-height 0.25s ease, opacity 0.2s ease;
+        }
+
+        .lv-section-items[data-open="false"] {
+          max-height: 0;
+          opacity: 0;
+        }
+
+        .lv-section-items[data-open="true"] {
+          max-height: 500px;
+          opacity: 1;
+          margin-top: 4px;
         }
 
         .lv-item {
@@ -373,26 +442,43 @@ export default function Sidebar() {
       </div>
 
       <nav className="lv-nav">
-        {NAV_SECTIONS.map((section) => (
-          <div className="lv-section" key={section.label}>
-            <div className="lv-section-label">{section.label.toUpperCase()}</div>
-            {section.items.map((item) => {
-              const Icon = item.icon;
-              const isActive = active === item.label;
-              return (
-                <div
-                  className="lv-item"
-                  data-active={isActive}
-                  key={item.label}
-                  onClick={() => handleItemClick(item.label)}
-                >
-                  <Icon />
-                  {item.label}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+        {NAV_SECTIONS.map((section) => {
+          const isOpen = !!openSections[section.label];
+          return (
+            <div className="lv-section" key={section.label}>
+              {/* Section header - click to toggle dropdown */}
+              <div
+                className="lv-section-header"
+                data-open={isOpen}
+                onClick={() => toggleSection(section.label)}
+              >
+                <span className="lv-section-label">
+                  {section.label.toUpperCase()}
+                </span>
+                <ChevronDown className="lv-section-chevron" />
+              </div>
+
+              {/* Sub-items (dropdown content) */}
+              <div className="lv-section-items" data-open={isOpen}>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = active === item.label;
+                  return (
+                    <div
+                      className="lv-item"
+                      data-active={isActive}
+                      key={item.label}
+                      onClick={() => handleItemClick(item.label)}
+                    >
+                      <Icon />
+                      {item.label}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </nav>
     </div>
   );

@@ -32,6 +32,18 @@
 .job-codes-description-cell { min-width: 260px; }
 .job-codes-status { display: inline-block; padding: 4px 11px; border-radius: 999px; background: #e5f6ea; color: #1e8a4c; font-size: 12px; font-weight: 600; }
 .job-codes-status-inactive { background: #fdecec; color: #c0392b; }
+.job-codes-category { display: inline-block; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.job-codes-category-primary { background: #eaf0ff; color: #3b6bf5; }
+.job-codes-category-mandatory { background: #fff1e0; color: #c9791b; }
+.job-codes-category-optional { background: #f1eeff; color: #7c5cfc; }
+.job-codes-category-tabs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.job-codes-category-tab { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1px solid #e7eaef; border-radius: 999px; background: #fff; color: #6b7280; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .12s, color .12s, border-color .12s; }
+.job-codes-category-tab:hover { background: #fafbfc; color: #14161a; }
+.job-codes-category-tab-active { border-color: transparent; color: #fff !important; }
+.job-codes-category-tab-active.job-codes-category-primary { background: #3b6bf5; }
+.job-codes-category-tab-active.job-codes-category-mandatory { background: #c9791b; }
+.job-codes-category-tab-active.job-codes-category-optional { background: #7c5cfc; }
+.job-codes-category-tab-active:not(.job-codes-category-primary):not(.job-codes-category-mandatory):not(.job-codes-category-optional) { background: #16181d; }
 .job-codes-actions-column { text-align: right !important; white-space: nowrap; }
 .job-codes-action { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-left: 2px; border: 0; border-radius: 7px; background: transparent; color: #9aa1ac; cursor: pointer; }
 .job-codes-action:hover { background: #f2f4f7; color: #14161a; }
