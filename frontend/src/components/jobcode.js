@@ -6,7 +6,7 @@ import "./jobcode.css";
 const CATEGORY_OPTIONS = [
   { value: "Primary", label: "Core Role", className: "job-codes-category-primary" },
   { value: "Mandatory", label: "Mandatory Role", className: "job-codes-category-mandatory" },
-  { value: "Optional", label: "Flex Role", className: "job-codes-category-optional" },
+  { value: "Optional", label: "Optional Role", className: "job-codes-category-optional" },
 ];
 const categoryMeta = (value) => CATEGORY_OPTIONS.find((option) => option.value === value) || CATEGORY_OPTIONS[0];
 

@@ -30,6 +30,7 @@ import {
 const ROUTE_MAP = {
   Dashboard: "/admin-dashboard",
   Users: "/user-assignments",
+  "User Assignments": "/user-assignments",
   Organizations: "/organizations",
   "Job Codes": "/job",
   Timesheets: "/timesheet",
@@ -43,14 +44,15 @@ const NAV_SECTIONS = [
     label: "Overview",
     items: [{ icon: LayoutGrid, label: "Dashboard" }],
   },
-  {
-    label: "People & Organization",
-    items: [
-      { icon: Building2, label: "Organizations" },
-      { icon: Users, label: "Users" },
-      { icon: Briefcase, label: "Job Codes" },
-    ],
-  },
+ {
+  label: "People & Organization",
+  items: [
+    { icon: Building2, label: "Organizations" },
+    { icon: Users, label: "Users" },
+    { icon: UserCog, label: "User Assignments" },
+    { icon: Briefcase, label: "Job Codes" },
+  ],
+},
   {
     label: "HR Operations",
     items: [
