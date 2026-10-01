@@ -155,6 +155,7 @@ export default function Sidebar() {
   };
 
   return (
+    <div className="lv-sidebar-slot">
     <div className="lv-sidebar">
       <style>{`
         .lv-sidebar {
@@ -170,6 +171,10 @@ export default function Sidebar() {
 
           width: 272px;
           height: 100vh;
+          position: fixed;       /* always stays on screen while the page scrolls */
+          top: 0;
+          left: 0;
+          z-index: 100;
           background: linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
           color: var(--text);
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
@@ -178,6 +183,8 @@ export default function Sidebar() {
           border-right: 1px solid var(--border);
           box-sizing: border-box;
         }
+
+        .lv-sidebar-slot { width: 272px; min-width: 272px; height: 100vh; flex-shrink: 0; }
 
         .lv-sidebar * { box-sizing: border-box; }
 
@@ -286,6 +293,7 @@ export default function Sidebar() {
 
         .lv-nav {
           flex: 1;
+          min-height: 0;   /* lets the menu scroll inside the sidebar */
           overflow-y: auto;
           padding: 4px 14px 20px 14px;
         }
@@ -482,6 +490,7 @@ export default function Sidebar() {
           );
         })}
       </nav>
+    </div>
     </div>
   );
 }
