@@ -120,4 +120,45 @@
 @media (max-width: 460px) {
   .compliance-search-row { flex-direction: column; align-items: stretch; }
   .compliance-search-button { justify-content: center; }
+}/* Auto-banner */
+.compliance-auto-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border: 1px solid #d8e4ff;
+  border-radius: 12px;
+  background: #f4f7ff;
+  color: #344054;
+  font-size: 13.5px;
 }
+.compliance-auto-banner svg { color: #3b6bf5; flex-shrink: 0; }
+.compliance-auto-banner strong { color: #14161a; }
+
+/* Payslip breakdown */
+.compliance-payslip-breakdown {
+  padding: 16px;
+  border: 1px solid #e7eaef;
+  border-radius: 12px;
+  background: #fafbfc;
+}
+.compliance-payslip-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+  color: #4b5563;
+  border-bottom: 1px dashed #e7eaef;
+}
+.compliance-payslip-line:last-child { border-bottom: 0; }
+.compliance-payslip-line strong { color: #14161a; }
+.compliance-payslip-line .neg { color: #c0392b; }
+.compliance-payslip-line.total {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 2px solid #e7eaef;
+  font-size: 15.5px;
+  font-weight: 700;
+}
+.compliance-payslip-line.total strong { color: #1e8a4c; font-size: 17px; }
