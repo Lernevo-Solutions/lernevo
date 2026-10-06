@@ -386,6 +386,22 @@ export default function Navbar({ onGetStarted }) {
                       <User size={16} />
                       <span>View Profile</span>
                     </button>
+
+                    {/* 🛠️ Admin Panel - visible only for Super Admin & Admin */}
+                    {(userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && (
+                      <button
+                        className="dropdown-item"
+                        onClick={() => {
+                          setIsUserViewMode(false); // User View la irundha Admin View ku maathum
+                          setShowProfileDropdown(false);
+                          closeMobileMenu();
+                          navigate('/admin-dashboard');
+                        }}
+                      >
+                        <Shield size={16} />
+                        <span>Admin Panel</span>
+                      </button>
+                    )}
                     
                     <button className="dropdown-item" onClick={() => {navigate('/profile/change-password'); setShowProfileDropdown(false); closeMobileMenu();}}>
                       <Key size={16} />
