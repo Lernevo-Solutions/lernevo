@@ -23,6 +23,10 @@ import {
   Link2,
   Settings,
   User,
+  CalendarDays,
+ClipboardCheck,
+CalendarCheck,
+
 } from "lucide-react";
 
 // Maps sidebar item labels to actual app routes.
@@ -34,6 +38,7 @@ const ROUTE_MAP = {
   Organizations: "/organizations",
   "Job Codes": "/job",
   Timesheets: "/timesheet",
+  "My Timesheet": "/employeetimesheet",
   Payslips: "/payslip",
   "Compliance Documents": "/document",
   Profile: "/profile",
@@ -55,11 +60,15 @@ const NAV_SECTIONS = [
 },
   {
     label: "HR Operations",
-    items: [
-      { icon: Clock, label: "Timesheets" },
-      { icon: Wallet, label: "Payslips" },
-      { icon: FileText, label: "Compliance Documents" },
-    ],
+   items: [
+  { icon: CalendarDays, label: "Timesheets" },
+  { icon: Clock, label: "My Timesheet" },
+  { icon: Users, label: "Team Timesheet" },
+  { icon: ClipboardCheck, label: "Approvals" },
+  { icon: CalendarCheck, label: "Leave and Permissions" },
+  { icon: Wallet, label: "Payslips" },
+  { icon: FileText, label: "Compliance Documents" },
+],
   },
   {
     label: "Learning",
