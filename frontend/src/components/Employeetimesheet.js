@@ -3,8 +3,15 @@ import "./Employeetimesheet.css";
 
 
 /* =====================  SAMPLE DATA (replace with API data)  ===================== */
-// Real app: const TODAY = new Date();
-const TODAY = new Date(2026, 9, 8);
+// Always the real current date (midnight), so "today" is never treated as a future day
+const NOW = new Date();
+const TODAY = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+// Demo leave dates are relative to today (0 = today, -1 = yesterday, 1 = tomorrow...)
+const rel = (n) => {
+  const x = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + n);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+};
+const TASKS = ["Project work", "Client meeting", "Code review", "Documentation", "Training", "Support tickets"];
 
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -24,11 +31,11 @@ const HOLIDAYS = [
 ];
 
 const EMPLOYEES = [
-  { id: "EMP001", name: "Priya Sharma", dept: "Engineering", location: "Chennai", leaves: [] },
-  { id: "EMP002", name: "Arun Kumar", dept: "Engineering", location: "Chennai", leaves: ["2026-10-14"] },
-  { id: "EMP003", name: "Divya R", dept: "Design", location: "Bengaluru", leaves: ["2026-10-07"] },
+  { id: "EMP001", name: "Priya Sharma", dept: "Engineering", location: "Chennai", leaves: [rel(-6), rel(-20)] },
+  { id: "EMP002", name: "Arun Kumar", dept: "Engineering", location: "Chennai", leaves: [rel(6)] },
+  { id: "EMP003", name: "Divya R", dept: "Design", location: "Bengaluru", leaves: [rel(-1)] },
   { id: "EMP004", name: "Karthik S", dept: "Engineering", location: "Bengaluru", leaves: [] },
-  { id: "EMP005", name: "Meena Iyer", dept: "HR", location: "Chennai", leaves: [] },
+  { id: "EMP005", name: "Meena Iyer", dept: "HR", location: "Chennai", leaves: [rel(-3)] },
   { id: "EMP006", name: "Vikram Das", dept: "Support", location: "New York", leaves: [] },
 ];
 // Schedule history per employee: the last entry whose `from` <= date is used (effective dating)
@@ -40,7 +47,9 @@ const INITIAL_SCHEDULES = {
   EMP005: [{ from: "2026-01-01", rule: "rota" }],
   EMP006: [{ from: "2026-01-01", rule: "us" }],
 };
-const INITIAL_APPROVED = ["EMP001|2026-10-05", "EMP001|2026-10-08", "EMP002|2026-10-05", "EMP003|2026-10-05"];
+// Optional overrides from your API ("EMP001|2026-10-05"). In this demo, status is derived from the date:
+// older than 2 days = Approved (a few Rejected), today + last 2 days = Pending, future = Scheduled.
+const INITIAL_APPROVED = [];
 
 /* =====================  HELPERS  ===================== */
 const keyOf = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -48,7 +57,8 @@ const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 
 const mondayOf = (d) => addDays(d, -((d.getDay() + 6) % 7));
 const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
 const shiftHours = (r) => (toMin(r.end) - toMin(r.start) - r.breakMin) / 60;
-const hrs = (n) => `${Number.isInteger(n) ? n : n.toFixed(2)}`;
+const hrs = (n) => `${Number.isInteger(n) ? n : Number(n.toFixed(2))}`;
+const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 const isoWeek = (d) => {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
@@ -64,6 +74,24 @@ const ruleAt = (emp, schedules, date) => {
   return SCHEDULES[cur.rule];
 };
 
+/** Demo only: believable clock-in / clock-out, overtime and task for a worked day (your API returns the real values) */
+function demoDay(rule, n, date) {
+  const seed = date.getDate() * 7 + n * 3 + date.getMonth();
+  const inShift = [-10, 0, 5, 12, -5, 25, 8][seed % 7];
+  const outShift = [0, 30, -45, 90, 0, 150, 15, 60][seed % 8];
+  const start = toMin(rule.start) + inShift;
+  const end = toMin(rule.end) + outShift;
+  const hours = (end - start - rule.breakMin) / 60;
+  const std = shiftHours(rule);
+  return {
+    in: hhmm(start), out: hhmm(end), hours,
+    ot: Math.max(0, hours - std),
+    late: inShift > 10 ? inShift : 0,
+    short: hours < std - 0.25,
+    task: TASKS[seed % TASKS.length],
+  };
+}
+
 /** Schedule Rule -> what is this day for this employee? (no manual week-off selection) */
 function getDay(emp, date, schedules, approved) {
   const k = keyOf(date);
@@ -76,31 +104,40 @@ function getDay(emp, date, schedules, approved) {
   const isOff = rule.workDays ? !rule.workDays.includes(date.getDay()) : ROTA_OFF[(((weekNo + n) % 3) + 3) % 3].includes(date.getDay());
   if (isOff) return { type: "off", rule };
   if (emp.leaves.includes(k)) return { type: "leave", rule };
-  return { type: "work", rule, hours: shiftHours(rule), status: approved.has(`${emp.id}|${k}`) ? "Approved" : "Pending" };
+  const diff = Math.round((new Date(date.getFullYear(), date.getMonth(), date.getDate()) - TODAY) / 864e5);
+  if (diff > 0) return { type: "work", rule, hours: shiftHours(rule), ot: 0, status: "Scheduled" };
+  const status = approved.has(`${emp.id}|${k}`) ? "Approved"
+    : diff >= -2 ? "Pending"
+    : (date.getDate() + n) % 11 === 0 ? "Rejected" : "Approved";
+  return { type: "work", rule, status, ...demoDay(rule, n, date) };
 }
 
 function summarize(emp, from, to, schedules, approved) {
-  const s = { scheduled: 0, worked: 0, leave: 0, off: 0, holiday: 0, workDays: 0, filled: 0, pending: 0, approvedDays: 0 };
+  const s = { scheduled: 0, worked: 0, logged: 0, ot: 0, leave: 0, off: 0, holiday: 0, workDays: 0, filled: 0, pending: 0, rejected: 0, approvedDays: 0, missing: 0 };
   eachDay(from, to).forEach((d) => {
     const i = getDay(emp, d, schedules, approved);
     if (i.type === "work") {
-      s.workDays++; s.scheduled += i.hours;
-      if (i.status === "Approved") { s.worked += i.hours; s.approvedDays++; }
-      if (d <= TODAY) { s.filled++; if (i.status === "Pending") s.pending++; }
+      s.workDays++; s.scheduled += shiftHours(i.rule);
+      if (i.status !== "Scheduled") {
+        s.filled++; s.logged += i.hours; s.ot += i.ot;
+        if (i.status === "Pending") s.pending++;
+        if (i.status === "Rejected") s.rejected++;
+        if (i.status === "Approved") { s.worked += i.hours; s.approvedDays++; }
+      }
     } else if (i.type === "leave") s.leave++;
     else if (i.type === "off") s.off++;
     else if (i.type === "holiday") s.holiday++;
   });
-  s.missing = s.pending;
-  s.attendance = s.filled ? Math.round((100 * s.approvedDays) / s.filled) : 0;
+  s.attendance = s.filled + s.missing ? Math.round((100 * s.filled) / (s.filled + s.missing)) : 0;
   return s;
 }
 
 function downloadCsv(emp, from, to, schedules, approved) {
-  const rows = [["Date", "Day", "Type", "Status", "Shift", "Hours"]];
+  const rows = [["Date", "Day", "Type", "Status", "Clock in", "Clock out", "Hours", "Overtime", "Task"]];
   eachDay(from, to).forEach((d) => {
     const i = getDay(emp, d, schedules, approved);
-    rows.push([keyOf(d), DOW[d.getDay()], i.type, i.status || "", i.type === "work" ? `${i.rule.start}-${i.rule.end}` : i.label || "", i.hours || 0]);
+    const worked = i.type === "work" && i.status !== "Scheduled";
+    rows.push([keyOf(d), DOW[d.getDay()], i.type, i.status || i.label || "", worked ? i.in : "", worked ? i.out : "", worked ? hrs(i.hours) : 0, worked ? hrs(i.ot) : 0, worked ? i.task : ""]);
   });
   const blob = new Blob([rows.map((r) => r.join(",")).join("\n")], { type: "text/csv" });
   const a = document.createElement("a");
@@ -126,8 +163,9 @@ function WeekView({ emp, anchor, schedules, approved, statusFilter }) {
   const mon = mondayOf(anchor);
   const days = eachDay(mon, addDays(mon, 6));
   const infos = days.map((d) => getDay(emp, d, schedules, approved));
-  const scheduled = infos.reduce((s, i) => s + (i.type === "work" ? i.hours : 0), 0);
+  const scheduled = infos.reduce((s, i) => s + (i.type === "work" ? shiftHours(i.rule) : 0), 0);
   const worked = infos.reduce((s, i) => s + (i.type === "work" && i.status === "Approved" ? i.hours : 0), 0);
+  const overtime = infos.reduce((s, i) => s + (i.type === "work" && i.status !== "Scheduled" ? i.ot : 0), 0);
   return (
     <div className="et-week">
       <div className="et-week__grid">
@@ -136,15 +174,29 @@ function WeekView({ emp, anchor, schedules, approved, statusFilter }) {
         ))}
         {infos.map((i, n) => {
           const dim = statusFilter !== "All" && i.type === "work" && i.status !== statusFilter;
-          if (i.type === "work")
+          if (i.type === "work") {
+            const st = i.status.toLowerCase();
+            const planned = i.status === "Scheduled";
             return (
-              <div key={n} className={`et-wcell et-wcell--${i.status.toLowerCase()} ${dim ? "is-dim" : ""}`}>
-                <span className={`et-wcell__status et-wcell__status--${i.status.toLowerCase()}`}>{i.status}</span>
-                <div className="et-wcell__time">{i.rule.start} → {i.rule.end}</div>
+              <div key={n} className={`et-wcell et-wcell--${st} ${dim ? "is-dim" : ""}`}>
+                <span className={`et-wcell__status et-wcell__status--${st}`}>{i.status}</span>
+                <div className="et-wcell__time">{planned ? i.rule.start : i.in} → {planned ? i.rule.end : i.out}</div>
                 <div className="et-wcell__sub">☕ {hrs(i.hours)}h · {i.rule.breakMin}m break</div>
-                <div className="et-wcell__shift">{i.rule.shift}</div>
+                {planned ? (
+                  <div className="et-wcell__shift">{i.rule.shift}</div>
+                ) : (
+                  <>
+                    <div className="et-wcell__task">{i.task}</div>
+                    <div className="et-wcell__tags">
+                      {i.ot > 0 && <span className="et-tag et-tag--ot">+{hrs(i.ot)}h OT</span>}
+                      {i.late > 0 && <span className="et-tag et-tag--late">Late {i.late}m</span>}
+                      {i.short && <span className="et-tag et-tag--late">Short day</span>}
+                    </div>
+                  </>
+                )}
               </div>
             );
+          }
           const label = i.type === "off" ? "Week Off" : i.type === "leave" ? "Leave" : i.label;
           return (
             <div key={n} className={`et-wcell et-wcell--${i.type}`}>
@@ -154,8 +206,9 @@ function WeekView({ emp, anchor, schedules, approved, statusFilter }) {
         })}
       </div>
       <div className="et-week__foot">
-        <div>Scheduled: <b>{scheduled.toFixed(2)} hrs</b></div>
-        <div>Worked: <b>{worked.toFixed(2)} hrs</b></div>
+        <div>Scheduled: <b>{hrs(scheduled)} hrs</b></div>
+        <div>Approved: <b>{hrs(worked)} hrs</b></div>
+        <div>Overtime: <b>{hrs(overtime)} hrs</b></div>
       </div>
     </div>
   );
@@ -166,9 +219,9 @@ function MonthView({ emp, anchor, schedules, approved, statusFilter }) {
   const days = eachDay(from, to);
   const s = summarize(emp, from, to, schedules, approved);
   const rows = [
-    ["Total Working Hours", `${s.scheduled} hrs`, ""], ["Regular Hours", `${s.scheduled} hrs`, ""], ["Overtime", "0 hrs", "warn"],
+    ["Total Working Hours", `${hrs(s.logged)} hrs`, ""], ["Regular Hours", `${hrs(s.logged - s.ot)} hrs`, ""], ["Overtime", `${hrs(s.ot)} hrs`, "warn"],
     ["Leave Days", s.leave, "warn"], ["Week-Off Days", s.off, ""], ["Holidays", s.holiday, "bad"],
-    ["Attendance %", `${s.attendance}%`, s.attendance >= 90 ? "good" : "bad"], ["Missing Timesheets", s.missing, "bad"],
+    ["Attendance %", `${s.attendance}%`, s.attendance >= 90 ? "good" : "bad"], ["Rejected (resubmit)", s.rejected, s.rejected ? "bad" : "good"],
   ];
   return (
     <div className="et-month">
@@ -182,8 +235,14 @@ function MonthView({ emp, anchor, schedules, approved, statusFilter }) {
           return (
             <div key={keyOf(d)} className={`et-day ${keyOf(d) === keyOf(TODAY) ? "is-today" : ""} ${dim ? "is-dim" : ""}`}>
               <div className="et-day__top"><b>{d.getDate()}</b><i className={`et-dot et-dot--${tone}`} /></div>
-              {i.type === "work" && i.status === "Approved" && <><div className="et-t et-t--approved">{hrs(i.hours)}h</div><div className="et-time">{i.rule.start}–{i.rule.end}</div></>}
-              {i.type === "work" && i.status === "Pending" && <><div className="et-t et-t--pending">Pending</div><div className="et-time">{i.rule.start}–{i.rule.end}</div></>}
+              {i.type === "work" && i.status !== "Scheduled" && (
+                <>
+                  <div className={`et-t et-t--${i.status.toLowerCase()}`}>{i.status === "Approved" ? `${hrs(i.hours)}h` : i.status}</div>
+                  <div className="et-time">{i.in}–{i.out}</div>
+                  {i.ot > 0 && <span className="et-tag et-tag--ot">+{hrs(i.ot)}h OT</span>}
+                </>
+              )}
+              {i.type === "work" && i.status === "Scheduled" && <div className="et-time">{i.rule.start}–{i.rule.end}</div>}
               {i.type === "off" && <div className="et-time">Week Off</div>}
               {i.type === "leave" && <div className="et-t et-t--leave">Leave</div>}
               {i.type === "holiday" && <div className="et-t et-t--holiday">{i.label}</div>}
@@ -218,7 +277,7 @@ export default function EmployeeTimesheet({ employeeId = "EMP001", onAddTimeshee
   const stats = summarize(emp, mFrom, mTo, schedules, approved);
   const submissions = eachDay(mFrom, mTo)
     .map((d) => ({ d, i: getDay(emp, d, schedules, approved) }))
-    .filter(({ d, i }) => i.type === "work" && d <= TODAY && (statusFilter === "All" || i.status === statusFilter));
+    .filter(({ d, i }) => i.type === "work" && i.status !== "Scheduled" && (statusFilter === "All" || i.status === statusFilter));
 
   const move = (n) => setAnchor(view === "week" ? addDays(anchor, 7 * n) : new Date(anchor.getFullYear(), anchor.getMonth() + n, 1));
   const monday = mondayOf(anchor);
@@ -230,13 +289,7 @@ export default function EmployeeTimesheet({ employeeId = "EMP001", onAddTimeshee
 
   return (
     <div className="et-page">
-      <div className="et-topbar">
-        <h2>My Timesheet</h2>
-        <div className="et-topbar__right">
-          <span className="et-bell" aria-label="Notifications">🔔<i /></span>
-          <span className="et-avatar" title={emp.name}>{initials}</span>
-        </div>
-      </div>
+      
 
       <div className="et-body">
         <section className="et-hero">
@@ -266,7 +319,7 @@ export default function EmployeeTimesheet({ employeeId = "EMP001", onAddTimeshee
           <StatCard icon="📄" tone="green" value={stats.filled} label="Timesheets Filled" />
           <StatCard icon="⏳" tone="amber" value={stats.pending} label="Pending Approval" />
           <StatCard icon="✔" tone="pink" value={stats.approvedDays} label="Approved" />
-          <StatCard icon="⏱" tone="blue" value={`${stats.worked} hrs`} label="Approved Hours" />
+          <StatCard icon="⏱" tone="blue" value={`${hrs(stats.worked)} hrs`} label="Approved Hours" />
         </section>
 
         <section className="et-filters">
@@ -277,7 +330,7 @@ export default function EmployeeTimesheet({ employeeId = "EMP001", onAddTimeshee
           </label>
           <label>STATUS
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option>All</option><option>Pending</option><option>Approved</option>
+              <option>All</option><option>Pending</option><option>Approved</option><option>Rejected</option>
             </select>
           </label>
         </section>
@@ -328,8 +381,8 @@ export default function EmployeeTimesheet({ employeeId = "EMP001", onAddTimeshee
               {submissions.map(({ d, i }) => (
                 <li key={keyOf(d)}>
                   <b>{DOW[d.getDay()]}, {d.getDate()} {MONTHS[d.getMonth()].slice(0, 3)}</b>
-                  <span>{i.rule.start}–{i.rule.end} · {hrs(i.hours)}h</span>
-                  <em className={i.status === "Approved" ? "is-ok" : "is-pending"}>{i.status}</em>
+                  <span>{i.in}–{i.out} · {hrs(i.hours)}h · {i.task}</span>
+                  <em className={`is-${i.status.toLowerCase()}`}>{i.status}</em>
                 </li>
               ))}
               {submissions.length === 0 && <li className="et-empty">Nothing to show.</li>}

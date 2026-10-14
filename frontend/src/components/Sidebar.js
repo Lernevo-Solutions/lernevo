@@ -26,12 +26,17 @@ import {
   CalendarDays,
 ClipboardCheck,
 CalendarCheck,
+ UserRoundCheck,
+  BriefcaseBusiness,
+  UserRoundCog,
+  ChartNoAxesCombined,
+  
 
 } from "lucide-react";
 
 // Maps sidebar item labels to actual app routes.
 // Add an entry here whenever a real page exists for that item.
-const ROUTE_MAP = {
+export const ROUTE_MAP = {
   Dashboard: "/admin-dashboard",
   Users: "/user-assignments",
   "User Assignments": "/user-assignments",
@@ -44,7 +49,7 @@ const ROUTE_MAP = {
   Profile: "/profile",
 };
 
-const NAV_SECTIONS = [
+export const NAV_SECTIONS = [
   {
     label: "Overview",
     items: [{ icon: LayoutGrid, label: "Dashboard" }],
@@ -58,18 +63,23 @@ const NAV_SECTIONS = [
     { icon: Briefcase, label: "Job Codes" },
   ],
 },
-  {
-    label: "HR Operations",
-   items: [
-  { icon: CalendarDays, label: "Timesheets" },
-  { icon: Clock, label: "My Timesheet" },
-  { icon: Users, label: "Team Timesheet" },
-  { icon: ClipboardCheck, label: "Approvals" },
-  { icon: CalendarCheck, label: "Leave and Permissions" },
-  { icon: Wallet, label: "Payslips" },
-  { icon: FileText, label: "Compliance Documents" },
-],
-  },
+{
+  label: "HR Operations",
+  items: [
+    { icon: CalendarDays, label: "Timesheets" },
+    { icon: Clock, label: "My Timesheet" },
+    { icon: Users, label: "Team Timesheet" },
+    { icon: ClipboardCheck, label: "Approvals" },
+    { icon: CalendarCheck, label: "Leave and Permissions" },
+    { icon: Wallet, label: "Payslips" },
+    { icon: FileText, label: "Compliance Documents" },
+    { icon: UserRoundCheck, label: "Performance & Talent" },
+    { icon: BriefcaseBusiness, label: "Job Requisition" },
+    { icon: UserRoundCog, label: "Onboarding & Offboarding" },
+    { icon: ChartNoAxesCombined, label: "HR Reports" },
+    { icon: Settings, label: "Settings" },
+  ],
+},
   {
     label: "Learning",
     items: [

@@ -14,7 +14,8 @@
   }
 }
 .et-page *, .et-page *::before, .et-page *::after { box-sizing: border-box; }
-.et-page button, .et-page select, .et-page input { font: inherit; color: inherit; }
+/* :where() keeps this reset at zero extra specificity, so button colours like .et-btn--white still win */
+.et-page :where(button, select, input) { font: inherit; color: inherit; }
 
 /* ---------- Top bar ---------- */
 .et-topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: var(--et-card); border-bottom: 1px solid var(--et-line); }
@@ -93,7 +94,7 @@
 .et-wcell__sub, .et-wcell__shift { color: var(--et-mute); }
 .et-wcell__center { margin: auto; text-align: center; color: var(--et-off); display: flex; flex-direction: column; gap: 4px; }
 .et-wcell--holiday .et-wcell__center { color: var(--et-red); }
-.et-week__foot { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--et-line); min-width: 840px; }
+.et-week__foot { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--et-line); min-width: 840px; }
 .et-week__foot div { padding: 14px 16px; } .et-week__foot div + div { border-left: 1px solid var(--et-line); }
 
 /* ---------- Monthly ---------- */
@@ -159,3 +160,21 @@
 .et-me { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border: 1px solid var(--et-line); border-radius: 999px; background: var(--et-bg); }
 .et-me small { color: var(--et-mute); }
 .et-list em.is-pending { color: var(--et-pen); }
+/* ---------- Statuses added for varied data: Rejected, Scheduled (future), tags, task ---------- */
+.et-wcell--rejected { background: var(--et-redb); }
+.et-wcell--scheduled { background: var(--et-card); color: var(--et-mute); }
+.et-wcell--scheduled .et-wcell__time { color: var(--et-mute); }
+.et-wcell__status--rejected { color: var(--et-red); }
+.et-wcell__status--scheduled { color: var(--et-mute); }
+.et-wcell__task { font-weight: 600; margin-top: 2px; }
+.et-wcell__tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+.et-tag { display: inline-block; border-radius: 6px; padding: 1px 6px; font-size: 10.5px; font-weight: 700; margin-top: 2px; }
+.et-tag--ot { background: #ffedd5; color: #c2410c; }
+.et-tag--late { background: var(--et-redb); color: var(--et-red); }
+.et-dot--rejected { background: var(--et-red); }
+.et-dot--scheduled { background: transparent; border: 1px dashed var(--et-off); }
+.et-t--rejected { color: var(--et-red); }
+.et-t--scheduled { color: var(--et-mute); }
+.et-list em.is-rejected { color: var(--et-red); }
+.et-list em.is-approved { color: var(--et-ok); }
+@media (prefers-color-scheme: dark) { .et-tag--ot { background: #3a2410; color: #fb923c; } }
