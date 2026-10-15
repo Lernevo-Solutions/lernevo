@@ -31,7 +31,6 @@ const COUNTRIES = {
   AE: { name: "UAE", flag: "🇦🇪" },
   SG: { name: "Singapore", flag: "🇸🇬" },
 };
-// approx = date depends on moon sighting, confirm with your HR calendar
 const HOLIDAYS = [
   ["IN", "2026-01-15", "Pongal"], ["IN", "2026-01-26", "Republic Day"], ["IN", "2026-04-14", "Tamil New Year"],
   ["IN", "2026-08-15", "Independence Day"], ["IN", "2026-10-02", "Gandhi Jayanti"], ["IN", "2026-10-20", "Dussehra"],
@@ -104,7 +103,7 @@ function Holidays({ homeCountry, holidays }) {
         </div>
       )}
 
-      {groups.length === 0 && <div className="lp-empty">No holidays to show. Turn off “Hide past holidays” or pick another country.</div>}
+      {groups.length === 0 && <div className="lp-empty">No holidays to show. Turn off "Hide past holidays" or pick another country.</div>}
       {groups.map((g) => (
         <section key={g.label} className="lp-month">
           <h3>{g.label}</h3>
@@ -129,18 +128,8 @@ function Holidays({ homeCountry, holidays }) {
   );
 }
 
-/* ---------- Permission: everyone's requests on the left, apply / my requests in the side panel ---------- */
-const permHrs = (r) => (toMin(r.end) - toMin(r.start)) / 60;
-const hueOf = (name) => (name.charCodeAt(0) * 37 + name.length * 11) % 360;
-
-function Permission({ queue, me, onAdd, onRemove, onApply }) {
-  const all = useMemo(() => queue.filter((r) => r.type === "Permission"), [queue]);
-  const mine = all.filter((r) => r.name === me.name);
-
-  const [status, setStatus] = useState("All");
-  const [team, setTeam] = useState("all");
-  const [q, setQ] = useState("");
-  const [side, setSide] = useState("apply"); // side panel tab: "apply" | "mine"
+/* ---------- Apply permission popup (modal) ---------- */
+function ApplyPermissionModal({ me, mine, onClose, onApply }) {
   const [date, setDate] = useState(keyOf(TODAY));
   const [from, setFrom] = useState("10:00");
   const [to, setTo] = useState("11:00");
@@ -149,15 +138,8 @@ function Permission({ queue, me, onAdd, onRemove, onApply }) {
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
 
-  const teams = [...new Set(all.map((r) => r.team))];
-  const base = all.filter((r) => (team === "all" || r.team === team) && r.name.toLowerCase().includes(q.trim().toLowerCase()));
-  const countOf = (s) => base.filter((r) => s === "All" || r.status === s).length;
-  const rows = base.filter((r) => status === "All" || r.status === status)
-    .sort((a, b) => b.from.localeCompare(a.from) || b.start.localeCompare(a.start));
-  const outToday = all.filter((r) => r.from === keyOf(TODAY) && r.status !== "Rejected");
-
   const monthKey = keyOf(TODAY).slice(0, 7);
-  const usedHrs = mine.filter((r) => r.from.startsWith(monthKey) && r.status !== "Rejected").reduce((s, r) => s + permHrs(r), 0);
+  const usedHrs = mine.filter((r) => r.from.startsWith(monthKey) && r.status !== "Rejected").reduce((s, r) => s + (toMin(r.end) - toMin(r.start)) / 60, 0);
   const usedCount = mine.filter((r) => r.from.startsWith(monthKey) && r.status !== "Rejected").length;
   const left = Math.max(0, QUOTA.hours - usedHrs);
   const usedPct = Math.min(100, Math.round((100 * usedHrs) / QUOTA.hours));
@@ -171,119 +153,192 @@ function Permission({ queue, me, onAdd, onRemove, onApply }) {
     if (asking > QUOTA.maxPerRequest) return setError(`One permission can be at most ${QUOTA.maxPerRequest} hours.`);
     const d = parseKey(date);
     const sameMonth = mine.filter((r) => r.from.slice(0, 7) === date.slice(0, 7) && r.status !== "Rejected");
-    const usedThere = sameMonth.reduce((s, r) => s + permHrs(r), 0);
+    const usedThere = sameMonth.reduce((s, r) => s + (toMin(r.end) - toMin(r.start)) / 60, 0);
     if (sameMonth.length >= QUOTA.count) return setError(`You have used all ${QUOTA.count} permissions for ${MONTHS[d.getMonth()]}.`);
     if (usedThere + asking > QUOTA.hours + 0.001) return setError(`Only ${fmtHrs(Math.max(0, QUOTA.hours - usedThere))} left for ${MONTHS[d.getMonth()]}.`);
     if (mine.some((r) => r.from === date && r.status !== "Rejected" && toMin(from) < toMin(r.end) && toMin(to) > toMin(r.start))) return setError("You already have a permission at this time.");
     const req = { id: Date.now(), name: me.name, team: me.team, type: "Permission", kind: "Permission", from: date, to: date, start: from, end: to, reason, note: "", applied: keyOf(TODAY), status: "Pending" };
-    onAdd(req);
     if (onApply) onApply({ ...req, comment: note.trim() });
     setError(""); setNote("");
     setDone(`Sent to your manager: ${longDate(d)}, ${from} to ${to}.`);
   };
 
   return (
-    <div className="lp-perm">
-      <div className="lp-pmain">
-        {outToday.length > 0 && (
-          <div className="lp-out">
-            <b>Out on permission today</b>
-            <span>{outToday.map((r) => `${r.name} ${r.start}–${r.end}${r.status === "Pending" ? " (pending)" : ""}`).join(", ")}</span>
-          </div>
-        )}
-        <div className="lp-pfilters">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by employee name" aria-label="Search employee" />
-          <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team">
-            <option value="all">All teams</option>
-            {teams.map((t) => <option key={t}>{t}</option>)}
-          </select>
-        </div>
-        <div className="lp-chips" role="group" aria-label="Filter by status">
-          {["All", "Pending", "Approved", "Rejected"].map((s) => (
-            <button key={s} type="button" className="lp-chip" aria-pressed={status === s} onClick={() => setStatus(s)}>{s}<b>{countOf(s)}</b></button>
-          ))}
-        </div>
-
-        {rows.length === 0 && <div className="lp-empty">No permission requests match these filters.</div>}
-        <ul className="lp-plist">
-          {rows.map((r) => (
-            <li key={r.id} className={`lp-prow lp-prow--${r.status.toLowerCase()}`}>
-              <span className="lp-pav" style={{ "--h": hueOf(r.name) }}>{r.name.slice(0, 2).toUpperCase()}</span>
-              <div className="lp-pwho"><b>{r.name}{r.name === me.name && <i>You</i>}</b><small>{r.team}</small></div>
-              <div className="lp-pwhen"><b>{longDate(parseKey(r.from))}</b><span>{r.start} to {r.end} ({fmtHrs(permHrs(r))})</span></div>
-              <div className="lp-preason">{r.reason}</div>
-              <span className={`lp-tag lp-tag--${r.status.toLowerCase()}`}>{r.status}</span>
-              {r.name === me.name && r.status === "Pending" && <button type="button" className="lp-link" onClick={() => onRemove(r.id)}>Cancel</button>}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <aside className="lp-side lp-card" aria-label="Your permission">
-        <div className="lp-side__tabs" role="tablist">
-          <button role="tab" aria-selected={side === "apply"} onClick={() => setSide("apply")}>Apply</button>
-          <button role="tab" aria-selected={side === "mine"} onClick={() => setSide("mine")}>My requests <b>{mine.length}</b></button>
-        </div>
+    <div className="lp-ov" onClick={onClose}>
+      <div className="lp-modal" role="dialog" aria-modal="true" aria-label="Apply permission" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="lp-x" onClick={onClose} aria-label="Close">×</button>
+        <h3 className="lp-modal__title">Apply for permission</h3>
 
         <div className="lp-bal">
           <div className="lp-ring" style={{ "--p": usedPct }} role="img" aria-label={`${fmtHrs(usedHrs)} of ${QUOTA.hours} hours used this month`}>
             <div><b>{fmtHrs(left)}</b><small>left</small></div>
           </div>
-          <p>{MONTHS[TODAY.getMonth()]}: {fmtHrs(usedHrs)} used of {QUOTA.hours}h, {usedCount} of {QUOTA.count} requests. Approved hours show on your timesheet, so you are not marked short or late.</p>
+          <p>{MONTHS[TODAY.getMonth()]}: {fmtHrs(usedHrs)} used of {QUOTA.hours}h, {usedCount} of {QUOTA.count} requests.</p>
         </div>
 
-        {side === "apply" ? (
-          <div className="lp-form">
-            <div className="lp-form__grid">
-              <label className="lp-span">Date<input type="date" min={keyOf(TODAY)} value={date} onChange={(e) => { setDate(e.target.value); setError(""); }} /></label>
-              <label>From<input type="time" value={from} onChange={(e) => { setFrom(e.target.value); setError(""); }} /></label>
-              <label>To<input type="time" value={to} onChange={(e) => { setTo(e.target.value); setError(""); }} /></label>
-              <label className="lp-span">Reason
-                <select value={reason} onChange={(e) => setReason(e.target.value)}>{REASONS.map((r) => <option key={r}>{r}</option>)}</select>
-              </label>
-              <label className="lp-span">Note for your manager (optional)
-                <textarea rows="2" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Where are you going, and when will you be back?" />
-              </label>
-            </div>
-            <div className="lp-form__foot">
-              <span className="lp-form__len">{asking > 0 ? `Asking for ${fmtHrs(asking)}` : "Choose start and end time"}</span>
-              <button type="button" className="lp-btn" onClick={submit}>Send for approval</button>
-            </div>
-            {error && <p className="lp-msg lp-msg--err" role="alert">{error}</p>}
-            {done && <p className="lp-msg lp-msg--ok" role="status">{done}</p>}
+        <div className="lp-form">
+          <div className="lp-form__grid">
+            <label className="lp-span">Date<input type="date" min={keyOf(TODAY)} value={date} onChange={(e) => { setDate(e.target.value); setError(""); }} /></label>
+            <label>From<input type="time" value={from} onChange={(e) => { setFrom(e.target.value); setError(""); }} /></label>
+            <label>To<input type="time" value={to} onChange={(e) => { setTo(e.target.value); setError(""); }} /></label>
+            <label className="lp-span">Reason
+              <select value={reason} onChange={(e) => setReason(e.target.value)}>{REASONS.map((r) => <option key={r}>{r}</option>)}</select>
+            </label>
+            <label className="lp-span">Note for your manager (optional)
+              <textarea rows="2" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Where are you going, and when will you be back?" />
+            </label>
           </div>
-        ) : (
-          <ul className="lp-mine">
-            {mine.length === 0 && <li className="lp-empty">You have not asked for permission yet.</li>}
-            {[...mine].sort((a, b) => b.from.localeCompare(a.from)).map((r) => (
-              <li key={r.id}>
-                <div className="lp-hist__main">
-                  <b>{longDate(parseKey(r.from))}</b>
-                  <span>{r.start} to {r.end} ({fmtHrs(permHrs(r))}), {r.reason}</span>
-                  {r.status === "Rejected" && r.note && <span className="lp-mine__note">{r.note}</span>}
-                </div>
-                <span className={`lp-tag lp-tag--${r.status.toLowerCase()}`}>{r.status}</span>
-                {r.status === "Pending" && <button type="button" className="lp-link" onClick={() => onRemove(r.id)}>Cancel</button>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </aside>
+          <div className="lp-form__foot">
+            <span className="lp-form__len">{asking > 0 ? `Asking for ${fmtHrs(asking)}` : "Choose start and end time"}</span>
+            <button type="button" className="lp-btn" onClick={submit}>Send for approval</button>
+          </div>
+          {error && <p className="lp-msg lp-msg--err" role="alert">{error}</p>}
+          {done && <p className="lp-msg lp-msg--ok" role="status">{done}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Permission: full-width list + many filters + approve/reject ---------- */
+const permHrs = (r) => (toMin(r.end) - toMin(r.start)) / 60;
+const hueOf = (name) => (name.charCodeAt(0) * 37 + name.length * 11) % 360;
+
+function Permission({ queue, me, onRemove, onApply, onDecide }) {
+  // All permission requests except mine (super admin)
+  const all = useMemo(
+    () => queue.filter((r) => r.type === "Permission" && r.name !== me.name),
+    [queue, me.name]
+  );
+  const mine = useMemo(
+    () => queue.filter((r) => r.type === "Permission" && r.name === me.name),
+    [queue, me.name]
+  );
+
+  const [status, setStatus] = useState("All");
+  const [team, setTeam] = useState("all");
+  const [q, setQ] = useState("");
+  const [reasonFilter, setReasonFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [showApply, setShowApply] = useState(false);
+  const [rejecting, setRejecting] = useState(null);
+  const [note, setNote] = useState("");
+
+  const teams = [...new Set(all.map((r) => r.team))];
+  const base = all.filter((r) => {
+    if (team !== "all" && r.team !== team) return false;
+    if (reasonFilter !== "all" && r.reason !== reasonFilter) return false;
+    if (dateFrom && r.from < dateFrom) return false;
+    if (dateTo && r.from > dateTo) return false;
+    if (q.trim() && !r.name.toLowerCase().includes(q.trim().toLowerCase())) return false;
+    return true;
+  });
+  const countOf = (s) => base.filter((r) => s === "All" || r.status === s).length;
+  const rows = base.filter((r) => status === "All" || r.status === status)
+    .sort((a, b) => b.from.localeCompare(a.from) || b.start.localeCompare(a.start));
+  const outToday = all.filter((r) => r.from === keyOf(TODAY) && r.status !== "Rejected");
+
+  const decide = (r, s, n = "") => {
+    if (onDecide) onDecide(r.id, s, n);
+    setRejecting(null);
+    setNote("");
+  };
+
+  const clearFilters = () => {
+    setQ(""); setTeam("all"); setStatus("All"); setReasonFilter("all"); setDateFrom(""); setDateTo("");
+  };
+
+  return (
+    <div className="lp-perm">
+      <div className="lp-ptop">
+        <div className="lp-ptop__title">
+          <h3>Permission requests</h3>
+          <small>{rows.length} of {all.length} shown</small>
+        </div>
+        <button type="button" className="lp-btn" onClick={() => setShowApply(true)}>＋ Apply permission</button>
+      </div>
+
+      {outToday.length > 0 && (
+        <div className="lp-out">
+          <b>Out on permission today</b>
+          <span>{outToday.map((r) => `${r.name} ${r.start}–${r.end}${r.status === "Pending" ? " (pending)" : ""}`).join(", ")}</span>
+        </div>
+      )}
+
+      <div className="lp-pfilters">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by employee name" aria-label="Search employee" />
+        <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team">
+          <option value="all">All teams</option>
+          {teams.map((t) => <option key={t}>{t}</option>)}
+        </select>
+        <select value={reasonFilter} onChange={(e) => setReasonFilter(e.target.value)} aria-label="Reason">
+          <option value="all">All reasons</option>
+          {REASONS.map((r) => <option key={r}>{r}</option>)}
+        </select>
+        <label className="lp-dfilter">From
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="From date" />
+        </label>
+        <label className="lp-dfilter">To
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="To date" />
+        </label>
+        <button type="button" className="lp-link" onClick={clearFilters}>Clear filters</button>
+      </div>
+
+      <div className="lp-chips" role="group" aria-label="Filter by status">
+        {["All", "Pending", "Approved", "Rejected"].map((s) => (
+          <button key={s} type="button" className="lp-chip" aria-pressed={status === s} onClick={() => setStatus(s)}>{s}<b>{countOf(s)}</b></button>
+        ))}
+      </div>
+
+      {rows.length === 0 && <div className="lp-empty">No permission requests match these filters.</div>}
+      <ul className="lp-plist">
+        {rows.map((r) => (
+          <li key={r.id} className={`lp-prow lp-prow--${r.status.toLowerCase()}`}>
+            <span className="lp-pav" style={{ "--h": hueOf(r.name) }}>{r.name.slice(0, 2).toUpperCase()}</span>
+            <div className="lp-pwho"><b>{r.name}</b><small>{r.team}</small></div>
+            <div className="lp-pwhen"><b>{longDate(parseKey(r.from))}</b><span>{r.start} to {r.end} ({fmtHrs(permHrs(r))})</span></div>
+            <div className="lp-preason">{r.reason}</div>
+            <span className={`lp-tag lp-tag--${r.status.toLowerCase()}`}>{r.status}</span>
+
+            {r.status === "Pending" ? (
+              <div className="lp-pact">
+                <button type="button" className="lp-btn lp-btn--ok" onClick={() => decide(r, "Approved")}>Approve</button>
+                <button type="button" className="lp-btn lp-btn--no" onClick={() => { setRejecting(rejecting === r.id ? null : r.id); setNote(""); }}>Reject</button>
+              </div>
+            ) : (
+              r.note && <small className="lp-pnote">Note: {r.note}</small>
+            )}
+
+            {rejecting === r.id && (
+              <div className="lp-reject">
+                <input autoFocus value={note} onChange={(e) => setNote(e.target.value)} placeholder="Tell them why (they will see this)" aria-label={`Reason for rejecting ${r.name}`} />
+                <button type="button" className="lp-btn lp-btn--no" disabled={!note.trim()} onClick={() => decide(r, "Rejected", note.trim())}>Confirm reject</button>
+                <button type="button" className="lp-link" onClick={() => setRejecting(null)}>Cancel</button>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {showApply && (
+        <ApplyPermissionModal
+          me={me}
+          mine={mine}
+          onClose={() => setShowApply(false)}
+          onApply={onApply}
+        />
+      )}
     </div>
   );
 }
 
 /* ---------- Page ---------- */
-// homeCountry: the employee's own country (shown first). onApplyPermission(req): save to your API.
-// me: the logged-in employee { name, team } (must match the names in `approvals`).
-// isAdmin: super admin gets an extra "Approvals" tab with everyone's leave + permission requests.
-// approvals: array of requests (see DEMO_REQUESTS). onDecision(id, status, note): save the decision to your API.
 export default function LeavePermission({ homeCountry = "IN", holidays = HOLIDAYS, leaves = LEAVES, onApplyPermission, isAdmin = false, approvals = DEMO_REQUESTS, onDecision, me = { name: "Arun", team: "Operations Team" } }) {
   const [tab, setTab] = useState("holidays");
   const [queue, setQueue] = useState(approvals);
-  const addReq = (r) => setQueue((qs) => [r, ...qs]);
   const removeReq = (id) => setQueue((qs) => qs.filter((r) => r.id !== id));
-  const waiting = queue.filter((r) => r.status === "Pending").length;
+  const waiting = queue.filter((r) => r.status === "Pending" && r.name !== me.name).length;
   const decide = (id, status, note) => {
     setQueue((qs) => qs.map((r) => (r.id === id ? { ...r, status, note } : r)));
     if (onDecision) onDecision(id, status, note);
@@ -316,7 +371,7 @@ export default function LeavePermission({ homeCountry = "IN", holidays = HOLIDAY
       </div>
 
       {tab === "holidays" && <Holidays homeCountry={homeCountry} holidays={holidays} />}
-      {tab === "permission" && <Permission queue={queue} me={me} onAdd={addReq} onRemove={removeReq} onApply={onApplyPermission} />}
+      {tab === "permission" && <Permission queue={queue} me={me} onRemove={removeReq} onApply={onApplyPermission} onDecide={decide} />}
       {tab === "approvals" && isAdmin && <LeaveApprovals requests={queue} onDecide={decide} />}
     </div>
   );
