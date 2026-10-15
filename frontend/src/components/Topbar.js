@@ -3,11 +3,55 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Globe, Bell, ChevronDown, Check } from "lucide-react";
 import { NAV_SECTIONS, ROUTE_MAP } from "./Sidebar";
 
-// TODO: replace with real logged-in user data (from context / redux / API)
-const CURRENT_USER = {
-  name: "Janani Krishnan",
-  role: "Super Admin",
-};
+// ---------------------------------------------------------------------
+// Logged-in user (comes from your Django LoginView response).
+// After a successful login, AuthPage saves it like this:
+//   localStorage.setItem("lernevo_user", JSON.stringify({
+//     name, user_name, email, role, user_code
+//   }));
+// The helper below reads it back. It also tries a few common key names,
+// in case your AuthPage already saves the values separately.
+// ---------------------------------------------------------------------
+const FALLBACK_USER = { name: "User", role: "", email: "", user_code: "" };
+
+// "SUPER_ADMIN" -> "Super Admin", "TRAINER" -> "Trainer"
+function formatRole(role) {
+  if (!role) return "";
+  return String(role)
+    .replace(/[_-]+/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function readStoredUser() {
+  try {
+    const raw = localStorage.getItem("lernevo_user") || localStorage.getItem("user");
+    if (raw) {
+      const u = JSON.parse(raw);
+      return {
+        name: u.name || u.user_name || u.username || u.email || FALLBACK_USER.name,
+        role: u.role || u.user_role || "",
+        email: u.email || "",
+        user_code: u.user_code || "",
+      };
+    }
+    const get = (...keys) => {
+      for (const k of keys) {
+        const v = localStorage.getItem(k);
+        if (v) return v;
+      }
+      return "";
+    };
+    return {
+      name: get("name", "user_name", "username", "email") || FALLBACK_USER.name,
+      role: get("role", "user_role", "userRole"),
+      email: get("email"),
+      user_code: get("user_code"),
+    };
+  } catch (e) {
+    return FALLBACK_USER;
+  }
+}
 
 // TODO: replace with notifications from your API.
 // Each item: { id, name, role, text, time, read, link }
@@ -71,9 +115,12 @@ function colorFor(name) {
 }
 
 export default function Topbar({
-  user = CURRENT_USER,
+  user: userProp,
   initialNotifications = DUMMY_NOTIFICATIONS,
 }) {
+  // Real logged-in user (from login response). A `user` prop still overrides it.
+  const [storedUser] = useState(readStoredUser);
+  const user = userProp || storedUser;
   const location = useLocation();
   const navigate = useNavigate();
   const [now, setNow] = useState(new Date());
@@ -469,7 +516,7 @@ export default function Topbar({
           <div className="lv-avatar">{getInitials(user.name)}</div>
           <div>
             <div className="lv-user-name">{user.name}</div>
-            <div className="lv-user-role">{user.role}</div>
+            <div className="lv-user-role">{formatRole(user.role) || "Member"}</div>
           </div>
           <ChevronDown />
         </div>

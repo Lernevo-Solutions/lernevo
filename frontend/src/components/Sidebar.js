@@ -29,6 +29,8 @@ CalendarCheck,
  UserRoundCheck,
   BriefcaseBusiness,
   UserRoundCog,
+  UserRoundPlus,
+  UserRoundMinus,
   ChartNoAxesCombined,
   
 
@@ -47,6 +49,7 @@ export const ROUTE_MAP = {
   Payslips: "/payslip",
   "Compliance Documents": "/document",
   Profile: "/profile",
+  "Leave and Permissions": "/leave-permission",
 };
 
 export const NAV_SECTIONS = [
@@ -67,15 +70,13 @@ export const NAV_SECTIONS = [
   label: "HR Operations",
   items: [
     { icon: CalendarDays, label: "Timesheets" },
-    { icon: Clock, label: "My Timesheet" },
-    { icon: Users, label: "Team Timesheet" },
-    { icon: ClipboardCheck, label: "Approvals" },
     { icon: CalendarCheck, label: "Leave and Permissions" },
     { icon: Wallet, label: "Payslips" },
     { icon: FileText, label: "Compliance Documents" },
-    { icon: UserRoundCheck, label: "Performance & Talent" },
-    { icon: BriefcaseBusiness, label: "Job Requisition" },
-    { icon: UserRoundCog, label: "Onboarding & Offboarding" },
+    { icon: UserRoundCheck, label: "Goals Review" },
+    { icon: BriefcaseBusiness, label: "Job Portal" },
+    { icon: UserRoundPlus, label: "Onboarding" },
+    { icon: UserRoundMinus, label: "Offboarding" },
     { icon: ChartNoAxesCombined, label: "HR Reports" },
     { icon: Settings, label: "Settings" },
   ],

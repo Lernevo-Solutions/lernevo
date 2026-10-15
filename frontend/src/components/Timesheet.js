@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./Timesheet.css";
+import EmployeeTimesheet from "./Employeetimesheet";
 
 /* =====================================================================
    Timesheet — super-admin view for ANY company or team. Shifts, work types,
@@ -15,7 +16,7 @@ const LOCK_BEFORE = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDat
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const HOLIDAYS = { "2026-10-02": "Gandhi Jayanti", "2026-11-10": "Diwali", "2026-12-25": "Christmas" };
+const HOLIDAYS = { "2026-10-02": "Gandhi Jayanti", "2026-10-20": "Dussehra", "2026-11-08": "Diwali", "2026-12-25": "Christmas" };
 
 // Rotational week-off pattern (0 = Sun). Week 1: Sun+Mon, Week 2: Tue, Week 3: Sat+Sun
 const ROTA_OFF = [[0, 1], [2], [6, 0]];
@@ -31,7 +32,7 @@ const TZ = "Asia/Kolkata";
    Pass your own <Timesheet config={...} /> with your shifts, departments,
    work types and employees. Nothing here is tied to one industry. */
 const DEFAULT_CONFIG = {
-  labels: { employees: "Employees", departments: "Departments" },
+  labels: { employees: "Employees", departments: "Departments", teams: "Teams" },
   tasks: ["Project work", "Meetings", "Operations", "Training", "Support"],
   shifts: {
     general: { name: "General shift", workDays: [1, 2, 3, 4, 5], start: "09:00", end: "18:00", brk: 1, tz: TZ, desc: "Mon–Fri" },
@@ -39,15 +40,29 @@ const DEFAULT_CONFIG = {
     late: { name: "Late shift", workDays: [1, 2, 3, 4, 5, 6], start: "14:00", end: "22:00", brk: 0.5, tz: TZ, desc: "Mon–Sat" },
     rota: { name: "Rotational", rota: true, start: "09:00", end: "18:00", brk: 1, tz: TZ, desc: "3-week rotation" },
   },
+  // One super admin sees many teams. `lead` = id of the employee who leads that team.
+  teams: [
+    { id: "ops", name: "Operations Team", lead: 1 },
+    { id: "sales", name: "Sales Team", lead: 8 },
+    { id: "support", name: "Support Team", lead: 12 },
+    { id: "fin", name: "Finance & Admin Team", lead: 3 },
+  ],
+  // `team` = id of the team the person belongs to
   employees: [
-    { id: 1, name: "Arun", role: "Team Lead", dept: "Operations", rule: "general", leaves: [d(6)] },
-    { id: 2, name: "Divya", role: "Executive", dept: "Sales", rule: "general", leaves: [d(-1)] },
-    { id: 3, name: "Karthik", role: "Analyst", dept: "Finance", rule: "general", leaves: [d(-10)] },
-    { id: 4, name: "Priya", role: "Coordinator", dept: "Admin", rule: "general", leaves: [d(-1)] },
-    { id: 5, name: "Meena", role: "Supervisor", dept: "Operations", rule: "early", leaves: [d(1)] },
-    { id: 6, name: "Ravi", role: "Associate", dept: "Support", rule: "late", leaves: [d(-2)] },
-    { id: 7, name: "Sana", role: "Associate", dept: "Support", rule: "rota", leaves: [] },
-    { id: 8, name: "Vikram", role: "Manager", dept: "Sales", rule: "rota", leaves: [d(1)] },
+    { id: 1, name: "Arun", role: "Team Lead", dept: "Operations", team: "ops", rule: "general", leaves: [d(6)] },
+    { id: 5, name: "Meena", role: "Supervisor", dept: "Operations", team: "ops", rule: "early", leaves: [d(1)] },
+    { id: 9, name: "Lakshmi", role: "Associate", dept: "Operations", team: "ops", rule: "early", leaves: [d(-4)] },
+    { id: 14, name: "Hari", role: "Associate", dept: "Operations", team: "ops", rule: "late", leaves: [] },
+    { id: 8, name: "Vikram", role: "Manager", dept: "Sales", team: "sales", rule: "rota", leaves: [d(1)] },
+    { id: 2, name: "Divya", role: "Executive", dept: "Sales", team: "sales", rule: "general", leaves: [d(-1)] },
+    { id: 10, name: "Suresh", role: "Executive", dept: "Sales", team: "sales", rule: "general", leaves: [d(3)] },
+    { id: 12, name: "Bala", role: "Team Lead", dept: "Support", team: "support", rule: "general", leaves: [] },
+    { id: 6, name: "Ravi", role: "Associate", dept: "Support", team: "support", rule: "late", leaves: [d(-2)] },
+    { id: 7, name: "Sana", role: "Associate", dept: "Support", team: "support", rule: "rota", leaves: [] },
+    { id: 11, name: "Anitha", role: "Associate", dept: "Support", team: "support", rule: "late", leaves: [d(-6)] },
+    { id: 3, name: "Karthik", role: "Analyst", dept: "Finance", team: "fin", rule: "general", leaves: [d(-10)] },
+    { id: 13, name: "Nisha", role: "Accountant", dept: "Finance", team: "fin", rule: "general", leaves: [] },
+    { id: 4, name: "Priya", role: "Coordinator", dept: "Admin", team: "fin", rule: "general", leaves: [d(-1)] },
   ],
 };
 
@@ -83,9 +98,26 @@ const getRange = (view, anchor) =>
     : [new Date(anchor.getFullYear(), anchor.getMonth(), 1), new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0)];
 
 const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const hhmm = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+// "09:00" -> "9", "18:05" -> "6:05"; a range reads like "9 to 6"
+const clock12 = (t) => { const [h, m] = t.split(":").map(Number); return `${h % 12 || 12}${m ? `:${String(m).padStart(2, "0")}` : ""}`; };
+const span = (a, b) => `${clock12(a)} to ${clock12(b)}`;
 const stdHours = (r) => ((toMin(r.end) - toMin(r.start) + 1440) % 1440) / 60 - r.brk;
 const timeRange = (r) => `${r.start}–${r.end}${toMin(r.end) <= toMin(r.start) ? " (+1)" : ""}`;
 const weekTarget = (emp) => stdHours(emp.r) * (emp.r.rota ? 5 : emp.r.workDays.length);
+
+/** Demo: split the day's hours over 1-3 tasks. Real data should come from the API as [{ task, hours }]. */
+function splitWork(hours, startIdx, tasks, extra) {
+  const n = Math.min(1 + extra, tasks.length);
+  const weights = [[1], [0.6, 0.4], [0.5, 0.3, 0.2]][n - 1];
+  let left = hours;
+  return weights.map((w, i) => {
+    const h = i === n - 1 ? left : Math.round(hours * w * 4) / 4;
+    left -= h;
+    const taskIdx = (startIdx + i) % tasks.length;
+    return { task: tasks[taskIdx], taskIdx, hours: h };
+  });
+}
 
 /** Shift rule -> what kind of day is this for this employee? (demo logic) */
 function getDayInfo(date, emp) {
@@ -108,7 +140,12 @@ function getDayInfo(date, emp) {
   if (diff < 0 && (date.getDate() + emp.id) % 23 === 1) return { type: "missing", std, task, taskIdx }; // demo only
 
   const hours = std + [0, 0.25, 0, 0.5, 0][(date.getDate() + emp.id) % 5];
-  return { type: "work", hours, std, task, taskIdx, ot: hours - std, status: diff >= -2 ? "Pending" : "Approved" }; // today and the last 2 days stay Pending
+  // demo clock-in / clock-out (your API returns the real times); out = in + hours worked + break
+  const inM = toMin(r.start) + [0, -10, 5, 0, -5][(date.getDate() * 3 + emp.id) % 5];
+  const inT = hhmm(inM);
+  const outT = hhmm(inM + Math.round(hours * 60) + Math.round(r.brk * 60));
+  const works = splitWork(hours, taskIdx, emp.tasks, (date.getDate() + emp.id) % 3);
+  return { type: "work", hours, std, task, taskIdx, works, inT, outT, ot: hours - std, status: diff >= -2 ? "Pending" : "Approved" }; // today and the last 2 days stay Pending
 }
 
 function calcTotals(from, to, emp, infoOf) {
@@ -155,31 +192,105 @@ function Kpi({ label, value, sub, icon, tone, children }) {
   );
 }
 
-/* One day box in the weekly view */
-function DayCell({ info, emp }) {
-  const r = emp.r;
-  if (info.type === "off") return <div className="ts-dc ts-dc--off">Week off</div>;
-  if (info.type === "leave") return <div className="ts-dc ts-dc--leave">On leave</div>;
-  if (info.type === "holiday") return <div className="ts-dc ts-dc--hol"><b>{info.label}</b><small>Holiday</small></div>;
+/* Status text shared by the compact box and the detail popup */
+const statusOf = (info) => {
+  switch (info.type) {
+    case "work": return info.status === "Approved" ? { kind: "ok", text: "Approved" } : { kind: "pend", text: "Pending approval" };
+    case "scheduled": return { kind: "scheduled", text: "Scheduled" };
+    case "missing": return { kind: "missing", text: "No timesheet" };
+    case "leave": return { kind: "leave", text: "On leave" };
+    case "holiday": return { kind: "hol", text: `Holiday: ${info.label}` };
+    default: return { kind: "off", text: "Week off" };
+  }
+};
+const longDate = (day) => `${DAYS[day.getDay()]}, ${day.getDate()} ${MONTHS[day.getMonth()]} ${day.getFullYear()}`;
 
-  const kind = info.type === "work" ? (info.status === "Approved" ? "ok" : "pend") : info.type;
-  const statusText = { ok: "Approved", pend: "Pending approval", scheduled: "Scheduled", missing: "No timesheet" }[kind];
-  const hours = info.type === "work" ? fmt(info.hours) : info.type === "scheduled" ? fmt(info.std) : "—";
+/* One COMPACT day box in the weekly view: only hours + status. Click it for everything else. */
+function DayCell({ info, day, emp, onOpen }) {
+  const open = () => onOpen(emp.id, day);
+  const aria = `${emp.name}, ${longDate(day)}: ${statusOf(info).text}. Click for details`;
+  if (info.type === "off") return <button type="button" className="ts-dc ts-dc--off" onClick={open} aria-label={aria}>Off</button>;
+  if (info.type === "leave") return <button type="button" className="ts-dc ts-dc--leave" onClick={open} aria-label={aria}>Leave</button>;
+  if (info.type === "holiday") return <button type="button" className="ts-dc ts-dc--hol" onClick={open} aria-label={aria}>Holiday</button>;
+
+  const { kind } = statusOf(info);
+  const statusText = { ok: "Approved", pend: "Pending", scheduled: "Scheduled", missing: "Missing" }[kind];
+  const time = info.type === "work" ? span(info.inT, info.outT) : info.type === "scheduled" ? span(emp.r.start, emp.r.end) : "—";
   return (
-    <div className={`ts-dc ts-dc--${kind}`} title={`${timeRange(r)} · ${r.brk}h break · ${info.task}`}>
-      <span className="ts-time">{timeRange(r)}</span>
-      <span className="ts-hours">
-        {hours}
-        {info.ot > 0 && <em className="ts-otchip">+{fmt(info.ot)} OT</em>}
-      </span>
-      <span className={`ts-task ts-tk-${info.taskIdx % 6}`}>{info.task}</span>
+    <button type="button" className={`ts-dc ts-dc--${kind}`} onClick={open} aria-label={aria} title="Click for details">
+      <span className="ts-hours ts-clock">{time}</span>
       <span className="ts-st">{statusText}</span>
+    </button>
+  );
+}
+
+/* Popup with the FULL details of one employee-day. Opens when any day box is clicked. */
+function DayDetail({ emp, day, info, locked, onClose, onApprove }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const r = emp.r;
+  const st = statusOf(info);
+  const isShiftDay = ["work", "scheduled", "missing"].includes(info.type);
+  const rows = [["Shift", r.name], ["Shift time", timeRange(r)], ["Break", `${r.brk}h`], ["Standard hours", fmt(stdHours(r))]];
+  if (info.type === "work") rows.push(["Clock in", info.inT], ["Clock out", info.outT], ["Hours worked", fmt(info.hours)], ["Overtime", info.ot > 0 ? `+${fmt(info.ot)}` : "None"]);
+  if (info.type === "scheduled") rows.push(["Planned work", info.task]);
+  if (emp.teamName) rows.push(["Team", emp.teamName]);
+  rows.push(["Department", emp.dept]);
+
+  return (
+    <div className="ts-ov" onClick={onClose}>
+      <div className="ts-modal" role="dialog" aria-modal="true" aria-label={`${emp.name} timesheet for ${longDate(day)}`} onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="ts-x" onClick={onClose} aria-label="Close">×</button>
+        <div className="ts-md-head">
+          <Avatar emp={emp} />
+          <div>
+            <b>{emp.name}</b>
+            <small>{emp.role} · {emp.dept}</small>
+          </div>
+        </div>
+        <div className="ts-md-date">{longDate(day)}</div>
+        <span className={`ts-pill ts-pill--${st.kind}`}>{st.text}</span>
+
+        {isShiftDay ? (
+          <dl className="ts-md-rows">
+            {rows.map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
+          </dl>
+        ) : (
+          <dl className="ts-md-rows">
+            {rows.filter(([k]) => k === "Department" || k === "Shift" || k === "Team").map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
+          </dl>
+        )}
+
+        {info.type === "work" && (
+          <div className="ts-md-work">
+            <h4>Work done</h4>
+            <ul>
+              {info.works.map((w) => (
+                <li key={w.task}>
+                  <span className={`ts-task ts-tk-${w.taskIdx % 6}`}>{w.task}</span>
+                  <b>{fmt(w.hours)}</b>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {info.type === "work" && info.status === "Pending" && (
+          locked
+            ? <p className="ts-md-note">🔒 This week is signed off and locked.</p>
+            : <button type="button" className="ts-btn ts-btn--pri ts-md-act" onClick={() => onApprove(emp, day)}>Approve this day</button>
+        )}
+      </div>
     </div>
   );
 }
 
 /* ---------- Weekly: one row per employee, one box per day, coverage on top ---------- */
-function WeekView({ list, totals, from, to, infoOf, onPick, onApprove }) {
+function WeekView({ list, totals, from, to, infoOf, onPick, onApprove, onOpen, showTeam }) {
   const days = daysBetween(from, to);
   const locked = to < LOCK_BEFORE;
   const todayKey = keyOf(TODAY);
@@ -231,20 +342,22 @@ function WeekView({ list, totals, from, to, infoOf, onPick, onApprove }) {
                 <div>
                   <button className="ts-name" onClick={() => onPick(e.id)}>{e.name}</button>
                   <small>{e.role}</small>
-                  <small>{e.r.name}</small>
+                  <small>{showTeam ? e.teamName : e.r.name}</small>
                 </div>
               </div>
-              {days.map((day) => <DayCell key={keyOf(day)} info={infoOf(day, e)} emp={e} />)}
+              {days.map((day) => <DayCell key={keyOf(day)} info={infoOf(day, e)} day={day} emp={e} onOpen={onOpen} />)}
               <div className="ts-tot">
-                <b>{fmt(t.total)}</b><span className="ts-of">of {fmt(target)}</span>
+                <span className="ts-tot-top"><b>{fmt(t.total)}</b><span className="ts-of">of {fmt(target)}</span></span>
                 <span className="ts-prog"><i style={{ width: `${fill}%` }} /></span>
-                <span className="ts-meta">{t.ot > 0 ? `OT ${fmt(t.ot)}` : "No overtime"} · {t.leave} leave</span>
-                {t.missing > 0 && <span className="ts-badge ts-missing">{t.missing} missing</span>}
-                {!locked && t.pending > 0 && (
-                  <button className="ts-approve" onClick={() => onApprove([e])}>
-                    Approve {t.pending} {t.pending === 1 ? "day" : "days"}
-                  </button>
-                )}
+                <span className="ts-tot-bot">
+                  <span className="ts-meta">{t.ot > 0 ? `OT ${fmt(t.ot)}` : "No OT"} · {t.leave} leave</span>
+                  {t.missing > 0 && <span className="ts-badge ts-missing">{t.missing} missing</span>}
+                  {!locked && t.pending > 0 && (
+                    <button className="ts-approve" onClick={() => onApprove([e])}>
+                      Approve {t.pending} {t.pending === 1 ? "day" : "days"}
+                    </button>
+                  )}
+                </span>
               </div>
             </div>
           );
@@ -273,14 +386,14 @@ function GridCell({ info, isToday }) {
 const cellTitle = (day, info) => {
   const base = `${DAYS[day.getDay()]} ${day.getDate()} ${MONTHS[day.getMonth()].slice(0, 3)}`;
   const label = {
-    work: `${fmt(info.hours || 0)} worked${info.ot > 0 ? ` (+${fmt(info.ot)} OT)` : ""} · ${info.status}`,
+    work: `${info.inT ? `${info.inT} to ${info.outT}, ` : ""}${fmt(info.hours || 0)} worked${info.ot > 0 ? ` (+${fmt(info.ot)} OT)` : ""} · ${info.status}`,
     off: "Week off", leave: "On leave", holiday: `Holiday: ${info.label}`,
     missing: "No timesheet", scheduled: "Scheduled",
   }[info.type];
   return `${base} — ${label}`;
 };
 
-function TeamGrid({ list, totals, from, to, infoOf, onPick }) {
+function TeamGrid({ list, totals, from, to, infoOf, onPick, onOpen, showTeam }) {
   const days = daysBetween(from, to);
   const todayKey = keyOf(TODAY);
   const onDuty = days.map((day) => list.filter((e) => ["work", "scheduled", "missing"].includes(infoOf(day, e).type)).length);
@@ -307,13 +420,13 @@ function TeamGrid({ list, totals, from, to, infoOf, onPick }) {
               <Avatar emp={e} />
               <div>
                 <button className="ts-name" onClick={() => onPick(e.id)}>{e.name}</button>
-                <small>{e.role}</small>
+                <small>{showTeam ? e.teamName : e.role}</small>
               </div>
             </div>
             <div className="ts-mdays">
               {days.map((day) => {
                 const info = infoOf(day, e);
-                return <span key={keyOf(day)} title={cellTitle(day, info)} className="ts-gwrap"><GridCell info={info} isToday={keyOf(day) === todayKey} /></span>;
+                return <button type="button" key={keyOf(day)} title={cellTitle(day, info)} className="ts-gwrap" onClick={() => onOpen(e.id, day)}><GridCell info={info} isToday={keyOf(day) === todayKey} /></button>;
               })}
             </div>
             <div className="ts-mtot">
@@ -343,8 +456,8 @@ function DayTag({ info }) {
     case "work":
       return (
         <div className={`ts-tag ${info.status === "Approved" ? "ts-tag--ok" : "ts-tag--pend"}`}>
-          <b>{fmt(info.hours)}</b>
-          <small>{info.ot > 0 ? `+${fmt(info.ot)} OT · ` : ""}{info.status}</small>
+          <b className="ts-clock">{span(info.inT, info.outT)}</b>
+          <small>{fmt(info.hours)}{info.ot > 0 ? ` (+${fmt(info.ot)} OT)` : ""} · {info.status}</small>
         </div>
       );
     case "off": return <div className="ts-tag ts-tag--off">Week off</div>;
@@ -356,7 +469,7 @@ function DayTag({ info }) {
   }
 }
 
-function MonthCalendar({ emp, from, to, infoOf }) {
+function MonthCalendar({ emp, from, to, infoOf, onOpen }) {
   const weeks = [];
   for (let s = mondayOf(from); s <= to; s = addDays(s, 7)) weeks.push(daysBetween(s, addDays(s, 6)));
   return (
@@ -374,7 +487,8 @@ function MonthCalendar({ emp, from, to, infoOf }) {
               {w.map((day) => {
                 const inMonth = day.getMonth() === from.getMonth();
                 return (
-                  <div key={keyOf(day)} className={`ts-cell ${inMonth ? "" : "is-out"} ${keyOf(day) === keyOf(TODAY) ? "is-today" : ""}`}>
+                  <div key={keyOf(day)} className={`ts-cell ${inMonth ? "ts-cell--click" : "is-out"} ${keyOf(day) === keyOf(TODAY) ? "is-today" : ""}`}
+                    {...(inMonth ? { role: "button", tabIndex: 0, onClick: () => onOpen(emp.id, day), onKeyDown: (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); onOpen(emp.id, day); } } } : {})}>
                     <span className="ts-n">{day.getDate()}</span>
                     {inMonth && <DayTag info={infoOf(day, emp)} />}
                   </div>
@@ -389,7 +503,7 @@ function MonthCalendar({ emp, from, to, infoOf }) {
   );
 }
 
-function MonthCalendars({ list, totals, from, to, infoOf, onPick }) {
+function MonthCalendars({ list, totals, from, to, infoOf, onPick, onOpen }) {
   return list.map((e, n) => (
     <section key={e.id} className="ts-emp">
       <div className="ts-pf">
@@ -401,13 +515,18 @@ function MonthCalendars({ list, totals, from, to, infoOf, onPick }) {
         <span className="ts-chip">OT {fmt(totals[n].ot)}</span>
         <span className="ts-chip">Attendance {totals[n].attendance}%</span>
       </div>
-      <MonthCalendar emp={e} from={from} to={to} infoOf={infoOf} />
+      <MonthCalendar emp={e} from={from} to={to} infoOf={infoOf} onOpen={onOpen} />
     </section>
   ));
 }
 
 /* ---------- Main page ---------- */
-export default function Timesheet({ config = DEFAULT_CONFIG }) {
+// myEmployeeId = the logged-in user (from your session). onAddTimesheet = what the "+ Add Timesheet" button should do.
+// config.teams = [{ id, name, lead }]  and every employee has `team: <team id>`.  No teams in config = old single-list page.
+export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP001", onAddTimesheet }) {
+  const hasTeams = Boolean(config.teams && config.teams.length);
+  const [page, setPage] = useState("team"); // "team" = everyone (filter by team / search), "mine" = My Timesheet
+  const [teamId, setTeamId] = useState("all");
   const [view, setView] = useState("week");
   const [layout, setLayout] = useState("grid"); // monthly: "grid" | "calendar"
   const [anchor, setAnchor] = useState(TODAY);
@@ -416,10 +535,16 @@ export default function Timesheet({ config = DEFAULT_CONFIG }) {
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
   const [approved, setApproved] = useState(() => new Set());
+  const [detail, setDetail] = useState(null); // { empId, day } of the clicked box
 
-  const labels = config.labels || DEFAULT_CONFIG.labels;
+  const labels = { ...DEFAULT_CONFIG.labels, ...(config.labels || {}) };
   const emps = useMemo(
-    () => config.employees.map((e) => ({ ...e, r: config.shifts[e.rule], tasks: config.tasks })),
+    () => config.employees.map((e) => ({
+      ...e,
+      r: config.shifts[e.rule],
+      tasks: config.tasks,
+      teamName: ((config.teams || []).find((t) => t.id === e.team) || {}).name || "",
+    })),
     [config]
   );
   const infoOf = useCallback((day, e) => {
@@ -429,16 +554,21 @@ export default function Timesheet({ config = DEFAULT_CONFIG }) {
 
   const [from, to] = useMemo(() => getRange(view, anchor), [view, anchor]);
 
+  // people of the team that is open ("all" = everybody)
+  const scoped = useMemo(() => emps.filter((e) => teamId === "all" || e.team === teamId), [emps, teamId]);
+  const openTeamInfo = (config.teams || []).find((t) => t.id === teamId);
+  const openLead = openTeamInfo ? emps.find((e) => e.id === openTeamInfo.lead) : null;
+
   const { list, totals } = useMemo(() => {
-    const base = emps.filter((e) =>
+    const base = scoped.filter((e) =>
       (dept === "all" || e.dept === dept) &&
       (empId === "all" || e.id === Number(empId)) &&
-      e.name.toLowerCase().includes(query.toLowerCase()));
+      `${e.name} ${e.teamName}`.toLowerCase().includes(query.trim().toLowerCase()));
     const all = base.map((e) => calcTotals(from, to, e, infoOf));
     const keep = all.map((t) =>
       status === "all" || (status === "pending" && t.pending > 0) || (status === "missing" && t.missing > 0) || (status === "leave" && t.leave > 0));
     return { list: base.filter((_, i) => keep[i]), totals: all.filter((_, i) => keep[i]) };
-  }, [emps, dept, empId, query, status, from, to, infoOf]);
+  }, [scoped, dept, empId, query, status, from, to, infoOf]);
   const agg = useMemo(() => sumTotals(totals), [totals]);
 
   const move = (n) =>
@@ -454,15 +584,54 @@ export default function Timesheet({ config = DEFAULT_CONFIG }) {
       return next;
     });
 
+  const openTeam = (id) => { setTeamId(id); setEmpId("all"); setDept("all"); setStatus("all"); setQuery(""); };
+  const openDay = useCallback((eid, day) => setDetail({ empId: eid, day }), []);
+  const closeDay = useCallback(() => setDetail(null), []);
+  const approveDay = (e, day) => setApproved((prev) => new Set(prev).add(`${e.id}:${keyOf(day)}`));
+  const detailEmp = detail ? emps.find((e) => e.id === detail.empId) : null;
+  const goMine = () => setPage("mine");
+
   const label = view === "month"
     ? `${MONTHS[from.getMonth()]} ${from.getFullYear()}`
     : `${from.getDate()} ${MONTHS[from.getMonth()].slice(0, 3)} – ${to.getDate()} ${MONTHS[to.getMonth()].slice(0, 3)} ${to.getFullYear()}`;
 
+  const viewTabs = (
+    <div className="ts-tabs" role="tablist">
+      {["week", "month"].map((v) => (
+        <button key={v} role="tab" aria-selected={view === v} className="ts-tab" onClick={() => setView(v)}>
+          {v === "week" ? "Weekly" : "Monthly"}
+        </button>
+      ))}
+    </div>
+  );
+  const navBox = (
+    <div className="ts-nav">
+      <button className="ts-btn" onClick={() => move(-1)} aria-label="Previous">‹</button>
+      <span className="ts-lbl">{label}</span>
+      <button className="ts-btn" onClick={() => move(1)} aria-label="Next">›</button>
+      <button className="ts-btn ts-btn--pri" onClick={() => setAnchor(TODAY)}>Today</button>
+    </div>
+  );
+
+  if (page === "mine") {
+    return (
+      <div className="ts-wrap">
+        <EmployeeTimesheet employeeId={myEmployeeId} onAddTimesheet={onAddTimesheet} onBack={() => setPage("team")} />
+      </div>
+    );
+  }
+
+  /* ===== Page 2: one team (or everyone) ===== */
+  const title = openTeamInfo ? openTeamInfo.name : "Timesheets";
   return (
     <div className="ts-wrap">
       <header className="ts-head">
-        <h1>Timesheets</h1>
-        <p>Hours, leave and overtime for everyone on the team, filled automatically from each person&apos;s shift.</p>
+        <h1>{title}</h1>
+        <p>
+          {openTeamInfo
+            ? `${openLead ? `Led by ${openLead.name} · ` : ""}${scoped.length} ${scoped.length === 1 ? "person" : "people"}. Hours, leave and overtime are filled automatically from each person's shift.`
+            : "Hours, leave and overtime for everyone, filled automatically from each person's shift."}
+        </p>
         <div className="ts-shifts">
           {Object.values(config.shifts).map((r) => (
             <span className="ts-chip" key={r.name}>
@@ -486,29 +655,30 @@ export default function Timesheet({ config = DEFAULT_CONFIG }) {
       <main className="ts-panel">
         <div className="ts-top">
         <div className="ts-filters">
+          {hasTeams && (
+            <select value={teamId} onChange={(e) => openTeam(e.target.value)} aria-label="Team">
+              <option value="all">All {labels.teams.toLowerCase()}</option>
+              {config.teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          )}
           <select value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
             <option value="all">All {labels.departments.toLowerCase()}</option>
-            {[...new Set(emps.map((e) => e.dept))].map((x) => <option key={x}>{x}</option>)}
+            {[...new Set(scoped.map((e) => e.dept))].map((x) => <option key={x}>{x}</option>)}
           </select>
           <select value={empId} onChange={(e) => setEmpId(e.target.value)} aria-label="Employee">
             <option value="all">All {labels.employees.toLowerCase()}</option>
-            {emps.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+            {scoped.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
           <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Status">
             {STATUS_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name" aria-label="Search employee" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or team" aria-label="Search by employee name or team" />
+          <button type="button" className="ts-btn ts-mine" onClick={goMine}>👤 My Timesheet</button>
         </div>
 
         <div className="ts-bar">
           <div className="ts-bar-l">
-            <div className="ts-tabs" role="tablist">
-              {["week", "month"].map((v) => (
-                <button key={v} role="tab" aria-selected={view === v} className="ts-tab" onClick={() => setView(v)}>
-                  {v === "week" ? "Weekly" : "Monthly"}
-                </button>
-              ))}
-            </div>
+            {viewTabs}
             {view === "month" && (
               <div className="ts-tabs ts-tabs--sm" role="tablist" aria-label="Monthly layout">
                 {[["grid", "Team grid"], ["calendar", "Calendars"]].map(([v, l]) => (
@@ -517,26 +687,21 @@ export default function Timesheet({ config = DEFAULT_CONFIG }) {
               </div>
             )}
             {empId !== "all" && (
-              <button className="ts-btn" onClick={() => setEmpId("all")}>Show everyone</button>
+              <button className="ts-btn" onClick={() => setEmpId("all")}>{teamId === "all" ? "Show everyone" : "Show whole team"}</button>
             )}
           </div>
-          <div className="ts-nav">
-            <button className="ts-btn" onClick={() => move(-1)} aria-label="Previous">‹</button>
-            <span className="ts-lbl">{label}</span>
-            <button className="ts-btn" onClick={() => move(1)} aria-label="Next">›</button>
-            <button className="ts-btn ts-btn--pri" onClick={() => setAnchor(TODAY)}>Today</button>
-          </div>
+          {navBox}
         </div>
         </div>
 
         {list.length === 0 ? (
           <div className="ts-empty">No employees match these filters. Clear a filter or search to see everyone.</div>
         ) : view === "week" ? (
-          <WeekView list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onApprove={approve} />
+          <WeekView list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onApprove={approve} onOpen={openDay} showTeam={teamId === "all" && hasTeams} />
         ) : layout === "grid" ? (
-          <TeamGrid list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} />
+          <TeamGrid list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onOpen={openDay} showTeam={teamId === "all" && hasTeams} />
         ) : (
-          <MonthCalendars list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} />
+          <MonthCalendars list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onOpen={openDay} />
         )}
 
         <div className="ts-legend">
@@ -555,6 +720,17 @@ export default function Timesheet({ config = DEFAULT_CONFIG }) {
             .map(([l, v]) => <div key={l}><small>{l}</small><b>{v}</b></div>)}
         </div>
       </main>
+
+      {detail && detailEmp && (
+        <DayDetail
+          emp={detailEmp}
+          day={detail.day}
+          info={infoOf(detail.day, detailEmp)}
+          locked={addDays(mondayOf(detail.day), 6) < LOCK_BEFORE}
+          onClose={closeDay}
+          onApprove={approveDay}
+        />
+      )}
     </div>
   );
 }
