@@ -370,3 +370,61 @@ button.sc-team { padding: 8px; gap: 10px; }
 }
 .sc-dm-item:hover { transform: translateY(-1px); border-color: var(--t); }
 .sc-dm-item:hover .sc-pen { color: var(--ts-blue); }
+
+/* ---------- Teams top bar + Month view (v5) ---------- */
+.sc-layout { display: block; }
+.sc-tbar { display: flex; align-items: center; gap: 10px; overflow-x: auto; padding: 10px; margin: 0 0 16px; background: var(--ts-card); border: 1px solid var(--ts-line); border-radius: var(--sc-r); }
+.sc-tchip { display: flex; align-items: center; gap: 4px; flex: none; padding: 4px 6px 4px 4px; border-radius: 14px; background: var(--ts-bg); border: 1.5px solid transparent; color: var(--ts-ink); font: inherit; text-align: left; cursor: pointer; transition: border-color .12s, background .12s; }
+button.sc-tchip { gap: 10px; padding: 6px 16px 6px 6px; }
+.sc-tchip:hover { border-color: var(--ts-focus); }
+.sc-tchip.is-on { border-color: var(--ts-blue); background: var(--ts-soft); }
+.sc-tchip-main { display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 2px; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.sc-tchip .sc-tt { max-width: 190px; }
+.sc-tnew { flex: none; white-space: nowrap; padding: 9px 14px; }
+
+/* month = same person x day board, one column per day, scrolls sideways */
+.sc-board--month { width: max-content; min-width: 0; }
+.sc-board--month .sc-brow { grid-template-columns: 150px repeat(var(--n), 84px); }
+.sc-board--month .sc-bday { padding: 6px 2px 5px; }
+.sc-board--month .sc-bday b { font-size: 16px; }
+.sc-board--month .sc-bday.is-wknd { opacity: .7; }
+.sc-board--month .sc-bday.is-today { opacity: 1; }
+.sc-board--month .sc-load { font-size: 10px; padding: 1px 7px; }
+.sc-board--month .sc-bcell { padding: 0 5px; gap: 3px; }
+.sc-board--month .sc-mchip { padding: 3px 5px; font-size: 11px; gap: 3px; }
+.sc-board--month .sc-more { padding: 2px 5px; font-size: 10px; }
+
+
+/* ---------- Country holidays (v6) ---------- */
+.sc-bcell.is-hol { background: var(--ts-penb); border-color: var(--ts-pen); }
+.sc-bcell.is-hol.is-today { border-color: var(--ts-blue); }
+.sc-htag { display: inline-flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; font-size: 11px; font-weight: 800; color: var(--ts-pen); }
+.sc-htag em { font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-htag--dot { position: absolute; top: 1px; left: 3px; font-size: 10px; line-height: 1; }
+.sc-htag--dot em { display: none; }
+.sc-board--month .sc-htag em { display: none; }
+.sc-board--month .sc-htag { margin: 0 auto; font-size: 14px; }
+.sc-board--month .sc-htag--dot { margin: 0; font-size: 10px; }
+.sc-hday { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; margin-top: 4px; padding: 1px 7px; border-radius: 99px; font-size: 10px; font-weight: 800; background: var(--ts-penb); color: var(--ts-pen); white-space: nowrap; }
+.sc-hday em { font-style: normal; overflow: hidden; text-overflow: ellipsis; }
+.sc-board--month .sc-hday em { display: none; }
+.sc-hday--inline { margin: 0; font-size: 11px; padding: 2px 9px; }
+.sc-bday { overflow: hidden; }
+.sc-holbar { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--ts-penb); color: var(--ts-pen); font-size: 13px; font-weight: 700; line-height: 1.45; }
+.sc-holbar b { font-weight: 800; }
+.sc-holbar--me { margin: 0 0 14px; }
+.sc-holnote { color: var(--ts-pen) !important; font-weight: 800; }
+.sc-lg-hol { color: var(--ts-pen); }
+.sc-sday-hol { position: absolute; top: 3px; right: 5px; font-style: normal; font-size: 11px; }
+.sc-sday { position: relative; }
+
+/* holiday chip is a button now + all-countries popup */
+button.sc-hday { border: 0; font-family: inherit; cursor: pointer; transition: filter .12s, transform .12s; }
+button.sc-hday:hover { filter: brightness(.95); transform: translateY(-1px); }
+.sc-hlist { list-style: none; margin: 0 0 6px; padding: 0; max-height: 52vh; overflow: auto; }
+.sc-hlist li { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 10px 12px; border-radius: 14px; background: var(--ts-penb); }
+.sc-hcode { flex: none; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 13px; font-weight: 800; background: var(--ts-card); color: var(--ts-pen); }
+.sc-hname { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.sc-hname b { font-size: 14px; font-weight: 800; color: var(--ts-ink); }
+.sc-hname small { font-size: 12px; color: var(--ts-mute); }
+.sc-hppl { flex: none; font-size: 12px; font-weight: 800; color: var(--ts-pen); }

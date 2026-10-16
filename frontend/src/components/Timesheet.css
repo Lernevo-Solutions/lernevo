@@ -399,3 +399,44 @@
 /* KPI cards: a little more life */
 .ts-kpi { position: relative; }
 .ts-kpi::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: var(--k-c); }
+
+/* ---------- Weekly board: tighter rows, ID + calculated / current hours (v2) ---------- */
+.ts-weekgrid { --cols: 200px repeat(7, minmax(0, 1fr)) 220px; min-width: 980px; }
+.ts-line { padding: 4px 0; gap: 5px; }
+.ts-line--head { padding-bottom: 4px; }
+.ts-dc { min-height: 42px; padding: 4px 8px; }
+.ts-who small { font-size: 11.5px; line-height: 1.3; }
+.ts-who .ts-eid { font-weight: 700; letter-spacing: .2px; }
+.ts-who .ts-hrs b { color: var(--ts-ink); font-weight: 800; }
+.ts-who .ts-hrs b.is-edited { color: var(--ts-pen); }
+.ts-tot { gap: 3px; }
+.ts-tot-top { flex-wrap: nowrap; align-items: center; }
+.ts-tot-top .ts-approve { margin-left: auto; padding: 4px 10px; white-space: nowrap; align-self: center; }
+.ts-tot-bot { gap: 3px 6px; }
+
+/* ---------- Day popup: edit mode + notes (v2) ---------- */
+.ts-modal { width: min(420px, 100%); }
+.ts-pill--edited { margin-left: 6px; }
+.ts-in {
+  background: var(--ts-card); color: var(--ts-ink); border: 1px solid var(--ts-line); border-radius: 8px;
+  padding: 5px 8px; font: inherit; font-size: 13px; font-weight: 700; width: 120px; text-align: right;
+}
+.ts-in:focus, .ts-md-notes textarea:focus { outline: 3px solid var(--ts-focus); outline-offset: 0; border-color: var(--ts-blue); }
+.ts-w-edit { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ts-w-edit li { display: flex; align-items: center; gap: 6px; }
+.ts-in--task { flex: 1; min-width: 0; width: auto; text-align: left; }
+.ts-in--h { width: 70px; }
+.ts-w-h { color: var(--ts-mute); font-size: 12px; font-weight: 700; }
+.ts-w-del { width: 28px; height: 28px; flex: none; border: 0; border-radius: 8px; background: var(--ts-lvb); color: var(--ts-lv); font-size: 18px; line-height: 1; cursor: pointer; }
+.ts-btn--sm { padding: 5px 11px; font-size: 12px; }
+.ts-md-hint { margin: 8px 0 0; color: var(--ts-pen); font-size: 12px; font-weight: 700; }
+.ts-md-notes { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--ts-line); }
+.ts-md-notes h4 { margin: 0 0 8px; font-size: 13px; font-weight: 800; color: var(--ts-mute); }
+.ts-md-notes textarea {
+  width: 100%; resize: vertical; min-height: 72px; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--ts-line);
+  background: var(--ts-card); color: var(--ts-ink); font: inherit; font-size: 13px; line-height: 1.45;
+}
+.ts-md-notes textarea:disabled { background: var(--ts-bg); color: var(--ts-mute); cursor: not-allowed; }
+.ts-md-err { margin: 12px 0 0; padding: 8px 11px; border-radius: 10px; background: var(--ts-lvb); color: var(--ts-lv); font-size: 13px; font-weight: 700; }
+.ts-md-acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.ts-link { display: block; margin: 10px 0 0 auto; border: 0; background: none; padding: 0; color: var(--ts-blue); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline; }

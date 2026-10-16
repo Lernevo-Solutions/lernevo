@@ -107,6 +107,34 @@ const span = (a, b) => `${clock12(a)} to ${clock12(b)}`;
 const stdHours = (r) => ((toMin(r.end) - toMin(r.start) + 1440) % 1440) / 60 - r.brk;
 const timeRange = (r) => `${r.start}–${r.end}${toMin(r.end) <= toMin(r.start) ? " (+1)" : ""}`;
 const weekTarget = (emp) => stdHours(emp.r) * (emp.r.rota ? 5 : emp.r.workDays.length);
+// Employee ID shown under the name (use `code` from your API if you have one, e.g. "EMP001")
+const empCode = (e) => e.code || `EMP${String(e.id).padStart(3, "0")}`;
+// hours between clock in and clock out, minus break
+const hoursOf = (inT, outT, brk) => Math.max(0, ((toMin(outT) - toMin(inT) + 1440) % 1440) / 60 - (Number(brk) || 0));
+// starting values of the edit form for one employee-day
+const formFrom = (info, emp) => ({
+  inT: info.inT || emp.r.start,
+  outT: info.outT || emp.r.end,
+  brk: info.brk != null ? info.brk : emp.r.brk,
+  works: info.type === "work" && info.works
+    ? info.works.map((w) => ({ task: w.task, hours: w.hours }))
+    : [{ task: emp.tasks[info.taskIdx || 0] || emp.tasks[0], hours: stdHours(emp.r) }],
+});
+// Admin edit (clock in/out, break, work done, notes) on top of the system-calculated day
+function applyEdit(info, ed, emp) {
+  if (!ed || (info.type !== "work" && info.type !== "missing")) return info;
+  const std = info.std != null ? info.std : stdHours(emp.r);
+  const hours = hoursOf(ed.inT, ed.outT, ed.brk);
+  const baseBrk = info.brk != null ? info.brk : emp.r.brk;
+  return {
+    ...info, type: "work", hours, std, ot: Math.max(0, hours - std),
+    inT: ed.inT, outT: ed.outT, brk: Number(ed.brk),
+    works: ed.works.map((w) => ({ task: w.task, taskIdx: Math.max(0, emp.tasks.indexOf(w.task)), hours: Number(w.hours) || 0 })),
+    notes: ed.notes || "", status: info.status || "Pending",
+    edited: info.type === "missing" || ed.inT !== info.inT || ed.outT !== info.outT || Number(ed.brk) !== Number(baseBrk),
+    calcHours: info.type === "work" ? info.hours : 0, // what the system calculated before the edit
+  };
+}
 
 /** Demo: split the day's hours over 1-3 tasks. Real data should come from the API as [{ task, hours }]. */
 function splitWork(hours, startIdx, tasks, extra) {
@@ -147,15 +175,15 @@ function getDayInfo(date, emp) {
   const inT = hhmm(inM);
   const outT = hhmm(inM + Math.round(hours * 60) + Math.round(r.brk * 60));
   const works = splitWork(hours, taskIdx, emp.tasks, (date.getDate() + emp.id) % 3);
-  return { type: "work", hours, std, task, taskIdx, works, inT, outT, ot: hours - std, status: diff >= -2 ? "Pending" : "Approved" }; // today and the last 2 days stay Pending
+  return { type: "work", hours, std, brk: r.brk, task, taskIdx, works, inT, outT, ot: hours - std, status: diff >= -2 ? "Pending" : "Approved" }; // today and the last 2 days stay Pending
 }
 
 function calcTotals(from, to, emp, infoOf) {
-  const t = { total: 0, regular: 0, ot: 0, leave: 0, off: 0, holiday: 0, missing: 0, workDays: 0, pending: 0 };
+  const t = { total: 0, calc: 0, regular: 0, ot: 0, leave: 0, off: 0, holiday: 0, missing: 0, workDays: 0, pending: 0 };
   daysBetween(from, to).forEach((day) => {
     const i = infoOf(day, emp);
     if (i.type === "work") {
-      t.total += i.hours; t.regular += i.std; t.ot += i.ot; t.workDays++;
+      t.total += i.hours; t.calc += i.calcHours != null ? i.calcHours : i.hours; t.regular += i.std; t.ot += i.ot; t.workDays++;
       if (i.status === "Pending") t.pending++;
     } else if (i.type === "leave") t.leave++;
     else if (i.type === "off") t.off++;
@@ -221,13 +249,14 @@ function DayCell({ info, day, emp, onOpen }) {
   return (
     <button type="button" className={`ts-dc ts-dc--${kind}`} onClick={open} aria-label={aria} title="Click for details">
       <span className="ts-hours ts-clock">{time}</span>
-      <span className="ts-st">{statusText}</span>
+      <span className="ts-st">{statusText}{info.type === "work" && info.edited ? " ✎" : ""}{info.type === "work" && info.notes ? " 📝" : ""}</span>
     </button>
   );
 }
 
-/* Popup with the FULL details of one employee-day. Opens when any day box is clicked. */
-function DayDetail({ emp, day, info, locked, onClose, onApprove }) {
+/* Popup with the FULL details of one employee-day. Opens when any day box is clicked.
+   Work / missing days can be edited here: clock in, clock out, break, work done and notes. */
+function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset }) {
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -236,12 +265,63 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove }) {
 
   const r = emp.r;
   const st = statusOf(info);
+  const std = info.std != null ? info.std : stdHours(r);
   const isShiftDay = ["work", "scheduled", "missing"].includes(info.type);
-  const rows = [["Shift", r.name], ["Shift time", timeRange(r)], ["Break", `${r.brk}h`], ["Standard hours", fmt(stdHours(r))]];
-  if (info.type === "work") rows.push(["Clock in", info.inT], ["Clock out", info.outT], ["Hours worked", fmt(info.hours)], ["Overtime", info.ot > 0 ? `+${fmt(info.ot)}` : "None"]);
+  const canEdit = !locked && (info.type === "work" || info.type === "missing");
+
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(null);
+  const [notes, setNotes] = useState(info.notes || "");
+  const [err, setErr] = useState("");
+  const notesDirty = notes !== (info.notes || "");
+
+  const setF = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const setWork = (i, patch) => setForm((f) => ({ ...f, works: f.works.map((w, j) => (j === i ? { ...w, ...patch } : w)) }));
+  const startEdit = () => { setForm(formFrom(info, emp)); setErr(""); setEditing(true); };
+  const cancelEdit = () => { setEditing(false); setErr(""); };
+  const reset = () => { onReset(emp, day); setNotes(""); setEditing(false); setErr(""); };
+
+  const live = editing ? hoursOf(form.inT, form.outT, form.brk) : info.hours;
+  const liveOt = Math.max(0, live - std);
+  const workTotal = editing ? form.works.reduce((a, w) => a + (Number(w.hours) || 0), 0) : 0;
+
+  const save = () => {
+    const f = editing ? form : formFrom(info, emp);
+    if (!f.inT || !f.outT) return setErr("Enter both clock in and clock out.");
+    if (!(Number(f.brk) >= 0)) return setErr("Break must be 0 or more hours.");
+    onSave(emp, day, {
+      inT: f.inT, outT: f.outT, brk: Number(f.brk),
+      works: f.works.filter((w) => w.task && Number(w.hours) > 0).map((w) => ({ task: w.task, hours: Number(w.hours) })),
+      notes: notes.trim(),
+    });
+    setEditing(false); setErr("");
+  };
+
+  const brkNow = info.brk != null ? info.brk : r.brk;
+  const rows = [["Shift", r.name], ["Shift time", timeRange(r)]];
+  rows.push(editing
+    ? ["Break (hours)", <input key="b" className="ts-in" type="number" min="0" step="0.25" value={form.brk} onChange={(e) => setF({ brk: e.target.value })} />]
+    : ["Break", `${brkNow}h`]);
+  rows.push(["Standard hours", fmt(std)]);
+  if (editing) {
+    rows.push(
+      ["Clock in", <input key="i" className="ts-in" type="time" value={form.inT} onChange={(e) => setF({ inT: e.target.value })} />],
+      ["Clock out", <input key="o" className="ts-in" type="time" value={form.outT} onChange={(e) => setF({ outT: e.target.value })} />],
+      ["Hours worked", fmt(live)],
+      ["Overtime", liveOt > 0 ? `+${fmt(liveOt)}` : "None"],
+    );
+  } else if (info.type === "work") {
+    rows.push(
+      ["Clock in", info.inT], ["Clock out", info.outT],
+      ["Calculated hours", fmt(info.calcHours != null ? info.calcHours : info.hours)],
+      ["Hours worked", `${fmt(info.hours)}${info.edited ? " (edited)" : ""}`],
+      ["Overtime", info.ot > 0 ? `+${fmt(info.ot)}` : "None"],
+    );
+  }
   if (info.type === "scheduled") rows.push(["Planned work", info.task]);
   if (emp.teamName) rows.push(["Team", emp.teamName]);
   rows.push(["Department", emp.dept]);
+  const shown = isShiftDay ? rows : rows.filter(([k]) => k === "Department" || k === "Shift" || k === "Team");
 
   return (
     <div className="ts-ov" onClick={onClose}>
@@ -251,37 +331,81 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove }) {
           <Avatar emp={emp} />
           <div>
             <b>{emp.name}</b>
-            <small>{emp.role} · {emp.dept}</small>
+            <small>{empCode(emp)} · {emp.role} · {emp.dept}</small>
           </div>
         </div>
         <div className="ts-md-date">{longDate(day)}</div>
         <span className={`ts-pill ts-pill--${st.kind}`}>{st.text}</span>
+        {info.edited && <span className="ts-pill ts-pill--pend ts-pill--edited">✎ Edited</span>}
 
-        {isShiftDay ? (
-          <dl className="ts-md-rows">
-            {rows.map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
-          </dl>
-        ) : (
-          <dl className="ts-md-rows">
-            {rows.filter(([k]) => k === "Department" || k === "Shift" || k === "Team").map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
-          </dl>
-        )}
+        <dl className="ts-md-rows">
+          {shown.map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
+        </dl>
 
-        {info.type === "work" && (
+        {info.type === "missing" && !editing && <p className="ts-md-note">No timesheet was filled for this day.</p>}
+
+        {(info.type === "work" || editing) && (
           <div className="ts-md-work">
             <h4>Work done</h4>
-            <ul>
-              {info.works.map((w) => (
-                <li key={w.task}>
-                  <span className={`ts-task ts-tk-${w.taskIdx % 6}`}>{w.task}</span>
-                  <b>{fmt(w.hours)}</b>
-                </li>
-              ))}
-            </ul>
+            {editing ? (
+              <>
+                <ul className="ts-w-edit">
+                  {form.works.map((w, i) => (
+                    <li key={i}>
+                      <select className="ts-in ts-in--task" value={w.task} onChange={(e) => setWork(i, { task: e.target.value })} aria-label="Work type">
+                        {emp.tasks.map((t) => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                      <input className="ts-in ts-in--h" type="number" min="0" step="0.25" value={w.hours} onChange={(e) => setWork(i, { hours: e.target.value })} aria-label="Hours" />
+                      <span className="ts-w-h">h</span>
+                      <button type="button" className="ts-w-del" aria-label="Remove this work" onClick={() => setForm((f) => ({ ...f, works: f.works.filter((_, j) => j !== i) }))}>×</button>
+                    </li>
+                  ))}
+                </ul>
+                <button type="button" className="ts-btn ts-btn--sm" onClick={() => setForm((f) => ({ ...f, works: [...f.works, { task: emp.tasks[0], hours: 1 }] }))}>＋ Add work</button>
+                {Math.abs(workTotal - live) > 0.01 && <p className="ts-md-hint">Work done adds up to {fmt(workTotal)} but hours worked is {fmt(live)}.</p>}
+              </>
+            ) : (
+              <ul>
+                {info.works.map((w, i) => (
+                  <li key={i}>
+                    <span className={`ts-task ts-tk-${w.taskIdx % 6}`}>{w.task}</span>
+                    <b>{fmt(w.hours)}</b>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
-        {info.type === "work" && info.status === "Pending" && (
+        {(info.type === "work" || editing) && (
+          <div className="ts-md-notes">
+            <h4>Notes</h4>
+            <textarea
+              rows={3} maxLength={500} value={notes} disabled={!canEdit}
+              placeholder={canEdit ? "Type a note for this day…" : "No notes"}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+        )}
+
+        {err && <p className="ts-md-err" role="alert">{err}</p>}
+
+        {editing ? (
+          <div className="ts-md-acts">
+            <button type="button" className="ts-btn" onClick={cancelEdit}>Cancel</button>
+            <button type="button" className="ts-btn ts-btn--pri" onClick={save}>Save changes</button>
+          </div>
+        ) : (
+          canEdit && (
+            <div className="ts-md-acts">
+              <button type="button" className="ts-btn" onClick={startEdit}>{info.type === "missing" ? "＋ Fill timesheet" : "✎ Edit"}</button>
+              {info.type === "work" && notesDirty && <button type="button" className="ts-btn ts-btn--pri" onClick={save}>Save note</button>}
+            </div>
+          )
+        )}
+        {!editing && info.edited && canEdit && <button type="button" className="ts-link" onClick={reset}>Reset to calculated hours</button>}
+
+        {info.type === "work" && info.status === "Pending" && !editing && (
           locked
             ? <p className="ts-md-note">🔒 This week is signed off and locked.</p>
             : <button type="button" className="ts-btn ts-btn--pri ts-md-act" onClick={() => onApprove(emp, day)}>Approve this day</button>
@@ -292,7 +416,7 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove }) {
 }
 
 /* ---------- Weekly: one row per employee, one box per day, coverage on top ---------- */
-function WeekView({ list, totals, from, to, infoOf, onPick, onApprove, onOpen, showTeam }) {
+function WeekView({ list, totals, from, to, infoOf, onPick, onApprove, onOpen }) {
   const days = daysBetween(from, to);
   const locked = to < LOCK_BEFORE;
   const todayKey = keyOf(TODAY);
@@ -343,22 +467,25 @@ function WeekView({ list, totals, from, to, infoOf, onPick, onApprove, onOpen, s
                 <Avatar emp={e} />
                 <div>
                   <button className="ts-name" onClick={() => onPick(e.id)}>{e.name}</button>
-                  <small>{e.role}</small>
-                  <small>{showTeam ? e.teamName : e.r.name}</small>
+                  <small className="ts-eid">{empCode(e)}</small>
+                  <small className="ts-hrs">Calculated: <b>{fmt(t.calc)}</b></small>
+                  <small className="ts-hrs">Current: <b className={Math.abs(t.calc - t.total) > 0.01 ? "is-edited" : ""}>{fmt(t.total)}</b></small>
                 </div>
               </div>
               {days.map((day) => <DayCell key={keyOf(day)} info={infoOf(day, e)} day={day} emp={e} onOpen={onOpen} />)}
               <div className="ts-tot">
-                <span className="ts-tot-top"><b>{fmt(t.total)}</b><span className="ts-of">of {fmt(target)}</span></span>
-                <span className="ts-prog"><i style={{ width: `${fill}%` }} /></span>
-                <span className="ts-tot-bot">
-                  <span className="ts-meta">{t.ot > 0 ? `OT ${fmt(t.ot)}` : "No OT"} · {t.leave} leave</span>
-                  {t.missing > 0 && <span className="ts-badge ts-missing">{t.missing} missing</span>}
+                <span className="ts-tot-top">
+                  <b>{fmt(t.total)}</b><span className="ts-of">of {fmt(target)}</span>
                   {!locked && t.pending > 0 && (
                     <button className="ts-approve" onClick={() => onApprove([e])}>
                       Approve {t.pending} {t.pending === 1 ? "day" : "days"}
                     </button>
                   )}
+                </span>
+                <span className="ts-prog"><i style={{ width: `${fill}%` }} /></span>
+                <span className="ts-tot-bot">
+                  <span className="ts-meta">{t.ot > 0 ? `OT ${fmt(t.ot)}` : "No OT"} · {t.leave} leave</span>
+                  {t.missing > 0 && <span className="ts-badge ts-missing">{t.missing} missing</span>}
                 </span>
               </div>
             </div>
@@ -560,6 +687,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
   const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
   const [approved, setApproved] = useState(() => new Set());
+  const [edits, setEdits] = useState({}); // admin edits per "empId:YYYY-MM-DD" (clock in/out, break, work done, notes)
   const [detail, setDetail] = useState(null); // { empId, day } of the clicked box
 
   const labels = { ...DEFAULT_CONFIG.labels, ...(config.labels || {}) };
@@ -573,9 +701,10 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
     [config, people, teams]
   );
   const infoOf = useCallback((day, e) => {
-    const i = getDayInfo(day, e);
-    return i.type === "work" && approved.has(`${e.id}:${keyOf(day)}`) ? { ...i, status: "Approved" } : i;
-  }, [approved]);
+    const k = `${e.id}:${keyOf(day)}`;
+    const i = applyEdit(getDayInfo(day, e), edits[k], e);
+    return i.type === "work" && approved.has(k) ? { ...i, status: "Approved" } : i;
+  }, [approved, edits]);
 
   const [from, to] = useMemo(() => getRange(view, anchor), [view, anchor]);
 
@@ -603,7 +732,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
     setApproved((prev) => {
       const next = new Set(prev);
       people.forEach((e) => daysBetween(from, to).forEach((day) => {
-        const i = getDayInfo(day, e);
+        const i = infoOf(day, e);
         if (i.type === "work" && i.status === "Pending") next.add(`${e.id}:${keyOf(day)}`);
       }));
       return next;
@@ -613,6 +742,8 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
   const openDay = useCallback((eid, day) => setDetail({ empId: eid, day }), []);
   const closeDay = useCallback(() => setDetail(null), []);
   const approveDay = (e, day) => setApproved((prev) => new Set(prev).add(`${e.id}:${keyOf(day)}`));
+  const saveEdit = (e, day, data) => setEdits((prev) => ({ ...prev, [`${e.id}:${keyOf(day)}`]: data }));
+  const resetEdit = (e, day) => setEdits((prev) => { const n = { ...prev }; delete n[`${e.id}:${keyOf(day)}`]; return n; });
   const detailEmp = detail ? emps.find((e) => e.id === detail.empId) : null;
   const isAdmin = role === "superadmin";
   const active = isAdmin && tab === "timesheet" ? "timesheet" : "scheduler";
@@ -752,7 +883,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
         {list.length === 0 ? (
           <div className="ts-empty">No employees match these filters. Clear a filter or search to see everyone.</div>
         ) : view === "week" ? (
-          <WeekView list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onApprove={approve} onOpen={openDay} showTeam={teamId === "all" && hasTeams} />
+          <WeekView list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onApprove={approve} onOpen={openDay} />
         ) : layout === "grid" ? (
           <TeamGrid list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onOpen={openDay} showTeam={teamId === "all" && hasTeams} />
         ) : (
@@ -778,12 +909,15 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
 
       {detail && detailEmp && (
         <DayDetail
+          key={`${detail.empId}:${keyOf(detail.day)}`}
           emp={detailEmp}
           day={detail.day}
           info={infoOf(detail.day, detailEmp)}
           locked={addDays(mondayOf(detail.day), 6) < LOCK_BEFORE}
           onClose={closeDay}
           onApprove={approveDay}
+          onSave={saveEdit}
+          onReset={resetEdit}
         />
       )}
       {teamModalEl}
