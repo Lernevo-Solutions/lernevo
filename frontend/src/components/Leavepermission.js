@@ -1,378 +1,63 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus, Search, Users, Clock3, CheckCircle2, XCircle, ClipboardList, X, Pencil, Trash2, Eye, UserRound, Check, Send } from "lucide-react";
 import "./Leavepermission.css";
-import LeaveApprovals, { DEMO_REQUESTS } from "./Leaveapprovals";
 
-/* =====================================================================
-   Leave & Permission page
-   - Holidays: India + foreign countries (filter by country)
-   - Permission: short time off during the work day (apply, balance, history)
-   Replace COUNTRIES / HOLIDAYS / LEAVES / SEED_REQUESTS with your API data.
-   ===================================================================== */
-
-const NOW = new Date();
-const TODAY = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
-const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-const keyOf = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const parseKey = (k) => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d); };
-const rel = (n) => keyOf(new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + n));
-const daysFromToday = (d) => Math.round((d - TODAY) / 864e5);
-const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
-const fmtHrs = (h) => { const m = Math.round(h * 60); return `${Math.floor(m / 60)}h${m % 60 ? ` ${m % 60}m` : ""}`; };
-const longDate = (d) => `${DOW[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
-const when = (n) => (n === 0 ? "Today" : n === 1 ? "Tomorrow" : n > 1 ? `In ${n} days` : "Passed");
-
-/* ---------- Demo data ---------- */
-const COUNTRIES = {
-  IN: { name: "India", flag: "🇮🇳" },
-  US: { name: "United States", flag: "🇺🇸" },
-  GB: { name: "United Kingdom", flag: "🇬🇧" },
-  AE: { name: "UAE", flag: "🇦🇪" },
-  SG: { name: "Singapore", flag: "🇸🇬" },
-};
+const TABS = ["Holiday Sets", "Holiday Calendar", "Permissions"];
 const HOLIDAYS = [
-  ["IN", "2026-01-15", "Pongal"], ["IN", "2026-01-26", "Republic Day"], ["IN", "2026-04-14", "Tamil New Year"],
-  ["IN", "2026-08-15", "Independence Day"], ["IN", "2026-10-02", "Gandhi Jayanti"], ["IN", "2026-10-20", "Dussehra"],
-  ["IN", "2026-11-08", "Diwali"], ["IN", "2026-12-25", "Christmas"],
-  ["US", "2026-01-01", "New Year's Day"], ["US", "2026-01-19", "Martin Luther King Jr. Day"], ["US", "2026-05-25", "Memorial Day"],
-  ["US", "2026-07-04", "Independence Day"], ["US", "2026-09-07", "Labor Day"], ["US", "2026-11-26", "Thanksgiving"], ["US", "2026-12-25", "Christmas"],
-  ["GB", "2026-01-01", "New Year's Day"], ["GB", "2026-04-03", "Good Friday"], ["GB", "2026-04-06", "Easter Monday"],
-  ["GB", "2026-05-04", "Early May bank holiday"], ["GB", "2026-05-25", "Spring bank holiday"], ["GB", "2026-08-31", "Summer bank holiday"],
-  ["GB", "2026-12-25", "Christmas Day"], ["GB", "2026-12-28", "Boxing Day (substitute)"],
-  ["AE", "2026-03-20", "Eid al-Fitr", true], ["AE", "2026-05-27", "Eid al-Adha", true], ["AE", "2026-12-02", "National Day"], ["AE", "2026-12-03", "National Day"],
-  ["SG", "2026-01-01", "New Year's Day"], ["SG", "2026-02-17", "Chinese New Year"], ["SG", "2026-02-18", "Chinese New Year"],
-  ["SG", "2026-04-03", "Good Friday"], ["SG", "2026-05-01", "Labour Day"], ["SG", "2026-12-25", "Christmas Day"],
-].map(([country, date, name, approx]) => ({ country, date, name, approx: Boolean(approx) }));
-
-const LEAVES = [
-  { name: "Casual leave", used: 3, total: 12 },
-  { name: "Sick leave", used: 1, total: 8 },
-  { name: "Earned leave", used: 4, total: 15 },
+  {id:1,date:"2026-01-14",name:"Pongal",scope:"Tamil Nadu",type:"Regional"},{id:2,date:"2026-01-15",name:"Thiruvalluvar Day",scope:"Tamil Nadu",type:"Regional"},{id:3,date:"2026-01-26",name:"Republic Day",scope:"India",type:"National"},{id:4,date:"2026-03-08",name:"Maha Shivaratri",scope:"Tamil Nadu",type:"Regional"},{id:5,date:"2026-04-14",name:"Tamil New Year",scope:"Tamil Nadu",type:"Regional"},{id:6,date:"2026-08-15",name:"Independence Day",scope:"India",type:"National"},{id:7,date:"2026-10-02",name:"Gandhi Jayanti",scope:"India",type:"National"},
 ];
+const INITIAL_SETS = [
+  {id:1,flag:"🇮🇳",name:"India – National Holidays",description:"Common holidays across India",region:"India",count:14,holidays:HOLIDAYS},
+  {id:2,flag:"🇮🇳",name:"India – Tamil Nadu",description:"State specific holidays",region:"Tamil Nadu",count:8,holidays:HOLIDAYS.filter(h=>h.scope==="Tamil Nadu")},
+  {id:3,flag:"🇺🇸",name:"United States – Federal Holidays",description:"Common holidays in US",region:"United States",count:8,holidays:[{id:11,date:"2026-01-01",name:"New Year's Day",scope:"United States",type:"National"},{id:12,date:"2026-07-04",name:"Independence Day",scope:"United States",type:"National"},{id:13,date:"2026-11-26",name:"Thanksgiving",scope:"United States",type:"National"}]},
+  {id:4,flag:"🇬🇧",name:"United Kingdom – Public Holidays",description:"Common holidays in UK",region:"United Kingdom",count:11,holidays:[{id:14,date:"2026-01-01",name:"New Year's Day",scope:"United Kingdom",type:"National"},{id:15,date:"2026-04-03",name:"Good Friday",scope:"United Kingdom",type:"National"}]},
+];
+const INITIAL_ASSIGNMENTS = [
+  {id:1,set:"India – National Holidays",flag:"🇮🇳",holidays:3,to:"Frontend Team",type:"Team",from:"2026-01-01",until:"2026-12-31",status:"Active",assigned:"12 Sep 2026"},
+  {id:2,set:"United States – Federal Holidays",flag:"🇺🇸",holidays:5,to:"Design Team",type:"Team",from:"2026-01-01",until:"2026-12-31",status:"Active",assigned:"10 Sep 2026"},
+  {id:3,set:"India – Tamil Nadu",flag:"🇮🇳",holidays:2,to:"Ravi Kumar",type:"Individual",from:"2026-01-01",until:"2026-12-31",status:"Active",assigned:"5 Sep 2026"},
+  {id:4,set:"India – National Holidays",flag:"🇮🇳",holidays:4,to:"Backend Team",type:"Team",from:"2026-10-01",until:"2026-12-31",status:"Upcoming",assigned:"2 Sep 2026"},
+  {id:5,set:"United Kingdom – Public Holidays",flag:"🇬🇧",holidays:6,to:"Priya Sharma",type:"Individual",from:"2026-01-01",until:"2026-12-31",status:"Active",assigned:"28 Aug 2026"},
+];
+const INITIAL_REQUESTS = [
+  {id:1,name:"Ananya S",code:"EMP0012",team:"Frontend Team",department:"Engineering",date:"2026-09-14",start:"10:30",end:"12:00",duration:1.5,reason:"Doctor appointment",details:"Regular health checkup with dermatologist.",status:"Pending",approver:"Ravi Kumar",applied:"2026-09-12",used:4.5,limit:12,available:7,teamAvailable:"7 of 8 members available"},
+  {id:2,name:"Ravi Kumar",code:"EMP0034",team:"Backend Team",department:"Engineering",date:"2026-09-14",start:"15:00",end:"16:30",duration:1.5,reason:"Personal work",details:"",status:"Approved",approver:"Ashok K",applied:"2026-09-10",used:3,limit:12,available:9,teamAvailable:"6 of 7 members available"},
+  {id:3,name:"Priya Sharma",code:"EMP0045",team:"HR Team",department:"HR",date:"2026-09-13",start:"11:00",end:"13:00",duration:2,reason:"Bank work",details:"",status:"Rejected",approver:"Ravi Kumar",applied:"2026-09-11",used:2,limit:12,available:10,teamAvailable:"4 of 5 members available"},
+  {id:4,name:"Karthik T",code:"EMP0061",team:"Accounts Team",department:"Finance",date:"2026-09-12",start:"14:00",end:"16:00",duration:2,reason:"Personal errand",details:"",status:"Pending",approver:"—",applied:"2026-09-10",used:1.5,limit:12,available:10.5,teamAvailable:"3 of 4 members available"},
+  {id:5,name:"Nithya S",code:"EMP0068",team:"Operations Team",department:"Operations",date:"2026-09-11",start:"10:00",end:"11:00",duration:1,reason:"School meeting",details:"Parent teacher meeting.",status:"Approved",approver:"Ashok K",applied:"2026-09-09",used:2,limit:12,available:10,teamAvailable:"7 of 8 members available"},
+  {id:6,name:"Arun P",code:"EMP0009",team:"Frontend Team",department:"Engineering",date:"2026-09-15",start:"13:00",end:"14:30",duration:1.5,reason:"Medical appointment",details:"Follow-up appointment.",status:"Pending",approver:"Ravi Kumar",applied:"2026-09-13",used:3,limit:12,available:9,teamAvailable:"7 of 8 members available"},
+];
+const TEAMS=["Frontend Team","Backend Team","Design Team","HR Team","Accounts Team","Operations Team"];
+const dayName=(v)=>new Date(`${v}T00:00:00`).toLocaleDateString("en-US",{weekday:"short"});
+const prettyDate=(v,opts={day:"numeric",month:"short",year:"numeric"})=>v?new Date(`${v}T00:00:00`).toLocaleDateString("en-GB",opts):"—";
+const hours=(a,b)=>{if(!a||!b)return 0;const [ah,am]=a.split(":").map(Number),[bh,bm]=b.split(":").map(Number);return Math.max(0,(bh*60+bm-ah*60-am)/60);};
+const cap=(s)=>s?s[0].toUpperCase()+s.slice(1):"";
 
-const SHIFT = { start: "09:00", end: "18:00" };
-const QUOTA = { hours: 6, maxPerRequest: 2, count: 4 }; // per month
-const REASONS = ["Doctor / medical", "Bank / government work", "Family function", "Personal work", "Other"];
-
-/* ---------- Holidays ---------- */
-function Holidays({ homeCountry, holidays }) {
-  const [country, setCountry] = useState("all");
-  const [hidePast, setHidePast] = useState(false);
-
-  const items = useMemo(() => holidays
-    .filter((h) => country === "all" || h.country === country)
-    .map((h) => { const d = parseKey(h.date); return { ...h, d, diff: daysFromToday(d) }; })
-    .filter((h) => !hidePast || h.diff >= 0)
-    .sort((a, b) => a.d - b.d || a.country.localeCompare(b.country)), [holidays, country, hidePast]);
-
-  const next = items.find((h) => h.diff >= 0);
-  const countOf = (c) => holidays.filter((h) => c === "all" || h.country === c).length;
-  const order = [homeCountry, ...Object.keys(COUNTRIES).filter((c) => c !== homeCountry)];
-  const groups = [];
-  items.forEach((h) => {
-    const label = `${MONTHS[h.d.getMonth()]} ${h.d.getFullYear()}`;
-    const last = groups[groups.length - 1];
-    if (last && last.label === label) last.rows.push(h); else groups.push({ label, rows: [h] });
-  });
-
-  return (
-    <div>
-      <div className="lp-chips" role="group" aria-label="Filter by country">
-        {["all", ...order].map((c) => (
-          <button key={c} type="button" className="lp-chip" aria-pressed={country === c} onClick={() => setCountry(c)}>
-            <span aria-hidden="true">{c === "all" ? "🌍" : COUNTRIES[c].flag}</span>
-            {c === "all" ? "All countries" : COUNTRIES[c].name}
-            <b>{countOf(c)}</b>
-          </button>
-        ))}
-        <label className="lp-switch">
-          <input type="checkbox" checked={hidePast} onChange={(e) => setHidePast(e.target.checked)} /> Hide past holidays
-        </label>
-      </div>
-
-      {next && (
-        <div className="lp-next">
-          <span className="lp-next__flag" aria-hidden="true">{COUNTRIES[next.country].flag}</span>
-          <div>
-            <small>Next holiday</small>
-            <b>{next.name}</b>
-            <span>{COUNTRIES[next.country].name}, {longDate(next.d)}</span>
-          </div>
-          <span className="lp-next__when">{when(next.diff)}</span>
-        </div>
-      )}
-
-      {groups.length === 0 && <div className="lp-empty">No holidays to show. Turn off "Hide past holidays" or pick another country.</div>}
-      {groups.map((g) => (
-        <section key={g.label} className="lp-month">
-          <h3>{g.label}</h3>
-          <ul className="lp-hgrid">
-            {g.rows.map((h) => {
-              const weekend = h.d.getDay() === 0 || h.d.getDay() === 6;
-              return (
-                <li key={h.country + h.date + h.name} className={`lp-hcard ${h.diff < 0 ? "is-past" : ""} ${next && next === h ? "is-next" : ""}`}>
-                  <div className="lp-hcard__date"><small>{DOW[h.d.getDay()]}</small><b>{h.d.getDate()}</b></div>
-                  <div className="lp-hcard__main">
-                    <b>{h.name}{h.approx ? " (approx.)" : ""}</b>
-                    <span>{COUNTRIES[h.country].flag} {COUNTRIES[h.country].name}{weekend ? ", falls on a weekend" : ""}</span>
-                  </div>
-                  <span className="lp-hcard__when">{when(h.diff)}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
-    </div>
-  );
+function Modal({title,close,children}){return <div className="lp-overlay" onMouseDown={e=>e.target===e.currentTarget&&close()}><section className="lp-modal" role="dialog" aria-modal="true"><button className="lp-close" onClick={close}><X size={17}/></button><h2>{title}</h2>{children}</section></div>}
+function Status({value}){return <span className={`lp-status ${String(value).toLowerCase()}`}>{value}</span>}
+function HolidaySets({sets,setSets,selected,setSelected,modal,setModal,assignments,setAssignments}){
+ const [query,setQuery]=useState("");const [holidayQuery,setHolidayQuery]=useState("");const [year,setYear]=useState("2026");const [selectedIds,setSelectedIds]=useState([1,2,3]);const [assigneeType,setAssigneeType]=useState("Team");const [assignee,setAssignee]=useState(TEAMS[0]);const [validFrom,setValidFrom]=useState("2026-01-01");const [validTo,setValidTo]=useState("2026-12-31");const [note,setNote]=useState("");
+ const set=sets.find(s=>s.id===selected)||sets[0];const holidays=(set?.holidays||[]).filter(h=>h.date.startsWith(year)&&`${h.name} ${h.scope}`.toLowerCase().includes(holidayQuery.toLowerCase()));
+ const assign=()=>{setAssignments([{id:Date.now(),set:set.name,flag:set.flag,holidays:selectedIds.length||set.holidays.length,to:assignee,type:assigneeType,from:validFrom,until:validTo,status:"Active",assigned:"Today"},...assignments]);setSelectedIds([]);setNote("");};
+ return <div className="lp-holiday-grid"><section className="lp-card lp-set-list"><div className="lp-card-heading"><div><h2>Holiday Sets</h2><p>Manage holiday sets for different countries, regions or offices.</p></div></div><div className="lp-filter-row"><label className="lp-search"><Search size={15}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search holiday sets…"/></label><select aria-label="Country filter"><option>All</option><option>India</option><option>United States</option><option>United Kingdom</option></select></div><div className="lp-set-items">{sets.filter(s=>s.name.toLowerCase().includes(query.toLowerCase())).map(s=><button key={s.id} className={`lp-set-item ${s.id===set?.id?"chosen":""}`} onClick={()=>setSelected(s.id)}><span className="lp-flag">{s.flag}</span><span className="lp-set-copy"><b>{s.name}</b><small>{s.description}</small></span><span className="lp-count">{s.count} holidays</span><ChevronRight size={14}/></button>)}</div><button className="lp-button lp-button-outline lp-full" onClick={()=>setModal("Create Holiday Set")}><Plus size={16}/> Create Holiday Set</button></section>
+ <section className="lp-card lp-set-detail"><div className="lp-card-heading"><div className="lp-set-title"><span className="lp-flag big">{set?.flag}</span><span><h2>{set?.name}</h2><p>{set?.description}</p></span></div><div className="lp-actions"><button className="lp-button lp-button-outline" onClick={()=>setModal("Edit Holiday Set")}><Pencil size={14}/> Edit</button><button className="lp-button" onClick={()=>setModal("Assign Holidays")}><Plus size={15}/> Assign Holidays</button><button className="lp-icon-action danger" title="Delete holiday set" onClick={()=>setSets(sets.filter(s=>s.id!==set.id))}><Trash2 size={15}/></button></div></div><div className="lp-set-stats"><div><CalendarDays/><b>{set?.count}</b><small>Total Holidays</small></div><div><Users/><b>{assignments.filter(a=>a.set===set?.name&&a.type==="Team").length}</b><small>Teams Assigned</small></div><div><UserRound/><b>{assignments.filter(a=>a.set===set?.name&&a.type==="Individual").length}</b><small>Employees Assigned</small></div></div><div className="lp-subtabs"><button className="active">Holidays ({set?.holidays.length})</button><button onClick={()=>{}}>Assigned To ({assignments.filter(a=>a.set===set?.name).length})</button></div><div className="lp-filter-row"><label className="lp-search"><Search size={15}/><input value={holidayQuery} onChange={e=>setHolidayQuery(e.target.value)} placeholder="Search holidays…"/></label><select value={year} onChange={e=>setYear(e.target.value)}><option>2026</option><option>2027</option><option>2025</option></select></div><div className="lp-table-wrap"><table><thead><tr><th></th><th>Date ↕</th><th>Day</th><th>Holiday Name</th><th>Scope</th><th>Type</th><th>Actions</th></tr></thead><tbody>{holidays.map(h=><tr key={h.id}><td><input type="checkbox" checked={selectedIds.includes(h.id)} onChange={e=>setSelectedIds(e.target.checked?[...selectedIds,h.id]:selectedIds.filter(i=>i!==h.id))}/></td><td>{prettyDate(h.date)}</td><td>{dayName(h.date)}</td><td><b>{h.name}</b></td><td>{h.scope}</td><td><span className={`lp-pill ${h.type.toLowerCase()}`}>{h.type}</span></td><td><button className="lp-icon-action" title="Edit holiday" onClick={()=>setModal("Edit Holiday")}><Pencil size={14}/></button><button className="lp-icon-action danger" title="Delete holiday" onClick={()=>setSets(sets.map(x=>x.id===set.id?{...x,holidays:x.holidays.filter(v=>v.id!==h.id),count:Math.max(0,x.count-1)}:x))}><Trash2 size={14}/></button></td></tr>)}</tbody></table></div></section>
+ {modal&&modal!=="Assign Holidays"&&<Modal title={modal} close={()=>setModal(null)}><form className="lp-form" onSubmit={e=>{e.preventDefault();if(modal.includes("Holiday Set")){const fd=new FormData(e.currentTarget);const next={id:Date.now(),flag:"🌐",name:fd.get("name"),description:fd.get("description")||"Custom holiday set",region:"Custom",count:0,holidays:[]};setSets(modal.startsWith("Edit")?sets.map(s=>s.id===set.id?{...s,...next,id:s.id}:s):[next,...sets]);setSelected(next.id)}setModal(null)}}><label>Holiday set name<input name="name" defaultValue={modal.startsWith("Edit")?set?.name:""} placeholder="e.g. India — National Holidays" required/></label><label>Country / Region<input name="region" placeholder="Country or region" required/></label><label>Description<textarea name="description" placeholder="Describe this holiday set"/></label><div className="lp-modal-actions"><button type="button" className="lp-button lp-button-outline" onClick={()=>setModal(null)}>Cancel</button><button className="lp-button">Save Holiday Set</button></div></form></Modal>}{modal==="Assign Holidays"&&<Modal title="Assign Holidays" close={()=>setModal(null)}><p>Assign selected holidays to a team or employee.</p><form className="lp-form" onSubmit={e=>{e.preventDefault();assign()}}><div className="lp-selected-box"><b>Selected Holidays ({selectedIds.length})</b>{(set?.holidays||[]).filter(h=>selectedIds.includes(h.id)).map(h=><div className="lp-selected-holiday" key={h.id}><span>{prettyDate(h.date,{day:"numeric",month:"short"})}</span><span>{h.name}</span><button type="button" onClick={()=>setSelectedIds(selectedIds.filter(i=>i!==h.id))}><X size={13}/></button></div>)}</div><fieldset><legend>Assign to *</legend><label className="lp-radio"><input type="radio" name="assignTo" checked={assigneeType==="Team"} onChange={()=>{setAssigneeType("Team");setAssignee(TEAMS[0])}}/> Team</label><label className="lp-radio"><input type="radio" name="assignTo" checked={assigneeType==="Individual"} onChange={()=>{setAssigneeType("Individual");setAssignee("Ananya S")}}/> Individual Employee</label></fieldset><label>Select {assigneeType}<select value={assignee} onChange={e=>setAssignee(e.target.value)}>{(assigneeType==="Team"?TEAMS:["Ananya S","Ravi Kumar","Priya Sharma","Karthik T"]).map(x=><option key={x}>{x}</option>)}</select></label><fieldset><legend>Apply for *</legend><label className="lp-radio"><input type="radio" name="apply" defaultChecked/> Selected holidays</label><label className="lp-radio"><input type="radio" name="apply" onChange={()=>setSelectedIds(set.holidays.map(h=>h.id))}/> Entire holiday set</label></fieldset><div className="lp-inline-fields"><label>Valid From<input type="date" value={validFrom} onChange={e=>setValidFrom(e.target.value)}/></label><label>To<input type="date" value={validTo} onChange={e=>setValidTo(e.target.value)}/></label></div><label>Note (optional)<textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Add a note…"/></label><div className="lp-modal-actions"><button type="button" className="lp-button lp-button-outline" onClick={()=>setModal(null)}>Cancel</button><button className="lp-button"><Send size={15}/> Assign Holidays</button></div></form></Modal>}</div>
 }
-
-/* ---------- Apply permission popup (modal) ---------- */
-function ApplyPermissionModal({ me, mine, onClose, onApply }) {
-  const [date, setDate] = useState(keyOf(TODAY));
-  const [from, setFrom] = useState("10:00");
-  const [to, setTo] = useState("11:00");
-  const [reason, setReason] = useState(REASONS[0]);
-  const [note, setNote] = useState("");
-  const [error, setError] = useState("");
-  const [done, setDone] = useState("");
-
-  const monthKey = keyOf(TODAY).slice(0, 7);
-  const usedHrs = mine.filter((r) => r.from.startsWith(monthKey) && r.status !== "Rejected").reduce((s, r) => s + (toMin(r.end) - toMin(r.start)) / 60, 0);
-  const usedCount = mine.filter((r) => r.from.startsWith(monthKey) && r.status !== "Rejected").length;
-  const left = Math.max(0, QUOTA.hours - usedHrs);
-  const usedPct = Math.min(100, Math.round((100 * usedHrs) / QUOTA.hours));
-  const asking = (toMin(to) - toMin(from)) / 60;
-
-  const submit = () => {
-    setDone("");
-    if (!date || parseKey(date) < TODAY) return setError("Pick today or a future date.");
-    if (!(asking > 0)) return setError("End time must be after start time.");
-    if (toMin(from) < toMin(SHIFT.start) || toMin(to) > toMin(SHIFT.end)) return setError(`Permission must be within your shift, ${SHIFT.start} to ${SHIFT.end}.`);
-    if (asking > QUOTA.maxPerRequest) return setError(`One permission can be at most ${QUOTA.maxPerRequest} hours.`);
-    const d = parseKey(date);
-    const sameMonth = mine.filter((r) => r.from.slice(0, 7) === date.slice(0, 7) && r.status !== "Rejected");
-    const usedThere = sameMonth.reduce((s, r) => s + (toMin(r.end) - toMin(r.start)) / 60, 0);
-    if (sameMonth.length >= QUOTA.count) return setError(`You have used all ${QUOTA.count} permissions for ${MONTHS[d.getMonth()]}.`);
-    if (usedThere + asking > QUOTA.hours + 0.001) return setError(`Only ${fmtHrs(Math.max(0, QUOTA.hours - usedThere))} left for ${MONTHS[d.getMonth()]}.`);
-    if (mine.some((r) => r.from === date && r.status !== "Rejected" && toMin(from) < toMin(r.end) && toMin(to) > toMin(r.start))) return setError("You already have a permission at this time.");
-    const req = { id: Date.now(), name: me.name, team: me.team, type: "Permission", kind: "Permission", from: date, to: date, start: from, end: to, reason, note: "", applied: keyOf(TODAY), status: "Pending" };
-    if (onApply) onApply({ ...req, comment: note.trim() });
-    setError(""); setNote("");
-    setDone(`Sent to your manager: ${longDate(d)}, ${from} to ${to}.`);
-  };
-
-  return (
-    <div className="lp-ov" onClick={onClose}>
-      <div className="lp-modal" role="dialog" aria-modal="true" aria-label="Apply permission" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="lp-x" onClick={onClose} aria-label="Close">×</button>
-        <h3 className="lp-modal__title">Apply for permission</h3>
-
-        <div className="lp-bal">
-          <div className="lp-ring" style={{ "--p": usedPct }} role="img" aria-label={`${fmtHrs(usedHrs)} of ${QUOTA.hours} hours used this month`}>
-            <div><b>{fmtHrs(left)}</b><small>left</small></div>
-          </div>
-          <p>{MONTHS[TODAY.getMonth()]}: {fmtHrs(usedHrs)} used of {QUOTA.hours}h, {usedCount} of {QUOTA.count} requests.</p>
-        </div>
-
-        <div className="lp-form">
-          <div className="lp-form__grid">
-            <label className="lp-span">Date<input type="date" min={keyOf(TODAY)} value={date} onChange={(e) => { setDate(e.target.value); setError(""); }} /></label>
-            <label>From<input type="time" value={from} onChange={(e) => { setFrom(e.target.value); setError(""); }} /></label>
-            <label>To<input type="time" value={to} onChange={(e) => { setTo(e.target.value); setError(""); }} /></label>
-            <label className="lp-span">Reason
-              <select value={reason} onChange={(e) => setReason(e.target.value)}>{REASONS.map((r) => <option key={r}>{r}</option>)}</select>
-            </label>
-            <label className="lp-span">Note for your manager (optional)
-              <textarea rows="2" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Where are you going, and when will you be back?" />
-            </label>
-          </div>
-          <div className="lp-form__foot">
-            <span className="lp-form__len">{asking > 0 ? `Asking for ${fmtHrs(asking)}` : "Choose start and end time"}</span>
-            <button type="button" className="lp-btn" onClick={submit}>Send for approval</button>
-          </div>
-          {error && <p className="lp-msg lp-msg--err" role="alert">{error}</p>}
-          {done && <p className="lp-msg lp-msg--ok" role="status">{done}</p>}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Permission: full-width list + many filters + approve/reject ---------- */
-const permHrs = (r) => (toMin(r.end) - toMin(r.start)) / 60;
-const hueOf = (name) => (name.charCodeAt(0) * 37 + name.length * 11) % 360;
-
-function Permission({ queue, me, onRemove, onApply, onDecide }) {
-  // All permission requests except mine (super admin)
-  const all = useMemo(
-    () => queue.filter((r) => r.type === "Permission" && r.name !== me.name),
-    [queue, me.name]
-  );
-  const mine = useMemo(
-    () => queue.filter((r) => r.type === "Permission" && r.name === me.name),
-    [queue, me.name]
-  );
-
-  const [status, setStatus] = useState("All");
-  const [team, setTeam] = useState("all");
-  const [q, setQ] = useState("");
-  const [reasonFilter, setReasonFilter] = useState("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [showApply, setShowApply] = useState(false);
-  const [rejecting, setRejecting] = useState(null);
-  const [note, setNote] = useState("");
-
-  const teams = [...new Set(all.map((r) => r.team))];
-  const base = all.filter((r) => {
-    if (team !== "all" && r.team !== team) return false;
-    if (reasonFilter !== "all" && r.reason !== reasonFilter) return false;
-    if (dateFrom && r.from < dateFrom) return false;
-    if (dateTo && r.from > dateTo) return false;
-    if (q.trim() && !r.name.toLowerCase().includes(q.trim().toLowerCase())) return false;
-    return true;
-  });
-  const countOf = (s) => base.filter((r) => s === "All" || r.status === s).length;
-  const rows = base.filter((r) => status === "All" || r.status === status)
-    .sort((a, b) => b.from.localeCompare(a.from) || b.start.localeCompare(a.start));
-  const outToday = all.filter((r) => r.from === keyOf(TODAY) && r.status !== "Rejected");
-
-  const decide = (r, s, n = "") => {
-    if (onDecide) onDecide(r.id, s, n);
-    setRejecting(null);
-    setNote("");
-  };
-
-  const clearFilters = () => {
-    setQ(""); setTeam("all"); setStatus("All"); setReasonFilter("all"); setDateFrom(""); setDateTo("");
-  };
-
-  return (
-    <div className="lp-perm">
-      <div className="lp-ptop">
-        <div className="lp-ptop__title">
-          <h3>Permission requests</h3>
-          <small>{rows.length} of {all.length} shown</small>
-        </div>
-        <button type="button" className="lp-btn" onClick={() => setShowApply(true)}>＋ Apply permission</button>
-      </div>
-
-      {outToday.length > 0 && (
-        <div className="lp-out">
-          <b>Out on permission today</b>
-          <span>{outToday.map((r) => `${r.name} ${r.start}–${r.end}${r.status === "Pending" ? " (pending)" : ""}`).join(", ")}</span>
-        </div>
-      )}
-
-      <div className="lp-pfilters">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by employee name" aria-label="Search employee" />
-        <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team">
-          <option value="all">All teams</option>
-          {teams.map((t) => <option key={t}>{t}</option>)}
-        </select>
-        <select value={reasonFilter} onChange={(e) => setReasonFilter(e.target.value)} aria-label="Reason">
-          <option value="all">All reasons</option>
-          {REASONS.map((r) => <option key={r}>{r}</option>)}
-        </select>
-        <label className="lp-dfilter">From
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="From date" />
-        </label>
-        <label className="lp-dfilter">To
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} aria-label="To date" />
-        </label>
-        <button type="button" className="lp-link" onClick={clearFilters}>Clear filters</button>
-      </div>
-
-      <div className="lp-chips" role="group" aria-label="Filter by status">
-        {["All", "Pending", "Approved", "Rejected"].map((s) => (
-          <button key={s} type="button" className="lp-chip" aria-pressed={status === s} onClick={() => setStatus(s)}>{s}<b>{countOf(s)}</b></button>
-        ))}
-      </div>
-
-      {rows.length === 0 && <div className="lp-empty">No permission requests match these filters.</div>}
-      <ul className="lp-plist">
-        {rows.map((r) => (
-          <li key={r.id} className={`lp-prow lp-prow--${r.status.toLowerCase()}`}>
-            <span className="lp-pav" style={{ "--h": hueOf(r.name) }}>{r.name.slice(0, 2).toUpperCase()}</span>
-            <div className="lp-pwho"><b>{r.name}</b><small>{r.team}</small></div>
-            <div className="lp-pwhen"><b>{longDate(parseKey(r.from))}</b><span>{r.start} to {r.end} ({fmtHrs(permHrs(r))})</span></div>
-            <div className="lp-preason">{r.reason}</div>
-            <span className={`lp-tag lp-tag--${r.status.toLowerCase()}`}>{r.status}</span>
-
-            {r.status === "Pending" ? (
-              <div className="lp-pact">
-                <button type="button" className="lp-btn lp-btn--ok" onClick={() => decide(r, "Approved")}>Approve</button>
-                <button type="button" className="lp-btn lp-btn--no" onClick={() => { setRejecting(rejecting === r.id ? null : r.id); setNote(""); }}>Reject</button>
-              </div>
-            ) : (
-              r.note && <small className="lp-pnote">Note: {r.note}</small>
-            )}
-
-            {rejecting === r.id && (
-              <div className="lp-reject">
-                <input autoFocus value={note} onChange={(e) => setNote(e.target.value)} placeholder="Tell them why (they will see this)" aria-label={`Reason for rejecting ${r.name}`} />
-                <button type="button" className="lp-btn lp-btn--no" disabled={!note.trim()} onClick={() => decide(r, "Rejected", note.trim())}>Confirm reject</button>
-                <button type="button" className="lp-link" onClick={() => setRejecting(null)}>Cancel</button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-
-      {showApply && (
-        <ApplyPermissionModal
-          me={me}
-          mine={mine}
-          onClose={() => setShowApply(false)}
-          onApply={onApply}
-        />
-      )}
-    </div>
-  );
-}
-
-/* ---------- Page ---------- */
-export default function LeavePermission({ homeCountry = "IN", holidays = HOLIDAYS, leaves = LEAVES, onApplyPermission, isAdmin = false, approvals = DEMO_REQUESTS, onDecision, me = { name: "Arun", team: "Operations Team" } }) {
-  const [tab, setTab] = useState("holidays");
-  const [queue, setQueue] = useState(approvals);
-  const removeReq = (id) => setQueue((qs) => qs.filter((r) => r.id !== id));
-  const waiting = queue.filter((r) => r.status === "Pending" && r.name !== me.name).length;
-  const decide = (id, status, note) => {
-    setQueue((qs) => qs.map((r) => (r.id === id ? { ...r, status, note } : r)));
-    if (onDecision) onDecision(id, status, note);
-  };
-
-  return (
-    <div className="lp-page">
-      <header className="lp-hero">
-        <h1>Leave &amp; Permission</h1>
-        <p>See every holiday across your offices, check your leave balance and ask for permission when you need a few hours off.</p>
-        <div className="lp-leaves">
-          {leaves.map((l) => (
-            <div key={l.name} className="lp-leave">
-              <span>{l.name}</span>
-              <b>{l.total - l.used}<small> of {l.total} left</small></b>
-              <i aria-hidden="true"><u style={{ width: `${(100 * (l.total - l.used)) / l.total}%` }} /></i>
-            </div>
-          ))}
-        </div>
-      </header>
-
-      <div className="lp-tabs" role="tablist">
-        <button role="tab" aria-selected={tab === "holidays"} onClick={() => setTab("holidays")}>Holidays</button>
-        <button role="tab" aria-selected={tab === "permission"} onClick={() => setTab("permission")}>Permission</button>
-        {isAdmin && (
-          <button role="tab" aria-selected={tab === "approvals"} onClick={() => setTab("approvals")}>
-            Approvals{waiting > 0 && <b className="lp-badge">{waiting}</b>}
-          </button>
-        )}
-      </div>
-
-      {tab === "holidays" && <Holidays homeCountry={homeCountry} holidays={holidays} />}
-      {tab === "permission" && <Permission queue={queue} me={me} onRemove={removeReq} onApply={onApplyPermission} onDecide={decide} />}
-      {tab === "approvals" && isAdmin && <LeaveApprovals requests={queue} onDecide={decide} />}
-    </div>
-  );
-}
+function HolidayCalendar({sets}){const [cursor,setCursor]=useState(new Date(2026,0,1));const [view,setView]=useState("Month");const [setFilter,setSetFilter]=useState("All Holiday Sets");const [country,setCountry]=useState("All");const [selected,setSelected]=useState("2026-01-14");const all=sets.flatMap(s=>s.holidays.map(h=>({...h,set:s.name,flag:s.flag})));const filtered=all.filter(h=>(setFilter==="All Holiday Sets"||h.set===setFilter)&&(country==="All"||h.scope===country));const key=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;const monthStart=new Date(cursor.getFullYear(),cursor.getMonth(),1),offset=monthStart.getDay();const cells=Array.from({length:42},(_,i)=>new Date(cursor.getFullYear(),cursor.getMonth(),i-offset+1));const dayHolidays=(d)=>filtered.filter(h=>h.date===key(d));return <div className="lp-calendar-layout"><aside className="lp-card lp-calendar-filters"><h2>Filters</h2><label>Holiday Set<select value={setFilter} onChange={e=>setSetFilter(e.target.value)}><option>All Holiday Sets</option>{sets.map(s=><option key={s.id}>{s.name}</option>)}</select></label><label>Country / Region<select value={country} onChange={e=>setCountry(e.target.value)}><option>All</option>{[...new Set(all.map(h=>h.scope))].map(x=><option key={x}>{x}</option>)}</select></label><label>Year<select value={cursor.getFullYear()} onChange={e=>setCursor(new Date(+e.target.value,cursor.getMonth(),1))}><option>2025</option><option>2026</option><option>2027</option></select></label><label>View</label><div className="lp-view-toggle">{["Month","Quarter","Year"].map(v=><button key={v} className={view===v?"active":""} onClick={()=>setView(v)}>{v}</button>)}</div></aside><section className="lp-card lp-calendar"><div className="lp-calendar-head"><h2>{view==="Month"?cursor.toLocaleString("en-US",{month:"long",year:"numeric"}):view==="Quarter"?`Q${Math.floor(cursor.getMonth()/3)+1} ${cursor.getFullYear()}`:`${cursor.getFullYear()}`}</h2><div><button className="lp-button lp-button-outline" onClick={()=>setCursor(new Date(2026,0,1))}>Today</button><button className="lp-icon-button" onClick={()=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()-1,1))}><ChevronLeft size={16}/></button><button className="lp-icon-button" onClick={()=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()+1,1))}><ChevronRight size={16}/></button></div></div><div className="lp-calendar-grid">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=><b className="lp-weekday" key={d}>{d}</b>)}{cells.map((d,i)=><button key={i} onClick={()=>setSelected(key(d))} className={`lp-day ${d.getMonth()!==cursor.getMonth()?"muted":""} ${selected===key(d)?"selected":""}`}><span>{d.getDate()}</span>{dayHolidays(d).slice(0,1).map(h=><i key={h.id} className="lp-marker">{h.name}</i>)}</button>)}</div></section><aside className="lp-card lp-day-detail"><h3>Holidays on {prettyDate(selected)}</h3>{filtered.filter(h=>h.date===selected).map(h=><div className="lp-holiday-detail" key={h.id}><i/ ><span><b>{h.name}</b><small>{h.set}</small></span><em>{h.type}</em></div>)}{!filtered.some(h=>h.date===selected)&&<p className="lp-muted">No holidays on this date.</p>}<h3>Holiday Sets <button className="lp-link" onClick={()=>setSetFilter("All Holiday Sets")}>Manage</button></h3>{sets.map(s=><label className="lp-check-set" key={s.id}><input type="checkbox" checked={setFilter==="All Holiday Sets"||setFilter===s.name} onChange={e=>setSetFilter(e.target.checked?s.name:"All Holiday Sets")}/><span>{s.flag} {s.name}</span></label>)}</aside></div>}
+function PermissionView({isAdmin,user,requests,setRequests,modal,setModal}) {
+ const [active,setActive]=useState(isAdmin?"Approval":"My Requests");
+ const [q,setQ]=useState(""); const [department,setDepartment]=useState("All Departments"); const [team,setTeam]=useState("All Teams"); const [employee,setEmployee]=useState("All Employees"); const [status,setStatus]=useState("All Statuses"); const [from,setFrom]=useState("2026-09-01"); const [to,setTo]=useState("2026-09-30"); const [selected,setSelected]=useState(null); const [comment,setComment]=useState("");
+ const [form,setForm]=useState({date:"2026-09-14",start:"10:30",end:"12:00",reason:"Doctor appointment",details:""}); const mineName=user.name||user.user_name||"Ananya S";
+ const base=(isAdmin?requests:requests.filter(r=>r.name===mineName)).filter(r=>(department==="All Departments"||r.department===department)&&(team==="All Teams"||r.team===team)&&(employee==="All Employees"||r.name===employee)&&(status==="All Statuses"||r.status===status)&&(!from||r.date>=from)&&(!to||r.date<=to)&&(`${r.name} ${r.reason} ${r.team}`).toLowerCase().includes(q.toLowerCase()));
+ const rows=base.filter(r=>active==="Approval"?r.status==="Pending":active==="Approved"?r.status==="Approved":active==="Rejected"?r.status==="Rejected":!isAdmin||r.name===mineName); const request=requests.find(r=>r.id===selected);
+ const decide=next=>{if(request){setRequests(rs=>rs.map(r=>r.id===request.id?{...r,status:next,approver:"jk",managerComment:comment.trim()||r.managerComment||""}:r));setSelected(null)}};
+ const duration=hours(form.start,form.end); const submit=e=>{e.preventDefault();setRequests(rs=>[{id:Date.now(),name:mineName,code:user.user_code||"EMP0091",team:"Frontend Team",department:"Engineering",date:form.date,start:form.start,end:form.end,duration,reason:form.reason,details:form.details,status:"Pending",approver:"Ravi Kumar",applied:"2026-09-14",used:4.5,limit:12,available:7,teamAvailable:"7 of 8 members available"},...rs]);setActive("My Requests");setModal(null)};
+ const internalTabs=["My Requests","Approval","Approved","Rejected"];
+ return <div className="lp-permissions">
+  <div className="lp-permission-toolbar"><div className="lp-internal-tabs" role="tablist" aria-label="Permission request status">{internalTabs.map(t=><button key={t} role="tab" aria-selected={active===t} onClick={()=>setActive(t)}>{t}{t==="Approval"&&<b>{requests.filter(r=>r.status==="Pending").length}</b>}</button>)}</div><button className="lp-button" onClick={()=>setModal("Apply for Permission")}><Plus size={15}/> New Permission Request</button></div>
+  <div className="lp-summary-grid">{[[Clock3,"Pending Approval",requests.filter(r=>r.status==="Pending").length,"Awaiting action","amber"],[CheckCircle2,"Approved",requests.filter(r=>r.status==="Approved").length,"This month","green"],[XCircle,"Rejected",requests.filter(r=>r.status==="Rejected").length,"This month","red"],[ClipboardList,"Total Requests",requests.length,"This month","blue"]].map(([Icon,label,value,sub,color])=><article className="lp-summary-card" key={label}><span className={`lp-summary-icon ${color}`}><Icon size={21}/></span><div><small>{label}</small><b>{value}</b><em>{sub}</em></div></article>)}</div>
+  <div className={`lp-permission-workspace ${request?"has-details":""}`}><section className="lp-card lp-permission-list"><div className="lp-filter-row lp-permission-filters"><label>Department<select value={department} onChange={e=>setDepartment(e.target.value)}><option>All Departments</option>{[...new Set(requests.map(r=>r.department))].map(x=><option key={x}>{x}</option>)}</select></label><label>Team<select value={team} onChange={e=>setTeam(e.target.value)}><option>All Teams</option>{[...new Set(requests.map(r=>r.team))].map(x=><option key={x}>{x}</option>)}</select></label><label>Employee<select value={employee} onChange={e=>setEmployee(e.target.value)}><option>All Employees</option>{requests.map(r=><option key={r.id}>{r.name}</option>)}</select></label><label>Status<select value={status} onChange={e=>setStatus(e.target.value)}><option>All Statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option></select></label><label>Date Range<div className="lp-date-range"><input type="date" aria-label="From date" value={from} onChange={e=>setFrom(e.target.value)}/><span>–</span><input type="date" aria-label="To date" value={to} onChange={e=>setTo(e.target.value)}/></div></label></div><label className="lp-search lp-permission-search"><Search size={16}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search by employee name, reason or keyword…"/></label><div className="lp-table-wrap"><table><thead><tr><th><input type="checkbox" aria-label="Select all requests"/></th><th>Employee</th><th>Department / Team</th><th>Date</th><th>Time</th><th>Duration</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><input type="checkbox" aria-label={`Select ${r.name}`}/></td><td><span className="lp-avatar">{r.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</span><b>{r.name}</b><small className="lp-block">{r.code}</small></td><td><b>{r.department}</b><small className="lp-block">{r.team}</small></td><td>{prettyDate(r.date,{day:"numeric",month:"short",year:"numeric"})} ({dayName(r.date)})</td><td>{r.start} – {r.end}</td><td>{r.duration} hrs</td><td>{r.reason}</td><td><Status value={r.status}/></td><td><button className="lp-button lp-button-outline small" onClick={()=>{setSelected(r.id);setComment(r.managerComment||"")}}>View</button></td></tr>)}</tbody></table></div><div className="lp-table-footer">Showing {rows.length?1:0} - {rows.length} of {base.length} requests</div></section>
+  {request&&<aside className="lp-card lp-request-details"><div className="lp-card-heading"><h2>Permission Request Details</h2><button className="lp-close" aria-label="Close details" onClick={()=>setSelected(null)}><X size={17}/></button></div><div className="lp-person"><span className="lp-avatar large">{request.name.split(" ").map(x=>x[0]).join("").slice(0,2)}</span><span><b>{request.name}</b><small>{request.code}</small><small>{request.team}　|　{request.department}</small></span><Status value={request.status}/></div><div className="lp-detail-list"><p><CalendarDays/>Date <b>{prettyDate(request.date,{day:"numeric",month:"short",year:"numeric"})} ({dayName(request.date)})</b></p><p><Clock3/>Requested Time <b>{request.start} – {request.end}</b></p><p><Clock3/>Duration <b>{request.duration} hours</b></p><p><ClipboardList/>Reason <b>{request.reason}<small>{request.details}</small></b></p><p><CalendarDays/>Applied On <b>{prettyDate(request.applied)}</b></p></div><h3>Employee Permission Summary (This Month)</h3><div className="lp-progress"><i style={{width:`${request.used/request.limit*100}%`}}/></div><small>{request.available} hours remaining <b>{request.used} / {request.limit} hours used</b></small><div className="lp-availability"><CheckCircle2/><span><b>Team Availability</b><small>{request.teamAvailable}</small></span></div>{isAdmin&&active==="Approval"&&<><label>Manager Comments<textarea value={comment} onChange={e=>setComment(e.target.value)} placeholder="Write a comment…"/></label><div className="lp-decision-actions"><button className="lp-button reject" onClick={()=>decide("Rejected")}><X size={16}/> Reject</button><button className="lp-button changes" onClick={()=>decide("Changes Requested")}>Request Changes</button><button className="lp-button approve" onClick={()=>decide("Approved")}><Check size={16}/> Approve</button></div></>}</aside>}</div>
+  {modal==="Apply for Permission"&&<Modal title="New Permission Request" close={()=>setModal(null)}><form className="lp-form" onSubmit={submit}><div className="lp-inline-fields"><label>Date *<input type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} required/></label><label>Start Time *<input type="time" value={form.start} onChange={e=>setForm({...form,start:e.target.value})} required/></label><label>End Time *<input type="time" value={form.end} onChange={e=>setForm({...form,end:e.target.value})} required/></label></div><label>Duration<input readOnly value={`${duration} hours`}/></label><label>Reason *<select value={form.reason} onChange={e=>setForm({...form,reason:e.target.value})}><option>Doctor appointment</option><option>Personal work</option><option>Bank work</option><option>School meeting</option><option>Other</option></select></label><label>Additional Details (Optional)<textarea value={form.details} onChange={e=>setForm({...form,details:e.target.value})} placeholder="Add any details…"/></label><div className="lp-modal-actions"><button type="button" className="lp-button lp-button-outline" onClick={()=>setModal(null)}>Cancel</button><button className="lp-button"><Send size={15}/> Submit Request</button></div></form></Modal>}
+ </div>;
+}export default function LeavePermission(){let user={};try{user=JSON.parse(localStorage.getItem("lernevo_user")||localStorage.getItem("user")||"{}")}catch{}const role=String(user.role||user.user_role||localStorage.getItem("role")||"SUPER_ADMIN").toUpperCase();const isAdmin=["SUPER_ADMIN","ADMIN"].includes(role);const [tab,setTab]=useState("Holiday Sets");const [sets,setSets]=useState(INITIAL_SETS);const [selected,setSelected]=useState(1);const [assignments,setAssignments]=useState(INITIAL_ASSIGNMENTS);const [requests,setRequests]=useState(INITIAL_REQUESTS);const [modal,setModal]=useState(null);return <main className="lp-page"><div className="lp-breadcrumb">HR OPERATIONS <span>›</span> <b>Leave and Permissions</b></div><header className="lp-page-heading"><div><h1>Leave and Permissions</h1><p>Manage holiday calendars, leave requests and short-duration permissions.</p></div></header><nav className="lp-tabs" role="tablist" aria-label="Leave and permissions">{TABS.map((t,i)=><button key={t} role="tab" aria-selected={tab===t} onClick={()=>setTab(t)}><span>{t==="Permissions"?<Clock3 size={16}/>:<CalendarDays size={16}/>}</span>{t}</button>)}</nav>{tab==="Holiday Sets"&&<HolidaySets sets={sets} setSets={setSets} selected={selected} setSelected={setSelected} modal={modal} setModal={setModal} assignments={assignments} setAssignments={setAssignments}/ >}{tab==="Holiday Calendar"&&<HolidayCalendar sets={sets}/ >}{tab==="Permissions"&&<PermissionView isAdmin={isAdmin} user={user} requests={requests} setRequests={setRequests} modal={modal} setModal={setModal}/>}</main>}
