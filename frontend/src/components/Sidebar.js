@@ -24,6 +24,7 @@ import {
   Settings,
   User,
   CalendarDays,
+  CalendarClock,
 ClipboardCheck,
 CalendarCheck,
  UserRoundCheck,
@@ -44,7 +45,9 @@ export const ROUTE_MAP = {
   "User Assignments": "/user-assignments",
   Organizations: "/organizations",
   "Job Codes": "/job",
-  Timesheets: "/timesheet",
+  // Timesheet section: Scheduler is the first page. /timesheet with no ?tab= also opens the Scheduler.
+  Scheduler: "/timesheet?tab=scheduler",
+  Timesheets: "/timesheet?tab=timesheet",
   "My Timesheet": "/employeetimesheet",
   Payslips: "/payslip",
   "Compliance Documents": "/document",
@@ -69,6 +72,7 @@ export const NAV_SECTIONS = [
 {
   label: "HR Operations",
   items: [
+    { icon: CalendarClock, label: "Scheduler" },
     { icon: CalendarDays, label: "Timesheets" },
     { icon: CalendarCheck, label: "Leave and Permissions" },
     { icon: Wallet, label: "Payslips" },
@@ -131,22 +135,31 @@ export default function Sidebar() {
   const location = useLocation();
 
   const [active, setActive] = useState("Dashboard");
-  const [role, setRole] = useState("Super Admin");
+  // role is remembered so the Timesheet / Scheduler page can follow it (Employee sees only own plans)
+  const [role, setRole] = useState(() => {
+    try { return localStorage.getItem("lv-role") || "Super Admin"; } catch (err) { return "Super Admin"; }
+  });
   const [roleOpen, setRoleOpen] = useState(false);
 
   // Track which sections are expanded (dropdown open)
   const [openSections, setOpenSections] = useState({
     Overview: true,
     "People & Organization": true,
+    "HR Operations": true,
   });
 
   const roles = ["Super Admin", "Org Admin", "Manager", "Employee"];
 
   // Keep the highlighted item in sync with the current URL
   useEffect(() => {
-    const matchedLabel = Object.keys(ROUTE_MAP).find(
-      (label) => ROUTE_MAP[label] === location.pathname
-    );
+    // "/timesheet" without a ?tab= opens the Scheduler, so highlight Scheduler
+    const current =
+      location.pathname === "/timesheet" && !location.search
+        ? "/timesheet?tab=scheduler"
+        : location.pathname + location.search;
+    const matchedLabel =
+      Object.keys(ROUTE_MAP).find((label) => ROUTE_MAP[label] === current) ||
+      Object.keys(ROUTE_MAP).find((label) => ROUTE_MAP[label] === location.pathname);
     if (matchedLabel) {
       setActive(matchedLabel);
       // Auto-open the section that contains the active item
@@ -157,13 +170,24 @@ export default function Sidebar() {
         setOpenSections((prev) => ({ ...prev, [section.label]: true }));
       }
     }
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   const handleItemClick = (label) => {
     setActive(label);
     const path = ROUTE_MAP[label];
     if (path) {
       navigate(path);
+    }
+  };
+
+  const changeRole = (r) => {
+    setRole(r);
+    setRoleOpen(false);
+    try { localStorage.setItem("lv-role", r); } catch (err) { /* ignore */ }
+    window.dispatchEvent(new Event("lv-role")); // tells the Timesheet / Scheduler page
+    // an employee has no team Timesheets page, so send them to the Scheduler
+    if (r === "Employee" && location.pathname === "/timesheet" && location.search.includes("tab=timesheet")) {
+      navigate("/timesheet?tab=scheduler");
     }
   };
 
@@ -458,10 +482,7 @@ export default function Sidebar() {
                   key={r}
                   className="lv-role-option"
                   data-selected={r === role}
-                  onClick={() => {
-                    setRole(r);
-                    setRoleOpen(false);
-                  }}
+                  onClick={() => changeRole(r)}
                 >
                   {r}
                 </div>
@@ -490,7 +511,9 @@ export default function Sidebar() {
 
               {/* Sub-items (dropdown content) */}
               <div className="lv-section-items" data-open={isOpen}>
-                {section.items.map((item) => {
+                {section.items
+                  .filter((item) => !(role === "Employee" && item.label === "Timesheets"))
+                  .map((item) => {
                   const Icon = item.icon;
                   const isActive = active === item.label;
                   return (

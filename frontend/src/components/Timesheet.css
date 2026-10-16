@@ -3,13 +3,13 @@
   --ts-bg: #f7f9fe; --ts-card: #ffffff; --ts-ink: #0f1f45; --ts-mute: #6b7a99; --ts-line: #e3e9f6; --ts-soft: #eef3ff;
   --ts-blue: #2563eb; --ts-blue-d: #1e40af; --ts-focus: #93b4ff; --ts-today: #f1f6ff;
   /* soft status colours (pastel fill + readable text) */
-  --ts-ok: #15803d; --ts-okb: #e8f7ee;          /* approved / worked   - green */
+  --ts-ok: #0e7490; --ts-okb: #dcf5fb;          /* approved / worked   - ocean cyan (change here to recolour Approved everywhere) */
   --ts-pen: #b45309; --ts-penb: #fff6e0;        /* pending approval    - amber */
   --ts-ot: #c2410c; --ts-otb: #ffedd5;          /* overtime            - orange */
   --ts-off: #8a97b3; --ts-offb: #f1f4fa;        /* week off            - grey */
   --ts-lv: #be123c; --ts-lvb: #ffe8ee;          /* leave / missing     - rose */
   --ts-hol: #7c3aed; --ts-holb: #f1eaff;        /* holiday             - violet */
-  --ts-teal: #0f766e; --ts-tealb: #def7f3;
+  --ts-teal: #4f46e5; --ts-tealb: #e8e9ff;      /* attendance - indigo */
 
   width: 100%; min-width: 0; max-width: none; margin: 0; padding: 24px 24px 40px;
   background: var(--ts-bg); color: var(--ts-ink);
@@ -23,13 +23,13 @@
   .ts-wrap {
     --ts-bg: #0b1226; --ts-card: #121b33; --ts-ink: #e8eefc; --ts-mute: #93a1c0; --ts-line: #233052; --ts-soft: #182646;
     --ts-blue: #6c93ff; --ts-blue-d: #9db8ff; --ts-today: #16264a;
-    --ts-ok: #4ade80; --ts-okb: #11301f;
+    --ts-ok: #22d3ee; --ts-okb: #0b2f3a;
     --ts-pen: #fbbf24; --ts-penb: #38290d;
     --ts-ot: #fb923c; --ts-otb: #3a2410;
     --ts-off: #7e8cab; --ts-offb: #161f38;
     --ts-lv: #fb8da3; --ts-lvb: #38182a;
     --ts-hol: #b79cff; --ts-holb: #2a1f4a;
-    --ts-teal: #5eead4; --ts-tealb: #0f2e2c;
+    --ts-teal: #a5b4fc; --ts-tealb: #1d2150;
   }
 }
 
@@ -127,10 +127,11 @@
 .ts-badge { font-weight: 700; border-radius: 6px; padding: 3px 7px; font-size: 12px; align-self: flex-start; }
 .ts-missing { background: var(--ts-lvb); color: var(--ts-lv); border: 1px dashed var(--ts-lv); }
 .ts-approve {
-  border: 1px solid var(--ts-pen); background: var(--ts-penb); color: var(--ts-pen);
-  border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; align-self: flex-start;
+  border: 0; background: linear-gradient(135deg, #0e7490, #0891b2 55%, #22d3ee); color: #fff;
+  border-radius: 99px; padding: 6px 13px; font-size: 12px; font-weight: 800; cursor: pointer; align-self: flex-start;
+  box-shadow: 0 6px 14px -8px rgba(8, 145, 178, .95); transition: transform .12s, filter .12s;
 }
-.ts-approve:hover { background: var(--ts-pen); color: var(--ts-card); }
+.ts-approve:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .ts-sticky { position: sticky; left: 0; z-index: 2; background: var(--ts-card); }
 .ts-corner { color: var(--ts-mute); font-weight: 700; font-size: 12px; align-self: end; padding-bottom: 6px; }
 
@@ -188,8 +189,8 @@
 }
 .ts-st { color: var(--c); font-size: 11px; font-weight: 700; line-height: 1.2; }
 
-.ts-dc--ok { --c: var(--ts-ok); --cb: var(--ts-okb); border-color: transparent; border-left-color: var(--ts-ok); }
-.ts-dc--pend { --c: var(--ts-pen); --cb: var(--ts-penb); border-color: transparent; border-left-color: var(--ts-pen); }
+.ts-dc--ok { --c: var(--ts-ok); --cb: var(--ts-okb); border-color: transparent; border-left-color: var(--ts-ok); background: linear-gradient(135deg, var(--ts-okb), var(--ts-card) 130%); }
+.ts-dc--pend { --c: var(--ts-pen); --cb: var(--ts-penb); border-color: transparent; border-left-color: var(--ts-pen); background: linear-gradient(135deg, var(--ts-penb), var(--ts-card) 130%); }
 .ts-dc--scheduled { border-style: dashed; color: var(--ts-mute); border-left-width: 1px; }
 .ts-dc--scheduled .ts-hours, .ts-dc--scheduled .ts-st { color: var(--ts-mute); }
 .ts-dc--missing { --c: var(--ts-lv); --cb: var(--ts-lvb); border: 1px dashed var(--ts-lv); border-left: 3px solid var(--ts-lv); }
@@ -380,3 +381,21 @@
 
 /* clock-in to clock-out text inside day boxes ("9 to 6") */
 .ts-hours.ts-clock, .ts-tag b.ts-clock { font-size: 13px; letter-spacing: -0.2px; line-height: 1.25; }
+
+/* ---------- Main tabs: Timesheet | Scheduler | My Timesheet ---------- */
+.ts-main { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.ts-mtabs { display: inline-flex; gap: 4px; padding: 5px; border-radius: 16px; background: var(--ts-card); border: 1px solid var(--ts-line); box-shadow: 0 8px 22px -16px rgba(15, 31, 69, .5); }
+.ts-mtab {
+  display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--ts-mute); cursor: pointer;
+  padding: 10px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; white-space: nowrap; transition: background .15s, color .15s;
+}
+.ts-mtab:hover { color: var(--ts-blue); background: var(--ts-soft); }
+.ts-mtab[aria-selected="true"] { background: linear-gradient(135deg, #4f46e5, #2563eb); color: #fff; box-shadow: 0 8px 16px -8px rgba(37, 99, 235, .85); }
+.ts-mtab:focus-visible { outline: 3px solid var(--ts-focus); outline-offset: 2px; }
+.ts-role { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ts-mute); }
+.ts-role select { background: var(--ts-card); color: var(--ts-ink); border: 1px solid var(--ts-line); border-radius: 10px; padding: 7px 10px; font: inherit; font-weight: 700; }
+@media (max-width: 600px) { .ts-mtab { padding: 9px 12px; font-size: 13px; } }
+
+/* KPI cards: a little more life */
+.ts-kpi { position: relative; }
+.ts-kpi::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: var(--k-c); }

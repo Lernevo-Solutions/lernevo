@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./Timesheet.css";
+import { useSearchParams } from "react-router-dom";
 import EmployeeTimesheet from "./Employeetimesheet";
+import Scheduler, { TeamModal, seedPlans } from "./Scheduler";
 
 /* =====================================================================
    Timesheet — super-admin view for ANY company or team. Shifts, work types,
@@ -523,9 +525,32 @@ function MonthCalendars({ list, totals, from, to, infoOf, onPick, onOpen }) {
 /* ---------- Main page ---------- */
 // myEmployeeId = the logged-in user (from your session). onAddTimesheet = what the "+ Add Timesheet" button should do.
 // config.teams = [{ id, name, lead }]  and every employee has `team: <team id>`.  No teams in config = old single-list page.
-export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP001", onAddTimesheet }) {
-  const hasTeams = Boolean(config.teams && config.teams.length);
-  const [page, setPage] = useState("team"); // "team" = everyone (filter by team / search), "mine" = My Timesheet
+// The page is chosen from the sidebar:  /timesheet?tab=scheduler  (default)  |  /timesheet?tab=timesheet
+// role = "superadmin" | "employee". If you don't pass it, it follows the "Signed in as" dropdown of the sidebar.
+const ROLE_KEY = "lv-role";
+const readRole = () => {
+  try { return localStorage.getItem(ROLE_KEY) === "Employee" ? "employee" : "superadmin"; } catch (err) { return "superadmin"; }
+};
+
+export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP001", onAddTimesheet, role: roleProp, tab: tabProp }) {
+  const [sp] = useSearchParams();
+  const tab = tabProp || sp.get("tab") || "scheduler"; // Scheduler is the first page that opens
+  const [showMine, setShowMine] = useState(false); // "My Timesheet" opens inside this page
+  useEffect(() => setShowMine(false), [tab]); // sidebar click always goes back to Scheduler / Timesheets
+  const [storedRole, setStoredRole] = useState(readRole);
+  useEffect(() => {
+    const h = () => setStoredRole(readRole());
+    window.addEventListener("lv-role", h);
+    window.addEventListener("storage", h);
+    return () => { window.removeEventListener("lv-role", h); window.removeEventListener("storage", h); };
+  }, []);
+  const role = roleProp || storedRole;
+  // teams, people and plans live here so the Timesheet tab and the Scheduler tab always agree
+  const [teams, setTeams] = useState(config.teams || []);
+  const [people, setPeople] = useState(config.employees);
+  const [plans, setPlans] = useState(() => config.plans || seedPlans(config.employees));
+  const [teamModal, setTeamModal] = useState(null); // null = closed, { team } = open (team null = create new)
+  const hasTeams = teams.length > 0;
   const [teamId, setTeamId] = useState("all");
   const [view, setView] = useState("week");
   const [layout, setLayout] = useState("grid"); // monthly: "grid" | "calendar"
@@ -539,13 +564,13 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
 
   const labels = { ...DEFAULT_CONFIG.labels, ...(config.labels || {}) };
   const emps = useMemo(
-    () => config.employees.map((e) => ({
+    () => people.map((e) => ({
       ...e,
       r: config.shifts[e.rule],
       tasks: config.tasks,
-      teamName: ((config.teams || []).find((t) => t.id === e.team) || {}).name || "",
+      teamName: (teams.find((t) => t.id === e.team) || {}).name || "No team",
     })),
-    [config]
+    [config, people, teams]
   );
   const infoOf = useCallback((day, e) => {
     const i = getDayInfo(day, e);
@@ -556,7 +581,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
 
   // people of the team that is open ("all" = everybody)
   const scoped = useMemo(() => emps.filter((e) => teamId === "all" || e.team === teamId), [emps, teamId]);
-  const openTeamInfo = (config.teams || []).find((t) => t.id === teamId);
+  const openTeamInfo = teams.find((t) => t.id === teamId);
   const openLead = openTeamInfo ? emps.find((e) => e.id === openTeamInfo.lead) : null;
 
   const { list, totals } = useMemo(() => {
@@ -589,7 +614,26 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
   const closeDay = useCallback(() => setDetail(null), []);
   const approveDay = (e, day) => setApproved((prev) => new Set(prev).add(`${e.id}:${keyOf(day)}`));
   const detailEmp = detail ? emps.find((e) => e.id === detail.empId) : null;
-  const goMine = () => setPage("mine");
+  const isAdmin = role === "superadmin";
+  const active = isAdmin && tab === "timesheet" ? "timesheet" : "scheduler";
+  const me = emps.find((e) => e.id === myEmployeeId || `EMP${String(e.id).padStart(3, "0")}` === myEmployeeId) || emps[0];
+
+  const saveTeam = ({ id, name, lead, members }) => {
+    const tid = id || `team-${Date.now().toString(36)}`;
+    setTeams((prev) => (id ? prev.map((t) => (t.id === id ? { ...t, name, lead } : t)) : [...prev, { id: tid, name, lead }]));
+    setPeople((prev) => prev.map((e) => (members.includes(e.id) ? { ...e, team: tid } : e.team === tid ? { ...e, team: "" } : e)));
+    setTeamModal(null);
+  };
+  const deleteTeam = (id) => {
+    setTeams((prev) => prev.filter((t) => t.id !== id));
+    setPeople((prev) => prev.map((e) => (e.team === id ? { ...e, team: "" } : e)));
+    if (teamId === id) setTeamId("all");
+    setTeamModal(null);
+  };
+  const openTeamModal = (team) => setTeamModal({ team });
+  const teamModalEl = teamModal && (
+    <TeamModal team={teamModal.team} people={emps} teams={teams} onSave={saveTeam} onDelete={deleteTeam} onClose={() => setTeamModal(null)} />
+  );
 
   const label = view === "month"
     ? `${MONTHS[from.getMonth()]} ${from.getFullYear()}`
@@ -613,10 +657,19 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
     </div>
   );
 
-  if (page === "mine") {
+  if (showMine) {
     return (
       <div className="ts-wrap">
-        <EmployeeTimesheet employeeId={myEmployeeId} onAddTimesheet={onAddTimesheet} onBack={() => setPage("team")} />
+        <EmployeeTimesheet employeeId={myEmployeeId} onAddTimesheet={onAddTimesheet} onBack={() => setShowMine(false)} />
+      </div>
+    );
+  }
+
+  if (active === "scheduler") {
+    return (
+      <div className="ts-wrap">
+        <Scheduler role={role} me={me} people={emps} teams={teams} plans={plans} setPlans={setPlans} onTeam={openTeamModal} onMine={() => setShowMine(true)} />
+        {teamModalEl}
       </div>
     );
   }
@@ -658,7 +711,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
           {hasTeams && (
             <select value={teamId} onChange={(e) => openTeam(e.target.value)} aria-label="Team">
               <option value="all">All {labels.teams.toLowerCase()}</option>
-              {config.teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
           )}
           <select value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
@@ -673,7 +726,9 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
             {STATUS_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or team" aria-label="Search by employee name or team" />
-          <button type="button" className="ts-btn ts-mine" onClick={goMine}>👤 My Timesheet</button>
+          {isAdmin && <button type="button" className="ts-btn" onClick={() => openTeamModal(null)}>＋ New team</button>}
+          <button type="button" className="ts-btn ts-mine" onClick={() => setShowMine(true)}>👤 My Timesheet</button>
+          {isAdmin && openTeamInfo && <button type="button" className="ts-btn" onClick={() => openTeamModal(openTeamInfo)}>✎ Edit team</button>}
         </div>
 
         <div className="ts-bar">
@@ -731,6 +786,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
           onApprove={approveDay}
         />
       )}
+      {teamModalEl}
     </div>
   );
 }
