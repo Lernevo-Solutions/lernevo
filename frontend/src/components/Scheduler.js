@@ -44,45 +44,96 @@ export const PLAN_TYPES = {
   other: { label: "Other", icon: "✨" },
 };
 
-/** Demo plans, relative to today (past 10 days to next 16 days). Replace with your API data (same shape). */
-const POOLS = {
+/** Demo plans, relative to today (past 10 days to next 16 days). Replace with your API data (same shape).
+ *  Every working day is a FULL 9:00 AM – 6:00 PM plan (back-to-back, lunch 1–2 PM). Each team has 2 day layouts. */
+const LUNCH = ["other", "Lunch break", "13:00", "14:00", "Take a proper break."];
+const DAY_PLANS = {
   Operations: [
-    ["meeting", "Daily stand-up", "09:30", "10:00", "Quick round of today's targets."],
-    ["project", "Shift handover report", "10:00", "12:00", "Update the handover sheet before you leave."],
-    ["training", "Safety drill", "11:00", "12:30", "Mandatory for everyone on the floor."],
-    ["project", "Inventory audit", "14:00", "17:00", "Count zone B and C, report mismatches."],
-    ["visit", "Vendor warehouse visit", "10:00", "15:00", "Carry your ID card. Cab is arranged."],
+    [
+      ["meeting", "Daily stand-up", "09:00", "09:30", "Quick round of today's targets."],
+      ["project", "Shift handover report", "09:30", "11:00", "Update the handover sheet before you leave."],
+      ["training", "Safety drill", "11:00", "13:00", "Mandatory for everyone on the floor."],
+      LUNCH,
+      ["project", "Inventory audit", "14:00", "16:30", "Count zone B and C, report mismatches."],
+      ["meeting", "End-of-day review", "16:30", "18:00", "Share progress and blockers."],
+    ],
+    [
+      ["meeting", "Daily stand-up", "09:00", "09:30", "Quick round of today's targets."],
+      ["visit", "Vendor warehouse visit", "09:30", "13:00", "Carry your ID card. Cab is arranged."],
+      LUNCH,
+      ["project", "Dispatch & stock planning", "14:00", "16:30", "Plan tomorrow's dispatch list."],
+      ["project", "Handover sheet update", "16:30", "18:00", "Close out today's open items."],
+    ],
   ],
   Sales: [
-    ["visit", "Client demo", "11:00", "12:30", "Demo deck is in the shared folder."],
-    ["meeting", "Pipeline review", "15:00", "16:00", "Update your deals before the call."],
-    ["project", "Proposal drafting", "10:00", "13:00", "Share the draft with your manager by evening."],
-    ["visit", "Customer follow-up visit", "14:00", "17:00", ""],
-    ["training", "Product knowledge session", "11:00", "13:00", "Certificate is issued at the end."],
+    [
+      ["meeting", "Sales huddle", "09:00", "09:30", "Targets and priorities for the day."],
+      ["project", "Proposal drafting", "09:30", "13:00", "Share the draft with your manager by evening."],
+      LUNCH,
+      ["visit", "Client demo", "14:00", "16:00", "Demo deck is in the shared folder."],
+      ["meeting", "Pipeline review", "16:00", "17:00", "Update your deals before the call."],
+      ["project", "CRM update", "17:00", "18:00", "Log today's calls and next steps."],
+    ],
+    [
+      ["meeting", "Sales huddle", "09:00", "09:30", "Targets and priorities for the day."],
+      ["training", "Product knowledge session", "09:30", "13:00", "Certificate is issued at the end."],
+      LUNCH,
+      ["visit", "Customer follow-up visit", "14:00", "17:00", "Carry brochures and the price list."],
+      ["project", "Update deals & notes", "17:00", "18:00", ""],
+    ],
   ],
   Support: [
-    ["meeting", "Escalation review", "10:00", "10:45", "Bring your open tickets."],
-    ["training", "New helpdesk tool training", "14:00", "16:00", "Login details will be mailed."],
-    ["project", "Knowledge-base update", "11:00", "14:00", "Rewrite the top 10 outdated articles."],
-    ["other", "Ticket backlog clean-up", "15:00", "17:30", ""],
-    ["shift", "Cover the late shift", "14:00", "22:00", "Swapped with a teammate."],
+    [
+      ["meeting", "Escalation review", "09:00", "10:00", "Bring your open tickets."],
+      ["project", "Knowledge-base update", "10:00", "13:00", "Rewrite the top 10 outdated articles."],
+      LUNCH,
+      ["training", "New helpdesk tool training", "14:00", "16:00", "Login details will be mailed."],
+      ["other", "Ticket backlog clean-up", "16:00", "18:00", ""],
+    ],
+    [
+      ["meeting", "Escalation review", "09:00", "09:45", "Bring your open tickets."],
+      ["other", "Ticket handling", "09:45", "13:00", "Clear the oldest tickets first."],
+      LUNCH,
+      ["project", "Knowledge-base articles", "14:00", "16:30", ""],
+      ["meeting", "Team sync", "16:30", "17:00", "Hand over pending tickets."],
+      ["other", "Ticket backlog clean-up", "17:00", "18:00", ""],
+    ],
   ],
   Finance: [
-    ["project", "Month-end closing", "10:00", "14:00", "Reconcile all open ledgers."],
-    ["meeting", "Budget review", "15:00", "16:30", "Bring the variance report."],
-    ["project", "Invoice approvals", "11:00", "13:00", ""],
-    ["training", "GST filing update", "14:00", "16:00", "Mandatory for the finance team."],
-    ["other", "Vendor payments run", "10:00", "12:00", "Needs two-person sign-off."],
+    [
+      ["meeting", "Finance huddle", "09:00", "09:30", "Priorities for the day."],
+      ["project", "Month-end closing", "09:30", "13:00", "Reconcile all open ledgers."],
+      LUNCH,
+      ["project", "Invoice approvals", "14:00", "15:30", ""],
+      ["meeting", "Budget review", "15:30", "17:00", "Bring the variance report."],
+      ["project", "Variance report", "17:00", "18:00", "Send the final copy to your manager."],
+    ],
+    [
+      ["other", "Vendor payments run", "09:00", "12:00", "Needs two-person sign-off."],
+      ["project", "Invoice approvals", "12:00", "13:00", ""],
+      LUNCH,
+      ["training", "GST filing update", "14:00", "16:00", "Mandatory for the finance team."],
+      ["project", "Ledger reconciliation", "16:00", "18:00", ""],
+    ],
   ],
   Admin: [
-    ["meeting", "Office planning", "10:00", "11:00", ""],
-    ["project", "Asset register update", "11:00", "14:00", "Tag all new laptops."],
-    ["visit", "Facility inspection", "14:00", "16:00", ""],
-    ["training", "First-aid refresher", "11:00", "13:00", "Mandatory."],
-    ["other", "Visitor pass audit", "15:00", "16:30", ""],
+    [
+      ["meeting", "Office planning", "09:00", "10:00", ""],
+      ["project", "Asset register update", "10:00", "13:00", "Tag all new laptops."],
+      LUNCH,
+      ["visit", "Facility inspection", "14:00", "16:00", ""],
+      ["other", "Visitor pass audit", "16:00", "18:00", ""],
+    ],
+    [
+      ["meeting", "Office planning", "09:00", "09:30", ""],
+      ["training", "First-aid refresher", "09:30", "13:00", "Mandatory."],
+      LUNCH,
+      ["project", "Vendor & supplies follow-up", "14:00", "16:30", ""],
+      ["other", "Visitor pass audit", "16:30", "18:00", ""],
+    ],
   ],
 };
-const GENERIC = POOLS.Operations;
+const GENERIC = DAY_PLANS.Operations;
 const rnd = (i, off, k) => Math.abs(Math.sin(i * 12.9898 + off * 78.233 + k * 37.719) * 43758.5453) % 1;
 
 const WEEKEND = [
@@ -92,25 +143,22 @@ const WEEKEND = [
   ["visit", "Client event support", "11:00", "15:00", "Dress code: formals."],
 ];
 
-// Every person gets at least one plan on EVERY day (past 10 days to next 16 days), so no cell is empty.
+// Every person gets a full 9 AM – 6 PM plan on every working day (past 10 days to next 16 days).
+// Weekends keep a single optional plan.
 export function seedPlans(employees) {
   const out = [];
   let n = 1;
   employees.forEach((e, i) => {
-    const pool = POOLS[e.dept] || GENERIC;
+    const layouts = DAY_PLANS[e.dept] || GENERIC;
     for (let off = -10; off <= 16; off++) {
       const day = addDays(TODAY, off);
       const weekend = day.getDay() === 0 || day.getDay() === 6;
-      const src = weekend ? WEEKEND : pool;
-      const first = src[Math.floor(rnd(i, off, 2) * src.length)];
-      const picks = [first];
-      if (!weekend && rnd(i, off, 3) < 0.3) {
-        const second = pool[Math.floor(rnd(i, off, 4) * pool.length)];
-        if (second !== first && toMin(second[2]) >= toMin(first[3])) picks.push(second);
-      }
-      picks.forEach((s) => out.push({
+      const picks = weekend
+        ? [WEEKEND[Math.floor(rnd(i, off, 2) * WEEKEND.length)]]
+        : layouts[Math.floor(rnd(i, off, 2) * layouts.length)];
+      picks.forEach((s, j) => out.push({
         id: `p${n++}`, empId: e.id, date: keyOf(day), type: s[0], title: s[1], start: s[2], end: s[3], note: s[4],
-        ack: off < 0 ? true : off <= 1 ? (i + off) % 2 === 0 : rnd(i, off, 5) < 0.2,
+        ack: off < 0 ? true : off <= 1 ? (i + off + j) % 2 === 0 : rnd(i, off, 5 + j) < 0.2,
       }));
     }
   });
@@ -128,6 +176,36 @@ function useEscape(fn) {
 const Avatar = ({ emp }) => (
   <span className="ts-av sc-av" style={{ "--h": (emp.id * 67) % 360 }}>{emp.name.slice(0, 2).toUpperCase()}</span>
 );
+
+/* ---------------------------------------------------------------------
+   Pager: shows PAGE_SIZE rows at a time, Next / Prev for the rest
+   --------------------------------------------------------------------- */
+const PAGE_SIZE = 4;
+
+function Pager({ page, total, size = PAGE_SIZE, label, onPage, compact }) {
+  const pages = Math.ceil(total / size);
+  if (pages <= 1) return null;
+  const from = page * size + 1;
+  const to = Math.min(total, (page + 1) * size);
+  // 1 … 4 5 6 … 20   (first, last and the pages around the current one)
+  const nums = [];
+  for (let i = 0; i < pages; i++) {
+    if (i === 0 || i === pages - 1 || Math.abs(i - page) <= 1) nums.push(i);
+    else if (nums[nums.length - 1] !== "…") nums.push("…");
+  }
+  return (
+    <div className={`sc-pager ${compact ? "sc-pager--sm" : ""}`}>
+      <span className="sc-pg-info">Showing <b>{from}–{to}</b> of {total} {label}</span>
+      <div className="sc-pg-btns">
+        <button type="button" className="sc-pg" disabled={page === 0} onClick={() => onPage(page - 1)} aria-label="Previous">‹{!compact && " Prev"}</button>
+        {!compact && nums.map((n, i) => n === "…"
+          ? <span key={`d${i}`} className="sc-pg-dots">…</span>
+          : <button type="button" key={n} className={`sc-pg sc-pg--n ${n === page ? "is-on" : ""}`} onClick={() => onPage(n)} aria-current={n === page ? "page" : undefined}>{n + 1}</button>)}
+        <button type="button" className="sc-pg" disabled={page >= pages - 1} onClick={() => onPage(page + 1)} aria-label="Next">{!compact && "Next "}›</button>
+      </div>
+    </div>
+  );
+}
 
 /* ---------------------------------------------------------------------
    Plan popup (super admin): create for a person / whole team, or edit
@@ -223,6 +301,50 @@ function PlanModal({ plan, prefill, people, teams, onSave, onDelete, onClose }) 
           <button type="submit" className="sc-btn sc-btn--pri">{editing ? "Save changes" : "Give plan"}</button>
         </div>
       </form>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------
+   Day popup (super admin): everything planned for one person on one day
+   --------------------------------------------------------------------- */
+function DayModal({ emp, date, items, onEdit, onAdd, onClose }) {
+  useEscape(onClose);
+  const mins = items.reduce((a, p) => a + toMin(p.end) - toMin(p.start), 0);
+  const hrs = `${Math.floor(mins / 60)}h${mins % 60 ? ` ${mins % 60}m` : ""}`;
+  return (
+    <div className="sc-ov" onClick={onClose}>
+      <div className="sc-modal sc-modal--day" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`${emp.name} plans on ${niceDate(date)}`}>
+        <button type="button" className="sc-x" onClick={onClose} aria-label="Close">×</button>
+        <div className="sc-dm-head">
+          <Avatar emp={emp} />
+          <div><b>{emp.name}</b><small>{emp.role} · {emp.dept}</small></div>
+        </div>
+        <div className="sc-dm-date">
+          <b>{relDay(date)}</b> · {FULL_DAYS[parseKey(date).getDay()]}, {niceDate(date)}
+          <span>{items.length} {items.length === 1 ? "plan" : "plans"} · {hrs}</span>
+        </div>
+        <ul className="sc-dm-list">
+          {items.map((p) => (
+            <li key={p.id}>
+              <button type="button" className={`sc-dm-item sc-t-${p.type}`} onClick={() => onEdit(p)}>
+                <span className="sc-time"><b>{clock(p.start)}</b><small>{clock(p.end)}</small></span>
+                <span className="sc-body">
+                  <b>{PLAN_TYPES[p.type].icon} {p.title}</b>
+                  <small>{PLAN_TYPES[p.type].label}{p.note ? ` · ${p.note}` : ""}</small>
+                </span>
+                <span className={`sc-ack ${p.ack ? "is-ok" : ""}`}>{p.ack ? "✓ Got it" : "Waiting"}</span>
+                <span className="sc-pen" aria-hidden="true">✎</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <div className="sc-actions">
+          <span className="sc-spacer" />
+          <button type="button" className="sc-btn" onClick={onClose}>Close</button>
+          <button type="button" className="sc-btn sc-btn--pri" onClick={onAdd}>＋ Add plan</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -327,6 +449,10 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, onMine }) {
   const [view, setView] = useState("board");
   const [anchor, setAnchor] = useState(TODAY);
   const [modal, setModal] = useState(null); // { plan } | { prefill } | {}
+  const [page, setPage] = useState(0);      // board: people page
+  const [listPage, setListPage] = useState(0);
+  const [teamPage, setTeamPage] = useState(0);
+  useEffect(() => { setPage(0); setListPage(0); }, [teamFilter, q, view]);
 
   const todayKey = keyOf(TODAY);
   const weekStart = mondayOf(anchor);
@@ -375,11 +501,21 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, onMine }) {
   const listPlans = plans
     .filter((p) => scopedIds.has(p.empId) && p.date >= todayKey)
     .sort((a, b) => (a.date === b.date ? toMin(a.start) - toMin(b.start) : a.date < b.date ? -1 : 1));
+  const boardPages = Math.max(1, Math.ceil(scoped.length / PAGE_SIZE));
+  const pg = Math.min(page, boardPages - 1);
+  const pageRows = scoped.slice(pg * PAGE_SIZE, pg * PAGE_SIZE + PAGE_SIZE);
+
+  const listPages = Math.max(1, Math.ceil(listPlans.length / PAGE_SIZE));
+  const lpg = Math.min(listPage, listPages - 1);
   const groups = [];
-  listPlans.forEach((p) => {
+  listPlans.slice(lpg * PAGE_SIZE, lpg * PAGE_SIZE + PAGE_SIZE).forEach((p) => {
     const g = groups[groups.length - 1];
     if (g && g.date === p.date) g.items.push(p); else groups.push({ date: p.date, items: [p] });
   });
+
+  const teamPages = Math.max(1, Math.ceil(teams.length / PAGE_SIZE));
+  const tpg = Math.min(teamPage, teamPages - 1);
+  const pageTeams = teams.slice(tpg * PAGE_SIZE, tpg * PAGE_SIZE + PAGE_SIZE);
 
   const kpis = [
     ["📅", "blue", "Upcoming plans", upcoming.length, "from today onwards"],
@@ -422,7 +558,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, onMine }) {
             <span className="sc-tic sc-tic--all">★</span>
             <span className="sc-tt"><b>All people</b><small>{people.length} in {teams.length} {teams.length === 1 ? "team" : "teams"}</small></span>
           </button>
-          {teams.map((t) => {
+          {pageTeams.map((t) => {
             const mem = people.filter((e) => e.team === t.id);
             const lead = empById[t.lead];
             return (
@@ -436,6 +572,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, onMine }) {
             );
           })}
           {teams.length === 0 && <p className="sc-hint">No teams yet. Create your first team to start planning.</p>}
+          <Pager page={tpg} total={teams.length} label="teams" onPage={setTeamPage} compact />
         </aside>
 
         <main className="sc-main">
@@ -470,7 +607,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, onMine }) {
                     </div>
                   ))}
                 </div>
-                {scoped.map((e) => (
+                {pageRows.map((e) => (
                   <div className="sc-brow" key={e.id}>
                     <div className="sc-bwho">
                       <Avatar emp={e} />
@@ -479,25 +616,27 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, onMine }) {
                     {days.map((day) => {
                       const k = keyOf(day);
                       const items = byCell[`${e.id}:${k}`] || [];
+                      const first = items[0];
+                      const cls = `sc-bcell ${k === todayKey ? "is-today" : ""} ${k < todayKey ? "is-past" : ""} ${day.getDay() % 6 === 0 ? "is-wknd" : ""}`;
                       return (
-                        <div key={k} className={`sc-bcell ${k === todayKey ? "is-today" : ""} ${k < todayKey ? "is-past" : ""} ${day.getDay() % 6 === 0 ? "is-wknd" : ""}`}>
-                          {items.map((p) => (
-                            <button type="button" key={p.id} className={`sc-chip sc-t-${p.type}`} onClick={() => setModal({ plan: p })} title={`${p.title} · ${timeSpan(p)} (click to edit)`}>
-                              <b>{clock(p.start)}</b>
-                              <span>{PLAN_TYPES[p.type].icon} {p.title}</span>
-                              {p.ack && <i className="sc-tick" title="Acknowledged">✓</i>}
-                            </button>
-                          ))}
-                          <button type="button" className="sc-add" onClick={() => setModal({ prefill: { empId: e.id, date: k } })} aria-label={`Add plan for ${e.name} on ${niceDate(k)}`}>＋</button>
-                        </div>
+                        <button
+                          type="button" key={k} className={cls}
+                          onClick={() => setModal(items.length ? { day: { empId: e.id, date: k } } : { prefill: { empId: e.id, date: k } })}
+                          title={items.length ? items.map((p) => `${clock(p.start)} ${p.title}`).join("\n") : "Add a plan"}
+                          aria-label={items.length ? `${e.name}, ${niceDate(k)}: ${items.length} plans. Click to view` : `Add plan for ${e.name} on ${niceDate(k)}`}
+                        >
+                          {first ? (
+                            <>
+                              <span className={`sc-mchip sc-t-${first.type}`}>{PLAN_TYPES[first.type].icon} {clock(first.start)}</span>
+                              {items.length > 1 && <span className="sc-more">+{items.length - 1}</span>}
+                              {items.every((p) => p.ack) && <i className="sc-tick" title="All acknowledged">✓</i>}
+                            </>
+                          ) : <span className="sc-addhint">＋</span>}
+                        </button>
                       );
                     })}
                   </div>
                 ))}
-              </div>
-              <div className="sc-legend">
-                {Object.entries(PLAN_TYPES).map(([k, v]) => <span key={k} className={`sc-t-${k}`}><i />{v.icon} {v.label}</span>)}
-                <span className="sc-lg-ack"><b>✓</b> Acknowledged</span>
               </div>
             </div>
           ) : groups.length === 0 ? (
@@ -527,10 +666,28 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, onMine }) {
               ))}
             </div>
           )}
+          {scoped.length > 0 && view === "board" && (
+            <div className="sc-legend">
+              {Object.entries(PLAN_TYPES).map(([k, v]) => <span key={k} className={`sc-t-${k}`}><i />{v.icon} {v.label}</span>)}
+              <span className="sc-lg-ack"><b>✓</b> All acknowledged</span>
+              <span className="sc-lg-hint">Click a box to see the day's plans</span>
+            </div>
+          )}
+          {scoped.length > 0 && view === "board" && <Pager page={pg} total={scoped.length} label="people" onPage={setPage} />}
+          {scoped.length > 0 && view === "list" && <Pager page={lpg} total={listPlans.length} label="plans" onPage={setListPage} />}
         </main>
       </div>
 
-      {modal && (
+      {modal && modal.day && empById[modal.day.empId] && (
+        <DayModal
+          emp={empById[modal.day.empId]} date={modal.day.date}
+          items={byCell[`${modal.day.empId}:${modal.day.date}`] || []}
+          onEdit={(p) => setModal({ plan: p })}
+          onAdd={() => setModal({ prefill: { empId: modal.day.empId, date: modal.day.date } })}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal && !modal.day && (
         <PlanModal plan={modal.plan} prefill={modal.prefill} people={people} teams={teams} onSave={savePlan} onDelete={deletePlan} onClose={() => setModal(null)} />
       )}
     </div>
