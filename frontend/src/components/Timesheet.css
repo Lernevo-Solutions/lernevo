@@ -440,3 +440,48 @@
 .ts-md-err { margin: 12px 0 0; padding: 8px 11px; border-radius: 10px; background: var(--ts-lvb); color: var(--ts-lv); font-size: 13px; font-weight: 700; }
 .ts-md-acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
 .ts-link { display: block; margin: 10px 0 0 auto; border: 0; background: none; padding: 0; color: var(--ts-blue); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline; }
+
+/* ---------- Compact spacing (v3): every gap smaller. Delete this block to go back to the roomy look. ---------- */
+.ts-wrap { padding: 14px 16px 24px; }
+.ts-head { padding: 14px 18px; border-radius: 14px; }
+.ts-head h1 { font-size: 26px; margin: 0 0 2px; }
+.ts-head p { margin: 0 0 8px; }
+.ts-shifts { gap: 6px; }
+.ts-head .ts-chip { padding: 3px 10px; }
+.ts-kpis { margin: 10px 0 8px; }
+.ts-kpi { padding: 9px 14px; gap: 1px; }
+.ts-kic { width: 26px; height: 26px; font-size: 13px; margin-bottom: 3px; }
+.ts-kpi b { font-size: 22px; }
+.ts-kpi .ts-approve { margin-top: 4px; }
+.ts-panel { padding: 0 12px 12px; }
+.ts-top { padding: 10px 0 8px; margin-bottom: 8px; }
+.ts-filters { gap: 8px; margin-bottom: 8px; }
+.ts-filters select, .ts-filters input { padding: 6px 10px; }
+.ts-bar, .ts-bar-l { gap: 8px; }
+.ts-tabs { padding: 3px; }
+.ts-tab { padding: 6px 16px; }
+.ts-btn { padding: 6px 12px; }
+.ts-legend { margin-top: 10px; gap: 10px; }
+.ts-sum { margin-top: 10px; gap: 8px; }
+.ts-sum div { padding: 8px 10px; }
+/* weekly header / lock banner */
+.ts-dh { padding: 5px 8px 4px; gap: 2px; }
+.ts-mix { margin: 2px 0; }
+.ts-lock { padding: 7px 12px; margin-bottom: 8px; }
+/* monthly grid + calendars */
+.ts-mrow { padding: 3px 0; }
+.ts-mrow--foot { margin-top: 6px; }
+.ts-g { height: 30px; }
+.ts-emp + .ts-emp { margin-top: 16px; }
+.ts-pf { margin-bottom: 8px; padding: 7px 10px; gap: 6px; }
+.ts-cal { gap: 4px; }
+.ts-cell { min-height: 72px; padding: 6px; gap: 3px; }
+.ts-tag { padding: 4px 7px; }
+/* day popup */
+.ts-modal { padding: 16px; }
+.ts-md-head { margin-bottom: 10px; }
+.ts-md-rows { margin-top: 10px; }
+.ts-md-rows > div { padding: 6px 0; }
+.ts-md-work, .ts-md-notes { margin-top: 10px; padding-top: 10px; }
+.ts-md-acts { margin-top: 10px; }
+.ts-md-act { margin-top: 10px; }

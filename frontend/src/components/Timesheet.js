@@ -858,12 +858,12 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
           </select>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or team" aria-label="Search by employee name or team" />
           {isAdmin && <button type="button" className="ts-btn" onClick={() => openTeamModal(null)}>＋ New team</button>}
-          <button type="button" className="ts-btn ts-mine" onClick={() => setShowMine(true)}>👤 My Timesheet</button>
           {isAdmin && openTeamInfo && <button type="button" className="ts-btn" onClick={() => openTeamModal(openTeamInfo)}>✎ Edit team</button>}
         </div>
 
         <div className="ts-bar">
           <div className="ts-bar-l">
+            <button type="button" className="ts-btn ts-mine" onClick={() => setShowMine(true)}>👤 My Timesheet</button>
             {viewTabs}
             {view === "month" && (
               <div className="ts-tabs ts-tabs--sm" role="tablist" aria-label="Monthly layout">
