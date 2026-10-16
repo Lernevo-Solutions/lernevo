@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./Scheduler.css";
 
 /* =====================================================================
@@ -503,6 +503,34 @@ export function TeamModal({ team, people, teams, onSave, onDelete, onClose }) {
   const [confirmDel, setConfirmDel] = useState(false);
   useEscape(onClose);
 
+  // brand-new members created right inside this popup
+  const [added, setAdded] = useState([]);
+  const [adding, setAdding] = useState(false);
+  const [nf, setNf] = useState({ name: "", role: "Associate", dept: "", country: "IN" });
+  const [addErr, setAddErr] = useState("");
+  const nextId = useRef(Math.max(0, ...people.map((e) => Number(e.id) || 0)));
+  const everyone = useMemo(() => [...added, ...people], [added, people]); // new ones on top
+  const depts = useMemo(() => [...new Set(people.map((e) => e.dept).filter(Boolean))], [people]);
+
+  const addMember = () => {
+    const nm = nf.name.trim();
+    if (!nm) return setAddErr("Enter the member's name.");
+    if (everyone.some((e) => e.name.toLowerCase() === nm.toLowerCase())) return setAddErr("Someone with this name already exists.");
+    nextId.current += 1;
+    const p = { id: nextId.current, name: nm, role: nf.role.trim() || "Associate", dept: nf.dept.trim() || "General", country: nf.country, team: null, isNew: true };
+    setAdded((a) => [p, ...a]);
+    setMembers((prev) => new Set(prev).add(p.id)); // auto-select
+    setNf({ name: "", role: nf.role, dept: nf.dept, country: nf.country }); // keep role/dept/country for quick next entry
+    setAddErr("");
+    setErr("");
+    setQ("");
+  };
+  const removeNew = (id) => {
+    setAdded((a) => a.filter((p) => p.id !== id));
+    setMembers((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    if (String(id) === lead) setLead("");
+  };
+
   const toggle = (id) => setMembers((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const teamName = (id) => (teams.find((t) => t.id === id) || {}).name;
 
@@ -515,10 +543,12 @@ export function TeamModal({ team, people, teams, onSave, onDelete, onClose }) {
     const all = new Set(members);
     if (lead) all.add(Number(lead));
     const leadId = lead ? Number(lead) : [...all][0];
-    onSave({ id: team && team.id, name: nm, lead: leadId, members: [...all] });
+    // newPeople = members created in this popup (already have unique numeric ids); the parent must add them to its people list
+    const newPeople = added.filter((p) => all.has(p.id)).map(({ isNew, ...p }) => p);
+    onSave({ id: team && team.id, name: nm, lead: leadId, members: [...all], newPeople });
   };
 
-  const shown = people.filter((e) => `${e.name} ${e.role} ${e.dept}`.toLowerCase().includes(q.trim().toLowerCase()));
+  const shown = everyone.filter((e) => `${e.name} ${e.role} ${e.dept}`.toLowerCase().includes(q.trim().toLowerCase()));
 
   return (
     <div className="sc-ov" onClick={onClose}>
@@ -533,13 +563,35 @@ export function TeamModal({ team, people, teams, onSave, onDelete, onClose }) {
             <span>Team lead</span>
             <select value={lead} onChange={(e) => setLead(e.target.value)}>
               <option value="">Select a lead</option>
-              {people.map((e) => <option key={e.id} value={e.id}>{e.name} · {e.role}</option>)}
+              {everyone.map((e) => <option key={e.id} value={e.id}>{e.name} · {e.role}{e.isNew ? " (new)" : ""}</option>)}
             </select>
           </label>
         </div>
 
         <div className="sc-f">
-          <span>Members <b className="sc-count">{new Set([...members, ...(lead ? [Number(lead)] : [])]).size} selected</b></span>
+          <span className="sc-mhead">
+            <span>Members <b className="sc-count">{new Set([...members, ...(lead ? [Number(lead)] : [])]).size} selected</b></span>
+            <button type="button" className="sc-btn sc-btn--sm sc-addm" onClick={() => { setAdding((v) => !v); setAddErr(""); }} aria-expanded={adding}>{adding ? "× Close" : "＋ New member"}</button>
+          </span>
+
+          {adding && (
+            <div className="sc-newm">
+              <div className="sc-newm-grid">
+                <label><small>Name *</small><input value={nf.name} onChange={(e) => setNf({ ...nf, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addMember(); } }} placeholder="e.g. Karthik" maxLength={40} autoFocus /></label>
+                <label><small>Role</small><input value={nf.role} onChange={(e) => setNf({ ...nf, role: e.target.value })} placeholder="Associate" maxLength={30} /></label>
+                <label><small>Department</small><input list="sc-depts" value={nf.dept} onChange={(e) => setNf({ ...nf, dept: e.target.value })} placeholder="e.g. Sales" maxLength={30} /></label>
+                <label><small>Country</small>
+                  <select value={nf.country} onChange={(e) => setNf({ ...nf, country: e.target.value })}>
+                    {Object.entries(COUNTRIES).map(([code, c]) => <option key={code} value={code}>{c.name}</option>)}
+                  </select>
+                </label>
+              </div>
+              <datalist id="sc-depts">{depts.map((d) => <option key={d} value={d} />)}</datalist>
+              {addErr && <p className="sc-err" role="alert">{addErr}</p>}
+              <button type="button" className="sc-btn sc-btn--pri sc-btn--sm" onClick={addMember}>Add to team</button>
+            </div>
+          )}
+
           <input className="sc-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people" aria-label="Search people" />
           <ul className="sc-people">
             {shown.map((e) => {
@@ -551,10 +603,12 @@ export function TeamModal({ team, people, teams, onSave, onDelete, onClose }) {
                     <input type="checkbox" checked={on} disabled={String(e.id) === lead} onChange={() => toggle(e.id)} />
                     <Avatar emp={e} />
                     <span className="sc-pn"><b>{e.name}</b><small>{e.role} · {e.dept}</small></span>
+                    {e.isNew && <em className="sc-new">New</em>}
                     {String(e.id) === lead && <em className="sc-lead">Lead</em>}
                     {from && on && String(e.id) !== lead && <em className="sc-moves">moves from {from}</em>}
                     {from && !on && <em className="sc-in">in {from}</em>}
                   </label>
+                  {e.isNew && <button type="button" className="sc-rm" onClick={() => removeNew(e.id)} aria-label={`Remove ${e.name}`} title="Remove new member">×</button>}
                 </li>
               );
             })}
