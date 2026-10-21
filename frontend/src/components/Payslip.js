@@ -1,292 +1,157 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { Download, Eye, FileText, Lock, Search, ShieldCheck, Trash2, X } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Download, Eye, FileSpreadsheet, FileText, HelpCircle, Mail, Search, Wallet, X, RotateCcw, CheckCircle2, Paperclip } from "lucide-react";
+import { jsPDF } from "jspdf";
+import * as XLSX from "xlsx";
 import Sidebar from "./Sidebar";
 import "./Payslip.css";
 
-// Shared key with Scheduler
-const STORAGE_KEY = "schedules_v1";
-
-const FALLBACK_SCHEDULES = [
-  {
-    id: "t1", employee: "Arav Kumar", employeeId: "EMP1001",
-    homeRegion: "IN", scheduleStyle: "ROTA", workDate: "2026-09-08",
-    checkIn: "2026-09-08T03:30:00Z", checkOut: "2026-09-08T12:00:00Z",
-    breakMin: 45, status: "Approved", hourlyRate: 500,
-  },
-];
-
-function computeHours(checkIn, checkOut, breakMin) {
-  const ms = new Date(checkOut) - new Date(checkIn);
-  return Math.max(0, ms / 3600000 - breakMin / 60);
-}
-function fmtMoney(n) {
-  return `₹${Math.round(n).toLocaleString("en-IN")}`;
-}
-function monthLabel(isoDate) {
-  return new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" })
-    .format(new Date(isoDate));
-}
-
-// Auto-generate payslip from an approved shift
-function buildPayslip(schedule) {
-  const hours = computeHours(schedule.checkIn, schedule.checkOut, schedule.breakMin);
-  const overtime = hours > 8 ? hours - 8 : 0;
-  const rate = schedule.hourlyRate || 500;
-  const gross = hours * rate + overtime * rate * 0.5; // OT at 1.5x
-  const pf = gross * 0.12;
-  const tax = gross * 0.05;
-  const net = gross - pf - tax;
-  return {
-    id: `p-${schedule.id}`,
-    scheduleId: schedule.id,
-    employeeName: schedule.employee,
-    employeeId: schedule.employeeId || "—",
-    month: monthLabel(schedule.workDate),
-    workDate: schedule.workDate,
-    hours, overtime, rate,
-    gross, pf, tax, net,
-    status: schedule.status === "Approved" ? "Paid" : "Pending",
-    generatedOn: new Date().toLocaleDateString("en-IN", {
-      day: "2-digit", month: "short", year: "numeric",
-    }),
-  };
-}
+const monthOptions = Array.from({ length: 12 }, (_, i) => {
+  const date = new Date(); date.setDate(1); date.setMonth(date.getMonth() - i);
+  return { value: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`, label: date.toLocaleDateString("en-IN", { month: "long", year: "numeric" }) };
+});
+const currentMonth = monthOptions[0].value;
+const money = (value) => `₹${Math.round(value).toLocaleString("en-IN")}`;
+const pay = (e) => ({ earnings: e.basic + e.hra + e.special + (e.overtimePay || 0), deductions: e.pf + e.tax + e.otherDeductions, net: e.basic + e.hra + e.special + (e.overtimePay || 0) - e.pf - e.tax - e.otherDeductions });
+const makeEmployee = ([name, id, department, email, basic, hra, special, pf, tax, otherDeductions, approval, status, emailStatus, overtimePay = 0]) => ({ name, id, department, email, designation: "People Team", basic, hra, special, pf, tax, otherDeductions, approval, status, emailStatus, overtimePay, days: 22, hours: 176, leaves: 1, joining: "2022-04-15", payPeriod: currentMonth });
+const INITIAL_EMPLOYEES = [
+  ["Janani S", "EMP001", "Engineering", "janani@lernevo.com", 32000, 12000, 4500, 2400, 200, 300, "Approved", "Generated", "Sent", 1800],
+  ["Arun Kumar", "EMP002", "Design", "arun@lernevo.com", 28000, 10000, 3500, 2100, 200, 150, "Approved", "Generated", "Not Sent"],
+  ["Meena P", "EMP003", "Product", "meena@lernevo.com", 41000, 16000, 6000, 3000, 200, 500, "Pending approval", "Pending", "Not Sent"],
+  ["Karthik R", "EMP004", "Marketing", "karthik@lernevo.com", 30000, 12000, 4200, 2200, 200, 200, "Approved", "Generated", "Not Sent", 900],
+  ["Priya S", "EMP005", "HR", "priya@lernevo.com", 26000, 10000, 3200, 1900, 200, 100, "Approved", "Pending", "Not Sent"],
+  ["Vijay T", "EMP006", "Sales", "vijay@lernevo.com", 29000, 11000, 5500, 2200, 200, 800, "Approved", "Generated", "Not Sent", 2400],
+  ["Nisha R", "EMP007", "Engineering", "nisha@lernevo.com", 27000, 10500, 3200, 2000, 200, 100, "Approved", "Pending", "Not Sent"],
+  ["Rahul M", "EMP008", "Design", "rahul@lernevo.com", 31000, 12000, 3800, 2300, 200, 250, "Approved", "Generated", "Not Sent"],
+  ["Divya K", "EMP009", "Product", "divya@lernevo.com", 35000, 14000, 4800, 2600, 200, 300, "Missing timesheet", "Pending", "Not Sent"],
+  ["Sanjay V", "EMP010", "Sales", "sanjay@lernevo.com", 33000, 12500, 4700, 2450, 200, 350, "Approved", "Generated", "Not Sent"],
+  ["Anita D", "EMP011", "HR", "anita@lernevo.com", 25000, 9500, 3000, 1800, 200, 100, "Missing payroll data", "Pending", "Not Sent"],
+  ["Rohit B", "EMP012", "Marketing", "rohit@lernevo.com", 29000, 11000, 3900, 2100, 200, 250, "Approved", "Generated", "Failed"],
+].map(makeEmployee);
+const TEMPLATES = {
+  "Payslip — Default Template": { subject: "Your Payslip for {{pay_period}} — {{company_name}}", message: "Hi {{employee_name}},\n\nPlease find attached your payslip for {{pay_period}}.\n\nYour net pay for this period is {{net_pay}}.\n\nIf you have any questions regarding your salary statement, please contact the HR team.\n\nRegards,\n{{company_name}} HR Team" },
+  "Monthly Salary Statement": { subject: "Monthly salary statement | {{pay_period}}", message: "Dear {{employee_name}},\n\nYour salary statement for {{pay_period}} is ready. Net pay: {{net_pay}}.\n\nPlease see your individual payslip attached. For assistance, contact the HR team.\n\nRegards,\n{{company_name}} HR Team" },
+  "Custom Email Template": { subject: "Payslip enclosed for {{pay_period}}", message: "Hello {{employee_name}},\n\nAttached is your payslip for {{pay_period}}. Your net pay is {{net_pay}}.\n\nThank you,\n{{company_name}} HR Team" },
+};
 
 export default function Payslip() {
-  const [schedules, setSchedules] = useState([]);
-  const [query, setQuery] = useState("");
-  const [activeQuery, setActiveQuery] = useState("");
-  const [hasSearched, setHasSearched] = useState(false);
-  const [modal, setModal] = useState(null);
+  const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
+  const [tab, setTab] = useState("Pending");
+  const [search, setSearch] = useState("");
+  const [department, setDepartment] = useState("All departments");
+  const [month, setMonth] = useState(currentMonth);
+  const [selected, setSelected] = useState([]);
+  const [dialog, setDialog] = useState(null);
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [template, setTemplate] = useState(Object.keys(TEMPLATES)[0]);
+  const [attachPdf, setAttachPdf] = useState(true);
+  const [emailPreviewId, setEmailPreviewId] = useState(null);
+  const [exportFields, setExportFields] = useState({ details: true, breakdown: true, net: true });
 
-  // Load schedules from Scheduler (localStorage bridge)
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const parsed = raw ? JSON.parse(raw) : null;
-      setSchedules(parsed && parsed.length ? parsed : FALLBACK_SCHEDULES);
-    } catch {
-      setSchedules(FALLBACK_SCHEDULES);
-    }
-  }, []);
+  const generated = employees.filter((e) => e.status === "Generated" && e.payPeriod === month);
+  const rows = useMemo(() => employees.filter((e) => tab === "Pending" ? e.status === "Pending" : e.status === "Generated" && e.payPeriod === month).filter((e) => (!search || `${e.name} ${e.id} ${e.email}`.toLowerCase().includes(search.toLowerCase())) && (department === "All departments" || e.department === department)), [employees, tab, month, search, department]);
+  const eligibleRows = rows.filter((e) => e.status === "Pending" && e.approval === "Approved");
+  const selectableRows = tab === "Pending" ? eligibleRows : rows;
+  const selectedEmployees = employees.filter((e) => selected.includes(e.id) && (tab === "Pending" ? e.status === "Pending" && e.approval === "Approved" : e.status === "Generated" && e.payPeriod === month));
+  const departments = [...new Set(employees.map((e) => e.department))];
+  const selectedPreview = employees.find((e) => e.id === dialog?.employeeId) || selectedEmployees[0];
+  const previewMonth = monthOptions.find((m) => m.value === (dialog?.period || month))?.label || dialog?.period || month;
 
-  // Auto-generate payslips from APPROVED schedules only
-  const payslips = useMemo(() => {
-    return schedules
-      .filter((s) => s.status === "Approved" || s.status === "Submitted")
-      .map(buildPayslip);
-  }, [schedules]);
+  const updateNotice = (message) => { setNotice(message); window.setTimeout(() => setNotice(""), 4500); };
+  const closeDialog = () => { if (!busy) setDialog(null); };
+  const setTabAndClear = (next) => { setTab(next); setSelected([]); };
+  const toggle = (employee) => {
+    if (tab === "Pending" && (employee.approval !== "Approved" || employee.status !== "Pending")) return;
+    setSelected((items) => items.includes(employee.id) ? items.filter((id) => id !== employee.id) : [...items, employee.id]);
+  };
+  const toggleAll = () => setSelected((items) => selectableRows.length && selectableRows.every((e) => items.includes(e.id)) ? items.filter((id) => !selectableRows.some((e) => e.id === id)) : [...new Set([...items.filter((id) => rows.some((e) => e.id === id)), ...selectableRows.map((e) => e.id)])]);
 
-  const searchResults = useMemo(() => {
-    const term = activeQuery.trim().toLowerCase();
-    if (!term) return [];
-    return payslips.filter((p) =>
-      `${p.employeeName} ${p.employeeId} ${p.month} ${p.status}`
-        .toLowerCase()
-        .includes(term)
-    );
-  }, [payslips, activeQuery]);
-
-  const runSearch = () => { setActiveQuery(query); setHasSearched(true); };
-  const clearSearch = () => { setQuery(""); setActiveQuery(""); setHasSearched(false); };
-  const closeModal = () => setModal(null);
-
-  const downloadPayslip = (p) => {
-    const text = `PAYSLIP — ${p.month}
------------------------------
-Employee: ${p.employeeName} (${p.employeeId})
-Work Date: ${p.workDate}
-Hours: ${p.hours.toFixed(2)}h  |  Overtime: ${p.overtime.toFixed(2)}h
-Rate: ${fmtMoney(p.rate)}/hr
-
-Gross Pay:   ${fmtMoney(p.gross)}
-PF (12%):   -${fmtMoney(p.pf)}
-Tax (5%):   -${fmtMoney(p.tax)}
------------------------------
-Net Pay:     ${fmtMoney(p.net)}
-Status:      ${p.status}
-Generated:   ${p.generatedOn}`;
-    const blob = new Blob([text], { type: "text/plain" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `payslip-${p.employeeId}-${p.month.replace(" ", "-")}.txt`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+  const downloadPdf = (employee) => {
+    const p = pay(employee); const period = monthOptions.find((m) => m.value === employee.payPeriod)?.label || employee.payPeriod;
+    const doc = new jsPDF(); doc.setFillColor(37, 99, 235); doc.rect(0, 0, 210, 38, "F"); doc.setTextColor(255, 255, 255); doc.setFontSize(19); doc.text("LERNEVO", 18, 19); doc.setFontSize(10); doc.text(`PAYSLIP · ${period}`, 18, 29);
+    doc.setTextColor(30, 41, 59); doc.setFontSize(12); doc.text("Employee information", 18, 53); doc.setFontSize(10); doc.text(`Name: ${employee.name}     Employee ID: ${employee.id}`, 18, 63); doc.text(`Email: ${employee.email}`, 18, 71); doc.text(`Department: ${employee.department}     Pay period: ${period}`, 18, 79);
+    doc.text("Earnings", 18, 98); doc.text("Deductions", 112, 98);
+    [["Basic Salary", employee.basic], ["House Rent Allowance", employee.hra], ["Other Allowances", employee.special], ...(employee.overtimePay ? [["Overtime Pay", employee.overtimePay]] : []), ["Gross Earnings", p.earnings]].forEach(([label, value], i) => { doc.text(label, 18, 109 + i * 9); doc.text(money(value), 90, 109 + i * 9, { align: "right" }); });
+    [["Provident Fund", employee.pf], ["Professional Tax", employee.tax], ["Other Deductions", employee.otherDeductions], ["Total Deductions", p.deductions]].forEach(([label, value], i) => { doc.text(label, 112, 109 + i * 9); doc.text(money(value), 192, 109 + i * 9, { align: "right" }); });
+    doc.setFillColor(239, 246, 255); doc.roundedRect(18, 160, 174, 20, 3, 3, "F"); doc.setTextColor(37, 99, 235); doc.setFontSize(13); doc.text("Net Pay", 24, 173); doc.text(money(p.net), 186, 173, { align: "right" }); doc.setTextColor(100, 116, 139); doc.setFontSize(8); doc.text("Demo payslip for presentation purposes only", 18, 275);
+    doc.save(`${employee.name.replace(/\s+/g, "_")}_Payslip_${employee.payPeriod.replace("-", "")}.pdf`);
   };
 
-  return (
-    <div className="compliance-layout">
-      <Sidebar />
-      <div className="compliance-content-scroll">
-        <main className="compliance-page">
-          <header className="compliance-header">
-            <div className="compliance-header-left">
-              <div className="compliance-icon-box" aria-hidden="true"><FileText /></div>
-              <div>
-                <h1>Payslip</h1>
-                <p>Auto-generated from approved scheduler shifts.</p>
-              </div>
-            </div>
-            <span className="compliance-secure-badge"><Lock size={14} />Auto-generated</span>
-          </header>
+  const openGenerate = () => {
+    if (!selectedEmployees.length) return updateNotice("Select approved employees with complete payroll data first.");
+    setDialog({ type: "generate", phase: "review", ids: selectedEmployees.map((e) => e.id), employeeId: selectedEmployees[0].id, period: month });
+  };
+  const generate = () => {
+    const targets = employees.filter((e) => dialog.ids.includes(e.id) && e.status === "Pending" && e.approval === "Approved");
+    if (!targets.length) return updateNotice("No selected employees are eligible. Review their approval and payroll data.");
+    setBusy(true);
+    window.setTimeout(() => {
+      const payslipNumbers = Object.fromEntries(targets.map((e, i) => [e.id, `LRN-${dialog.period.replace("-", "")}-${String(Date.now()).slice(-4)}${i}`]));
+      setEmployees((current) => current.map((e) => targets.some((target) => target.id === e.id) ? { ...e, status: "Generated", payPeriod: dialog.period, emailStatus: "Not Sent", payslipNumber: payslipNumbers[e.id] } : e));
+      setSelected([]); setBusy(false); setDialog({ type: "generate", phase: "success", ids: targets.map((e) => e.id), period: dialog.period });
+    }, 800);
+  };
+  const openEmail = (ids) => {
+    const recipients = employees.filter((e) => ids.includes(e.id) && e.status === "Generated");
+    if (!recipients.length) return updateNotice("Select generated payslips to start the email workflow.");
+    setTemplate(Object.keys(TEMPLATES)[0]); setEmailPreviewId(recipients[0].id); setAttachPdf(true);
+    setDialog({ type: "email", phase: "compose", ids: recipients.map((e) => e.id), period: month });
+  };
+  const fillTemplate = (text, employee) => text.replace(/\{\{(employee_name|employee_id|pay_period|net_pay|company_name)\}\}/g, (_, key) => ({ employee_name: employee.name, employee_id: employee.id, pay_period: monthOptions.find((m) => m.value === employee.payPeriod)?.label || employee.payPeriod, net_pay: money(pay(employee).net), company_name: "Lernevo" })[key]);
+  const sendEmails = (ids, retryOnly = false) => {
+    const targets = employees.filter((e) => ids.includes(e.id) && e.status === "Generated" && (!retryOnly || e.emailStatus === "Failed"));
+    if (!targets.length) return updateNotice("There are no failed emails to retry.");
+    const period = dialog?.period || month;
+    setEmployees((all) => all.map((e) => targets.some((t) => t.id === e.id) ? { ...e, emailStatus: "Sending" } : e)); setBusy(true);
+    window.setTimeout(() => {
+      const failed = targets.filter((e) => !retryOnly && e.id === "EMP012");
+      setEmployees((all) => all.map((e) => targets.some((t) => t.id === e.id) ? { ...e, emailStatus: failed.some((f) => f.id === e.id) ? "Failed" : "Sent" } : e));
+      setBusy(false); setDialog({ type: "email", phase: "result", ids: targets.map((e) => e.id), sent: targets.length - failed.length, failed: failed.length, period });
+    }, 900);
+  };
+  const openExport = () => setDialog({ type: "export" });
+  const exportData = (format) => {
+    if (!rows.length) return updateNotice("There are no records to export for these filters.");
+    const data = rows.map((e) => ({ ...(exportFields.details ? { Employee: e.name, "Employee ID": e.id, Email: e.email, Department: e.department } : {}), ...(exportFields.breakdown ? { "Basic Salary": e.basic, HRA: e.hra, "Other Allowances": e.special, PF: e.pf, "Professional Tax": e.tax, "Other Deductions": e.otherDeductions, "Gross Earnings": pay(e).earnings, "Total Deductions": pay(e).deductions } : {}), ...(exportFields.net ? { "Net Pay": pay(e).net } : {}) }));
+    if (format === "Excel (.xlsx)") { const sheet = XLSX.utils.json_to_sheet(data); const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book, sheet, "Payslips"); XLSX.writeFile(book, `payslips-${month}.xlsx`); }
+    else { const doc = new jsPDF(); doc.setFontSize(15); doc.text(`Lernevo Payslips — ${month}`, 15, 18); data.forEach((row, i) => { if (i && i % 25 === 0) doc.addPage(); doc.setFontSize(9); doc.text(Object.values(row).join(" · ").slice(0, 170), 15, 30 + (i % 25) * 9); }); doc.save(`payslips-${month}.pdf`); }
+    setDialog(null); updateNotice(`${format} export downloaded successfully.`);
+  };
+  const modalTitle = dialog?.type === "generate" ? dialog.phase === "success" ? "Payslips Generated Successfully!" : "Preview Payslips" : dialog?.type === "email" ? dialog.phase === "confirm" ? "Confirm email delivery" : dialog.phase === "result" ? "Email delivery results" : "Send Payslips via Email" : dialog?.type === "how" ? "How It Works" : dialog?.type === "export" ? "Export payslips" : "Payslip preview";
 
-          <section className="compliance-search-row">
-            <div className="compliance-search">
-              <Search aria-hidden="true" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && runSearch()}
-                type="search"
-                placeholder="Search by employee name, ID, or month..."
-              />
-              {query && (
-                <button type="button" className="compliance-search-clear"
-                  onClick={clearSearch} aria-label="Clear"><X size={15} /></button>
-              )}
-            </div>
-            <button type="button" className="compliance-search-button" onClick={runSearch}>
-              <Search size={15} />Search
-            </button>
-          </section>
+  return <div className="pay-admin-layout"><Sidebar/><main className="pay-admin-main">
+    <header className="pay-admin-heading"><div><span className="pay-eyebrow">HR OPERATIONS</span><h1>Payslips</h1><p>Review, generate and send employee payslips.</p></div><div className="pay-header-actions"><button className="pay-btn pay-btn-quiet" onClick={() => setDialog({ type: "how" })}><HelpCircle size={16}/>How It Works</button><button className="pay-btn pay-btn-quiet" onClick={openExport}><FileSpreadsheet size={16}/>Export</button></div></header>
+    <section className="pay-summary-grid"><Summary icon={<Wallet/>} label="Total employees" value={employees.length} note="Across all departments" tone="blue"/><Summary icon={<FileText/>} label="Generated payslips" value={employees.filter((e) => e.status === "Generated").length} note="Ready to view and download" tone="green"/><Summary icon={<Search/>} label="Pending generation" value={employees.filter((e) => e.status === "Pending").length} note="Includes blocked records" tone="amber"/><Summary icon={<span className="pay-rupee">₹</span>} label="Net payroll" value={money(generated.reduce((sum, e) => sum + pay(e).net, 0))} note="For selected pay period" tone="violet"/></section>
+    <section className="pay-table-card"><div className="pay-table-heading"><div><h2>Employee payslips</h2><p>Manage approvals, generated documents and email delivery</p></div><span className="pay-record-count">{rows.length} records</span></div>
+      <div className="pay-tabs" role="tablist"><button role="tab" aria-selected={tab === "Pending"} className={tab === "Pending" ? "active" : ""} onClick={() => setTabAndClear("Pending")}>Pending <b>{employees.filter((e) => e.status === "Pending").length}</b></button><button role="tab" aria-selected={tab === "Generated"} className={tab === "Generated" ? "active" : ""} onClick={() => setTabAndClear("Generated")}>Generated <b>{employees.filter((e) => e.status === "Generated" && e.payPeriod === month).length}</b></button></div>
+      <div className="pay-filter-bar"><label className="pay-search"><Search size={16}/><input value={search} onChange={(e) => { setSearch(e.target.value); setSelected([]); }} placeholder="Search name, employee ID, or email"/></label><select aria-label="Filter by department" value={department} onChange={(e) => { setDepartment(e.target.value); setSelected([]); }}><option>All departments</option>{departments.map((d) => <option key={d}>{d}</option>)}</select><select aria-label="Filter by month" value={month} onChange={(e) => { setMonth(e.target.value); setSelected([]); }}>{monthOptions.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}</select><button className="pay-reset" onClick={() => { setSearch(""); setDepartment("All departments"); setMonth(currentMonth); setSelected([]); }}>Reset filters</button></div>
+      {selected.length > 0 && <div className="pay-bulk-bar"><strong>{selectedEmployees.length} {selectedEmployees.length === 1 ? "employee" : "employees"} selected</strong>{tab === "Pending" ? <><button className="pay-bulk-primary" onClick={openGenerate}>Generate Payslip ({selectedEmployees.length})</button><button onClick={openGenerate}>Preview Selected</button></> : <button className="pay-bulk-primary" onClick={() => openEmail(selectedEmployees.map((e) => e.id))}><Mail size={15}/>Send Email ({selectedEmployees.length})</button>}<button onClick={() => setSelected([])}>Clear selection</button></div>}
+      <div className="pay-table-scroll"><table className="pay-table"><thead><tr><th><input type="checkbox" aria-label={tab === "Pending" ? "Select all eligible employees" : "Select all generated payslips"} checked={selectableRows.length > 0 && selectableRows.every((e) => selected.includes(e.id))} disabled={!selectableRows.length} onChange={toggleAll}/></th><th>Employee</th><th>Employee ID</th><th>Department</th><th>Pay period</th><th>Net pay</th><th>{tab === "Pending" ? "Approval / status" : "Generation / email status"}</th><th>Actions</th></tr></thead><tbody>
+      {rows.map((e) => { const p = pay(e); const isEligible = e.status === "Pending" && e.approval === "Approved"; const checked = selected.includes(e.id); return <tr key={e.id} className={checked ? "is-selected" : ""}><td><input type="checkbox" aria-label={`Select ${e.name}`} checked={checked} disabled={tab === "Pending" && !isEligible} onChange={() => toggle(e)}/></td><td><div className="pay-person"><span className="pay-avatar">{e.name.split(" ").map((x) => x[0]).join("")}</span><span><strong>{e.name}</strong><small>{e.email}</small></span></div></td><td className="pay-muted">{e.id}</td><td>{e.department}</td><td>{monthOptions.find((m) => m.value === e.payPeriod)?.label || e.payPeriod}</td><td><strong>{money(p.net)}</strong></td><td>{tab === "Pending" ? <><span className={`pay-status ${isEligible ? "is-generated" : e.approval.includes("Missing") ? "is-missing" : "is-pending"}`}>{isEligible ? "Approved — Ready to Generate" : e.approval}</span>{!isEligible && <small className="pay-approval">Cannot select: {e.approval.toLowerCase()}</small>}</> : <><span className="pay-status is-generated">Generated</span><small className={`pay-approval email-${e.emailStatus.toLowerCase().replace(" ", "-")}`}>Email: {e.emailStatus}</small></>}</td><td>{tab === "Generated" ? <><button className="pay-icon-button" title="View payslip" aria-label={`View ${e.name} payslip`} onClick={() => setDialog({ type: "view", employeeId: e.id })}><Eye size={16}/></button><button className="pay-icon-button" title="Download PDF" aria-label={`Download ${e.name} payslip`} onClick={() => downloadPdf(e)}><Download size={16}/></button><button className="pay-icon-button" title="Send email" aria-label={`Email ${e.name} payslip`} onClick={() => openEmail([e.id])}><Mail size={16}/></button>{e.emailStatus === "Failed" && <button className="pay-icon-button retry-icon" title="Retry failed email" aria-label={`Retry email to ${e.name}`} onClick={() => sendEmails([e.id], true)}><RotateCcw size={15}/></button>}</> : <button className="pay-row-preview" disabled={!isEligible} onClick={() => { setSelected([e.id]); setDialog({ type: "generate", phase: "review", ids: [e.id], employeeId: e.id, period: month }); }}>Preview</button>}</td></tr>; })}
+      {!rows.length && <tr><td colSpan="8"><div className="pay-empty"><Search size={24}/><strong>No {tab.toLowerCase()} payslips found</strong><span>Try changing your search or filters.</span></div></td></tr>}
+      </tbody></table></div><footer className="pay-pagination"><span>Showing {rows.length} of {tab === "Pending" ? employees.filter((e) => e.status === "Pending").length : generated.length} records</span></footer>
+    </section><p className="pay-demo-note">Demo data only · Generation, email and downloads run locally in this browser.</p>
+  </main>
 
-          <div className="compliance-auto-banner">
-            <ShieldCheck size={16} />
-            <span>
-              <strong>{payslips.length}</strong> payslip{payslips.length !== 1 ? "s" : ""} ready —
-              auto-generated from approved scheduler shifts.
-            </span>
-          </div>
-
-          {!hasSearched && (
-            <p className="compliance-search-hint">
-              Enter a name or month above to view payslips.
-            </p>
-          )}
-
-          {hasSearched && (
-            <div className="compliance-table-wrap">
-              <table className="compliance-table">
-                <thead>
-                  <tr>
-                    <th>Employee</th><th>Month</th><th>Hours</th>
-                    <th>Gross</th><th>Net Pay</th><th>Status</th>
-                    <th className="compliance-actions-column">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {searchResults.length === 0 ? (
-                    <tr><td colSpan={7} className="compliance-empty">
-                      No payslips found for "{activeQuery}".
-                    </td></tr>
-                  ) : searchResults.map((p) => (
-                    <tr key={p.id}>
-                      <td>
-                        <div className="compliance-employee-cell">
-                          <span className="compliance-employee-name">{p.employeeName}</span>
-                          <span className="compliance-employee-id">{p.employeeId}</span>
-                        </div>
-                      </td>
-                      <td className="compliance-muted-cell">{p.month}</td>
-                      <td>{p.hours.toFixed(2)}h</td>
-                      <td>{fmtMoney(p.gross)}</td>
-                      <td><strong>{fmtMoney(p.net)}</strong></td>
-                      <td>
-                        <span className={`compliance-status ${p.status === "Pending" ? "compliance-status-pending" : ""}`}>
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="compliance-actions-column">
-                        <button className="compliance-action" title="View"
-                          onClick={() => setModal({ mode: "view", payslip: p })}><Eye size={15} /></button>
-                        <button className="compliance-action" title="Download"
-                          onClick={() => downloadPayslip(p)}><Download size={15} /></button>
-                        <button className="compliance-action compliance-delete-action" title="Delete"
-                          onClick={() => setModal({ mode: "delete", payslip: p })}><Trash2 size={15} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </main>
-      </div>
-
-      {modal?.mode === "view" && (
-        <div className="compliance-modal-overlay" onMouseDown={closeModal}>
-          <section className="compliance-modal" onMouseDown={(e) => e.stopPropagation()}>
-            <ModalHeader title="Payslip Details" onClose={closeModal} />
-            <div className="compliance-view-body">
-              <div className="compliance-view-row">
-                <Detail label="Employee Name" value={modal.payslip.employeeName} />
-                <Detail label="Employee ID" value={modal.payslip.employeeId} />
-              </div>
-              <div className="compliance-view-row">
-                <Detail label="Month" value={modal.payslip.month} />
-                <Detail label="Work Date" value={modal.payslip.workDate} />
-              </div>
-              <div className="compliance-view-row">
-                <Detail label="Hours" value={`${modal.payslip.hours.toFixed(2)}h`} />
-                <Detail label="Overtime" value={`${modal.payslip.overtime.toFixed(2)}h`} />
-              </div>
-              <div className="compliance-payslip-breakdown">
-                <div className="compliance-payslip-line">
-                  <span>Gross Pay</span><strong>{fmtMoney(modal.payslip.gross)}</strong>
-                </div>
-                <div className="compliance-payslip-line">
-                  <span>PF (12%)</span><strong className="neg">-{fmtMoney(modal.payslip.pf)}</strong>
-                </div>
-                <div className="compliance-payslip-line">
-                  <span>Tax (5%)</span><strong className="neg">-{fmtMoney(modal.payslip.tax)}</strong>
-                </div>
-                <div className="compliance-payslip-line total">
-                  <span>Net Pay</span><strong>{fmtMoney(modal.payslip.net)}</strong>
-                </div>
-              </div>
-              <Detail label="Status" value={modal.payslip.status} />
-              <Detail label="Generated On" value={modal.payslip.generatedOn} />
-            </div>
-            <div className="compliance-modal-actions">
-              <button type="button" className="compliance-download-button"
-                onClick={() => downloadPayslip(modal.payslip)}>
-                <Download size={14} />Download
-              </button>
-              <button type="button" className="compliance-save-button" onClick={closeModal}>Close</button>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {modal?.mode === "delete" && (
-        <div className="compliance-modal-overlay" onMouseDown={closeModal}>
-          <section className="compliance-modal compliance-confirm-modal" onMouseDown={(e) => e.stopPropagation()}>
-            <ModalHeader title="Delete Payslip" onClose={closeModal} />
-            <div className="compliance-confirm-body">
-              Are you sure you want to delete the <strong>{modal.payslip.month}</strong> payslip for{" "}
-              <strong>{modal.payslip.employeeName}</strong>? This action cannot be undone.
-            </div>
-            <div className="compliance-modal-actions">
-              <button type="button" className="compliance-cancel-button" onClick={closeModal}>Cancel</button>
-              <button type="button" className="compliance-delete-button" onClick={closeModal}>Delete</button>
-            </div>
-          </section>
-        </div>
-      )}
-    </div>
-  );
+  {dialog && <div className="pay-overlay" onMouseDown={closeDialog}><section className={`pay-modal ${["generate", "email", "view"].includes(dialog.type) ? "pay-workflow-modal" : ""}`} role="dialog" aria-modal="true" aria-label={modalTitle} onMouseDown={(event) => event.stopPropagation()}><header className="pay-modal-header"><div><h2>{modalTitle}</h2>{dialog.type !== "how" && <p>{dialog.type === "generate" && dialog.phase === "success" ? `${dialog.ids.length} payslip${dialog.ids.length === 1 ? " has" : "s have"} been generated and ${dialog.ids.length === 1 ? "is" : "are"} ready to download or send via email.` : dialog.type === "email" && dialog.phase === "result" ? "Email status has been updated for each recipient." : dialog.type === "generate" ? "Review the payslip details before generating." : dialog.type === "email" ? "Review the email template and send payslips to the selected employees." : "A detailed view of the generated employee payslip."}</p>}</div><button className="pay-icon-button" onClick={closeDialog} aria-label="Close dialog"><X size={18}/></button></header>
+    {dialog.type === "generate" && dialog.phase === "review" && <><div className="pay-review-layout"><aside className="pay-review-list"><strong>Selected employees ({dialog.ids.length})</strong>{dialog.ids.map((id) => { const e = employees.find((item) => item.id === id); return e && <button key={id} className={dialog.employeeId === id ? "active" : ""} onClick={() => setDialog({ ...dialog, employeeId: id })}><span><b>{e.name}</b><small>{e.id} · {e.department}</small></span><span>{money(pay(e).net)}</span></button>; })}</aside><div className="pay-review-preview">{selectedPreview && <PayslipPreview employee={selectedPreview} period={previewMonth} showSources onDownload={() => downloadPdf(selectedPreview)}/>}</div></div><div className="pay-modal-actions"><button className="pay-btn pay-btn-quiet" onClick={closeDialog}>Cancel</button><button className="pay-btn pay-btn-primary" disabled={busy} onClick={generate}>{busy ? "Generating payslips…" : `Confirm & Generate (${dialog.ids.length})`}</button></div></>}
+    {dialog.type === "generate" && dialog.phase === "success" && <div className="pay-modal-body pay-success"><CheckCircle2 size={48}/><strong>{dialog.ids.length} payslip{dialog.ids.length === 1 ? " has" : "s have"} been generated successfully.</strong><span>Generation does not send email automatically.</span><div className="pay-modal-actions"><button className="pay-btn pay-btn-quiet" onClick={() => { setDialog(null); setTabAndClear("Generated"); setMonth(dialog.period); }}>View Generated Payslips</button><button className="pay-btn pay-btn-primary" onClick={() => openEmail(dialog.ids)}><Mail size={16}/>Send Email ({dialog.ids.length})</button></div></div>}
+    {dialog.type === "view" && selectedPreview && <><PayslipPreview employee={selectedPreview} period={previewMonth} onDownload={() => downloadPdf(selectedPreview)}/><div className="pay-modal-actions"><button className="pay-btn pay-btn-quiet" onClick={closeDialog}>Close</button><button className="pay-btn pay-btn-primary" onClick={() => downloadPdf(selectedPreview)}><Download size={16}/>Download Payslip</button></div></>}
+    {dialog.type === "email" && dialog.phase === "compose" && <div className="pay-email-body"><div className="pay-recipient-card"><div><strong>Recipients · {dialog.ids.length}</strong><span>Each employee receives an individual email with only their own payslip.</span></div><div className="pay-recipient-chips">{dialog.ids.map((id) => { const e = employees.find((x) => x.id === id); return e && <button key={id} className={emailPreviewId === id ? "active" : ""} onClick={() => setEmailPreviewId(id)}>{e.name} · {e.email}</button>; })}</div></div><label className="pay-field">Email template<select value={template} onChange={(e) => setTemplate(e.target.value)}>{Object.keys(TEMPLATES).map((name) => <option key={name}>{name}</option>)}</select></label>{emailPreviewId && (() => { const e = employees.find((x) => x.id === emailPreviewId); if (!e) return null; const t = TEMPLATES[template]; const filename = `${e.name.replace(/\s+/g, "_")}_Payslip_${e.payPeriod.replace("-", "")}.pdf`; return <><label className="pay-field">Email subject<input className="pay-text-input" value={fillTemplate(t.subject, e)} readOnly/></label><label className="pay-field">Email message<textarea className="pay-message-input" value={fillTemplate(t.message, e)} readOnly rows="8"/></label><div className="pay-email-recipient"><Mail size={16}/><span><b>To: {e.name}</b><small>{e.email}</small></span></div><label className="pay-attachment"><input type="checkbox" checked={attachPdf} onChange={(event) => setAttachPdf(event.target.checked)}/><Paperclip size={17}/><span><b>Attach generated payslip PDF</b><small>{attachPdf ? filename : "No attachment"}</small></span></label></>; })()}<div className="pay-demo-callout">No real email is sent. Every recipient gets their own message and payslip attachment.</div><div className="pay-modal-actions"><button className="pay-btn pay-btn-quiet" onClick={closeDialog}>Cancel</button><button className="pay-btn pay-btn-quiet" onClick={() => setDialog({ ...dialog, phase: "preview" })}>Preview Email</button><button className="pay-btn pay-btn-primary" onClick={() => setDialog({ ...dialog, phase: "confirm" })}>Send Email ({dialog.ids.length})</button></div></div>}
+    {dialog.type === "email" && dialog.phase === "preview" && <div className="pay-modal-body">{(() => { const e = employees.find((x) => x.id === emailPreviewId) || employees.find((x) => x.id === dialog.ids[0]); const t = TEMPLATES[template]; return e && <article className="pay-email-preview"><div><b>To</b><span>{e.name} &lt;{e.email}&gt;</span></div><div><b>Subject</b><span>{fillTemplate(t.subject, e)}</span></div><pre>{fillTemplate(t.message, e)}</pre>{attachPdf && <div className="pay-attachment-preview"><FileText size={18}/>{e.name.replace(/\s+/g, "_")}_Payslip_{e.payPeriod.replace("-", "")}.pdf</div>}</article>; })()}<p className="pay-demo-callout">Preview shows the employee-specific message and attachment. Bulk sends create separate emails per employee.</p><div className="pay-modal-actions"><button className="pay-btn pay-btn-quiet" onClick={() => setDialog({ ...dialog, phase: "compose" })}>Back to Email</button><button className="pay-btn pay-btn-primary" onClick={() => setDialog({ ...dialog, phase: "confirm" })}>Continue to Send Email ({dialog.ids.length})</button></div></div>}
+    {dialog.type === "email" && dialog.phase === "confirm" && <div className="pay-modal-body pay-confirm"><Mail size={38}/><strong>{dialog.ids.some((id) => employees.find((e) => e.id === id)?.emailStatus === "Sent") ? "Resend" : "Send"} payslips to {dialog.ids.length} {dialog.ids.length === 1 ? "employee" : "employees"}?</strong><span>Each recipient will receive an individual email addressed to their registered email with only their own payslip attached.</span><div className="pay-confirm-recipients">{dialog.ids.map((id) => { const e = employees.find((x) => x.id === id); return e && <span key={id}>{e.name} · {e.email}</span>; })}</div><div className="pay-modal-actions"><button className="pay-btn pay-btn-quiet" disabled={busy} onClick={() => setDialog({ ...dialog, phase: "compose" })}>Cancel</button><button className="pay-btn pay-btn-primary" disabled={busy} onClick={() => sendEmails(dialog.ids)}>{busy ? "Sending…" : "Confirm & Send"}</button></div></div>}
+    {dialog.type === "email" && dialog.phase === "result" && <div className="pay-modal-body pay-success"><CheckCircle2 size={44}/><strong>Payslip emails sent successfully.</strong><div className="pay-result-stats"><span>Total recipients <b>{dialog.ids.length}</b></span><span>Successfully sent <b>{dialog.sent}</b></span><span>Failed <b className={dialog.failed ? "failed-count" : ""}>{dialog.failed}</b></span></div>{dialog.failed > 0 && <p className="pay-failure-note">Failed emails remain available for retry from the Generated tab.</p>}<div className="pay-modal-actions"><button className="pay-btn pay-btn-quiet" onClick={closeDialog}>Close</button>{dialog.failed > 0 && <button className="pay-btn pay-btn-primary" onClick={() => sendEmails(dialog.ids, true)} disabled={busy}>{busy ? "Retrying…" : "Retry Failed"}</button>}</div></div>}
+    {dialog.type === "how" && <div className="pay-modal-body"><ol className="pay-workflow">{["Select employees with approved timesheets and complete payroll data.", "Preview each employee’s earnings, deductions and net pay.", "Confirm to generate payslips. Generation never sends email.", "Choose an email template and preview the individual messages.", "Confirm simulated delivery and track each email status.", "View, download or retry failed emails from Generated."].map((step, i) => <li key={step}><span>{i + 1}</span>{step}</li>)}</ol><div className="pay-demo-callout">This module uses frontend demo data only. No backend service or email provider is called.</div></div>}
+    {dialog.type === "export" && <div className="pay-modal-body"><label className="pay-field">Include in export</label><fieldset className="pay-export-fields">{[["details", "Employee details"], ["breakdown", "Earnings and deductions"], ["net", "Net pay"]].map(([key, label]) => <label key={key}><input type="checkbox" checked={exportFields[key]} onChange={() => setExportFields((fields) => ({ ...fields, [key]: !fields[key] }))}/>{label}</label>)}</fieldset><div className="pay-modal-actions"><button className="pay-btn pay-btn-quiet" onClick={() => exportData("PDF (.pdf)")}><FileText size={16}/>PDF</button><button className="pay-btn pay-btn-primary" onClick={() => exportData("Excel (.xlsx)")}><FileSpreadsheet size={16}/>Excel</button></div></div>}
+  </section></div>}
+  {notice && <div className="pay-toast" role="status">{notice}</div>}
+  </div>;
 }
 
-function ModalHeader({ title, onClose }) {
-  return (
-    <div className="compliance-modal-header">
-      <h2>{title}</h2>
-      <button type="button" className="compliance-modal-close" onClick={onClose} aria-label="Close">
-        <X size={19} />
-      </button>
-    </div>
-  );
+function Summary({ icon, label, value, note, tone }) { return <article className={`pay-summary pay-${tone}`}><div className="pay-summary-top"><span>{label}</span><i>{icon}</i></div><strong>{value}</strong><small>{note}</small></article>; }
+function PayslipPreview({ employee, period, showSources = false, onDownload }) {
+  const p = pay(employee);
+  return <div className="pay-slip"><div className="pay-slip-brand"><div className="pay-logo">L</div><span><strong>Lernevo</strong><small>People & Culture</small></span><b>PAYSLIP</b></div><div className="pay-slip-period"><strong>{period}</strong><span>Payslip No. · {employee.payslipNumber || `LRN-${employee.id}-${employee.payPeriod}`}</span></div><div className="pay-slip-details"><Info label="Employee" value={employee.name}/><Info label="Employee ID" value={employee.id}/><Info label="Department" value={employee.department}/><Info label="Email" value={employee.email}/></div><div className="pay-slip-columns"><PayLines title="Earnings" rows={[["Basic Salary", employee.basic], ["House Rent Allowance (HRA)", employee.hra], ["Other Allowances", employee.special], ...(employee.overtimePay ? [["Overtime Pay", employee.overtimePay]] : [])]} total={p.earnings} totalLabel="Gross earnings"/><PayLines title="Deductions" rows={[["Provident Fund (PF)", employee.pf], ["Professional Tax", employee.tax], ["Other Deductions", employee.otherDeductions]]} total={p.deductions} totalLabel="Total deductions"/></div><div className="pay-net"><span>Net pay</span><strong>{money(p.net)}</strong></div>{showSources && <div className="pay-data-sources"><b>Data Sources</b><span>Approved Timesheet · Employee Salary Structure · Applicable Deductions · Attendance and Leave Data</span></div>}<small className="pay-slip-footnote">Computer-generated demo payslip · Currency INR</small>{onDownload && <div className="pay-inline-download"><button className="pay-btn pay-btn-quiet" onClick={onDownload}><Download size={15}/>Download PDF</button></div>}</div>;
 }
-function Detail({ label, value }) {
-  return <div><span>{label}</span><strong>{value || "—"}</strong></div>;
-}
+function Info({ label, value }) { return <div className="pay-info"><span>{label}</span><strong>{value}</strong></div>; }
+function PayLines({ title, rows, total, totalLabel }) { return <div className="pay-lines"><h3>{title}</h3>{rows.map(([label, value]) => <div key={label}><span>{label}</span><span>{money(value)}</span></div>)}<div className="pay-lines-total"><strong>{totalLabel}</strong><strong>{money(total)}</strong></div></div>; }
