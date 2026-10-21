@@ -102,8 +102,8 @@ const getRange = (view, anchor) =>
 const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
 const hhmm = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 // "09:00" -> "9", "18:05" -> "6:05"; a range reads like "9 to 6"
-const clock12 = (t) => { const [h, m] = t.split(":").map(Number); return `${h % 12 || 12}${m ? `:${String(m).padStart(2, "0")}` : ""}`; };
-const span = (a, b) => `${clock12(a)} to ${clock12(b)}`;
+const clock12 = (t) => { const [h, m] = t.split(":").map(Number); return `${h % 24 || 24}${m ? `:${String(m).padStart(2, "0")}` : ""}`; };
+const span = (a, b) => `${clock12(a)} - ${clock12(b)}`;
 const stdHours = (r) => ((toMin(r.end) - toMin(r.start) + 1440) % 1440) / 60 - r.brk;
 const timeRange = (r) => `${r.start}–${r.end}${toMin(r.end) <= toMin(r.start) ? " (+1)" : ""}`;
 const weekTarget = (emp) => stdHours(emp.r) * (emp.r.rota ? 5 : emp.r.workDays.length);
@@ -116,11 +116,8 @@ const formFrom = (info, emp) => ({
   inT: info.inT || emp.r.start,
   outT: info.outT || emp.r.end,
   brk: info.brk != null ? info.brk : emp.r.brk,
-  works: info.type === "work" && info.works
-    ? info.works.map((w) => ({ task: w.task, hours: w.hours }))
-    : [{ task: emp.tasks[info.taskIdx || 0] || emp.tasks[0], hours: stdHours(emp.r) }],
 });
-// Admin edit (clock in/out, break, work done, notes) on top of the system-calculated day
+// Admin edit (clock in/out, break, work done note) on top of the system-calculated day
 function applyEdit(info, ed, emp) {
   if (!ed || (info.type !== "work" && info.type !== "missing")) return info;
   const std = info.std != null ? info.std : stdHours(emp.r);
@@ -129,7 +126,6 @@ function applyEdit(info, ed, emp) {
   return {
     ...info, type: "work", hours, std, ot: Math.max(0, hours - std),
     inT: ed.inT, outT: ed.outT, brk: Number(ed.brk),
-    works: ed.works.map((w) => ({ task: w.task, taskIdx: Math.max(0, emp.tasks.indexOf(w.task)), hours: Number(w.hours) || 0 })),
     notes: ed.notes || "", status: info.status || "Pending",
     edited: info.type === "missing" || ed.inT !== info.inT || ed.outT !== info.outT || Number(ed.brk) !== Number(baseBrk),
     calcHours: info.type === "work" ? info.hours : 0, // what the system calculated before the edit
@@ -255,7 +251,7 @@ function DayCell({ info, day, emp, onOpen }) {
 }
 
 /* Popup with the FULL details of one employee-day. Opens when any day box is clicked.
-   Work / missing days can be edited here: clock in, clock out, break, work done and notes. */
+   Work / missing days can be edited here: clock in, clock out and break. "Work done" is a typed note. */
 function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset }) {
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -276,14 +272,12 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
   const notesDirty = notes !== (info.notes || "");
 
   const setF = (patch) => setForm((f) => ({ ...f, ...patch }));
-  const setWork = (i, patch) => setForm((f) => ({ ...f, works: f.works.map((w, j) => (j === i ? { ...w, ...patch } : w)) }));
   const startEdit = () => { setForm(formFrom(info, emp)); setErr(""); setEditing(true); };
   const cancelEdit = () => { setEditing(false); setErr(""); };
   const reset = () => { onReset(emp, day); setNotes(""); setEditing(false); setErr(""); };
 
   const live = editing ? hoursOf(form.inT, form.outT, form.brk) : info.hours;
   const liveOt = Math.max(0, live - std);
-  const workTotal = editing ? form.works.reduce((a, w) => a + (Number(w.hours) || 0), 0) : 0;
 
   const save = () => {
     const f = editing ? form : formFrom(info, emp);
@@ -291,14 +285,13 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
     if (!(Number(f.brk) >= 0)) return setErr("Break must be 0 or more hours.");
     onSave(emp, day, {
       inT: f.inT, outT: f.outT, brk: Number(f.brk),
-      works: f.works.filter((w) => w.task && Number(w.hours) > 0).map((w) => ({ task: w.task, hours: Number(w.hours) })),
       notes: notes.trim(),
     });
     setEditing(false); setErr("");
   };
 
   const brkNow = info.brk != null ? info.brk : r.brk;
-  const rows = [["Shift", r.name], ["Shift time", timeRange(r)]];
+  const rows = [ ["Shift time", timeRange(r)]];
   rows.push(editing
     ? ["Break (hours)", <input key="b" className="ts-in" type="number" min="0" step="0.25" value={form.brk} onChange={(e) => setF({ brk: e.target.value })} />]
     : ["Break", `${brkNow}h`]);
@@ -319,8 +312,8 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
     );
   }
   if (info.type === "scheduled") rows.push(["Planned work", info.task]);
-  if (emp.teamName) rows.push(["Team", emp.teamName]);
-  rows.push(["Department", emp.dept]);
+  if (emp.teamName) rows.push();
+
   const shown = isShiftDay ? rows : rows.filter(([k]) => k === "Department" || k === "Shift" || k === "Team");
 
   return (
@@ -345,44 +338,11 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
         {info.type === "missing" && !editing && <p className="ts-md-note">No timesheet was filled for this day.</p>}
 
         {(info.type === "work" || editing) && (
-          <div className="ts-md-work">
-            <h4>Work done</h4>
-            {editing ? (
-              <>
-                <ul className="ts-w-edit">
-                  {form.works.map((w, i) => (
-                    <li key={i}>
-                      <select className="ts-in ts-in--task" value={w.task} onChange={(e) => setWork(i, { task: e.target.value })} aria-label="Work type">
-                        {emp.tasks.map((t) => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <input className="ts-in ts-in--h" type="number" min="0" step="0.25" value={w.hours} onChange={(e) => setWork(i, { hours: e.target.value })} aria-label="Hours" />
-                      <span className="ts-w-h">h</span>
-                      <button type="button" className="ts-w-del" aria-label="Remove this work" onClick={() => setForm((f) => ({ ...f, works: f.works.filter((_, j) => j !== i) }))}>×</button>
-                    </li>
-                  ))}
-                </ul>
-                <button type="button" className="ts-btn ts-btn--sm" onClick={() => setForm((f) => ({ ...f, works: [...f.works, { task: emp.tasks[0], hours: 1 }] }))}>＋ Add work</button>
-                {Math.abs(workTotal - live) > 0.01 && <p className="ts-md-hint">Work done adds up to {fmt(workTotal)} but hours worked is {fmt(live)}.</p>}
-              </>
-            ) : (
-              <ul>
-                {info.works.map((w, i) => (
-                  <li key={i}>
-                    <span className={`ts-task ts-tk-${w.taskIdx % 6}`}>{w.task}</span>
-                    <b>{fmt(w.hours)}</b>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-
-        {(info.type === "work" || editing) && (
           <div className="ts-md-notes">
-            <h4>Notes</h4>
+            <h4>Work done</h4>
             <textarea
-              rows={3} maxLength={500} value={notes} disabled={!canEdit}
-              placeholder={canEdit ? "Type a note for this day…" : "No notes"}
+              rows={4} maxLength={500} value={notes} disabled={!canEdit}
+              placeholder={canEdit ? "Type the work done for this day…" : "No notes"}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
@@ -468,8 +428,9 @@ function WeekView({ list, totals, from, to, infoOf, onPick, onApprove, onOpen })
                 <div>
                   <button className="ts-name" onClick={() => onPick(e.id)}>{e.name}</button>
                   <small className="ts-eid">{empCode(e)}</small>
-                  <small className="ts-hrs">Calculated: <b>{fmt(t.calc)}</b></small>
-                  <small className="ts-hrs">Current: <b className={Math.abs(t.calc - t.total) > 0.01 ? "is-edited" : ""}>{fmt(t.total)}</b></small>
+                  <small className="ts-hrs" title="Calculated - Current">
+                    <b>{fmt(t.calc)}</b> - <b className={Math.abs(t.calc - t.total) > 0.01 ? "is-edited" : ""}>{fmt(t.total)}</b>
+                  </small>
                 </div>
               </div>
               {days.map((day) => <DayCell key={keyOf(day)} info={infoOf(day, e)} day={day} emp={e} onOpen={onOpen} />)}

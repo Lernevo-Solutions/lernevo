@@ -77,6 +77,7 @@ export const NAV_SECTIONS = [
     { icon: CalendarCheck, label: "Leave and Permissions" },
     { icon: Wallet, label: "Payslips" },
     { icon: FileText, label: "Compliance Documents" },
+    { icon: Brain, label: "Performance Review" },
     { icon: UserRoundCheck, label: "Goals Review" },
     { icon: BriefcaseBusiness, label: "Job Portal" },
     { icon: UserRoundPlus, label: "Onboarding" },
