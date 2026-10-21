@@ -274,7 +274,7 @@ button.sc-team { padding: 8px; gap: 10px; }
 .sc-bcell.is-today { background: var(--ts-today); border-color: var(--ts-focus); opacity: 1; }
 .sc-chip { white-space: normal; padding: 6px 8px 6px 9px; box-shadow: 0 2px 6px -4px rgba(15, 31, 69, .35); }
 .sc-chip b { font-size: 11px; letter-spacing: .2px; }
-.sc-chip span { white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; font-size: 12px; }
+.sc-chip span { white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; font-size: 12px; }
 .sc-bday { padding: 8px 4px 6px; }
 .sc-load { display: inline-block; margin-top: 4px; font-size: 10px; font-weight: 800; padding: 1px 8px; border-radius: 99px; background: var(--ts-soft); color: var(--ts-blue); }
 .sc-bday.is-today .sc-load { background: rgba(255, 255, 255, .22); color: #fff; }
@@ -472,3 +472,76 @@ button.sc-hday:hover { filter: brightness(.95); transform: translateY(-1px); }
 .sc-rm { border: 0; background: transparent; color: var(--ts-mute); font-size: 18px; line-height: 1; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; flex: none; }
 .sc-rm:hover { background: var(--ts-lvb); color: var(--ts-lv); }
 @media (max-width: 520px) { .sc-newm-grid { grid-template-columns: 1fr; } }
+/* ---------- Shifts (24 hours): replaces plan-type chips on the board / month ---------- */
+.sc-s-morning   { --t: #b45309; --tb: #fff1d1; }
+.sc-s-afternoon { --t: #2563eb; --tb: #e4edff; }
+.sc-s-night     { --t: #4338ca; --tb: #e6e7ff; }
+@media (prefers-color-scheme: dark) {
+  .sc-s-morning   { --t: #fcd34d; --tb: #38290d; }
+  .sc-s-afternoon { --t: #8fb0ff; --tb: #1a2b52; }
+  .sc-s-night     { --t: #a5b4fc; --tb: #232150; }
+}
+.sc-bcell { padding-right: 18px; }
+.sc-schip { flex: none; padding: 4px 7px; gap: 3px; font-size: 12px; }
+.sc-board--month .sc-bcell { padding-right: 12px; gap: 2px; }
+.sc-board--month .sc-schip { padding: 3px 4px; font-size: 10.5px; gap: 1px; border-left-width: 2px; }
+.sc-legend small { font-weight: 600; opacity: .8; }
+
+/* day popup: 24-hour strip + shift sections */
+.sc-24 { margin: 0 0 12px; }
+.sc-24-bar { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; height: 14px; }
+.sc-24-bar i { border-radius: 4px; background: var(--ts-line); }
+.sc-24-bar i.is-on { background: var(--t); }
+.sc-24-lbl { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; font-weight: 700; color: var(--ts-mute); }
+.sc-sh-wrap { margin-bottom: 6px; }
+.sc-sh { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 10px; border-radius: 10px; background: var(--tb); color: var(--t); font-size: 13px; font-weight: 800; }
+.sc-sh small { margin-left: auto; font-size: 11px; font-weight: 700; opacity: .85; }
+.sc-sh em { font-style: normal; font-size: 11px; font-weight: 800; min-width: 20px; text-align: center; padding: 1px 6px; border-radius: 99px; background: var(--ts-card); color: var(--t); }
+.sc-dm-sub { list-style: none; margin: 0; padding: 0; }
+
+/* simple 24h time range inside the box, e.g. 9–18 */
+.sc-trange { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 8px; font-size: 13px; font-weight: 800; letter-spacing: .3px; white-space: nowrap; background: var(--ts-soft); color: var(--ts-blue); border-left: 3px solid var(--ts-blue); }
+.sc-board--month .sc-trange { padding: 4px 6px; font-size: 11px; }
+
+.sc-24-bar i.is-on { background: var(--ts-blue); }
+
+/* Holiday plan type (given by admin like any other plan) */
+.sc-t-holiday { --t: #c2410c; --tb: #ffedd5; }
+@media (prefers-color-scheme: dark) { .sc-t-holiday { --t: #fdba74; --tb: #3a1f0d; } }
+.sc-trange--hol { min-width: 0; max-width: 100%; gap: 5px; background: var(--tb, #ffedd5); color: #c2410c; border-left-color: #c2410c; }
+.sc-trange--hol em { font-style: normal; overflow: hidden; text-overflow: ellipsis; }
+.sc-board--month .sc-trange--hol em { display: none; }
+@media (prefers-color-scheme: dark) { .sc-trange--hol { background: #3a1f0d; color: #fdba74; border-left-color: #fdba74; } }
+
+/* Hover popover on a day header: holidays of every country on that date */
+.sc-bday { position: relative; }
+.sc-bday.has-hol { overflow: visible; cursor: help; outline: none; }
+.sc-board--month .sc-bday.has-hol:hover, .sc-board--month .sc-bday.has-hol:focus { opacity: 1; }
+.sc-hpop { display: none; position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); z-index: 40; width: 240px; padding: 10px; text-align: left; text-transform: none; letter-spacing: 0; border-radius: 14px; background: var(--ts-card); border: 1px solid var(--ts-line); box-shadow: 0 18px 34px -14px rgba(15, 31, 69, .5); cursor: default; }
+.sc-brow--head > .sc-bday:nth-child(-n+3) .sc-hpop { left: 0; transform: none; }
+.sc-brow--head > .sc-bday:nth-last-child(-n+3) .sc-hpop { left: auto; right: 0; transform: none; }
+.sc-bday.has-hol:hover .sc-hpop, .sc-bday.has-hol:focus .sc-hpop { display: block; }
+.sc-bday .sc-hpop b, .sc-bday .sc-hpop small { display: block; text-transform: none; letter-spacing: 0; }
+.sc-bday .sc-hpop .sc-hpop-t { margin-bottom: 8px; font-size: 13px; font-weight: 800; color: var(--ts-ink); }
+.sc-hpop-r { display: flex; align-items: center; gap: 10px; margin-top: 6px; padding: 7px 9px; border-radius: 10px; background: var(--ts-penb); }
+.sc-hpop-c { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 11px; font-weight: 800; background: var(--ts-card); color: var(--ts-pen); }
+.sc-hpop-n { min-width: 0; }
+.sc-bday .sc-hpop-n b { font-size: 13px; font-weight: 800; color: var(--ts-ink); }
+.sc-bday .sc-hpop-n small { font-size: 11px; font-weight: 600; color: var(--ts-mute); }
+
+/* ---------- Managers bar + manager -> team lead -> team tree ---------- */
+.sc-tbar--m { margin-bottom: 8px; }
+.sc-bar-lbl { flex: none; padding: 0 6px 0 4px; font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: var(--ts-mute); }
+.sc-mtree { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 0 0 8px; padding: 10px; border-radius: var(--sc-r); background: var(--ts-soft); border: 1px dashed var(--ts-blue); }
+.sc-mt-head { display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; font-size: 13px; font-weight: 600; color: var(--ts-mute); }
+.sc-mt-head b { color: var(--ts-ink); font-weight: 800; }
+.sc-mt-item { display: inline-flex; align-items: center; gap: 10px; padding: 7px 12px; border: 1.5px solid transparent; border-radius: 12px; background: var(--ts-card); color: var(--ts-ink); font: inherit; text-align: left; cursor: pointer; transition: border-color .12s, transform .12s; }
+.sc-mt-item:hover { border-color: var(--ts-focus); transform: translateY(-1px); }
+.sc-mt-item.is-on { border-color: var(--ts-blue); }
+.sc-mt-item b, .sc-mt-lead, .sc-mt-team { font-size: 13px; font-weight: 800; }
+.sc-mt-item small { display: block; font-size: 11px; font-weight: 600; color: var(--ts-mute); }
+.sc-mt-lead, .sc-mt-team { display: block; }
+.sc-mt-arrow { color: var(--ts-blue); font-weight: 800; }
+
+/* managers + teams on ONE line */
+.sc-bar-sep { flex: none; align-self: stretch; width: 2px; margin: 4px 6px; border-radius: 2px; background: linear-gradient(180deg, transparent, var(--ts-focus), transparent); }

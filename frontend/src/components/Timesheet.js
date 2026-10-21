@@ -428,8 +428,8 @@ function WeekView({ list, totals, from, to, infoOf, onPick, onApprove, onOpen })
                 <div>
                   <button className="ts-name" onClick={() => onPick(e.id)}>{e.name}</button>
                   <small className="ts-eid">{empCode(e)}</small>
-                  <small className="ts-hrs" title="Calculated - Current">
-                    <b>{fmt(t.calc)}</b> - <b className={Math.abs(t.calc - t.total) > 0.01 ? "is-edited" : ""}>{fmt(t.total)}</b>
+                  <small className="ts-hrs" title="Calculated / Current">
+                    <b>{fmt(t.calc)}</b> / <b className={Math.abs(t.calc - t.total) > 0.01 ? "is-edited" : ""}>{fmt(t.total)}</b>
                   </small>
                 </div>
               </div>

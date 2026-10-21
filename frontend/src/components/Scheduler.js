@@ -42,7 +42,28 @@ export const PLAN_TYPES = {
   visit: { label: "Client visit", icon: "📍" },
   shift: { label: "Shift change", icon: "🔄" },
   other: { label: "Other", icon: "✨" },
+  holiday: { label: "Holiday", icon: "🎉" },
 };
+
+/* =====================================================================
+   Shifts (24 hours): every plan belongs to the shift its START time falls in.
+   Change from / to (24h clock) to match your company shifts. Night wraps past midnight.
+   ===================================================================== */
+export const SHIFTS = [
+  { id: "morning", label: "Morning", icon: "🌅", from: 6, to: 14 },
+  { id: "afternoon", label: "Afternoon", icon: "🌇", from: 14, to: 22 },
+  { id: "night", label: "Night", icon: "🌙", from: 22, to: 6 },
+];
+const shiftOfHour = (h) => (SHIFTS.find((s) => (s.from < s.to ? h >= s.from && h < s.to : h >= s.from || h < s.to)) || SHIFTS[0]).id;
+const shiftOf = (p) => shiftOfHour(Math.floor(toMin(p.start) / 60));
+const shiftRange = (s) => `${clock(`${pad(s.from)}:00`)} – ${clock(`${pad(s.to)}:00`)}`;
+const hr24 = (t) => { const [h, m] = t.split(":").map(Number); return m ? `${h}:${pad(m)}` : `${h}`; };
+const dayRange = (items) => {
+  const st = items.reduce((a, p) => (toMin(p.start) < toMin(a) ? p.start : a), items[0].start);
+  const en = items.reduce((a, p) => (toMin(p.end) > toMin(a) ? p.end : a), items[0].end);
+  return `${hr24(st)}–${hr24(en)}`;
+};
+const shiftGroups = (items) => SHIFTS.map((s) => ({ ...s, list: items.filter((p) => shiftOf(p) === s.id) })).filter((g) => g.list.length);
 
 /* =====================================================================
    Country holidays
@@ -141,22 +162,19 @@ const holidayInfo = (hm, e, k) => {
 };
 
 /** Demo plans, relative to today (past 10 days to next 16 days). Replace with your API data (same shape).
- *  Every working day is a FULL 9:00 AM – 6:00 PM plan (back-to-back, lunch 1–2 PM). Each team has 2 day layouts. */
-const LUNCH = ["other", "Lunch break", "13:00", "14:00", "Take a proper break."];
+ *  Every working day is a FULL 9:00 AM – 6:00 PM plan (no fixed lunch: employees take their break as they need). Each team has 2 day layouts. */
 const DAY_PLANS = {
   Operations: [
     [
       ["meeting", "Daily stand-up", "09:00", "09:30", "Quick round of today's targets."],
       ["project", "Shift handover report", "09:30", "11:00", "Update the handover sheet before you leave."],
       ["training", "Safety drill", "11:00", "13:00", "Mandatory for everyone on the floor."],
-      LUNCH,
       ["project", "Inventory audit", "14:00", "16:30", "Count zone B and C, report mismatches."],
       ["meeting", "End-of-day review", "16:30", "18:00", "Share progress and blockers."],
     ],
     [
       ["meeting", "Daily stand-up", "09:00", "09:30", "Quick round of today's targets."],
       ["visit", "Vendor warehouse visit", "09:30", "13:00", "Carry your ID card. Cab is arranged."],
-      LUNCH,
       ["project", "Dispatch & stock planning", "14:00", "16:30", "Plan tomorrow's dispatch list."],
       ["project", "Handover sheet update", "16:30", "18:00", "Close out today's open items."],
     ],
@@ -165,7 +183,6 @@ const DAY_PLANS = {
     [
       ["meeting", "Sales huddle", "09:00", "09:30", "Targets and priorities for the day."],
       ["project", "Proposal drafting", "09:30", "13:00", "Share the draft with your manager by evening."],
-      LUNCH,
       ["visit", "Client demo", "14:00", "16:00", "Demo deck is in the shared folder."],
       ["meeting", "Pipeline review", "16:00", "17:00", "Update your deals before the call."],
       ["project", "CRM update", "17:00", "18:00", "Log today's calls and next steps."],
@@ -173,7 +190,6 @@ const DAY_PLANS = {
     [
       ["meeting", "Sales huddle", "09:00", "09:30", "Targets and priorities for the day."],
       ["training", "Product knowledge session", "09:30", "13:00", "Certificate is issued at the end."],
-      LUNCH,
       ["visit", "Customer follow-up visit", "14:00", "17:00", "Carry brochures and the price list."],
       ["project", "Update deals & notes", "17:00", "18:00", ""],
     ],
@@ -182,14 +198,12 @@ const DAY_PLANS = {
     [
       ["meeting", "Escalation review", "09:00", "10:00", "Bring your open tickets."],
       ["project", "Knowledge-base update", "10:00", "13:00", "Rewrite the top 10 outdated articles."],
-      LUNCH,
       ["training", "New helpdesk tool training", "14:00", "16:00", "Login details will be mailed."],
       ["other", "Ticket backlog clean-up", "16:00", "18:00", ""],
     ],
     [
       ["meeting", "Escalation review", "09:00", "09:45", "Bring your open tickets."],
       ["other", "Ticket handling", "09:45", "13:00", "Clear the oldest tickets first."],
-      LUNCH,
       ["project", "Knowledge-base articles", "14:00", "16:30", ""],
       ["meeting", "Team sync", "16:30", "17:00", "Hand over pending tickets."],
       ["other", "Ticket backlog clean-up", "17:00", "18:00", ""],
@@ -199,7 +213,6 @@ const DAY_PLANS = {
     [
       ["meeting", "Finance huddle", "09:00", "09:30", "Priorities for the day."],
       ["project", "Month-end closing", "09:30", "13:00", "Reconcile all open ledgers."],
-      LUNCH,
       ["project", "Invoice approvals", "14:00", "15:30", ""],
       ["meeting", "Budget review", "15:30", "17:00", "Bring the variance report."],
       ["project", "Variance report", "17:00", "18:00", "Send the final copy to your manager."],
@@ -207,7 +220,6 @@ const DAY_PLANS = {
     [
       ["other", "Vendor payments run", "09:00", "12:00", "Needs two-person sign-off."],
       ["project", "Invoice approvals", "12:00", "13:00", ""],
-      LUNCH,
       ["training", "GST filing update", "14:00", "16:00", "Mandatory for the finance team."],
       ["project", "Ledger reconciliation", "16:00", "18:00", ""],
     ],
@@ -216,14 +228,12 @@ const DAY_PLANS = {
     [
       ["meeting", "Office planning", "09:00", "10:00", ""],
       ["project", "Asset register update", "10:00", "13:00", "Tag all new laptops."],
-      LUNCH,
       ["visit", "Facility inspection", "14:00", "16:00", ""],
       ["other", "Visitor pass audit", "16:00", "18:00", ""],
     ],
     [
       ["meeting", "Office planning", "09:00", "09:30", ""],
       ["training", "First-aid refresher", "09:30", "13:00", "Mandatory."],
-      LUNCH,
       ["project", "Vendor & supplies follow-up", "14:00", "16:30", ""],
       ["other", "Visitor pass audit", "16:30", "18:00", ""],
     ],
@@ -306,7 +316,7 @@ function Pager({ page, total, size = PAGE_SIZE, label, onPage, compact }) {
 /* ---------------------------------------------------------------------
    Plan popup (super admin): create for a person / whole team, or edit
    --------------------------------------------------------------------- */
-function PlanModal({ plan, prefill, people, teams, hm, onSave, onDelete, onClose }) {
+function PlanModal({ plan, prefill, people, teams, onSave, onDelete, onClose }) {
   const editing = Boolean(plan);
   const [target, setTarget] = useState(
     editing ? `e:${plan.empId}` : prefill && prefill.empId ? `e:${prefill.empId}` : people[0] ? `e:${people[0].id}` : ""
@@ -331,10 +341,6 @@ function PlanModal({ plan, prefill, people, teams, hm, onSave, onDelete, onClose
   };
 
   const teamsWithPeople = teams.filter((t) => people.some((e) => e.team === t.id));
-
-  // who is on a public holiday on the chosen date?
-  const targets = target.startsWith("t:") ? people.filter((e) => e.team === target.slice(2)) : people.filter((e) => `e:${e.id}` === target);
-  const off = date ? targets.map((e) => ({ e, h: holidayInfo(hm, e, date) })).filter((x) => x.h) : [];
 
   return (
     <div className="sc-ov" onClick={onClose}>
@@ -386,17 +392,6 @@ function PlanModal({ plan, prefill, people, teams, hm, onSave, onDelete, onClose
           <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Anything they should know or bring" maxLength={300} />
         </label>
 
-        {off.length > 0 && (
-          <p className="sc-holbar" role="status">
-            🎉 <span>
-              {off.length <= 3
-                ? off.map((x) => `${x.e.name} (${x.h.country}: ${x.h.name})`).join(", ")
-                : `${off.length} of ${targets.length} people (${[...new Set(off.map((x) => `${x.h.country}: ${x.h.name}`))].join(", ")})`}
-              {" "}{off.length === 1 ? "is" : "are"} on a public holiday on {niceDate(date)}. You can still give the plan.
-            </span>
-          </p>
-        )}
-
         {err && <p className="sc-err" role="alert">{err}</p>}
 
         <div className="sc-actions">
@@ -419,7 +414,7 @@ function PlanModal({ plan, prefill, people, teams, hm, onSave, onDelete, onClose
 /* ---------------------------------------------------------------------
    Day popup (super admin): everything planned for one person on one day
    --------------------------------------------------------------------- */
-function DayModal({ emp, date, items, holiday, onEdit, onAdd, onClose }) {
+function DayModal({ emp, date, items, onEdit, onAdd, onClose }) {
   useEscape(onClose);
   const mins = items.reduce((a, p) => a + toMin(p.end) - toMin(p.start), 0);
   const hrs = `${Math.floor(mins / 60)}h${mins % 60 ? ` ${mins % 60}m` : ""}`;
@@ -435,7 +430,7 @@ function DayModal({ emp, date, items, holiday, onEdit, onAdd, onClose }) {
           <b>{relDay(date)}</b> · {FULL_DAYS[parseKey(date).getDay()]}, {niceDate(date)}
           <span>{items.length} {items.length === 1 ? "plan" : "plans"} · {hrs}</span>
         </div>
-        {holiday && <p className="sc-holbar">🎉 <span><b>{holiday.name}</b> is a public holiday in {holiday.country}. {emp.name} is off today.</span></p>}
+
         <ul className="sc-dm-list">
           {items.map((p) => (
             <li key={p.id}>
@@ -455,35 +450,6 @@ function DayModal({ emp, date, items, holiday, onEdit, onAdd, onClose }) {
           <span className="sc-spacer" />
           <button type="button" className="sc-btn" onClick={onClose}>Close</button>
           <button type="button" className="sc-btn sc-btn--pri" onClick={onAdd}>＋ Add plan</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------------------------------------------------------------------
-   Holiday popup: every country that has a holiday on one date
-   --------------------------------------------------------------------- */
-function HolidayModal({ date, list, onClose }) {
-  useEscape(onClose);
-  return (
-    <div className="sc-ov" onClick={onClose}>
-      <div className="sc-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Holidays on ${niceDate(date)}`}>
-        <button type="button" className="sc-x" onClick={onClose} aria-label="Close">×</button>
-        <h3>🎉 Holidays on {niceDate(date)}</h3>
-        <p className="sc-sub">{relDay(date)}, {FULL_DAYS[parseKey(date).getDay()]} · {list.length} {list.length === 1 ? "country" : "countries"}</p>
-        <ul className="sc-hlist">
-          {list.map((h) => (
-            <li key={h.code}>
-              <span className="sc-hcode">{h.code}</span>
-              <span className="sc-hname"><b>{h.name}</b><small>{h.country}</small></span>
-              <span className="sc-hppl">{h.count ? `${h.count} ${h.count === 1 ? "person" : "people"} off` : "No one on your team"}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="sc-actions">
-          <span className="sc-spacer" />
-          <button type="button" className="sc-btn sc-btn--pri" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>
@@ -636,9 +602,97 @@ export function TeamModal({ team, people, teams, onSave, onDelete, onClose }) {
 }
 
 /* ---------------------------------------------------------------------
+   Managers: Manager -> Team leads (one per team) -> Team members.
+   A manager owns one or more teams; each team already has its lead.
+   Pass `managers` + `setManagers` from the parent to keep them (and save to your API);
+   otherwise they live inside this component with the demo data below.
+   --------------------------------------------------------------------- */
+const seedManagers = (teams) => {
+  if (!teams.length) return [];
+  const half = Math.ceil(teams.length / 2);
+  const a = { id: "m1", name: "Rajesh Kumar", teamIds: teams.slice(0, half).map((t) => t.id) };
+  const b = { id: "m2", name: "Priya Nair", teamIds: teams.slice(half).map((t) => t.id) };
+  return b.teamIds.length ? [a, b] : [a];
+};
+
+export function ManagerModal({ manager, teams, people, managers, onSave, onDelete, onClose }) {
+  const editing = Boolean(manager);
+  const [name, setName] = useState((manager && manager.name) || "");
+  const [picked, setPicked] = useState(() => new Set((manager && manager.teamIds) || []));
+  const [err, setErr] = useState("");
+  const [confirmDel, setConfirmDel] = useState(false);
+  useEscape(onClose);
+
+  const toggle = (id) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const ownerOf = (tid) => managers.find((g) => g.teamIds.includes(tid) && (!manager || g.id !== manager.id));
+  const leadOf = (t) => people.find((e) => e.id === t.lead);
+
+  const submit = (ev) => {
+    ev.preventDefault();
+    const nm = name.trim();
+    if (!nm) return setErr("Give the manager a name.");
+    if (managers.some((g) => g.name.toLowerCase() === nm.toLowerCase() && (!manager || g.id !== manager.id))) return setErr("A manager with this name already exists.");
+    onSave({ id: manager && manager.id, name: nm, teamIds: [...picked] });
+  };
+
+  return (
+    <div className="sc-ov" onClick={onClose}>
+      <form className="sc-modal" onClick={(e) => e.stopPropagation()} onSubmit={submit} role="dialog" aria-modal="true" aria-label={editing ? "Edit manager" : "Create manager"}>
+        <button type="button" className="sc-x" onClick={onClose} aria-label="Close">×</button>
+        <h3>{editing ? "Edit manager" : "Create a new manager"}</h3>
+        <p className="sc-sub">Pick the teams this manager looks after. Each team has one manager, so picking a team from another manager moves it here.</p>
+
+        <label className="sc-f">
+          <span>Manager name</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Rajesh Kumar" maxLength={40} autoFocus />
+        </label>
+
+        <div className="sc-f">
+          <span className="sc-mhead"><span>Teams <b className="sc-count">{picked.size} selected</b></span></span>
+          <ul className="sc-people">
+            {teams.map((t) => {
+              const on = picked.has(t.id);
+              const lead = leadOf(t);
+              const from = ownerOf(t.id);
+              return (
+                <li key={t.id}>
+                  <label className={on ? "is-on" : ""}>
+                    <input type="checkbox" checked={on} onChange={() => toggle(t.id)} />
+                    <span className="sc-tic" style={{ "--h": hueOf(t.id) }}>{t.name.slice(0, 2).toUpperCase()}</span>
+                    <span className="sc-pn"><b>{t.name}</b><small>{lead ? `Lead ${lead.name}` : "No lead"} · {people.filter((e) => e.team === t.id).length} people</small></span>
+                    {from && on && <em className="sc-moves">moves from {from.name}</em>}
+                    {from && !on && <em className="sc-in">under {from.name}</em>}
+                  </label>
+                </li>
+              );
+            })}
+            {teams.length === 0 && <li className="sc-none">No teams yet. Create a team first.</li>}
+          </ul>
+        </div>
+
+        {err && <p className="sc-err" role="alert">{err}</p>}
+
+        <div className="sc-actions">
+          {editing && !confirmDel && <button type="button" className="sc-btn sc-btn--danger" onClick={() => setConfirmDel(true)}>Delete manager</button>}
+          {editing && confirmDel && (
+            <>
+              <button type="button" className="sc-btn sc-btn--danger sc-btn--solid" onClick={() => onDelete(manager.id)}>Yes, delete</button>
+              <button type="button" className="sc-btn" onClick={() => setConfirmDel(false)}>Keep</button>
+            </>
+          )}
+          <span className="sc-spacer" />
+          <button type="button" className="sc-btn" onClick={onClose}>Cancel</button>
+          <button type="submit" className="sc-btn sc-btn--pri">{editing ? "Save manager" : "Create manager"}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------
    Super admin view
    --------------------------------------------------------------------- */
-function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
+function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, managers, setManagers }) {
   const [teamFilter, setTeamFilter] = useState("all");
   const [q, setQ] = useState("");
   const [view, setView] = useState("board");
@@ -646,7 +700,11 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
   const [modal, setModal] = useState(null); // { plan } | { prefill } | {}
   const [page, setPage] = useState(0);      // board: people page
   const [monthAnchor, setMonthAnchor] = useState(new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
-  useEffect(() => { setPage(0); }, [teamFilter, q, view]);
+  const [mgrFilter, setMgrFilter] = useState("all"); // "all" | manager id | "none"
+  const [localMgrs, setLocalMgrs] = useState(() => seedManagers(teams));
+  const mgrs = managers || localMgrs;
+  const setMgrs = setManagers || setLocalMgrs;
+  useEffect(() => { setPage(0); }, [teamFilter, mgrFilter, q, view]);
 
   const hm = useMemo(() => buildHolidayMap(holidays), [holidays]);
   const todayKey = keyOf(TODAY);
@@ -654,7 +712,30 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const weekLabel = `${days[0].getDate()} ${MONTHS[days[0].getMonth()].slice(0, 3)} – ${days[6].getDate()} ${MONTHS[days[6].getMonth()].slice(0, 3)} ${days[6].getFullYear()}`;
 
-  const inTeam = useMemo(() => people.filter((e) => teamFilter === "all" || e.team === teamFilter), [people, teamFilter]);
+  const mgrOfTeam = useMemo(() => {
+    const m = {};
+    mgrs.forEach((g) => g.teamIds.forEach((t) => { m[t] = g.id; }));
+    return m;
+  }, [mgrs]);
+  const visTeams = useMemo(
+    () => teams.filter((t) => mgrFilter === "all" || (mgrFilter === "none" ? !mgrOfTeam[t.id] : mgrOfTeam[t.id] === mgrFilter)),
+    [teams, mgrFilter, mgrOfTeam]
+  );
+  const visTeamIds = useMemo(() => new Set(visTeams.map((t) => t.id)), [visTeams]);
+  const scopePeople = useMemo(() => (mgrFilter === "all" ? people : people.filter((e) => visTeamIds.has(e.team))), [people, mgrFilter, visTeamIds]);
+  const inTeam = useMemo(() => scopePeople.filter((e) => teamFilter === "all" || e.team === teamFilter), [scopePeople, teamFilter]);
+  const pickMgr = (id) => { setMgrFilter(id); setTeamFilter("all"); };
+  const activeMgr = mgrs.find((g) => g.id === mgrFilter);
+  const hasUnassigned = teams.some((t) => !mgrOfTeam[t.id]);
+  const saveManager = ({ id, name, teamIds }) => {
+    setMgrs((prev) => {
+      const cleaned = prev.map((g) => ({ ...g, teamIds: g.teamIds.filter((t) => !teamIds.includes(t)) }));
+      if (id) return cleaned.map((g) => (g.id === id ? { ...g, name, teamIds } : g));
+      return [...cleaned, { id: `m${Date.now().toString(36)}`, name, teamIds }];
+    });
+    setModal(null);
+  };
+  const deleteManager = (id) => { setMgrs((prev) => prev.filter((g) => g.id !== id)); if (mgrFilter === id) pickMgr("all"); setModal(null); };
   const scoped = useMemo(() => inTeam.filter((e) => e.name.toLowerCase().includes(q.trim().toLowerCase())), [inTeam, q]);
   const scopedIds = useMemo(() => new Set(scoped.map((e) => e.id)), [scoped]);
   const empById = useMemo(() => Object.fromEntries(people.map((e) => [e.id, e])), [people]);
@@ -686,47 +767,47 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
   const planned = new Set(upcoming.map((p) => p.empId)).size;
   const waiting = upcoming.filter((p) => !p.ack).length;
 
-  // 🎉 chip in the day header: holidays of ALL countries on that date (click for the full list)
-  const holsOn = (k) => Object.keys(hm).filter((c) => hm[c][k]).map((c) => [c, hm[c][k]]);
-  const holTag = (k) => {
-    const h = holsOn(k);
-    if (!h.length) return null;
-    const label = h.length === 1 ? `${h[0][0]} ${h[0][1]}` : h.length <= 3 ? h.map((x) => x[0]).join(" · ") : `${h.length} countries`;
-    return (
-      <button
-        type="button" className="sc-hday" title={h.map(([c, n]) => `${countryLabel(c)}: ${n}`).join("\n")}
-        onClick={(ev) => { ev.stopPropagation(); setModal({ hol: { date: k } }); }}
-      >
-        🎉<em>{label}</em>
-      </button>
-    );
-  };
+  // holidays of ALL countries on a date -> hover popover on the day header
+  const holsOn = (k) => Object.keys(hm).filter((c) => hm[c][k]).map((c) => ({
+    code: c, name: hm[c][k], country: countryLabel(c), count: people.filter((e) => countryOf(e) === c).length,
+  }));
+  const holPop = (k, list) => (
+    <div className="sc-hpop" role="tooltip">
+      <b className="sc-hpop-t">🎉 Holidays · {niceDate(k)}</b>
+      {list.map((x) => (
+        <div key={x.code} className="sc-hpop-r">
+          <span className="sc-hpop-c">{x.code}</span>
+          <span className="sc-hpop-n"><b>{x.name}</b><small>{x.country}{x.count ? ` · ${x.count} ${x.count === 1 ? "person" : "people"}` : ""}</small></span>
+        </div>
+      ))}
+    </div>
+  );
 
   const planCell = (e, day) => {
     const k = keyOf(day);
     const items = byCell[`${e.id}:${k}`] || [];
-    const first = items[0];
+    const cls = `sc-bcell ${k === todayKey ? "is-today" : ""} ${k < todayKey ? "is-past" : ""} ${day.getDay() % 6 === 0 ? "is-wknd" : ""}`;
+    const range = items.length ? dayRange(items) : "";
     const hol = holidayInfo(hm, e, k);
-    const cls = `sc-bcell ${k === todayKey ? "is-today" : ""} ${k < todayKey ? "is-past" : ""} ${day.getDay() % 6 === 0 ? "is-wknd" : ""} ${hol ? "is-hol" : ""}`;
     const tip = [
       hol ? `🎉 ${hol.name} (${hol.country} holiday)` : "",
-      items.length ? items.map((p) => `${clock(p.start)} ${p.title}`).join("\n") : hol ? "" : "Add a plan",
+      items.length ? items.map((p) => `${clock(p.start)} – ${clock(p.end)}  ${p.title}`).join("\n") : "Add a plan",
     ].filter(Boolean).join("\n");
     return (
       <button
         type="button" key={k} className={cls}
         onClick={() => setModal(items.length ? { day: { empId: e.id, date: k } } : { prefill: { empId: e.id, date: k } })}
         title={tip}
-        aria-label={`${e.name}, ${niceDate(k)}${hol ? `, public holiday: ${hol.name}` : ""}: ${items.length ? `${items.length} plans. Click to view` : "no plans. Click to add"}`}
+        aria-label={`${e.name}, ${niceDate(k)}: ${items.length ? `${range}. Click to view` : "no plans. Click to add"}`}
       >
-        {hol && <span className={`sc-htag ${items.length ? "sc-htag--dot" : ""}`}>🎉<em>{hol.name}</em></span>}
-        {first ? (
+        {items.length ? (
           <>
-            <span className={`sc-mchip sc-t-${first.type}`}>{PLAN_TYPES[first.type].icon} {clock(first.start)}</span>
-            {items.length > 1 && <span className="sc-more">+{items.length - 1}</span>}
+            {items.every((p) => p.type === "holiday")
+              ? <span className="sc-trange sc-trange--hol">🎉<em>{items[0].title || "Holiday"}</em></span>
+              : <span className="sc-trange">{range}</span>}
             {items.every((p) => p.ack) && <i className="sc-tick" title="All acknowledged">✓</i>}
           </>
-        ) : hol ? null : <span className="sc-addhint">＋</span>}
+        ) : <span className="sc-addhint">＋</span>}
       </button>
     );
   };
@@ -764,6 +845,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
         <div className="sc-hero-btns">
           <button type="button" className="sc-hbtn sc-hbtn--solid" onClick={() => setModal({})}>＋ New plan</button>
           <button type="button" className="sc-hbtn" onClick={() => onTeam(null)}>👥 New team</button>
+          <button type="button" className="sc-hbtn" onClick={() => setModal({ mgr: {} })}>👔 New manager</button>
         </div>
       </header>
 
@@ -776,12 +858,39 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
         ))}
       </section>
 
-      <nav className="sc-tbar" aria-label="Teams">
+      <nav className="sc-tbar" aria-label="Managers and teams">
+        <span className="sc-bar-lbl">Managers</span>
+        <button type="button" className={`sc-tchip ${mgrFilter === "all" ? "is-on" : ""}`} onClick={() => pickMgr("all")}>
+          <span className="sc-tic sc-tic--all">★</span>
+          <span className="sc-tt"><b>All managers</b><small>{mgrs.length} {mgrs.length === 1 ? "manager" : "managers"} · {teams.length} {teams.length === 1 ? "team" : "teams"}</small></span>
+        </button>
+        {mgrs.map((g) => {
+          const gt = teams.filter((t) => g.teamIds.includes(t.id));
+          const cnt = people.filter((e) => gt.some((t) => t.id === e.team)).length;
+          return (
+            <div key={g.id} className={`sc-tchip ${mgrFilter === g.id ? "is-on" : ""}`}>
+              <button type="button" className="sc-tchip-main" onClick={() => pickMgr(mgrFilter === g.id ? "all" : g.id)}>
+                <span className="sc-tic" style={{ "--h": hueOf(g.id) }}>{g.name.slice(0, 2).toUpperCase()}</span>
+                <span className="sc-tt"><b>{g.name}</b><small>{gt.length} {gt.length === 1 ? "team" : "teams"} · {cnt} {cnt === 1 ? "person" : "people"}</small></span>
+              </button>
+              <button type="button" className="sc-edit" onClick={() => setModal({ mgr: { manager: g } })} aria-label={`Edit ${g.name}`} title="Edit manager">✎</button>
+            </div>
+          );
+        })}
+        {hasUnassigned && mgrs.length > 0 && (
+          <button type="button" className={`sc-tchip ${mgrFilter === "none" ? "is-on" : ""}`} onClick={() => pickMgr("none")}>
+            <span className="sc-tic">?</span>
+            <span className="sc-tt"><b>No manager</b><small>{teams.filter((t) => !mgrOfTeam[t.id]).length} teams to assign</small></span>
+          </button>
+        )}
+        <button type="button" className="sc-mini sc-tnew" onClick={() => setModal({ mgr: {} })}>＋ New manager</button>
+        <span className="sc-bar-sep" aria-hidden="true" />
+        <span className="sc-bar-lbl">Teams</span>
         <button type="button" className={`sc-tchip ${teamFilter === "all" ? "is-on" : ""}`} onClick={() => setTeamFilter("all")}>
           <span className="sc-tic sc-tic--all">★</span>
-          <span className="sc-tt"><b>All people</b><small>{people.length} in {teams.length} {teams.length === 1 ? "team" : "teams"}</small></span>
+          <span className="sc-tt"><b>All people</b><small>{scopePeople.length} in {visTeams.length} {visTeams.length === 1 ? "team" : "teams"}</small></span>
         </button>
-        {teams.map((t) => {
+        {visTeams.map((t) => {
           const mem = people.filter((e) => e.team === t.id);
           const lead = empById[t.lead];
           return (
@@ -833,13 +942,16 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
               <div className="sc-board">
                 <div className="sc-brow sc-brow--head">
                   <div className="sc-bwho sc-corner">{scoped.length} {scoped.length === 1 ? "person" : "people"}</div>
-                  {days.map((day) => (
-                    <div key={keyOf(day)} className={`sc-bday ${keyOf(day) === todayKey ? "is-today" : ""}`}>
+                  {days.map((day) => {
+                    const hl = holsOn(keyOf(day));
+                    return (
+                    <div key={keyOf(day)} className={`sc-bday ${keyOf(day) === todayKey ? "is-today" : ""} ${hl.length ? "has-hol" : ""}`} tabIndex={hl.length ? 0 : undefined}>
                       <small>{DAYS[day.getDay()]}</small><b>{day.getDate()}</b>
                       <span className="sc-load">{dayCount(keyOf(day))} {dayCount(keyOf(day)) === 1 ? "plan" : "plans"}</span>
-                      {holTag(keyOf(day))}
+                      {hl.length > 0 && holPop(keyOf(day), hl)}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {pageRows.map((e) => (
                   <div className="sc-brow" key={e.id}>
@@ -859,11 +971,12 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
                   <div className="sc-bwho sc-corner">{scoped.length} {scoped.length === 1 ? "person" : "people"}</div>
                   {monthDays.map((day) => {
                     const k = keyOf(day);
+                    const hl = holsOn(k);
                     return (
-                      <div key={k} className={`sc-bday ${k === todayKey ? "is-today" : ""} ${day.getDay() % 6 === 0 ? "is-wknd" : ""}`}>
+                      <div key={k} className={`sc-bday ${k === todayKey ? "is-today" : ""} ${day.getDay() % 6 === 0 ? "is-wknd" : ""} ${hl.length ? "has-hol" : ""}`} tabIndex={hl.length ? 0 : undefined}>
                         <small>{DAYS[day.getDay()]}</small><b>{day.getDate()}</b>
                         <span className="sc-load">{dayCount(k)}</span>
-                        {holTag(k)}
+                        {hl.length > 0 && holPop(k, hl)}
                       </div>
                     );
                   })}
@@ -880,13 +993,6 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
               </div>
             </div>
           )}
-          {scoped.length > 0 && (
-            <div className="sc-legend">
-              {Object.entries(PLAN_TYPES).map(([k, v]) => <span key={k} className={`sc-t-${k}`}><i />{v.icon} {v.label}</span>)}
-              <span className="sc-lg-ack"><b>✓</b> All acknowledged</span>
-              <span className="sc-lg-hint">Click a box to see the day's plans</span>
-            </div>
-          )}
           {scoped.length > 0 && <Pager page={pg} total={scoped.length} label="people" onPage={setPage} />}
         </main>
       </div>
@@ -895,20 +1001,16 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays }) {
         <DayModal
           emp={empById[modal.day.empId]} date={modal.day.date}
           items={byCell[`${modal.day.empId}:${modal.day.date}`] || []}
-          holiday={holidayInfo(hm, empById[modal.day.empId], modal.day.date)}
           onEdit={(p) => setModal({ plan: p })}
           onAdd={() => setModal({ prefill: { empId: modal.day.empId, date: modal.day.date } })}
           onClose={() => setModal(null)}
         />
       )}
-      {modal && modal.hol && (
-        <HolidayModal
-          date={modal.hol.date} onClose={() => setModal(null)}
-          list={holsOn(modal.hol.date).map(([code, name]) => ({ code, name, country: countryLabel(code), count: people.filter((e) => countryOf(e) === code).length }))}
-        />
+      {modal && modal.mgr && (
+        <ManagerModal manager={modal.mgr.manager} teams={teams} people={people} managers={mgrs} onSave={saveManager} onDelete={deleteManager} onClose={() => setModal(null)} />
       )}
-      {modal && !modal.day && !modal.hol && (
-        <PlanModal plan={modal.plan} prefill={modal.prefill} people={people} teams={teams} hm={hm} onSave={savePlan} onDelete={deletePlan} onClose={() => setModal(null)} />
+      {modal && !modal.day && !modal.mgr && (
+        <PlanModal plan={modal.plan} prefill={modal.prefill} people={people} teams={teams} onSave={savePlan} onDelete={deletePlan} onClose={() => setModal(null)} />
       )}
     </div>
   );
@@ -932,16 +1034,7 @@ function startsIn(p) {
 
 function EmployeeScheduler({ me, people, teams, plans, setPlans, onMine, holidays }) {
   const [sel, setSel] = useState(null);
-  const hm = useMemo(() => buildHolidayMap(holidays), [holidays]);
   const todayKey = keyOf(TODAY);
-  const nextHol = useMemo(() => {
-    for (let i = 0; i < 60; i++) {
-      const d = addDays(TODAY, i);
-      const h = holidayInfo(hm, me, keyOf(d));
-      if (h) return { ...h, key: keyOf(d) };
-    }
-    return null;
-  }, [hm, me]);
   const team = teams.find((t) => t.id === me.team);
   const lead = team ? people.find((e) => e.id === team.lead) : null;
 
@@ -1002,7 +1095,6 @@ function EmployeeScheduler({ me, people, teams, plans, setPlans, onMine, holiday
             <button type="button" key={k} className={`sc-sday ${sel === k ? "is-on" : ""} ${k === todayKey ? "is-today" : ""}`} onClick={() => setSel(sel === k ? null : k)} aria-pressed={sel === k}>
               <small>{k === todayKey ? "Today" : DAYS[day.getDay()]}</small>
               <b>{day.getDate()}</b>
-              {holidayInfo(hm, me, k) && <i className="sc-sday-hol" title={`${holidayInfo(hm, me, k).name} (holiday)`}>🎉</i>}
               <span className="sc-dots" aria-label={`${c} plans`}>
                 {c === 0 ? <i className="sc-dot sc-dot--none" /> : Array.from({ length: Math.min(c, 3) }, (_, i) => <i key={i} className="sc-dot" />)}
               </span>
@@ -1010,12 +1102,6 @@ function EmployeeScheduler({ me, people, teams, plans, setPlans, onMine, holiday
           );
         })}
       </section>
-
-      {nextHol && (
-        <p className="sc-holbar sc-holbar--me">
-          🎉 <span><b>Next holiday:</b> {nextHol.name} · {relDay(nextHol.key)}, {niceDate(nextHol.key)} ({nextHol.country})</span>
-        </p>
-      )}
 
       <section className="sc-agenda sc-agenda--me">
         <div className="sc-ah">
@@ -1025,7 +1111,7 @@ function EmployeeScheduler({ me, people, teams, plans, setPlans, onMine, holiday
         {groups.length === 0 && <div className="sc-empty">{sel ? "Nothing planned for this day." : "No upcoming plans."}</div>}
         {groups.map((g) => (
           <div key={g.date} className="sc-day">
-            <h3><b>{relDay(g.date)}</b><span>{niceDate(g.date)}</span>{holidayInfo(hm, me, g.date) && <span className="sc-hday sc-hday--inline">🎉 {holidayInfo(hm, me, g.date).name}</span>}<em>{g.items.length}</em></h3>
+            <h3><b>{relDay(g.date)}</b><span>{niceDate(g.date)}</span><em>{g.items.length}</em></h3>
             {g.items.map((p) => (
               <div key={p.id} className={`sc-item sc-item--me sc-t-${p.type}`}>
                 <span className="sc-time"><b>{clock(p.start)}</b><small>{clock(p.end)}</small></span>
@@ -1043,8 +1129,8 @@ function EmployeeScheduler({ me, people, teams, plans, setPlans, onMine, holiday
   );
 }
 
-export default function Scheduler({ role = "superadmin", me, people, teams, plans, setPlans, onTeam, onMine, holidays = HOLIDAYS }) {
+export default function Scheduler({ role = "superadmin", me, people, teams, plans, setPlans, onTeam, onMine, holidays = HOLIDAYS, managers, setManagers }) {
   return role === "superadmin"
-    ? <AdminScheduler people={people} teams={teams} plans={plans} setPlans={setPlans} onTeam={onTeam} holidays={holidays} />
+    ? <AdminScheduler people={people} teams={teams} plans={plans} setPlans={setPlans} onTeam={onTeam} holidays={holidays} managers={managers} setManagers={setManagers} />
     : <EmployeeScheduler me={me} people={people} teams={teams} plans={plans} setPlans={setPlans} onMine={onMine} holidays={holidays} />;
 }
