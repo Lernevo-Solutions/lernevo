@@ -545,3 +545,216 @@ button.sc-hday:hover { filter: brightness(.95); transform: translateY(-1px); }
 
 /* managers + teams on ONE line */
 .sc-bar-sep { flex: none; align-self: stretch; width: 2px; margin: 4px 6px; border-radius: 2px; background: linear-gradient(180deg, transparent, var(--ts-focus), transparent); }
+
+/* =====================================================================
+   v9 — Same look as the Timesheets page: light-blue hero, blue accents,
+   white cells, compact spacing, Manager + Team dropdowns.
+   Delete this whole block to go back to the previous look.
+   ===================================================================== */
+
+/* hero: exactly like Timesheets (light-blue gradient, dark-blue title, round shapes) */
+.sc-hero, .sc-hero--me { color: #1e40af; background: linear-gradient(135deg, #eaf2ff 0%, #d9e8ff 100%); border: 1px solid #cfe0fb; box-shadow: none; padding: 12px 20px; gap: 8px; border-radius: 16px; }
+.sc-hero::before { background: rgba(255, 255, 255, .55); }
+.sc-hero::after { background: rgba(255, 255, 255, .4); }
+.sc-hero h1 { color: #1e40af; font-size: 24px; margin: 0 0 2px; }
+.sc-hero p { color: #3f5a94; font-size: 13px; line-height: 1.35; }
+.sc-eyebrow { background: rgba(37, 99, 235, .12); color: #1e40af; margin-bottom: 4px; }
+.sc-hbtn { background: rgba(255, 255, 255, .8); color: #1e40af; border: 1px solid rgba(37, 99, 235, .28); padding: 7px 14px; font-size: 13px; }
+.sc-hbtn:hover { background: #fff; border-color: #2563eb; }
+.sc-hero .sc-hbtn--solid, .sc-next .sc-hbtn--solid { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 8px 18px -10px rgba(37, 99, 235, .8); }
+.sc-hero .sc-hbtn--solid:hover, .sc-next .sc-hbtn--solid:hover { background: #1d4ed8; }
+.sc-lead-card { background: rgba(255, 255, 255, .8); color: #0f1f45; }
+@media (prefers-color-scheme: dark) {
+  .sc-hero, .sc-hero--me { background: linear-gradient(135deg, #172647 0%, #1c3366 100%); border-color: #2b4278; color: #9db8ff; }
+  .sc-hero::before, .sc-hero::after { background: rgba(255, 255, 255, .06); }
+  .sc-eyebrow { background: rgba(157, 184, 255, .16); color: #9db8ff; }
+  .sc-hero h1 { color: #9db8ff; }
+  .sc-hero p { color: #aab9d9; }
+  .sc-hbtn { background: rgba(255, 255, 255, .08); color: #cfdcff; border-color: rgba(157, 184, 255, .3); }
+  .sc-lead-card { background: rgba(255, 255, 255, .08); color: #e8eefc; }
+}
+
+/* flat blue buttons (no purple gradient) */
+.sc-btn--pri, .sc-pg--n.is-on { background: #2563eb; box-shadow: none; }
+.sc-lead, .sc-tic--all { background: #2563eb; }
+.sc-sday.is-on { background: #2563eb; box-shadow: none; }
+
+/* KPI cards: smaller, light-blue border */
+.sc-kpis { gap: 8px; margin: 10px 0; }
+.sc-kpi { padding: 7px 12px; gap: 10px; border-color: #dbe6fb; }
+.sc-kic { width: 32px; height: 32px; font-size: 16px; border-radius: 10px; }
+.sc-kpi small { font-size: 11px; }
+.sc-kpi b { font-size: 19px; line-height: 1.1; }
+.sc-kpi em { font-size: 11px; }
+
+/* filter bar + main panel: light-blue tint / border so the page is not all white */
+.sc-tbar { overflow: visible; flex-wrap: wrap; padding: 6px 10px; gap: 8px; margin-bottom: 8px; background: color-mix(in srgb, var(--ts-blue) 5%, var(--ts-card)); border-color: #dbe6fb; }
+.sc-main { padding: 8px; border-color: #dbe6fb; }
+.sc-toolbar { margin-bottom: 8px; gap: 8px; }
+.sc-toolbar .sc-search { padding: 7px 12px; }
+.sc-hint { margin: 4px 6px; font-size: 12px; }
+
+/* ---- board: tight rows, small centred 9–18 chip ---- */
+.sc-board { min-width: 720px; }
+.sc-brow { grid-template-columns: 140px repeat(7, minmax(0, 1fr)); gap: 4px; padding: 2px 0; border-top-color: #e3ebfb; }
+.sc-board--month .sc-brow { grid-template-columns: 140px repeat(var(--n), 70px); }
+.sc-brow--head { padding-bottom: 4px; }
+.sc-bday { padding: 4px 2px 3px; border-radius: 10px; background: color-mix(in srgb, var(--ts-blue) 6%, var(--ts-card)); border: 1px solid #dbe6fb; }
+.sc-bday b { font-size: 15px; }
+.sc-load { margin-top: 2px; background: var(--ts-card); color: var(--ts-blue); }
+.sc-bday.is-today { background: #2563eb; border-color: #2563eb; color: rgba(255, 255, 255, .88); }
+.sc-bday.is-today b { color: #fff; }
+.sc-bday.is-today .sc-load { background: rgba(255, 255, 255, .22); color: #fff; }
+
+.sc-bcell { background: var(--ts-card); border: 1px solid #dbe6fb; border-radius: 9px; min-height: 32px; height: 32px; padding: 0 18px; justify-content: center; }
+.sc-board--month .sc-bcell { padding: 0 3px; }
+.sc-bcell.is-wknd { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--ts-blue) 6%, var(--ts-card)) 0 6px, var(--ts-card) 6px 7px); }
+.sc-bcell.is-today { background: color-mix(in srgb, var(--ts-blue) 7%, var(--ts-card)); border-color: color-mix(in srgb, var(--ts-blue) 45%, var(--ts-line)); box-shadow: none; }
+.sc-bcell:hover { box-shadow: none; border-color: var(--ts-blue); }
+.sc-bcell .sc-tick { position: absolute; top: 50%; transform: translateY(-50%); right: 6px; font-size: 10px; }
+
+.sc-trange { padding: 2px 9px; font-size: 12px; font-weight: 800; letter-spacing: 0; line-height: 1.35; border-radius: 6px; background: #eaf1ff; color: #1d4ed8; border: 0; }
+.sc-board--month .sc-trange { padding: 1px 4px; font-size: 10.5px; }
+@media (prefers-color-scheme: dark) { .sc-trange { background: #1a2b52; color: #9db8ff; } }
+.sc-trange--hol { background: #ffedd5; color: #c2410c; }
+@media (prefers-color-scheme: dark) { .sc-trange--hol { background: #3a1f0d; color: #fdba74; } }
+
+.sc-pager { margin-top: 6px; padding-top: 6px; }
+.sc-pg { height: 30px; }
+
+/* ---- Manager + Team dropdowns ---- */
+.sc-mdd { display: flex; align-items: center; gap: 8px; flex: none; }
+.sc-mdd-wrap { position: relative; }
+.sc-mdd-btn {
+  display: flex; align-items: center; gap: 10px; min-width: 220px; padding: 4px 12px 4px 5px; border-radius: 12px; cursor: pointer;
+  border: 1px solid #cfe0fb; background: var(--ts-card); color: var(--ts-ink); font: inherit; text-align: left; transition: border-color .12s;
+}
+.sc-mdd-btn:hover, .sc-mdd-btn.is-open { border-color: var(--ts-blue); }
+.sc-caret { margin-left: auto; padding-left: 8px; font-style: normal; color: var(--ts-blue); transition: transform .15s; }
+.sc-mdd-btn.is-open .sc-caret { transform: rotate(180deg); }
+.sc-mdd-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; width: 340px; max-width: 86vw; max-height: 380px; overflow: auto; padding: 6px;
+  border-radius: 14px; background: var(--ts-card); border: 1px solid #cfe0fb; box-shadow: 0 18px 38px -14px rgba(15, 31, 69, .45); animation: sc-pop .14s ease;
+}
+.sc-mdd-row { display: flex; align-items: center; border-radius: 10px; border: 1.5px solid transparent; }
+.sc-mdd-row:hover { background: var(--ts-soft); }
+.sc-mdd-row.is-on { border-color: var(--ts-blue); background: var(--ts-soft); }
+.sc-mdd-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.sc-mdd-main .sc-tt small { max-width: 230px; }
+.sc-mdd-new { width: 100%; margin-top: 6px; padding: 9px; border: 1px dashed var(--ts-blue); border-radius: 10px; background: transparent; color: var(--ts-blue); font: inherit; font-weight: 800; font-size: 13px; cursor: pointer; }
+.sc-mdd-new:hover { background: var(--ts-soft); }
+/* =====================================================================
+   v10 — White + LIGHT-blue theme, tight 9–18 box, compact dropdowns.
+   Delete this whole block to go back to the previous look.
+   ===================================================================== */
+.sc { --lb: #f1f7ff; --lb2: #e3efff; --lb3: #cfe2fc; --lbt: #2563eb; }
+
+/* ---- 1. The 9–18 box: chip fills the cell, no empty space around the number ---- */
+.sc-board .sc-brow { gap: 3px; padding: 1px 0; }
+.sc-bcell, .sc-board--month .sc-bcell {
+  height: 28px; min-height: 28px; padding: 2px !important; gap: 0; justify-content: stretch; border-radius: 8px;
+}
+.sc-bcell .sc-trange {
+  flex: 1; align-self: stretch; justify-content: center; padding: 0 !important; margin: 0;
+  line-height: 1; border-radius: 6px; font-size: 12px; background: var(--lb2); color: #1d4ed8;
+}
+.sc-board--month .sc-bcell .sc-trange { font-size: 10.5px; }
+.sc-bcell .sc-trange--hol { background: #ffedd5; color: #c2410c; }
+.sc-bcell .sc-tick { right: 7px; background: transparent; }
+.sc-bcell .sc-addhint { line-height: 1; }
+.sc-bday { padding: 3px 2px 2px; }
+.sc-load { margin-top: 1px; padding: 0 7px; }
+
+/* ---- 2. Light-blue theme: no heavy solid blue anywhere ---- */
+.sc-hero, .sc-hero--me { background: linear-gradient(135deg, #f6faff 0%, #e8f1ff 100%); border-color: var(--lb3); color: #1e40af; }
+.sc-hero::before { background: rgba(255, 255, 255, .7); }
+.sc-hero::after { background: rgba(207, 226, 252, .5); }
+.sc-hero .sc-hbtn--solid, .sc-next .sc-hbtn--solid { background: var(--lb2); color: #1d4ed8; border-color: var(--lb3); box-shadow: none; }
+.sc-hero .sc-hbtn--solid:hover, .sc-next .sc-hbtn--solid:hover { background: var(--lb3); }
+
+.sc-btn--pri, .sc-pg--n.is-on, .sc-sday.is-on, .sc-lead, .sc-tic--all, .sc-bday.is-today {
+  background: var(--lb2); color: #1d4ed8; border: 1px solid var(--lb3); box-shadow: none; filter: none;
+}
+.sc-btn--pri:hover { color: #1d4ed8; background: var(--lb3); border-color: var(--lb3); filter: none; }
+.sc-bday.is-today b, .sc-sday.is-on b, .sc-sday.is-on small { color: #1d4ed8; }
+.sc-bday.is-today { color: #3f5a94; }
+.sc-bday.is-today .sc-load { background: #fff; color: #1d4ed8; }
+.sc-sday.is-on .sc-dot { background: #1d4ed8; }
+.sc-seg { background: var(--lb); }
+.sc-seg button[aria-selected="true"] { background: #fff; color: #1d4ed8; box-shadow: 0 1px 4px rgba(37, 99, 235, .18); }
+.sc-pill { background: var(--lb2); color: #1d4ed8; }
+.sc-24-bar i.is-on { background: #93c5fd; }
+
+/* page surfaces: white with a faint blue edge */
+.sc-tbar { background: #fff; border-color: var(--lb3); }
+.sc-main, .sc-kpi, .sc-agenda--me { background: #fff; border-color: var(--lb3); }
+.sc-kpi--blue, .sc-kpi--violet, .sc-kpi--teal, .sc-kpi--amber { --k-bg: var(--lb); --k-c: #1d4ed8; }
+.sc-bday { background: var(--lb); border-color: var(--lb2); }
+.sc-bcell { border-color: var(--lb2); }
+.sc-bcell.is-today { background: var(--lb); border-color: #93c5fd; }
+.sc-bcell.is-wknd { background: repeating-linear-gradient(135deg, var(--lb) 0 6px, #fff 6px 7px); }
+.sc-brow { border-top-color: var(--lb2); }
+.sc-bwho, .sc-corner { background: #fff; }
+
+/* ---- 3. Manager + Team dropdowns: compact ---- */
+.sc-tbar { padding: 4px 8px; gap: 4px; margin-bottom: 6px; }
+.sc-mdd { gap: 4px; }
+.sc-bar-lbl { padding: 0 2px; font-size: 10px; letter-spacing: .4px; }
+.sc-bar-sep { margin: 2px 4px; width: 1px; }
+.sc-mdd-btn { min-width: 0; gap: 6px; padding: 3px 8px 3px 4px; border-radius: 10px; border-color: var(--lb3); background: #fff; }
+.sc-mdd-btn .sc-tic { width: 26px; height: 26px; border-radius: 8px; font-size: 11px; }
+.sc-mdd-btn .sc-tt small { display: none; }          /* count text only inside the opened list */
+.sc-mdd-btn .sc-tt b { font-size: 13px; max-width: 150px; }
+.sc-caret { padding-left: 4px; }
+.sc-mdd-menu { width: 270px; padding: 4px; top: calc(100% + 4px); border-color: var(--lb3); }
+.sc-mdd-main { padding: 4px 6px; gap: 8px; }
+.sc-mdd-main .sc-tic { width: 28px; height: 28px; border-radius: 9px; font-size: 11px; }
+.sc-mdd-main .sc-tt small { max-width: 190px; font-size: 11px; }
+.sc-mdd-new { margin-top: 4px; padding: 6px; }
+.sc-toolbar { margin-bottom: 6px; }
+
+/* =====================================================================
+   v11 — 6 people per page, even smaller 9–18 box, no gap under Manager/Team.
+   Delete this block to go back to v10.
+   ===================================================================== */
+
+/* smaller 9–18 box */
+.sc-bcell, .sc-board--month .sc-bcell { height: 22px; min-height: 22px; align-self: center; padding: 1px !important; border-radius: 7px; }
+.sc-bcell .sc-trange { font-size: 11.5px; border-radius: 5px; }
+.sc-board--month .sc-bcell .sc-trange { font-size: 10px; }
+.sc-bcell .sc-tick { font-size: 9px; right: 6px; }
+.sc-bcell:hover { transform: none; }
+
+/* each person row = one tight line (small avatar, name + role close together) */
+.sc-board .sc-brow { padding: 1px 0; gap: 3px; align-items: center; }
+.sc-bwho .sc-av { width: 26px; height: 26px; min-width: 26px; font-size: 10px; margin-right: 6px; }
+.sc-bwho b { font-size: 13px; line-height: 1.15; }
+.sc-bwho small { font-size: 11px; line-height: 1.1; }
+.sc-bday { padding: 2px 2px 1px; }
+.sc-bday b { font-size: 14px; }
+
+/* Manager / Team bar: no box, no gap below it */
+.sc-tbar { background: transparent; border: 0; padding: 0; margin: 0 0 4px; }
+.sc-kpis { margin: 6px 0 6px; }
+.sc-hero { margin-bottom: 0; }
+.sc-main { padding: 6px 8px; }
+.sc-toolbar { margin-bottom: 4px; }
+.sc-toolbar .sc-search { padding: 5px 12px; }
+.sc-toolbar .sc-seg button { padding: 5px 12px; }
+.sc-toolbar .sc-btn { padding: 4px 10px; }
+.sc-pager { margin-top: 4px; padding-top: 4px; }
+
+/* v12 — a little breathing room between people rows (delete to go back to v11) */
+.sc-board .sc-brow { padding: 4px 0; gap: 4px; }
+.sc-brow--head { padding-bottom: 6px; }
+.sc-bcell, .sc-board--month .sc-bcell { height: 24px; min-height: 24px; }
+.sc-bwho .sc-av { width: 30px; height: 30px; min-width: 30px; font-size: 11px; margin-right: 8px; }
+.sc-bwho b { line-height: 1.25; }
+.sc-bwho small { line-height: 1.25; }
+
+/* v13 — smaller 9–18 box: narrower + shorter, centred in its column (delete to go back to v12) */
+.sc-board:not(.sc-board--month) .sc-bcell { width: 76px; max-width: 100%; justify-self: center; }
+.sc-bcell, .sc-board--month .sc-bcell { height: 20px; min-height: 20px; border-radius: 6px; }
+.sc-bcell .sc-trange { font-size: 11px; border-radius: 4px; }
+.sc-board--month .sc-bcell .sc-trange { font-size: 9.5px; }
+.sc-bcell .sc-tick { right: 4px; font-size: 8px; }

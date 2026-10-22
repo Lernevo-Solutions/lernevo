@@ -286,7 +286,7 @@ const Avatar = ({ emp }) => (
 /* ---------------------------------------------------------------------
    Pager: shows PAGE_SIZE rows at a time, Next / Prev for the rest
    --------------------------------------------------------------------- */
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 function Pager({ page, total, size = PAGE_SIZE, label, onPage, compact }) {
   const pages = Math.ceil(total / size);
@@ -705,6 +705,21 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, mana
   const mgrs = managers || localMgrs;
   const setMgrs = setManagers || setLocalMgrs;
   useEffect(() => { setPage(0); }, [teamFilter, mgrFilter, q, view]);
+  const [mgrOpen, setMgrOpen] = useState(false);   // manager dropdown
+  const [teamOpen, setTeamOpen] = useState(false); // team dropdown
+  const mgrRef = useRef(null);
+  const teamRef = useRef(null);
+  useEffect(() => {
+    if (!mgrOpen && !teamOpen) return undefined;
+    const onDown = (e) => {
+      if (mgrRef.current && !mgrRef.current.contains(e.target)) setMgrOpen(false);
+      if (teamRef.current && !teamRef.current.contains(e.target)) setTeamOpen(false);
+    };
+    const onKey = (e) => { if (e.key === "Escape") { setMgrOpen(false); setTeamOpen(false); } };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [mgrOpen, teamOpen]);
 
   const hm = useMemo(() => buildHolidayMap(holidays), [holidays]);
   const todayKey = keyOf(TODAY);
@@ -726,6 +741,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, mana
   const inTeam = useMemo(() => scopePeople.filter((e) => teamFilter === "all" || e.team === teamFilter), [scopePeople, teamFilter]);
   const pickMgr = (id) => { setMgrFilter(id); setTeamFilter("all"); };
   const activeMgr = mgrs.find((g) => g.id === mgrFilter);
+  const activeTeam = teams.find((t) => t.id === teamFilter);
   const hasUnassigned = teams.some((t) => !mgrOfTeam[t.id]);
   const saveManager = ({ id, name, teamIds }) => {
     setMgrs((prev) => {
@@ -858,52 +874,100 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, mana
         ))}
       </section>
 
-      <nav className="sc-tbar" aria-label="Managers and teams">
-        <span className="sc-bar-lbl">Managers</span>
-        <button type="button" className={`sc-tchip ${mgrFilter === "all" ? "is-on" : ""}`} onClick={() => pickMgr("all")}>
-          <span className="sc-tic sc-tic--all">★</span>
-          <span className="sc-tt"><b>All managers</b><small>{mgrs.length} {mgrs.length === 1 ? "manager" : "managers"} · {teams.length} {teams.length === 1 ? "team" : "teams"}</small></span>
-        </button>
-        {mgrs.map((g) => {
-          const gt = teams.filter((t) => g.teamIds.includes(t.id));
-          const cnt = people.filter((e) => gt.some((t) => t.id === e.team)).length;
-          return (
-            <div key={g.id} className={`sc-tchip ${mgrFilter === g.id ? "is-on" : ""}`}>
-              <button type="button" className="sc-tchip-main" onClick={() => pickMgr(mgrFilter === g.id ? "all" : g.id)}>
-                <span className="sc-tic" style={{ "--h": hueOf(g.id) }}>{g.name.slice(0, 2).toUpperCase()}</span>
-                <span className="sc-tt"><b>{g.name}</b><small>{gt.length} {gt.length === 1 ? "team" : "teams"} · {cnt} {cnt === 1 ? "person" : "people"}</small></span>
-              </button>
-              <button type="button" className="sc-edit" onClick={() => setModal({ mgr: { manager: g } })} aria-label={`Edit ${g.name}`} title="Edit manager">✎</button>
-            </div>
-          );
-        })}
-        {hasUnassigned && mgrs.length > 0 && (
-          <button type="button" className={`sc-tchip ${mgrFilter === "none" ? "is-on" : ""}`} onClick={() => pickMgr("none")}>
-            <span className="sc-tic">?</span>
-            <span className="sc-tt"><b>No manager</b><small>{teams.filter((t) => !mgrOfTeam[t.id]).length} teams to assign</small></span>
-          </button>
-        )}
-        <button type="button" className="sc-mini sc-tnew" onClick={() => setModal({ mgr: {} })}>＋ New manager</button>
+      <nav className="sc-tbar" aria-label="Manager and teams">
+        <div className="sc-mdd" ref={mgrRef}>
+          <span className="sc-bar-lbl">Manager</span>
+          <div className="sc-mdd-wrap">
+            <button type="button" className={`sc-mdd-btn ${mgrOpen ? "is-open" : ""}`} aria-haspopup="listbox" aria-expanded={mgrOpen} onClick={() => setMgrOpen((v) => !v)}>
+              {activeMgr
+                ? <span className="sc-tic" style={{ "--h": hueOf(activeMgr.id) }}>{activeMgr.name.slice(0, 2).toUpperCase()}</span>
+                : <span className={`sc-tic ${mgrFilter === "all" ? "sc-tic--all" : ""}`}>{mgrFilter === "all" ? "★" : "?"}</span>}
+              <span className="sc-tt">
+                <b>{activeMgr ? activeMgr.name : mgrFilter === "none" ? "No manager" : "All managers"}</b>
+                <small>{activeMgr
+                  ? `${visTeams.length} ${visTeams.length === 1 ? "team" : "teams"} · ${scopePeople.length} ${scopePeople.length === 1 ? "person" : "people"}`
+                  : `${mgrs.length} ${mgrs.length === 1 ? "manager" : "managers"} · ${teams.length} ${teams.length === 1 ? "team" : "teams"}`}</small>
+              </span>
+              <i className="sc-caret" aria-hidden="true">▾</i>
+            </button>
+            {mgrOpen && (
+              <div className="sc-mdd-menu" role="listbox" aria-label="Choose a manager">
+                <div className={`sc-mdd-row ${mgrFilter === "all" ? "is-on" : ""}`}>
+                  <button type="button" role="option" aria-selected={mgrFilter === "all"} className="sc-mdd-main" onClick={() => { pickMgr("all"); setMgrOpen(false); }}>
+                    <span className="sc-tic sc-tic--all">★</span>
+                    <span className="sc-tt"><b>All managers</b><small>{teams.length} {teams.length === 1 ? "team" : "teams"} · {people.length} people</small></span>
+                  </button>
+                </div>
+                {mgrs.map((g) => {
+                  const gt = teams.filter((t) => g.teamIds.includes(t.id));
+                  const cnt = people.filter((p) => gt.some((t) => t.id === p.team)).length;
+                  return (
+                    <div key={g.id} className={`sc-mdd-row ${mgrFilter === g.id ? "is-on" : ""}`}>
+                      <button type="button" role="option" aria-selected={mgrFilter === g.id} className="sc-mdd-main" onClick={() => { pickMgr(g.id); setMgrOpen(false); }}>
+                        <span className="sc-tic" style={{ "--h": hueOf(g.id) }}>{g.name.slice(0, 2).toUpperCase()}</span>
+                        <span className="sc-tt"><b>{g.name}</b><small>{gt.length ? gt.map((t) => t.name).join(", ") : "No teams yet"} · {cnt}</small></span>
+                      </button>
+                      <button type="button" className="sc-edit" onClick={() => { setMgrOpen(false); setModal({ mgr: { manager: g } }); }} aria-label={`Edit ${g.name}`} title="Edit manager">✎</button>
+                    </div>
+                  );
+                })}
+                {hasUnassigned && mgrs.length > 0 && (
+                  <div className={`sc-mdd-row ${mgrFilter === "none" ? "is-on" : ""}`}>
+                    <button type="button" role="option" aria-selected={mgrFilter === "none"} className="sc-mdd-main" onClick={() => { pickMgr("none"); setMgrOpen(false); }}>
+                      <span className="sc-tic">?</span>
+                      <span className="sc-tt"><b>No manager</b><small>{teams.filter((t) => !mgrOfTeam[t.id]).length} teams to assign</small></span>
+                    </button>
+                  </div>
+                )}
+                <button type="button" className="sc-mdd-new" onClick={() => { setMgrOpen(false); setModal({ mgr: {} }); }}>＋ New manager</button>
+              </div>
+            )}
+          </div>
+        </div>
+
         <span className="sc-bar-sep" aria-hidden="true" />
-        <span className="sc-bar-lbl">Teams</span>
-        <button type="button" className={`sc-tchip ${teamFilter === "all" ? "is-on" : ""}`} onClick={() => setTeamFilter("all")}>
-          <span className="sc-tic sc-tic--all">★</span>
-          <span className="sc-tt"><b>All people</b><small>{scopePeople.length} in {visTeams.length} {visTeams.length === 1 ? "team" : "teams"}</small></span>
-        </button>
-        {visTeams.map((t) => {
-          const mem = people.filter((e) => e.team === t.id);
-          const lead = empById[t.lead];
-          return (
-            <div key={t.id} className={`sc-tchip ${teamFilter === t.id ? "is-on" : ""}`}>
-              <button type="button" className="sc-tchip-main" onClick={() => setTeamFilter(t.id)}>
-                <span className="sc-tic" style={{ "--h": hueOf(t.id) }}>{t.name.slice(0, 2).toUpperCase()}</span>
-                <span className="sc-tt"><b>{t.name}</b><small>{mem.length} {mem.length === 1 ? "person" : "people"}{lead ? ` · Lead ${lead.name}` : ""}</small></span>
-              </button>
-              <button type="button" className="sc-edit" onClick={() => onTeam(t)} aria-label={`Edit ${t.name}`} title="Edit team">✎</button>
-            </div>
-          );
-        })}
-        <button type="button" className="sc-mini sc-tnew" onClick={() => onTeam(null)}>＋ New team</button>
+        <div className="sc-mdd" ref={teamRef}>
+          <span className="sc-bar-lbl">Team</span>
+          <div className="sc-mdd-wrap">
+            <button type="button" className={`sc-mdd-btn ${teamOpen ? "is-open" : ""}`} aria-haspopup="listbox" aria-expanded={teamOpen} onClick={() => setTeamOpen((v) => !v)}>
+              {activeTeam
+                ? <span className="sc-tic" style={{ "--h": hueOf(activeTeam.id) }}>{activeTeam.name.slice(0, 2).toUpperCase()}</span>
+                : <span className="sc-tic sc-tic--all">★</span>}
+              <span className="sc-tt">
+                <b>{activeTeam ? activeTeam.name : "All teams"}</b>
+                <small>{activeTeam
+                  ? `${people.filter((p) => p.team === activeTeam.id).length} people${empById[activeTeam.lead] ? ` · Lead ${empById[activeTeam.lead].name}` : ""}`
+                  : `${visTeams.length} ${visTeams.length === 1 ? "team" : "teams"} · ${scopePeople.length} ${scopePeople.length === 1 ? "person" : "people"}`}</small>
+              </span>
+              <i className="sc-caret" aria-hidden="true">▾</i>
+            </button>
+            {teamOpen && (
+              <div className="sc-mdd-menu" role="listbox" aria-label="Choose a team">
+                <div className={`sc-mdd-row ${teamFilter === "all" ? "is-on" : ""}`}>
+                  <button type="button" role="option" aria-selected={teamFilter === "all"} className="sc-mdd-main" onClick={() => { setTeamFilter("all"); setTeamOpen(false); }}>
+                    <span className="sc-tic sc-tic--all">★</span>
+                    <span className="sc-tt"><b>All teams</b><small>{scopePeople.length} {scopePeople.length === 1 ? "person" : "people"} in {visTeams.length} {visTeams.length === 1 ? "team" : "teams"}</small></span>
+                  </button>
+                </div>
+                {visTeams.map((t) => {
+                  const mem = people.filter((p) => p.team === t.id);
+                  const lead = empById[t.lead];
+                  return (
+                    <div key={t.id} className={`sc-mdd-row ${teamFilter === t.id ? "is-on" : ""}`}>
+                      <button type="button" role="option" aria-selected={teamFilter === t.id} className="sc-mdd-main" onClick={() => { setTeamFilter(t.id); setTeamOpen(false); }}>
+                        <span className="sc-tic" style={{ "--h": hueOf(t.id) }}>{t.name.slice(0, 2).toUpperCase()}</span>
+                        <span className="sc-tt"><b>{t.name}</b><small>{mem.length} {mem.length === 1 ? "person" : "people"}{lead ? ` · Lead ${lead.name}` : ""}</small></span>
+                      </button>
+                      <button type="button" className="sc-edit" onClick={() => { setTeamOpen(false); onTeam(t); }} aria-label={`Edit ${t.name}`} title="Edit team">✎</button>
+                    </div>
+                  );
+                })}
+                {visTeams.length === 0 && <p className="sc-hint">{teams.length === 0 ? "No teams yet." : "This manager has no teams yet."}</p>}
+                <button type="button" className="sc-mdd-new" onClick={() => { setTeamOpen(false); onTeam(null); }}>＋ New team</button>
+              </div>
+            )}
+          </div>
+        </div>
         {teams.length === 0 && <span className="sc-hint">No teams yet. Create your first team to start planning.</span>}
       </nav>
 

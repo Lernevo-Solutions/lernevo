@@ -485,3 +485,7 @@
 .ts-md-work, .ts-md-notes { margin-top: 10px; padding-top: 10px; }
 .ts-md-acts { margin-top: 10px; }
 .ts-md-act { margin-top: 10px; }
+/* "Approve N days" review popup */
+.ts-modal--rv { width: min(440px, 100%); max-height: 90vh; overflow-y: auto; }
+.ts-rv-day + .ts-rv-day { margin-top: 18px; padding-top: 16px; border-top: 2px solid var(--ts-line); }
+.ts-rv-notes { margin: 0; padding: 10px 12px; border: 1px solid var(--ts-line); border-radius: 10px; font-size: 13px; color: var(--ts-mute); white-space: pre-wrap; }

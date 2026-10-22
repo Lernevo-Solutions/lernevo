@@ -306,8 +306,6 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
   } else if (info.type === "work") {
     rows.push(
       ["Clock in", info.inT], ["Clock out", info.outT],
-      ["Calculated hours", fmt(info.calcHours != null ? info.calcHours : info.hours)],
-      ["Hours worked", `${fmt(info.hours)}${info.edited ? " (edited)" : ""}`],
       ["Overtime", info.ot > 0 ? `+${fmt(info.ot)}` : "None"],
     );
   }
@@ -375,8 +373,119 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
   );
 }
 
+/* One pending day inside the "Approve N days" popup. Edit works right here (no second popup). */
+function ReviewDay({ emp, day, info, onApprove, onSave }) {
+  const r = emp.r;
+  const std = info.std != null ? info.std : stdHours(r);
+  const brkNow = info.brk != null ? info.brk : r.brk;
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(null);
+  const [notes, setNotes] = useState(info.notes || "");
+  const [err, setErr] = useState("");
+  const setF = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const startEdit = () => { setForm(formFrom(info, emp)); setNotes(info.notes || ""); setErr(""); setEditing(true); };
+  const cancel = () => { setEditing(false); setErr(""); };
+  const save = () => {
+    if (!form.inT || !form.outT) return setErr("Enter both clock in and clock out.");
+    if (!(Number(form.brk) >= 0)) return setErr("Break must be 0 or more hours.");
+    onSave(emp, day, { inT: form.inT, outT: form.outT, brk: Number(form.brk), notes: notes.trim() });
+    setEditing(false); setErr("");
+  };
+
+  const live = editing ? hoursOf(form.inT, form.outT, form.brk) : info.hours;
+  const liveOt = Math.max(0, live - std);
+  const rows = editing
+    ? [
+        ["Shift time", timeRange(r)],
+        ["Break (hours)", <input key="b" className="ts-in" type="number" min="0" step="0.25" value={form.brk} onChange={(ev) => setF({ brk: ev.target.value })} />],
+        ["Standard hours", fmt(std)],
+        ["Clock in", <input key="i" className="ts-in" type="time" value={form.inT} onChange={(ev) => setF({ inT: ev.target.value })} />],
+        ["Clock out", <input key="o" className="ts-in" type="time" value={form.outT} onChange={(ev) => setF({ outT: ev.target.value })} />],
+        ["Hours worked", fmt(live)],
+        ["Overtime", liveOt > 0 ? `+${fmt(liveOt)}` : "None"],
+      ]
+    : [
+        ["Shift time", timeRange(r)],
+        ["Break", `${brkNow}h`],
+        ["Standard hours", fmt(std)],
+        ["Clock in", info.inT],
+        ["Clock out", info.outT],
+        ["Overtime", info.ot > 0 ? `+${fmt(info.ot)}` : "None"],
+      ];
+
+  return (
+    <section className="ts-rv-day">
+      <div className="ts-md-date">{longDate(day)}</div>
+      <span className="ts-pill ts-pill--pend">Pending approval</span>
+      {info.edited && <span className="ts-pill ts-pill--pend ts-pill--edited">✎ Edited</span>}
+      <dl className="ts-md-rows">
+        {rows.map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
+      </dl>
+      <div className="ts-md-notes">
+        <h4>Work done</h4>
+        <textarea
+          rows={3} maxLength={500} disabled={!editing}
+          value={editing ? notes : (info.notes || "")}
+          placeholder={editing ? "Type the work done for this day…" : "No notes"}
+          onChange={(ev) => setNotes(ev.target.value)}
+        />
+      </div>
+      {err && <p className="ts-md-err" role="alert">{err}</p>}
+      <div className="ts-md-acts">
+        {editing ? (
+          <>
+            <button type="button" className="ts-btn" onClick={cancel}>Cancel</button>
+            <button type="button" className="ts-btn ts-btn--pri" onClick={save}>Save changes</button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="ts-btn" onClick={startEdit}>✎ Edit</button>
+            <button type="button" className="ts-btn ts-btn--pri" onClick={() => onApprove(emp, day)}>Approve this day</button>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* Popup for the "Approve N days" button: every pending day of that employee, same layout as the single-day popup. */
+function ReviewDays({ emp, days, infoOf, onApprove, onApproveAll, onSave, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="ts-ov" onClick={onClose}>
+      <div className="ts-modal ts-modal--rv" role="dialog" aria-modal="true" aria-label={`${emp.name} pending days`} onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="ts-x" onClick={onClose} aria-label="Close">×</button>
+        <div className="ts-md-head">
+          <Avatar emp={emp} />
+          <div>
+            <b>{emp.name}</b>
+            <small>{empCode(emp)} · {emp.role} · {emp.dept}</small>
+          </div>
+        </div>
+
+        <div className="ts-rv-list">
+          {days.map((day) => (
+            <ReviewDay key={keyOf(day)} emp={emp} day={day} info={infoOf(day, emp)} onApprove={onApprove} onSave={onSave} />
+          ))}
+        </div>
+
+        {days.length > 1 && (
+          <button type="button" className="ts-btn ts-btn--pri ts-md-act" onClick={() => onApproveAll(emp)}>
+            Approve all {days.length} days
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Weekly: one row per employee, one box per day, coverage on top ---------- */
-function WeekView({ list, totals, from, to, infoOf, onPick, onApprove, onOpen }) {
+function WeekView({ list, totals, from, to, infoOf, onPick, onReview, onOpen }) {
   const days = daysBetween(from, to);
   const locked = to < LOCK_BEFORE;
   const todayKey = keyOf(TODAY);
@@ -438,7 +547,7 @@ function WeekView({ list, totals, from, to, infoOf, onPick, onApprove, onOpen })
                 <span className="ts-tot-top">
                   <b>{fmt(t.total)}</b><span className="ts-of">of {fmt(target)}</span>
                   {!locked && t.pending > 0 && (
-                    <button className="ts-approve" onClick={() => onApprove([e])}>
+                    <button className="ts-approve" onClick={() => onReview(e.id)}>
                       Approve {t.pending} {t.pending === 1 ? "day" : "days"}
                     </button>
                   )}
@@ -650,6 +759,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
   const [approved, setApproved] = useState(() => new Set());
   const [edits, setEdits] = useState({}); // admin edits per "empId:YYYY-MM-DD" (clock in/out, break, work done, notes)
   const [detail, setDetail] = useState(null); // { empId, day } of the clicked box
+  const [reviewId, setReviewId] = useState(null); // empId whose "Approve N days" popup is open
 
   const labels = { ...DEFAULT_CONFIG.labels, ...(config.labels || {}) };
   const emps = useMemo(
@@ -706,6 +816,14 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
   const saveEdit = (e, day, data) => setEdits((prev) => ({ ...prev, [`${e.id}:${keyOf(day)}`]: data }));
   const resetEdit = (e, day) => setEdits((prev) => { const n = { ...prev }; delete n[`${e.id}:${keyOf(day)}`]; return n; });
   const detailEmp = detail ? emps.find((e) => e.id === detail.empId) : null;
+  const reviewEmp = reviewId != null ? emps.find((e) => e.id === reviewId) : null;
+  const reviewDays = useMemo(
+    () => (reviewEmp ? daysBetween(from, to).filter((d) => { const i = infoOf(d, reviewEmp); return i.type === "work" && i.status === "Pending"; }) : []),
+    [reviewEmp, from, to, infoOf]
+  );
+  const approveAllOf = (e) => approve([e]);
+  // close the popup automatically once nothing is left to approve
+  useEffect(() => { if (reviewId != null && reviewDays.length === 0) setReviewId(null); }, [reviewId, reviewDays]);
   const isAdmin = role === "superadmin";
   const active = isAdmin && tab === "timesheet" ? "timesheet" : "scheduler";
   const me = emps.find((e) => e.id === myEmployeeId || `EMP${String(e.id).padStart(3, "0")}` === myEmployeeId) || emps[0];
@@ -844,7 +962,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
         {list.length === 0 ? (
           <div className="ts-empty">No employees match these filters. Clear a filter or search to see everyone.</div>
         ) : view === "week" ? (
-          <WeekView list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onApprove={approve} onOpen={openDay} />
+          <WeekView list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onReview={setReviewId} onOpen={openDay} />
         ) : layout === "grid" ? (
           <TeamGrid list={list} totals={totals} from={from} to={to} infoOf={infoOf} onPick={pick} onOpen={openDay} showTeam={teamId === "all" && hasTeams} />
         ) : (
@@ -868,6 +986,17 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
         </div>
       </main>
 
+      {reviewEmp && reviewDays.length > 0 && !detail && (
+        <ReviewDays
+          emp={reviewEmp}
+          days={reviewDays}
+          infoOf={infoOf}
+          onApprove={approveDay}
+          onApproveAll={approveAllOf}
+          onSave={saveEdit}
+          onClose={() => setReviewId(null)}
+        />
+      )}
       {detail && detailEmp && (
         <DayDetail
           key={`${detail.empId}:${keyOf(detail.day)}`}
