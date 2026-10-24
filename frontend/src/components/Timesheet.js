@@ -102,10 +102,10 @@ const getRange = (view, anchor) =>
 const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
 const hhmm = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 // "09:00" -> "9", "18:05" -> "6:05"; a range reads like "9 to 6"
-const clock12 = (t) => { const [h, m] = t.split(":").map(Number); return `${h % 24 || 24}${m ? `:${String(m).padStart(2, "0")}` : ""}`; };
-const span = (a, b) => `${clock12(a)} - ${clock12(b)}`;
+const clock12 = (t) => { const [h, m] = t.split(":").map(Number); const h24 = h % 24; return `${String(h24 % 12 || 12).padStart(2, "0")}:${String(m).padStart(2, "0")}${h24 < 12 ? "AM" : "PM"}`; };
+const span = (a, b) => `${clock12(a)}–${clock12(b)}`;
 const stdHours = (r) => ((toMin(r.end) - toMin(r.start) + 1440) % 1440) / 60 - r.brk;
-const timeRange = (r) => `${r.start}–${r.end}${toMin(r.end) <= toMin(r.start) ? " (+1)" : ""}`;
+const timeRange = (r) => `${span(r.start, r.end)}${toMin(r.end) <= toMin(r.start) ? " (+1)" : ""}`;
 const weekTarget = (emp) => stdHours(emp.r) * (emp.r.rota ? 5 : emp.r.workDays.length);
 // Employee ID shown under the name (use `code` from your API if you have one, e.g. "EMP001")
 const empCode = (e) => e.code || `EMP${String(e.id).padStart(3, "0")}`;
@@ -127,6 +127,7 @@ function applyEdit(info, ed, emp) {
     ...info, type: "work", hours, std, ot: Math.max(0, hours - std),
     inT: ed.inT, outT: ed.outT, brk: Number(ed.brk),
     notes: ed.notes || "", status: info.status || "Pending",
+    extra: ed.extra || [],
     edited: info.type === "missing" || ed.inT !== info.inT || ed.outT !== info.outT || Number(ed.brk) !== Number(baseBrk),
     calcHours: info.type === "work" ? info.hours : 0, // what the system calculated before the edit
   };
@@ -269,12 +270,14 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
   const [form, setForm] = useState(null);
   const [notes, setNotes] = useState(info.notes || "");
   const [err, setErr] = useState("");
-  const notesDirty = notes !== (info.notes || "");
+  const [extra, setExtra] = useState(info.extra || []); // custom fields: [{ k: label, v: value }]
+  const cleanExtra = () => extra.map((x) => ({ k: x.k.trim(), v: x.v.trim() })).filter((x) => x.k);
+  const notesDirty = notes !== (info.notes || "") || JSON.stringify(cleanExtra()) !== JSON.stringify(info.extra || []);
 
   const setF = (patch) => setForm((f) => ({ ...f, ...patch }));
-  const startEdit = () => { setForm(formFrom(info, emp)); setErr(""); setEditing(true); };
+  const startEdit = () => { setForm(formFrom(info, emp)); setExtra(info.extra || []); setErr(""); setEditing(true); };
   const cancelEdit = () => { setEditing(false); setErr(""); };
-  const reset = () => { onReset(emp, day); setNotes(""); setEditing(false); setErr(""); };
+  const reset = () => { onReset(emp, day); setNotes(""); setExtra([]); setEditing(false); setErr(""); };
 
   const live = editing ? hoursOf(form.inT, form.outT, form.brk) : info.hours;
   const liveOt = Math.max(0, live - std);
@@ -285,7 +288,7 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
     if (!(Number(f.brk) >= 0)) return setErr("Break must be 0 or more hours.");
     onSave(emp, day, {
       inT: f.inT, outT: f.outT, brk: Number(f.brk),
-      notes: notes.trim(),
+      notes: notes.trim(), extra: cleanExtra(),
     });
     setEditing(false); setErr("");
   };
@@ -305,13 +308,14 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
     );
   } else if (info.type === "work") {
     rows.push(
-      ["Clock in", info.inT], ["Clock out", info.outT],
+      ["Clock in", clock12(info.inT)], ["Clock out", clock12(info.outT)],
       ["Overtime", info.ot > 0 ? `+${fmt(info.ot)}` : "None"],
     );
   }
   if (info.type === "scheduled") rows.push(["Planned work", info.task]);
   if (emp.teamName) rows.push();
 
+  if (isShiftDay && !editing) (info.extra || []).forEach((x) => rows.push([x.k, x.v]));
   const shown = isShiftDay ? rows : rows.filter(([k]) => k === "Department" || k === "Shift" || k === "Team");
 
   return (
@@ -332,6 +336,19 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
         <dl className="ts-md-rows">
           {shown.map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
         </dl>
+
+        {editing && (
+          <div className="ts-xf">
+            {extra.map((x, i) => (
+              <div className="ts-xf-row" key={i}>
+                <input className="ts-in ts-in--l" placeholder="Field name" maxLength={30} value={x.k} onChange={(e) => setExtra((a) => a.map((y, j) => (j === i ? { ...y, k: e.target.value } : y)))} />
+                <input className="ts-in ts-in--v" placeholder="Value" maxLength={60} value={x.v} onChange={(e) => setExtra((a) => a.map((y, j) => (j === i ? { ...y, v: e.target.value } : y)))} />
+                <button type="button" className="ts-xf-del" aria-label="Remove field" onClick={() => setExtra((a) => a.filter((_, j) => j !== i))}>×</button>
+              </div>
+            ))}
+            <button type="button" className="ts-link" onClick={() => setExtra((a) => [...a, { k: "", v: "" }])}>＋ Add field</button>
+          </div>
+        )}
 
         {info.type === "missing" && !editing && <p className="ts-md-note">No timesheet was filled for this day.</p>}
 
@@ -408,8 +425,8 @@ function ReviewDay({ emp, day, info, onApprove, onSave }) {
         ["Shift time", timeRange(r)],
         ["Break", `${brkNow}h`],
         ["Standard hours", fmt(std)],
-        ["Clock in", info.inT],
-        ["Clock out", info.outT],
+        ["Clock in", clock12(info.inT)],
+        ["Clock out", clock12(info.outT)],
         ["Overtime", info.ot > 0 ? `+${fmt(info.ot)}` : "None"],
       ];
 
@@ -585,7 +602,7 @@ function GridCell({ info, isToday }) {
 const cellTitle = (day, info) => {
   const base = `${DAYS[day.getDay()]} ${day.getDate()} ${MONTHS[day.getMonth()].slice(0, 3)}`;
   const label = {
-    work: `${info.inT ? `${info.inT} to ${info.outT}, ` : ""}${fmt(info.hours || 0)} worked${info.ot > 0 ? ` (+${fmt(info.ot)} OT)` : ""} · ${info.status}`,
+    work: `${info.inT ? `${span(info.inT, info.outT)}, ` : ""}${fmt(info.hours || 0)} worked${info.ot > 0 ? ` (+${fmt(info.ot)} OT)` : ""} · ${info.status}`,
     off: "Week off", leave: "On leave", holiday: `Holiday: ${info.label}`,
     missing: "No timesheet", scheduled: "Scheduled",
   }[info.type];
@@ -936,7 +953,6 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
             {STATUS_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or team" aria-label="Search by employee name or team" />
-          {isAdmin && <button type="button" className="ts-btn" onClick={() => openTeamModal(null)}>＋ New team</button>}
           {isAdmin && openTeamInfo && <button type="button" className="ts-btn" onClick={() => openTeamModal(openTeamInfo)}>✎ Edit team</button>}
         </div>
 

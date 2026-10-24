@@ -57,7 +57,7 @@ export const SHIFTS = [
 const shiftOfHour = (h) => (SHIFTS.find((s) => (s.from < s.to ? h >= s.from && h < s.to : h >= s.from || h < s.to)) || SHIFTS[0]).id;
 const shiftOf = (p) => shiftOfHour(Math.floor(toMin(p.start) / 60));
 const shiftRange = (s) => `${clock(`${pad(s.from)}:00`)} – ${clock(`${pad(s.to)}:00`)}`;
-const hr24 = (t) => { const [h, m] = t.split(":").map(Number); return m ? `${h}:${pad(m)}` : `${h}`; };
+const hr24 = (t) => { const [h, m] = t.split(":").map(Number); return `${pad(h % 12 || 12)}:${pad(m)}${h < 12 ? "AM" : "PM"}`; };
 const dayRange = (items) => {
   const st = items.reduce((a, p) => (toMin(p.start) < toMin(a) ? p.start : a), items[0].start);
   const en = items.reduce((a, p) => (toMin(p.end) > toMin(a) ? p.end : a), items[0].end);
@@ -842,7 +842,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, mana
 
   const boardPages = Math.max(1, Math.ceil(scoped.length / PAGE_SIZE));
   const pg = Math.min(page, boardPages - 1);
-  const pageRows = scoped.slice(pg * PAGE_SIZE, pg * PAGE_SIZE + PAGE_SIZE);
+  const pageRows = scoped;
 
   const kpis = [
     ["📅", "blue", "Upcoming plans", upcoming.length, "from today onwards"],
@@ -905,7 +905,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, mana
                     <div key={g.id} className={`sc-mdd-row ${mgrFilter === g.id ? "is-on" : ""}`}>
                       <button type="button" role="option" aria-selected={mgrFilter === g.id} className="sc-mdd-main" onClick={() => { pickMgr(g.id); setMgrOpen(false); }}>
                         <span className="sc-tic" style={{ "--h": hueOf(g.id) }}>{g.name.slice(0, 2).toUpperCase()}</span>
-                        <span className="sc-tt"><b>{g.name}</b><small>{gt.length ? gt.map((t) => t.name).join(", ") : "No teams yet"} · {cnt}</small></span>
+                        <span className="sc-tt"><b className="sc-mdd-teams">{gt.length ? gt.map((t) => t.name).join(", ") : "No teams yet"}</b><small>{g.name} · {cnt} {cnt === 1 ? "person" : "people"}</small></span>
                       </button>
                       <button type="button" className="sc-edit" onClick={() => { setMgrOpen(false); setModal({ mgr: { manager: g } }); }} aria-label={`Edit ${g.name}`} title="Edit manager">✎</button>
                     </div>
@@ -1057,7 +1057,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, mana
               </div>
             </div>
           )}
-          {scoped.length > 0 && <Pager page={pg} total={scoped.length} label="people" onPage={setPage} />}
+          
         </main>
       </div>
 

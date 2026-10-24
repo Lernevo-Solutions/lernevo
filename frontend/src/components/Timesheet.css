@@ -489,3 +489,21 @@
 .ts-modal--rv { width: min(440px, 100%); max-height: 90vh; overflow-y: auto; }
 .ts-rv-day + .ts-rv-day { margin-top: 18px; padding-top: 16px; border-top: 2px solid var(--ts-line); }
 .ts-rv-notes { margin: 0; padding: 10px 12px; border: 1px solid var(--ts-line); border-radius: 10px; font-size: 13px; color: var(--ts-mute); white-space: pre-wrap; }
+/* v-next: every day box the same size; one-line time like 09:00AM–06:00PM */
+.ts-weekgrid { --cols: 190px repeat(7, minmax(124px, 1fr)) 210px; min-width: 1270px; }
+.ts-dc { height: 46px; min-height: 46px; max-height: 46px; padding: 4px 8px; overflow: hidden; }
+.ts-hours.ts-clock, .ts-tag b.ts-clock { white-space: nowrap; flex-wrap: nowrap; font-size: 12px; letter-spacing: 0; }
+.ts-st { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* custom fields in the day popup */
+.ts-xf { margin-top: 8px; display: grid; gap: 6px; }
+.ts-xf-row { display: flex; gap: 6px; align-items: center; }
+.ts-in--l { flex: 1; min-width: 0; width: auto; text-align: left; }
+.ts-in--v { flex: 1; min-width: 0; width: auto; }
+.ts-xf-del { flex: none; width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--ts-mute); font-size: 18px; cursor: pointer; }
+.ts-xf-del:hover { background: var(--ts-lvb); color: var(--ts-lv); }
+
+/* v-fix: full 09:00AM–06:30PM always visible */
+.ts-weekgrid { --cols: 180px repeat(7, minmax(160px, 1fr)) 200px; min-width: 1500px; }
+.ts-dc { padding: 4px 6px 4px 8px; }
+.ts-hours.ts-clock, .ts-tag b.ts-clock { font-size: 11.5px; letter-spacing: -0.2px; overflow: visible; }
