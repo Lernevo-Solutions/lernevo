@@ -240,6 +240,8 @@ function DayCell({ info, day, emp, onOpen }) {
   if (info.type === "leave") return <button type="button" className="ts-dc ts-dc--leave" onClick={open} aria-label={aria}>Leave</button>;
   if (info.type === "holiday") return <button type="button" className="ts-dc ts-dc--hol" onClick={open} aria-label={aria}>Holiday</button>;
 
+  if (info.type === "missing") return <button type="button" className="ts-dc ts-dc--missing" onClick={open} aria-label={aria} title="Click for details">Missing</button>;
+
   const { kind } = statusOf(info);
   const statusText = { ok: "Approved", pend: "Pending", scheduled: "Scheduled", missing: "Missing" }[kind];
   const time = info.type === "work" ? span(info.inT, info.outT) : info.type === "scheduled" ? span(emp.r.start, emp.r.end) : "—";

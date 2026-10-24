@@ -507,3 +507,6 @@
 .ts-weekgrid { --cols: 180px repeat(7, minmax(160px, 1fr)) 200px; min-width: 1500px; }
 .ts-dc { padding: 4px 6px 4px 8px; }
 .ts-hours.ts-clock, .ts-tag b.ts-clock { font-size: 11.5px; letter-spacing: -0.2px; overflow: visible; }
+
+/* Missing: single centred label, same as Holiday / Leave */
+.ts-dc--missing { justify-content: center; align-items: center; text-align: center; font-weight: 600; color: var(--ts-lv); border-left-width: 1px; }
