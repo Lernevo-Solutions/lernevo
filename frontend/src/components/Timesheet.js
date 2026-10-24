@@ -116,11 +116,15 @@ const formFrom = (info, emp) => ({
   inT: info.inT || emp.r.start,
   outT: info.outT || emp.r.end,
   brk: info.brk != null ? info.brk : emp.r.brk,
+  shS: info.shS || emp.r.start,
+  shE: info.shE || emp.r.end,
+  std: String(Math.round((info.std != null ? info.std : stdHours(emp.r)) * 100) / 100),
 });
 // Admin edit (clock in/out, break, work done note) on top of the system-calculated day
 function applyEdit(info, ed, emp) {
   if (!ed || (info.type !== "work" && info.type !== "missing")) return info;
-  const std = info.std != null ? info.std : stdHours(emp.r);
+  const baseStd = info.std != null ? info.std : stdHours(emp.r);
+  const std = ed.std != null && ed.std !== "" && !isNaN(Number(ed.std)) ? Number(ed.std) : baseStd;
   const hours = hoursOf(ed.inT, ed.outT, ed.brk);
   const baseBrk = info.brk != null ? info.brk : emp.r.brk;
   return {
@@ -128,7 +132,8 @@ function applyEdit(info, ed, emp) {
     inT: ed.inT, outT: ed.outT, brk: Number(ed.brk),
     notes: ed.notes || "", status: info.status || "Pending",
     extra: ed.extra || [],
-    edited: info.type === "missing" || ed.inT !== info.inT || ed.outT !== info.outT || Number(ed.brk) !== Number(baseBrk),
+    shS: ed.shS || undefined, shE: ed.shE || undefined,
+    edited: info.type === "missing" || ed.inT !== info.inT || ed.outT !== info.outT || Number(ed.brk) !== Number(baseBrk) || std !== baseStd || (!!ed.shS && (ed.shS !== emp.r.start || ed.shE !== emp.r.end)),
     calcHours: info.type === "work" ? info.hours : 0, // what the system calculated before the edit
   };
 }
@@ -272,52 +277,75 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
   const [form, setForm] = useState(null);
   const [notes, setNotes] = useState(info.notes || "");
   const [err, setErr] = useState("");
-  const [extra, setExtra] = useState(info.extra || []); // custom fields: [{ k: label, v: value }]
+  const uid = () => Math.random().toString(36).slice(2, 9);
+  const withIds = (l) => (l || []).map((x) => ({ id: x.id || uid(), k: x.k, v: x.v }));
+  const [extra, setExtra] = useState(() => withIds(info.extra)); // custom fields: [{ id, k: label, v: value }]
+  const [open, setOpen] = useState([]); // which rows are currently turned into inputs
+  const isOpen = (key) => open.includes(key);
   const cleanExtra = () => extra.map((x) => ({ k: x.k.trim(), v: x.v.trim() })).filter((x) => x.k);
   const notesDirty = notes !== (info.notes || "") || JSON.stringify(cleanExtra()) !== JSON.stringify(info.extra || []);
+  const canAdd = canEdit && (info.type === "work" || info.type === "missing");
 
   const setF = (patch) => setForm((f) => ({ ...f, ...patch }));
-  const startEdit = () => { setForm(formFrom(info, emp)); setExtra(info.extra || []); setErr(""); setEditing(true); };
-  const cancelEdit = () => { setEditing(false); setErr(""); };
-  const reset = () => { onReset(emp, day); setNotes(""); setExtra([]); setEditing(false); setErr(""); };
+  // Pencil / Add field: turn the clicked row(s) into inputs. Clicking another pencil opens that one too.
+  const beginEdit = (keys = [], addBlank = false) => {
+    let list = editing ? extra : withIds(info.extra);
+    let ks = keys;
+    if (addBlank) { const nx = { id: uid(), k: "", v: "" }; list = [...list, nx]; ks = [...ks, `x${nx.id}`]; }
+    if (!editing) { setForm(formFrom(info, emp)); setErr(""); setEditing(true); }
+    setExtra(list);
+    setOpen((o) => [...new Set([...(editing ? o : []), ...ks])]);
+  };
+  const cancelEdit = () => { setEditing(false); setOpen([]); setExtra(withIds(info.extra)); setErr(""); };
+  const reset = () => { onReset(emp, day); setNotes(""); setExtra([]); setOpen([]); setEditing(false); setErr(""); };
 
   const live = editing ? hoursOf(form.inT, form.outT, form.brk) : info.hours;
-  const liveOt = Math.max(0, live - std);
+  const liveOt = Math.max(0, live - (editing ? Number(form.std) || 0 : std));
 
   const save = () => {
     const f = editing ? form : formFrom(info, emp);
     if (!f.inT || !f.outT) return setErr("Enter both clock in and clock out.");
     if (!(Number(f.brk) >= 0)) return setErr("Break must be 0 or more hours.");
+    if (!f.shS || !f.shE) return setErr("Enter both shift start and shift end.");
+    if (!(Number(f.std) >= 0)) return setErr("Standard hours must be 0 or more.");
     onSave(emp, day, {
-      inT: f.inT, outT: f.outT, brk: Number(f.brk),
+      inT: f.inT, outT: f.outT, brk: Number(f.brk), shS: f.shS, shE: f.shE, std: f.std,
       notes: notes.trim(), extra: cleanExtra(),
     });
-    setEditing(false); setErr("");
+    setEditing(false); setOpen([]); setErr("");
   };
 
   const brkNow = info.brk != null ? info.brk : r.brk;
-  const rows = [ ["Shift time", timeRange(r)]];
-  rows.push(editing
-    ? ["Break (hours)", <input key="b" className="ts-in" type="number" min="0" step="0.25" value={form.brk} onChange={(e) => setF({ brk: e.target.value })} />]
-    : ["Break", `${brkNow}h`]);
-  rows.push(["Standard hours", fmt(std)]);
-  if (editing) {
-    rows.push(
-      ["Clock in", <input key="i" className="ts-in" type="time" value={form.inT} onChange={(e) => setF({ inT: e.target.value })} />],
-      ["Clock out", <input key="o" className="ts-in" type="time" value={form.outT} onChange={(e) => setF({ outT: e.target.value })} />],
-      ["Hours worked", fmt(live)],
-      ["Overtime", liveOt > 0 ? `+${fmt(liveOt)}` : "None"],
-    );
-  } else if (info.type === "work") {
-    rows.push(
-      ["Clock in", clock12(info.inT)], ["Clock out", clock12(info.outT)],
-      ["Overtime", info.ot > 0 ? `+${fmt(info.ot)}` : "None"],
-    );
+  const shiftNow = info.shS ? timeRange({ start: info.shS, end: info.shE }) : timeRange(r);
+  const inp = (key, node) => (isOpen(key) ? node : null);
+  const rows = [];
+  rows.push(["Shift time",
+    inp("shift", <span key="s" className="ts-pair"><input className="ts-in" type="time" value={form ? form.shS : ""} onChange={(e) => setF({ shS: e.target.value })} /><i>–</i><input className="ts-in" type="time" value={form ? form.shE : ""} onChange={(e) => setF({ shE: e.target.value })} /></span>)
+      || (editing ? timeRange({ start: form.shS, end: form.shE }) : shiftNow),
+    ["shift"]]);
+  rows.push([isOpen("brk") ? "Break (hours)" : "Break",
+    inp("brk", <input key="b" className="ts-in" type="number" min="0" step="0.25" value={form ? form.brk : ""} onChange={(e) => setF({ brk: e.target.value })} />)
+      || `${editing ? form.brk : brkNow}h`,
+    ["brk"]]);
+  rows.push(["Standard hours",
+    inp("std", <input key="sh" className="ts-in" type="number" min="0" step="0.25" value={form ? form.std : ""} onChange={(e) => setF({ std: e.target.value })} />)
+      || fmt(editing ? Number(form.std) || 0 : std),
+    ["std"]]);
+  if (info.type === "work" || info.type === "missing" || editing) {
+    rows.push(["Clock in",
+      inp("in", <input key="i" className="ts-in" type="time" value={form ? form.inT : ""} onChange={(e) => setF({ inT: e.target.value })} />)
+        || (editing ? clock12(form.inT) : info.type === "work" ? clock12(info.inT) : "—"),
+      ["in"]]);
+    rows.push(["Clock out",
+      inp("out", <input key="o" className="ts-in" type="time" value={form ? form.outT : ""} onChange={(e) => setF({ outT: e.target.value })} />)
+        || (editing ? clock12(form.outT) : info.type === "work" ? clock12(info.outT) : "—"),
+      ["out"]]);
+    if (editing) rows.push(["Hours worked", fmt(live)]);
+    if (editing || info.type === "work") rows.push(["Overtime", (editing ? liveOt : info.ot) > 0 ? `+${fmt(editing ? liveOt : info.ot)}` : "None", ["in", "out"]]);
   }
   if (info.type === "scheduled") rows.push(["Planned work", info.task]);
   if (emp.teamName) rows.push();
 
-  if (isShiftDay && !editing) (info.extra || []).forEach((x) => rows.push([x.k, x.v]));
   const shown = isShiftDay ? rows : rows.filter(([k]) => k === "Department" || k === "Shift" || k === "Team");
 
   return (
@@ -335,22 +363,34 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
         <span className={`ts-pill ts-pill--${st.kind}`}>{st.text}</span>
         {info.edited && <span className="ts-pill ts-pill--pend ts-pill--edited">✎ Edited</span>}
 
-        <dl className="ts-md-rows">
-          {shown.map(([k, v]) => (<div key={k}><dt>{k}</dt><dd>{v}</dd></div>))}
-        </dl>
-
-        {editing && (
-          <div className="ts-xf">
-            {extra.map((x, i) => (
-              <div className="ts-xf-row" key={i}>
-                <input className="ts-in ts-in--l" placeholder="Field name" maxLength={30} value={x.k} onChange={(e) => setExtra((a) => a.map((y, j) => (j === i ? { ...y, k: e.target.value } : y)))} />
-                <input className="ts-in ts-in--v" placeholder="Value" maxLength={60} value={x.v} onChange={(e) => setExtra((a) => a.map((y, j) => (j === i ? { ...y, v: e.target.value } : y)))} />
-                <button type="button" className="ts-xf-del" aria-label="Remove field" onClick={() => setExtra((a) => a.filter((_, j) => j !== i))}>×</button>
-              </div>
-            ))}
-            <button type="button" className="ts-link" onClick={() => setExtra((a) => [...a, { k: "", v: "" }])}>＋ Add field</button>
+        {canAdd && (
+          <div className="ts-md-tools">
+            <button type="button" className="ts-addf" onClick={() => beginEdit([], true)}><span aria-hidden="true">＋</span> Add field</button>
           </div>
         )}
+
+        <dl className="ts-md-rows">
+          {shown.map(([k, v, pen]) => (
+            <div key={k}>
+              <dt>{k}</dt>
+              <dd>{v}{pen && canEdit && !pen.every(isOpen) && <button type="button" className="ts-pen" aria-label={`Edit ${k}`} onClick={() => beginEdit(pen)}>✎</button>}</dd>
+            </div>
+          ))}
+          {isShiftDay && extra.map((x) => (
+            isOpen(`x${x.id}`) ? (
+              <div key={`x${x.id}`} className="ts-xf-row ts-xf-row--in">
+                <input className="ts-in ts-in--l" autoFocus={!x.k} placeholder="Field name" maxLength={30} value={x.k} onChange={(e) => setExtra((a) => a.map((y) => (y.id === x.id ? { ...y, k: e.target.value } : y)))} />
+                <input className="ts-in ts-in--v" placeholder="Value" maxLength={60} value={x.v} onChange={(e) => setExtra((a) => a.map((y) => (y.id === x.id ? { ...y, v: e.target.value } : y)))} />
+                <button type="button" className="ts-xf-del" aria-label="Remove field" onClick={() => { setExtra((a) => a.filter((y) => y.id !== x.id)); setOpen((o) => o.filter((q) => q !== `x${x.id}`)); }}>×</button>
+              </div>
+            ) : x.k && (
+              <div key={`x${x.id}`}>
+                <dt>{x.k}</dt>
+                <dd>{x.v}{canAdd && <button type="button" className="ts-pen" aria-label={`Edit ${x.k}`} onClick={() => beginEdit([`x${x.id}`])}>✎</button>}</dd>
+              </div>
+            )
+          ))}
+        </dl>
 
         {info.type === "missing" && !editing && <p className="ts-md-note">No timesheet was filled for this day.</p>}
 
@@ -375,7 +415,7 @@ function DayDetail({ emp, day, info, locked, onClose, onApprove, onSave, onReset
         ) : (
           canEdit && (
             <div className="ts-md-acts">
-              <button type="button" className="ts-btn" onClick={startEdit}>{info.type === "missing" ? "＋ Fill timesheet" : "✎ Edit"}</button>
+              {info.type === "missing" && <button type="button" className="ts-btn" onClick={() => beginEdit(["in", "out"])}>＋ Fill timesheet</button>}
               {info.type === "work" && notesDirty && <button type="button" className="ts-btn ts-btn--pri" onClick={save}>Save note</button>}
             </div>
           )
@@ -832,7 +872,7 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
   const openDay = useCallback((eid, day) => setDetail({ empId: eid, day }), []);
   const closeDay = useCallback(() => setDetail(null), []);
   const approveDay = (e, day) => setApproved((prev) => new Set(prev).add(`${e.id}:${keyOf(day)}`));
-  const saveEdit = (e, day, data) => setEdits((prev) => ({ ...prev, [`${e.id}:${keyOf(day)}`]: data }));
+  const saveEdit = (e, day, data) => setEdits((prev) => ({ ...prev, [`${e.id}:${keyOf(day)}`]: { ...prev[`${e.id}:${keyOf(day)}`], ...data } }));
   const resetEdit = (e, day) => setEdits((prev) => { const n = { ...prev }; delete n[`${e.id}:${keyOf(day)}`]; return n; });
   const detailEmp = detail ? emps.find((e) => e.id === detail.empId) : null;
   const reviewEmp = reviewId != null ? emps.find((e) => e.id === reviewId) : null;
