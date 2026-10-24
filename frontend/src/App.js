@@ -60,7 +60,7 @@ import UserAssignments from "./components/UserAssignments";
 import AdminDashboardContent from "./components/AdminDashboardContent";
 import Timesheet from "./components/Timesheet";
 import AdminLayout from "./components/Adminlayout";
-import Document from "./components/Document";
+import Document, { EmployeeComplianceDocuments } from "./components/Document";
 import Payslip from "./components/Payslip";
 import Employeetimesheet from "./components/Employeetimesheet";
 import Leavepermission from "./components/Leavepermission";
@@ -85,6 +85,7 @@ const AppLayout = () => {
     "/user-assignments",
     "/timesheet",
     "/document",
+    "/my-documents",
     "/payslip",
     "/employeetimesheet",
     "/leave-permission",
@@ -101,6 +102,7 @@ const AppLayout = () => {
     "/admin-dashboard",
     "/timesheet",
     "/document",
+    "/my-documents",
     "/payslip",
     "/employeetimesheet",
     "/leave-permission",
@@ -232,6 +234,14 @@ const AppLayout = () => {
           element={
             <AdminLayout>
               <Document />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/my-documents"
+          element={
+            <AdminLayout>
+              <EmployeeComplianceDocuments />
             </AdminLayout>
           }
         />
