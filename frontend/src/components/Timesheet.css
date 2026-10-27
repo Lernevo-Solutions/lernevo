@@ -526,3 +526,9 @@
 .ts-pair { display: inline-flex; align-items: center; gap: 6px; }
 .ts-pair i { font-style: normal; color: var(--ts-mute); }
 .ts-pair .ts-in { width: 128px; }
+/* v-tight: day boxes hug the "08:55AM–05:55PM" text — no extra empty space */
+.ts-weekgrid { --cols: 170px repeat(7, 132px) 190px; min-width: 0; width: max-content; }
+.ts-line { gap: 4px; }
+.ts-dc { height: 40px; min-height: 40px; max-height: 40px; padding: 3px 6px 3px 8px; gap: 0; }
+.ts-hours.ts-clock, .ts-tag b.ts-clock { font-size: 11.5px; letter-spacing: -0.2px; line-height: 1.2; }
+.ts-st { font-size: 11px; line-height: 1.15; }

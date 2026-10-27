@@ -14,7 +14,7 @@ const defaultApiBaseUrl = isLocalHost
   ? localApiBaseUrl
   : isProductionEnv
   ? productionApiBaseUrl
-  : "https://staging-api.lernevo.com/api";
+  : "https://lernevo-backend-staging-771297649928.us-central1.run.app/api";
 
 const defaultAiBaseUrl = `${defaultApiBaseUrl}/ai`;
 const apiBaseUrl = isLocalHost

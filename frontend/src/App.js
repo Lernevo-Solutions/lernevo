@@ -64,6 +64,7 @@ import Document, { EmployeeComplianceDocuments } from "./components/Document";
 import Payslip from "./components/Payslip";
 import Employeetimesheet from "./components/Employeetimesheet";
 import Leavepermission from "./components/Leavepermission";
+import Performance from "./components/Performance";
 const AppLayout = () => {
   const location = useLocation();
 
@@ -89,6 +90,7 @@ const AppLayout = () => {
     "/payslip",
     "/employeetimesheet",
     "/leave-permission",
+    "/performance",
   ];
 
   const hideNavbarRoutes = [
@@ -106,6 +108,7 @@ const AppLayout = () => {
     "/payslip",
     "/employeetimesheet",
     "/leave-permission",
+    "/performance",
   
   ];
 
@@ -261,7 +264,7 @@ const AppLayout = () => {
             </AdminLayout>
           }
         />
-
+<Route path="/performance" element={ <AdminLayout><Performance /></AdminLayout> } />
         <Route
           path="/payslip"
           element={

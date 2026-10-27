@@ -51,6 +51,7 @@ export const ROUTE_MAP = {
   "My Timesheet": "/employeetimesheet",
   Payslips: "/payslip",
   "Compliance Documents": "/document",
+  "Performance Review": "/performance",
   Profile: "/profile",
   "Leave and Permissions": "/leave-permission",
 };
