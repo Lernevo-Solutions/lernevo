@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Download, FileSpreadsheet, FileText, HelpCircle, Mail, X, CheckCircle2, Paperclip, ChevronDown, Plus, Users, Clock3, CalendarDays, Pencil, Trash2, Save, AlertTriangle } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, HelpCircle, Mail, X, CheckCircle2, Paperclip, ChevronDown, Plus, Users, Clock3, CalendarDays, Pencil, Trash2, Save, AlertTriangle, Layers } from "lucide-react";
 import { jsPDF } from "jspdf";
 import * as XLSX from "xlsx";
 import Sidebar from "./Sidebar";
+import PayslipTypes from "./PayslipTypes";
 import "./Payslip.css";
 
 const monthOptions = Array.from({ length: 12 }, (_, i) => {
@@ -70,6 +71,7 @@ export default function Payslip() {
   const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
   const [teams, setTeams] = useState(() => DEMO_TEAM_ASSIGNMENTS.map((team) => ({ ...team, departments: [...new Set(INITIAL_EMPLOYEES.filter((employee) => team.employeeIds.includes(employee.id)).map((employee) => employee.department))], description: "" })));
   const [month, setMonth] = useState(currentMonth);
+  const [showPayslipTypes, setShowPayslipTypes] = useState(false);
   const [dialog, setDialog] = useState(null);
   const [notice, setNotice] = useState("");
   const [savedRemarks, setSavedRemarks] = useState({});
@@ -217,7 +219,8 @@ export default function Payslip() {
   const allDepartments = [...new Set([...employees.map((employee) => employee.department), ...teams.flatMap((team) => team.departments || [])])].sort();
 
   return <div className="pay-admin-layout"><Sidebar/><main className="pay-admin-main">
-    <header className="pay-admin-heading"><div><span className="pay-eyebrow">HR OPERATIONS</span><h1>Payslips</h1><p>Review, generate and send employee payslips.</p></div><div className="pay-header-actions"><button className="pay-btn pay-btn-quiet" onClick={() => setDialog({ type: "how" })}><HelpCircle size={16}/>How It Works</button><button className="pay-btn pay-btn-quiet" onClick={openExport}><FileSpreadsheet size={16}/>Export</button></div></header>
+    <header className="pay-admin-heading"><div><span className="pay-eyebrow">HR OPERATIONS</span><h1>Payslips</h1><p>Review, generate and send employee payslips.</p></div>{!showPayslipTypes && <div className="pay-header-actions"><button className="pay-btn pay-types-entry" onClick={() => setShowPayslipTypes(true)}><Layers size={16}/>Payslip Types</button><button className="pay-btn pay-btn-quiet" onClick={() => setDialog({ type: "how" })}><HelpCircle size={16}/>How It Works</button><button className="pay-btn pay-btn-quiet" onClick={openExport}><FileSpreadsheet size={16}/>Export</button></div>}</header>
+    {showPayslipTypes ? <PayslipTypes onBack={() => setShowPayslipTypes(false)} onNotice={updateNotice}/> : <>
     <section className="pay-summary-grid"><Summary icon={<Users/>} label="Total employees" value={employees.length} note="Employee master records" tone="blue"/><Summary icon={<FileText/>} label="Generated payslips" value={employees.filter((e) => e.status === "Generated" && e.payPeriod === month).length} note="Ready to view and download" tone="green"/><Summary icon={<Clock3/>} label="Pending generation" value={employees.filter((e) => e.status === "Pending").length} note="Includes blocked records" tone="amber"/><Summary icon={<span className="pay-rupee">₹</span>} label="Net payroll" value={money(generated.reduce((sum, e) => sum + pay(e, month, effectiveType(e, teams.find((team) => team.employeeIds.includes(e.id))?.id).type).net, 0))} note="For selected pay period" tone="violet"/></section>
     <section className="pay-team-section"><div className="pay-team-heading"><div><h2>Teams</h2></div><div className="pay-team-heading-controls"><label><CalendarDays size={16}/><select aria-label="Team pay period" value={month} onChange={(event) => setMonth(event.target.value)}>{monthOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label></div></div>
       <div className="pay-team-list">{teamGroups.map((team) => {
@@ -234,6 +237,7 @@ export default function Payslip() {
       })}</div>
     </section>
     <p className="pay-demo-note">Illustrative team assignments are temporary; payroll amounts come from existing payslip records.</p>
+    </>}
   </main>
 
   {dialog && <div className="pay-overlay" onMouseDown={closeDialog}><section key={dialog.type} className={`pay-modal ${["generate", "email", "view", "employeeDetails", "payslipPreview"].includes(dialog.type) ? "pay-workflow-modal" : ""} ${dialog.type === "employeeDetails" ? "pay-employee-modal" : ""} ${dialog.type === "payslipPreview" ? "pay-document-modal" : ""}`} role="dialog" aria-modal="true" aria-label={modalTitle} onMouseDown={(event) => event.stopPropagation()}><header className="pay-modal-header"><div><h2>{dialog.type === "employeeDetails" ? "Employee Payslip Details" : dialog.type === "payslipPreview" ? "Payslip Preview" : modalTitle}</h2>{dialog.type !== "how" && <p>{dialog.type === "employeeDetails" ? `${selectedPreview.name} · ${selectedPreview.id}` : dialog.type === "payslipPreview" ? "Review the employee payslip before downloading or printing." : dialog.type === "teamForm" ? "Edit the team name, departments, and description." : dialog.type === "teamDelete" ? "Confirm team removal after resolving all assignments." : dialog.type === "employeeForm" ? "Assign an existing employee and update their team details." : dialog.type === "employeeRemove" ? "Review the effect on the employee team assignment." : dialog.type === "generate" && dialog.phase === "success" ? `${dialog.ids.length} payslip${dialog.ids.length === 1 ? " has" : "s have"} been generated and ${dialog.ids.length === 1 ? "is" : "are"} ready to download or send via email.` : dialog.type === "email" && dialog.phase === "result" ? "Email status has been updated for each recipient." : dialog.type === "generate" ? "Review the payslip details before generating." : dialog.type === "email" ? "Review the email template and send payslips to the selected employees." : "A detailed view of the generated employee payslip."}</p>}</div><button className="pay-icon-button" onClick={closeDialog} aria-label="Close dialog"><X size={18}/></button></header>

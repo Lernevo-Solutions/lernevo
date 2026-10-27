@@ -24,6 +24,13 @@ const loadDocs = () => {
 const initials = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 const formatDate = (date) => new Date(date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 const formatSize = (bytes = 0) => bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+const isValidDateInput = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  if (year < 1) return false;
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+};
 
 function useDocuments() {
   const [docs, setDocs] = useState(loadDocs);
@@ -54,6 +61,7 @@ function Preview({ doc, close }) {
 
 function AdminUploadModal({ employees, onClose, onUpload }) {
   const [employeeName, setEmployeeName] = useState("");
+  const [uploadDate, setUploadDate] = useState("");
   const [type, setType] = useState("");
   const [customType, setCustomType] = useState("");
   const [addingType, setAddingType] = useState(false);
@@ -78,16 +86,17 @@ function AdminUploadModal({ employees, onClose, onUpload }) {
   const submit = async (event) => {
     event.preventDefault(); setError("");
     if (!employeeName.trim()) { setError("Enter an employee name."); return; }
+    if (!isValidDateInput(uploadDate)) { setError("Select a valid upload date."); return; }
     if (!type) { setError("Select or add a document type."); return; }
     if (type === "Other" && !customType.trim()) { setError("Enter a custom document type."); return; }
     if (!file) { setError("Choose a file to upload."); return; }
     const dataUrl = await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => resolve(""); reader.readAsDataURL(file); });
-    onUpload({ id: `admin-upload-${Date.now()}`, refNumber: `DOC-${Date.now().toString().slice(-6)}`, employeeId: employee?.id || "", type: type === "Other" ? customType.trim() : type, name: file.name, date: new Date().toISOString(), dataUrl, size: file.size });
+    onUpload({ id: `admin-upload-${Date.now()}`, refNumber: `DOC-${Date.now().toString().slice(-6)}`, employeeId: employee?.id || "", type: type === "Other" ? customType.trim() : type, name: file.name, date: uploadDate, dataUrl, size: file.size });
   };
   return <div className="cd-overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><form className="cd-upload-modal" role="dialog" aria-modal="true" aria-labelledby="cd-modal-title" onSubmit={submit}>
     <header><div><h2 id="cd-modal-title">Upload employee document</h2><p>Add a document to the selected employee’s records.</p></div><button type="button" className="cd-icon-button" aria-label="Close upload dialog" onClick={onClose}><X size={20}/></button></header>
     <div className="cd-modal-content">
-      <label htmlFor="cd-modal-employee">Employee name <span>*</span></label><input id="cd-modal-employee" value={employeeName} onChange={(event) => setEmployeeName(event.target.value)} placeholder="Enter employee name" required/>
+      <div className="cd-modal-fields-grid"><div className="cd-modal-field"><label htmlFor="cd-modal-employee">Employee name <span>*</span></label><input id="cd-modal-employee" value={employeeName} onChange={(event) => setEmployeeName(event.target.value)} placeholder="Enter employee name" required/></div><div className="cd-modal-field"><label htmlFor="cd-modal-upload-date"><CalendarDays size={14} aria-hidden="true"/>Upload Date <span>*</span></label><input id="cd-modal-upload-date" type="date" value={uploadDate} onChange={(event) => setUploadDate(event.target.value)} required/></div></div>
       <div className="cd-modal-employee-fields"><div><label>Employee ID</label><input value={employee?.id || ""} placeholder="Selected employee ID" readOnly/></div><div><label>Team name</label><input value={employee?.team || ""} placeholder="Selected employee team" readOnly/></div></div>
       <div className="cd-modal-type-label"><label htmlFor="cd-modal-type">Document type <span>*</span></label><button type="button" className="cd-add-type" onClick={() => { setAddingType((value) => !value); setError(""); }}><Plus size={14}/> Add type</button></div>
       {addingType && <div className="cd-add-type-row"><input autoFocus value={newType} onChange={(event) => setNewType(event.target.value)} placeholder="New document type"/><button type="button" className="cd-button cd-button-light" onClick={addType}>Add</button></div>}
@@ -112,26 +121,25 @@ export default function SuperAdminDocuments() {
   const [uploadNotice, setUploadNotice] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [teamFilter, setTeamFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
   const searchRef = useRef(null);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const matches = useMemo(() => query.trim() ? EMPLOYEES.filter((person) => {
     const textMatch = `${person.name} ${person.id} ${person.email}`.toLowerCase().includes(query.trim().toLowerCase());
     const employeeDocs = docs.filter((doc) => doc.employeeId === person.id);
     const referenceMatch = employeeDocs.some((doc) => (doc.refNumber || "").toLowerCase().includes(query.trim().toLowerCase()));
-    const filterMatch = (!typeFilter || employeeDocs.some((doc) => doc.type === typeFilter)) && (!dateFilter || employeeDocs.some((doc) => doc.date?.slice(0, 10) === dateFilter));
+    const filterMatch = !typeFilter || employeeDocs.some((doc) => doc.type === typeFilter);
     return (textMatch || referenceMatch) && filterMatch && (!teamFilter || person.team === teamFilter);
-  }) : [], [query, docs, typeFilter, teamFilter, dateFilter]);
+  }) : [], [query, docs, typeFilter, teamFilter]);
   const employeeDocs = selected ? docs.filter((doc) => doc.employeeId === selected.id) : [];
-  const documents = employeeDocs.filter((doc) => (!typeFilter || doc.type === typeFilter) && (!dateFilter || doc.date?.slice(0, 10) === dateFilter) && (!teamFilter || selected?.team === teamFilter));
+  const documents = employeeDocs.filter((doc) => (!typeFilter || doc.type === typeFilter) && (!teamFilter || selected?.team === teamFilter));
   const choose = (person) => { setSelected(person); setQuery(person.name); setSuggestionsOpen(false); };
-  const clear = () => { setSelected(null); setQuery(""); setTypeFilter(""); setTeamFilter(""); setDateFilter(""); setSuggestionsOpen(false); };
+  const clear = () => { setSelected(null); setQuery(""); setTypeFilter(""); setTeamFilter(""); setSuggestionsOpen(false); };
   const uploadDocument = (document) => { setDocs((previous) => [document, ...previous]); setUploadOpen(false); setUploadNotice("Document uploaded successfully."); setTimeout(() => setUploadNotice(""), 4000); };
   return <div className="cd-page">
     <header className="cd-page-header"><div className="cd-heading-mark"><FileText size={21}/></div><div><h1>Compliance Documents</h1><p>Search for an employee to view uploaded documents or upload a new document.</p></div></header>
     {uploadNotice && <p className="cd-upload-toast"><CheckCircle2 size={16}/>{uploadNotice}</p>}
     <section className="cd-search-panel"><label htmlFor="cd-search">Find employee documents</label><div className="cd-search-row"><div className="cd-search-wrap"><Search size={19}/><input ref={searchRef} id="cd-search" value={query} placeholder="Search by employee name, Employee ID, email or reference number" onFocus={() => setSuggestionsOpen(true)} onChange={(event) => { setQuery(event.target.value); setSelected(null); setSuggestionsOpen(true); }}/>{query && <button className="cd-search-clear" aria-label="Clear search" onClick={clear}><X size={17}/></button>}</div><button className="cd-button cd-button-primary cd-search-submit" onClick={() => { setSuggestionsOpen(true); searchRef.current?.focus(); }}><Search size={16}/> Search</button><button className="cd-button cd-button-light cd-search-reset" onClick={clear}>Clear</button></div>
-      <div className="cd-filter-row"><label><span><FileText size={14}/> Document type</span><select value={typeFilter} onChange={(event) => { setTypeFilter(event.target.value); if (query.trim()) setSuggestionsOpen(true); }}><option value="">All document types</option>{TYPES.filter((item) => item !== "Other").map((item) => <option key={item}>{item}</option>)}</select></label><label><span><Users size={14}/> Team</span><select value={teamFilter} onChange={(event) => { setTeamFilter(event.target.value); if (query.trim()) setSuggestionsOpen(true); }}><option value="">All teams</option>{[...new Set(EMPLOYEES.map((person) => person.team))].map((item) => <option key={item}>{item}</option>)}</select></label><label><span><CalendarDays size={14}/> Upload date</span><input type="date" value={dateFilter} onChange={(event) => { setDateFilter(event.target.value); if (query.trim()) setSuggestionsOpen(true); }}/></label></div>
+      <div className="cd-filter-row"><label><span><FileText size={14}/> Document type</span><select value={typeFilter} onChange={(event) => { setTypeFilter(event.target.value); if (query.trim()) setSuggestionsOpen(true); }}><option value="">All document types</option>{TYPES.filter((item) => item !== "Other").map((item) => <option key={item}>{item}</option>)}</select></label><label><span><Users size={14}/> Team</span><select value={teamFilter} onChange={(event) => { setTeamFilter(event.target.value); if (query.trim()) setSuggestionsOpen(true); }}><option value="">All teams</option>{[...new Set(EMPLOYEES.map((person) => person.team))].map((item) => <option key={item}>{item}</option>)}</select></label></div>
       {suggestionsOpen && query.trim() && <div className="cd-suggestions">{matches.length ? matches.map((person) => <button key={person.id} onClick={() => choose(person)}><span className="cd-avatar">{initials(person.name)}</span><span className="cd-suggestion-copy"><strong>{person.name}</strong><small>{person.id} · {person.email} · {person.team}</small></span><span className="cd-suggestion-arrow">↗</span></button>) : <p>No employees match “{query}” and the selected filters.</p>}</div>}
     </section>
     {!selected ? <div className="cd-empty cd-search-empty"><div className="cd-empty-illustration"><span className="cd-empty-main-icon"><FolderOpen size={35}/></span><span className="cd-empty-search-icon"><Search size={19}/></span><span className="cd-empty-file-icon"><FileText size={18}/></span></div><span className="cd-empty-eyebrow">EMPLOYEE DOCUMENTS</span><h2>Find Employee Documents</h2><p>Search by employee name, Employee ID, email or reference number to securely view their submitted documents.</p><span className="cd-empty-divider"><i/> OR <i/></span><button className="cd-button cd-button-primary cd-empty-upload" onClick={() => setUploadOpen(true)}><Plus size={17}/> Upload Document</button><small className="cd-empty-footnote">Add a document directly to an employee’s record.</small></div> : <section className="cd-employee-view">
