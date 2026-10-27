@@ -156,7 +156,7 @@ export default function Topbar({
   // Close the panel when the page changes
   useEffect(() => {
     setNotifOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   const markAllRead = () =>
     setNotifications((list) => list.map((n) => ({ ...n, read: true })));
@@ -170,9 +170,14 @@ export default function Topbar({
   };
 
   // Find which sidebar item matches the current URL
-  const matchedLabel = Object.keys(ROUTE_MAP).find(
-    (label) => ROUTE_MAP[label] === location.pathname
-  );
+  // /timesheet without ?tab= opens the Scheduler (same rule as the Sidebar)
+  const currentUrl =
+    location.pathname === "/timesheet" && !location.search
+      ? "/timesheet?tab=scheduler"
+      : location.pathname + location.search;
+  const matchedLabel =
+    Object.keys(ROUTE_MAP).find((label) => ROUTE_MAP[label] === currentUrl) ||
+    Object.keys(ROUTE_MAP).find((label) => ROUTE_MAP[label] === location.pathname);
 
   const section = NAV_SECTIONS.find((s) =>
     s.items.some((it) => it.label === matchedLabel)

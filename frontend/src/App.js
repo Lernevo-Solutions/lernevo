@@ -265,12 +265,7 @@ const AppLayout = () => {
           }
         />
 <Route path="/performance" element={ <AdminLayout><Performance /></AdminLayout> } />
-        <Route
-          path="/payslip"
-          element={
-        <Payslip />
-          }
-        />
+    <Route path="/payslip" element={ <AdminLayout><Payslip /></AdminLayout> } />   
       </Routes>
 
       {!hideFooter && <Footer />}

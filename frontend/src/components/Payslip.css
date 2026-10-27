@@ -152,3 +152,5 @@
   .pay-team-filters{grid-template-columns:1fr;}
   .pay-team-toolbar-actions{grid-column:1;justify-self:start;flex-wrap:wrap;}
 }
+/* Sidebar + Topbar now come from the app layout, so no own sidebar slot / extra offset here */
+@media(min-width:761px){.pay-admin-main{width:100%;height:calc(100vh - 64px)}}

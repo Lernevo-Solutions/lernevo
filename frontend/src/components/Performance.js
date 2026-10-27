@@ -1,381 +1,386 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import "./Performance.css";
 
-/* Each review frequency gets its own colour so teams are easy to tell apart */
-const CADENCES = {
-  WEEKLY: { label: "Weekly", color: "#0d9488" },
-  MONTHLY: { label: "Monthly", color: "#2f5bff" },
-  QUARTERLY: { label: "Quarterly", color: "#7c5cff" },
-  HALF_YEARLY: { label: "Half-yearly", color: "#d97706" },
-  YEARLY: { label: "Yearly", color: "#d6336c" },
-};
-const DESC = { WEEKLY: "Quick check-ins for shift and operations teams", MONTHLY: "One-on-ones to track progress and blockers", QUARTERLY: "OKR reviews with goal alignment", HALF_YEARLY: "Mid-year growth and skill review", YEARLY: "Annual appraisal with compensation and career growth" };
-const ORGS = ["All organizations", "Apex Retail", "Northwind Logistics", "Zenith Tech"];
+/* ---------- Sample data: 14 people in an IT company ---------- */
+const SKILLS = ["Technical skills", "Quality of work", "Communication", "Teamwork", "Ownership"];
+const QUARTERS = ["Q4 2025", "Q1 2026", "Q2 2026", "Q3 2026"];
+const TOP = 4.3;
+const LOW = 3.3;
 
-const INITIAL = [
-  { id: 1, org: "Apex Retail", name: "Store floor", cadence: "WEEKLY", employees: 128, signed: 96, overdue: 6, next: "30 Oct" },
-  { id: 2, org: "Apex Retail", name: "Regional managers", cadence: "QUARTERLY", employees: 22, signed: 10, overdue: 1, next: "31 Dec" },
-  { id: 3, org: "Northwind Logistics", name: "Warehouse shifts", cadence: "WEEKLY", employees: 210, signed: 150, overdue: 12, next: "30 Oct" },
-  { id: 4, org: "Northwind Logistics", name: "Fleet operations", cadence: "MONTHLY", employees: 64, signed: 40, overdue: 3, next: "31 Oct" },
-  { id: 5, org: "Zenith Tech", name: "Engineering", cadence: "QUARTERLY", employees: 86, signed: 52, overdue: 4, next: "31 Dec" },
-  { id: 6, org: "Zenith Tech", name: "Product and design", cadence: "HALF_YEARLY", employees: 28, signed: 12, overdue: 0, next: "31 Dec" },
-  { id: 7, org: "Zenith Tech", name: "Leadership", cadence: "YEARLY", employees: 12, signed: 4, overdue: 2, next: "15 Jan" },
+// name, role, team, manager, skill ratings, goals %, on-time %, attendance %, last 3 quarters, review finished (1/0)
+const RAW = [
+  ["Arun", "Team Lead", "Support desk", "Priya", [4, 4, 5, 5, 4], 88, 95, 98, [3.9, 4.1, 4.2], 1],
+  ["Meena", "Supervisor", "Quality", "Priya", [4, 5, 4, 4, 4], 92, 97, 99, [3.9, 4.0, 4.2], 1],
+  ["Lakshmi", "Associate", "Support desk", "Priya", [3, 4, 4, 4, 3], 70, 90, 96, [3.3, 3.5, 3.6], 0],
+  ["Hari", "Associate", "Engineering", "Vikram", [4, 4, 3, 4, 4], 75, 88, 96, [3.4, 3.6, 3.7], 1],
+  ["Vikram", "Manager", "Engineering", "Leadership", [4, 3, 3, 3, 4], 55, 82, 94, [3.6, 3.4, 3.4], 0],
+  ["Divya", "Executive", "Engineering", "Vikram", [5, 4, 4, 4, 5], 96, 95, 98, [3.8, 4.1, 4.3], 1],
+  ["Suresh", "Executive", "Quality", "Priya", [3, 3, 4, 3, 3], 48, 80, 92, [3.2, 3.1, 3.1], 0],
+  ["Bala", "Team Lead", "Engineering", "Vikram", [4, 4, 4, 5, 4], 85, 93, 97, [3.8, 3.9, 4.1], 1],
+  ["Ravi", "Associate", "Support desk", "Priya", [3, 3, 3, 4, 3], 52, 84, 93, [3.1, 3.0, 3.2], 0],
+  ["Sana", "Associate", "Support desk", "Priya", [3, 4, 5, 4, 3], 68, 91, 97, [3.5, 3.7, 3.8], 1],
+  ["Karthik", "Associate", "Quality", "Priya", [4, 4, 4, 3, 4], 80, 92, 95, [3.6, 3.7, 3.8], 1],
+  ["Priya", "Manager", "Support desk", "Leadership", [4, 4, 5, 4, 5], 90, 96, 99, [4.0, 4.1, 4.3], 1],
+  ["Naveen", "Associate", "Engineering", "Vikram", [3, 3, 4, 4, 3], 60, 85, 94, [3.2, 3.3, 3.4], 0],
+  ["Anita", "Executive", "Quality", "Priya", [5, 4, 4, 5, 4], 94, 98, 99, [4.0, 4.2, 4.3], 1],
 ];
-const ATTENTION = [
-  { id: "a", who: "Ravi Menon", where: "Warehouse shifts", note: "12 reviews overdue" },
-  { id: "b", who: "Priya Shah", where: "Store floor", note: "6 reviews overdue" },
-  { id: "c", who: "Karthik Raja", where: "Engineering", note: "4 reviews overdue" },
-];
-const CYCLES0 = [
-  { id: 1, name: "Weekly sync, Week 43", cadence: "WEEKLY", start: "26 Oct", due: "30 Oct", done: 231, total: 338, status: "Active" },
-  { id: 2, name: "Q4 2026 OKR review", cadence: "QUARTERLY", start: "1 Oct", due: "31 Dec", done: 62, total: 108, status: "Active" },
-  { id: 3, name: "Annual appraisal 2026", cadence: "YEARLY", start: "1 Dec", due: "15 Jan", done: 0, total: 12, status: "Upcoming" },
-];
-const sum = (rows, k) => rows.reduce((a, r) => a + r[k], 0);
-const pctOf = (a, b) => (b ? Math.round((a / b) * 100) : 0);
-const TXT = {
-  en: {
-    title: "Performance reviews", sub: "Choose how often each team is reviewed, and see who is falling behind.", create: "+ Create review cycle",
-    ok: "Every review is on track", late: (n) => `${n} ${n === 1 ? "review is" : "reviews are"} overdue`,
-    line: (p, n, o) => `${p}% of ${n} people have a signed-off review${o ? ` in ${o}` : ""}.`,
-    signed: (n) => `${n} signed off`, signedS: "Manager and employee have both signed",
-    wait: (n) => `${n} not signed yet`, waitS: "Still inside the due date",
-    lateK: (n) => `${n} overdue`, lateS: "Past the due date and still open", ring: "signed off",
-    focus: "Start here", focusT: (n) => `Send a reminder to ${n} ${n === 1 ? "manager" : "managers"} who ${n === 1 ? "is" : "are"} behind`, focusB: "Remind all", focusDone: "All reminders sent. Nice work!",
-    hide: "Hide tips", steps: [["Choose how often", "Pick a review frequency for each team in the table below."], ["Start a review cycle", "Press Create review cycle. Everyone in the team gets their form."], ["Follow up", "Managers and employees fill in and sign. Late ones show under Needs attention."]],
-    teams: "How often is each team reviewed?", teamsS: "Change the frequency from the dropdown. It saves straight away.", cols: ["Team", "Review how often", "Progress", "Next review"], all: "All", people: "people", of: "of", signedOff: "signed off", od: "overdue", next: "Next review: ", none: "No teams use this frequency yet.",
-    att: "Needs attention", attS: "These managers have reviews past the due date.", remind: "Send reminder", reminded: "✓ Reminded", rem: (w) => `Reminder sent to ${w}`,
-    cyc: "Review cycles", cycS: "Reviews that are running now or starting soon.", on: "Running now", soon: "Starts soon", done: (a, b, p) => `${a} of ${b} reviews done (${p}%)`, to: "to",
-    changed: (l) => `Review frequency changed to ${l}`,
-  },
-};
+
+const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const r1 = (n) => Math.round(n * 10) / 10;
+const PEOPLE = RAW.map(([name, role, team, manager, ratings, goals, onTime, attendance, past, done], i) => ({
+  id: i + 1, name, role, team, manager, ratings, goals, onTime, attendance, past, done: !!done, score: r1(avg(ratings)),
+}));
+const COMPANY_AVG = SKILLS.map((_, i) => r1(avg(PEOPLE.map((p) => p.ratings[i]))));
+const PASTELS = ["#fdf3c7", "#fde0ea", "#e6e0fb", "#dbe8ff", "#d9f5e5", "#ffe6d2"];
+
+const toneOf = (s) => (s >= TOP ? "#12a37a" : s >= 3.7 ? "#2f5bff" : s >= LOW ? "#d97706" : "#e5484d");
+const verdictOf = (s) => (s >= TOP ? "Outstanding" : s >= 3.7 ? "Strong performer" : s >= LOW ? "Meets expectations" : "Needs support");
+const skillWord = (v) => (v >= 5 ? "Excellent" : v >= 4 ? "Strong" : v >= 3 ? "Good" : "Needs work");
+const uniq = (k) => [...new Set(PEOPLE.map((p) => p[k]))];
+const MANAGERS = uniq("manager");
+const TEAMS = uniq("team");
 
 const CSS = `
-.sa.pf{--pf-ink:#14213d;--pf-mut:#5b6b8c;--pf-ln:#e1e8f7;--pf-blue:#2f5bff;--pf-ok:#12a37a;--pf-wait:#8fb0ff;--pf-bad:#e5484d;
-  font-family:"Plus Jakarta Sans",system-ui,sans-serif;display:grid;gap:20px;width:100%;margin:0;padding:clamp(14px,2.4vw,32px);border-radius:0;background:#f4f6fc;color:var(--pf-ink);container-type:inline-size;font-size:14px;line-height:1.45}
-.pf h1,.pf h2,.pf p{margin:0}
-.pf-head{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
-.pf-head h1{font-size:clamp(24px,3vw,32px);font-weight:800;letter-spacing:-.02em;color:#0f1b3d}
-.pf-head p{margin-top:4px;max-width:52ch;color:var(--pf-mut);font-size:15px}
-.pf-act{display:flex;flex-wrap:wrap;gap:10px}
-.sa.pf .pf-sel{width:100%;padding:9px 12px;border:1.5px solid var(--pf-ln);border-radius:10px;background:#fff;color:var(--pf-ink);font-weight:600;font-size:14px}
-.pf-act .pf-sel{width:auto;min-width:190px}
-.sa.pf .pf-go{border:0;padding:12px 20px;border-radius:12px;background:var(--pf-blue);color:#fff;font-weight:700;box-shadow:0 8px 18px -8px rgba(47,91,255,.7);transition:background .15s}
-.sa.pf .pf-go:hover{background:#1f45d6}
+.sa.ps{--ink:#14213d;--mut:#5b6b8c;--ln:#e1e8f7;--blue:#2f5bff;
+  font-family:"Plus Jakarta Sans",system-ui,sans-serif;display:grid;gap:16px;width:100%;margin:0;padding:clamp(14px,2.2vw,28px);border-radius:0;background:#f7f9ff;color:var(--ink);font-size:14px;line-height:1.45}
+.ps h1,.ps h2,.ps h3,.ps h4,.ps p{margin:0}
+.ps-banner{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding:22px 26px;border-radius:20px;background:linear-gradient(120deg,#eaf0ff,#f6f3ff);border:1px solid var(--ln)}
+.ps-banner h1{font-size:clamp(24px,3vw,30px);font-weight:800;letter-spacing:-.02em;color:#0f1b3d}
+.ps-banner p{margin-top:4px;color:var(--mut);font-size:15px;max-width:60ch}
+.ps-period{padding:8px 16px;border-radius:12px;background:#fff;border:1px solid var(--ln);font-weight:700;color:#1d3fd0}
 
-.pf-hero{padding:28px 30px;border-radius:22px;background:#0f1b3d;color:#fff}
-.pf-hero h2{font-size:clamp(21px,2.6vw,30px);font-weight:800;letter-spacing:-.01em;line-height:1.2}
-.pf-hero>p{margin-top:6px;color:#b9c6ea;font-size:15px}
-.pf-seg{display:flex;gap:3px;height:18px;margin-top:22px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.1)}
-.pf-seg i{display:block;height:100%;transition:width .4s}
-.pf-seg .ok,.pf-mini .ok{background:#2fd4a0}.pf-seg .wait,.pf-mini .wait{background:#7ea3ff}.pf-seg .bad,.pf-mini .bad{background:#ff6b70}
-.pf-key{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-top:20px}
-.pf-key div{display:grid;grid-template-columns:12px 1fr;column-gap:10px;align-items:baseline}
-.pf-key i{width:12px;height:12px;border-radius:4px}
-.pf-key strong{font-size:15px;font-weight:700}
-.pf-key small{grid-column:2;color:#b9c6ea;font-size:13px;line-height:1.35}
+.ps-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.ps-tile{display:flex;gap:14px;align-items:center;padding:18px 20px;border-radius:18px;background:#fff;border:1px solid var(--ln)}
+.ps-ic{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#eef2ff;font-size:21px}
+.ps-tile span{display:block;color:var(--mut);font-weight:600;font-size:13.5px}
+.ps-tile strong{display:block;font-size:28px;font-weight:800;line-height:1.15;color:#1d3fd0}
+.ps-tile small{color:var(--mut);font-size:13px}
 
-.pf-how{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;padding:18px 22px;border-radius:18px;background:#fff;border:1px solid var(--pf-ln)}
-.pf-how ol{display:flex;flex-wrap:wrap;gap:16px 28px;flex:1;margin:0;padding:0;list-style:none;counter-reset:s}
-.pf-how li{display:flex;gap:12px;flex:1 1 220px;counter-increment:s}
-.pf-how li:before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#e8eeff;color:#1d3fd0;font-weight:800;font-size:13px}
-.pf-how strong{display:block;font-size:14px}.pf-how small{color:var(--pf-mut);font-size:13px}
-.sa.pf .pf-hide{border:0;background:transparent;color:var(--pf-mut);font-weight:600;padding:6px 10px;border-radius:8px}
-.sa.pf .pf-hide:hover{background:#eef2ff;color:#1d3fd0}
+.ps-filters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.ps-fl{display:flex;align-items:center;gap:8px}
+.ps-fl>span{color:var(--mut);font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.ps-fl label{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:14px;background:#fff;border:1.5px solid var(--ln)}
+.ps-fl i{font-style:normal;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:#e0e8ff;color:#1d3fd0;font-size:13px}
+.sa.ps .ps-fl select,.sa.ps .ps-sort{border:0;background:transparent;color:var(--ink);font-weight:700;font-size:15px;padding:6px 2px;cursor:pointer}
+.sa.ps .ps-sort{border:1.5px solid var(--ln);background:#fff;border-radius:12px;padding:9px 12px;font-size:14px}
 
-.pf-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
-@container (min-width:1000px){.pf-grid{grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr)}}
-.pf-side{display:grid;gap:20px}
-.pf-card{padding:24px;border-radius:18px;background:#fff;border:1px solid var(--pf-ln);box-shadow:0 1px 2px rgba(20,33,61,.04)}
-.pf-card h2{font-size:18px;font-weight:800;color:#0f1b3d}
-.pf-sub{margin:2px 0 14px!important;color:var(--pf-mut);font-size:13.5px}
+.ps-board{padding:14px;border-radius:20px;background:#fff;border:1px solid var(--ln)}
+.ps-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.ps-tabs{display:flex;padding:4px;border-radius:12px;background:#eef2ff}
+.sa.ps .ps-tabs button{border:0;background:transparent;padding:9px 16px;border-radius:9px;font-weight:700;color:var(--mut)}
+.sa.ps .ps-tabs button.on{background:#fff;color:#1d3fd0;box-shadow:0 1px 3px rgba(20,33,61,.12)}
+.sa.ps .ps-search{flex:1 1 220px;max-width:340px;padding:11px 14px;border-radius:12px;border:1.5px solid var(--ln);font:inherit;color:var(--ink)}
+.ps-bar .ps-sort{margin-left:auto}
+.ps-scroll{overflow-x:auto}
+.ps-grid{min-width:820px;display:grid;grid-template-columns:minmax(190px,1.5fr) 150px minmax(120px,1fr) 80px 100px 120px 120px;gap:10px;align-items:center}
+.ps-head{padding:0 8px 8px}
+.ps-head span{padding:8px 6px;border-radius:12px;background:#eef3ff;color:#4a5b82;font-weight:700;font-size:13px;text-align:center}
+.ps-head span:first-child{background:none;text-align:left;font-size:14px}
+.sa.ps .ps-row{width:100%;padding:9px 8px;border:0;border-top:1px solid #edf1fb;background:transparent;border-radius:14px;text-align:left;color:inherit;cursor:pointer;transition:background .15s}
+.sa.ps .ps-row:hover{background:#f3f6ff}
+.ps-who{display:flex;align-items:center;gap:12px;min-width:0}
+.ps-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#33415f}
+.ps-who strong{display:block;font-size:15px;color:#0f1b3d}.ps-who small{color:var(--mut);font-size:13px}
+.ps-score{display:flex;align-items:center;justify-content:center;gap:8px}
+.ps-score b{min-width:44px;padding:5px 10px;border-radius:10px;background:var(--c);color:#fff;text-align:center;font-size:14px}
+.ps-score small{color:var(--mut);font-size:12px;line-height:1.2;max-width:70px}
+.ps-pct{display:grid;gap:4px;justify-items:center;font-weight:700;font-size:13.5px}
+.ps-pct .ps-track{width:100%}
+.ps-num{text-align:center;font-weight:700;color:#1d3fd0;background:#eef3ff;border-radius:10px;padding:6px 4px;font-size:13.5px}
+.ps-tr{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:13px}
+.ps-up{color:#0b7a57}.ps-dn{color:#b42318}.ps-eq{color:var(--mut)}
+.ps-chip{justify-self:center;padding:4px 12px;border-radius:99px;font-size:12.5px;font-weight:700}
+.ps-chip.ok{background:#dff5ea;color:#0b7a57}.ps-chip.wait{background:#fff1de;color:#b45309}
+.ps-track{position:relative;height:10px;border-radius:9px;background:#edf1fb}
+.ps-track i{display:block;height:100%;border-radius:9px;background:var(--c)}
+.ps-track u{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:2px;background:#0f1b3d;text-decoration:none}
+.ps-empty{padding:28px 10px;text-align:center;color:var(--mut)}
 
-.pf-thead,.pf-trow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(150px,1fr) minmax(150px,1fr) auto;gap:14px;align-items:center}
-.pf-thead{padding:0 6px 8px;color:var(--pf-mut);font-size:13px;font-weight:600}
-.pf-trow{padding:14px 6px;border-top:1px solid #edf1fb;border-radius:12px}
-.pf-trow:hover{background:#f6f8fe}
-.pf-team{display:flex;align-items:center;gap:12px;min-width:0}.pf-team>div{min-width:0}
-.pf-sq{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:17px}
-.pf-team strong{display:block;color:#0f1b3d}.pf-team small,.pf-cap,.pf-prog small{color:var(--pf-mut);font-size:12.5px;line-height:1.35}
-.pf-cap{display:block;margin-top:5px}
-.pf-mini{display:flex;gap:2px;height:8px;border-radius:9px;overflow:hidden;background:#edf1fb}
-.pf-mini i{display:block;height:100%;transition:width .4s}
-.pf-prog small{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:6px}
-.pf-prog b{color:#0f1b3d}
-.pf-od{padding:2px 8px;border-radius:99px;background:#ffe8e8;color:#b42318;font-weight:700;font-size:12px}
-.pf-date{justify-self:end;padding:6px 12px;border-radius:10px;background:#eef2ff;color:#1d3fd0;font-weight:700;font-size:13px;white-space:nowrap}
-.pf-narrow{display:none}
-@container (max-width:700px){.pf-thead{display:none}.pf-trow{grid-template-columns:minmax(0,1fr)}.pf-date{justify-self:start}.pf-narrow{display:inline}}
+.ps-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.ps-team{padding:18px 20px;border-radius:16px;border:1px solid var(--ln);background:#fbfcff;display:grid;gap:10px}
+.ps-team h3{font-size:18px;font-weight:800;color:#0f1b3d}
+.ps-team .big{font-size:30px;font-weight:800;color:var(--c)}
+.ps-team ul{margin:0;padding:0;list-style:none;display:grid;gap:4px;color:var(--mut);font-size:13.5px}
+.sa.ps .ps-link{justify-self:start;border:0;background:#e0e8ff;color:#1d3fd0;font-weight:700;padding:8px 14px;border-radius:10px;cursor:pointer}
 
-.pf-item{display:flex;align-items:center;gap:12px;padding:12px;margin-top:10px;border-radius:12px;background:#f6f8fe;border:1px solid #e8eeff}
-.pf-item>div{flex:1;min-width:0}.pf-item strong{display:block}.pf-item small{color:var(--pf-mut);font-size:12.5px}
-.pf-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#e0e8ff;color:#1d3fd0;font-weight:800}
-.sa.pf .pf-remind{border:0;padding:7px 14px;border-radius:99px;background:var(--pf-blue);color:#fff;font-weight:700;font-size:13px;white-space:nowrap}
-.sa.pf .pf-remind:disabled{background:#dff5ea;color:#0b7a57;cursor:default}
-.pf-cyc{padding:14px;margin-top:10px;border-radius:12px;border:1px solid var(--pf-ln)}
-.pf-cyc-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.pf-cyc strong{display:block}.pf-cyc small{color:var(--pf-mut);font-size:12.5px}
-.pf-tag{padding:3px 10px;border-radius:99px;color:#fff;font-size:12px;font-weight:600;white-space:nowrap}
-.pf-cyc .pf-mini{margin-top:10px}.pf-cyc .pf-mini i{background:var(--pf-blue)}
-.pf-state{font-weight:700}.pf-state.on{color:#0b7a57}.pf-state.soon{color:#b45309}
-@media(prefers-reduced-motion:reduce){.pf-seg i,.pf-mini i{transition:none}}
-.pf-hero{display:flex;flex-wrap:wrap;gap:24px 36px;align-items:center;justify-content:space-between;padding:30px 32px;border-radius:24px;color:#fff;background:radial-gradient(circle at 88% 15%,rgba(124,92,255,.55),transparent 50%),radial-gradient(circle at 5% 100%,rgba(47,212,160,.22),transparent 45%),#0f1b3d}
-.pf-hero-main{flex:1 1 320px;min-width:0}
-.pf-ring{flex:none;width:170px;height:170px}
-.pf-key{margin-top:22px}
-.pf-focus{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;padding:18px 22px;border-radius:18px;background:#fff7e6;border:1.5px solid #ffd58a}
-.pf-focus>div{flex:1 1 240px}.pf-focus strong{display:block;font-size:15px;color:#7a4a00}.pf-focus span{color:#5b4a2a}
-.pf-focus-ic{font-size:28px}
-.pf-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
-.sa.pf .pf-chips button{--c:#0f1b3d;display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:99px;border:1.5px solid var(--pf-ln);background:#fff;color:var(--pf-ink);font-weight:600;font-size:13px}
-.pf-chips b{padding:0 7px;border-radius:99px;background:#eef2ff;font-size:12px}
-.sa.pf .pf-chips button.on{background:var(--c);border-color:var(--c);color:#fff}.pf-chips button.on b{background:rgba(255,255,255,.25)}
-.pf-empty{padding:18px 6px;color:var(--pf-mut)}
-.pf-trow{transition:background .15s}
-.pf-sq{box-shadow:0 8px 16px -8px rgba(20,33,61,.5)}
+.ps-bg{position:fixed;inset:0;z-index:40;display:flex;justify-content:flex-end;background:rgba(15,27,61,.45)}
+.ps-drawer{width:min(560px,100%);height:100%;overflow:auto;padding:20px;display:grid;gap:14px;align-content:start;background:#f4f6fc;animation:ps-in .25s ease-out}
+@keyframes ps-in{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+.ps-dh{display:flex;align-items:center;gap:14px}
+.ps-dh .ps-av{width:56px;height:56px;font-size:18px}
+.ps-dh h2{font-size:22px;font-weight:800;color:#0f1b3d}.ps-dh p{color:var(--mut)}
+.sa.ps .ps-x{margin-left:auto;width:38px;height:38px;border-radius:12px;border:1.5px solid var(--ln);background:#fff;font-size:18px;color:var(--ink);cursor:pointer}
+.ps-hero{display:flex;gap:18px;align-items:center;padding:20px 22px;border-radius:20px;color:#fff;background:radial-gradient(circle at 90% 10%,rgba(124,92,255,.5),transparent 55%),#0f1b3d}
+.ps-ring{flex:none;width:128px;height:128px}
+.ps-badge{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:800;font-size:13px;color:#fff}
+.ps-hero p{margin-top:8px;color:#dbe4ff}
+.ps-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ps-mini div{padding:12px 14px;border-radius:14px;background:#fff;border:1px solid var(--ln)}
+.ps-mini span{display:block;color:var(--mut);font-size:12.5px;font-weight:600}.ps-mini strong{font-size:22px;color:#0f1b3d}
+.ps-card{padding:18px 20px;border-radius:16px;background:#fff;border:1px solid var(--ln)}
+.ps-card h3{font-size:16px;font-weight:800;color:#0f1b3d;margin-bottom:10px}
+.ps-sk{display:grid;grid-template-columns:120px minmax(0,1fr) 96px;gap:10px;align-items:center;padding:7px 0;font-size:13.5px}
+.ps-sk>span{text-align:right;color:var(--mut)}.ps-sk>span b{color:var(--ink)}
+.ps-note{margin-top:8px;color:var(--mut);font-size:12.5px}
+.ps-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ps-box{padding:14px 16px;border-radius:14px}.ps-box h4{margin-bottom:8px;font-size:14px}
+.ps-box ul{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:13.5px}
+.ps-box li{display:flex;gap:8px}.ps-box li:before{flex:none;font-weight:800}
+.ps-good{background:#eefaf4}.ps-good h4,.ps-good li:before{color:#0b7a57}.ps-good li:before{content:"✓"}
+.ps-grow{background:#fff6e8}.ps-grow h4,.ps-grow li:before{color:#b45309}.ps-grow li:before{content:"↑"}
+.ps-chart{width:100%;height:auto;display:block}
+@media(max-width:560px){.ps-two{grid-template-columns:1fr}.ps-sk{grid-template-columns:1fr}.ps-sk>span{text-align:left}.ps-hero{flex-direction:column;align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.ps-drawer{animation:none}.sa.ps .ps-row{transition:none}}
+
+.ps .ps-banner{position:relative;overflow:hidden;color:#fff;border:0;background:radial-gradient(circle at 85% 0%,rgba(143,180,255,.55),transparent 45%),linear-gradient(115deg,#0b2a6f,#1746c4 60%,#7c5cff);box-shadow:0 14px 34px rgba(23,70,196,.28)}
+.ps .ps-banner:after{content:"";position:absolute;right:-50px;bottom:-80px;width:240px;height:240px;border-radius:50%;border:34px solid rgba(255,255,255,.08)}
+.ps .ps-banner h1{color:#fff}.ps .ps-banner p{color:#d6e2ff}
+.ps .ps-period{position:relative;z-index:1;background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff;backdrop-filter:blur(4px)}
+.ps-tile{position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.ps-tile:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(#2f5bff,#7c5cff)}
+.ps-tile:nth-child(2):before{background:linear-gradient(#12a37a,#6ee7b7)}.ps-tile:nth-child(3):before{background:linear-gradient(#e5484d,#fca5a5)}.ps-tile:nth-child(4):before{background:linear-gradient(#d97706,#fcd34d)}
+.ps-tile:hover{transform:translateY(-4px);box-shadow:0 16px 30px rgba(23,70,196,.14)}
+.ps-board{box-shadow:0 10px 30px rgba(23,70,196,.08)}
+.sa.ps .ps-row:hover{background:linear-gradient(90deg,#eef3ff,#f6f3ff);transform:translateX(3px)}
+.ps-av{box-shadow:0 0 0 3px #fff,0 4px 10px rgba(20,33,61,.15)}
+.ps-track i{background:linear-gradient(90deg,var(--c),color-mix(in srgb,var(--c) 60%,#fff));animation:ps-grow .7s ease-out}
+@keyframes ps-grow{from{width:0}}
+.ps-team{transition:transform .2s,box-shadow .2s;border-top:4px solid var(--c)}.ps-team:hover{transform:translateY(-4px);box-shadow:0 14px 28px rgba(23,70,196,.12)}
+.ps-bg{backdrop-filter:blur(3px)}
+.ps-drawer{box-shadow:-20px 0 50px rgba(15,27,61,.3)}
+.ps-hero{box-shadow:0 14px 30px rgba(15,27,61,.3)}
+.ps-rank{display:inline-block;margin-left:8px;padding:4px 12px;border-radius:99px;font-weight:800;font-size:13px;background:rgba(255,255,255,.16);color:#fff}
+.ps-mini div{text-align:center;transition:transform .2s}.ps-mini div:hover{transform:translateY(-3px)}
+.ps-radar{width:100%;max-width:320px;height:auto;display:block;margin:0 auto}
+.ps-nav{display:flex;justify-content:space-between;gap:10px;position:sticky;bottom:-20px;padding:12px 0;background:linear-gradient(transparent,#f4f6fc 30%)}
+.sa.ps .ps-nav button{flex:1;border:0;padding:12px;border-radius:12px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(120deg,#1746c4,#2f6bff);box-shadow:0 6px 16px rgba(23,70,196,.3)}
+.sa.ps.ps-portal{position:fixed;inset:0;z-index:2147483000;display:block;padding:0;margin:0;background:transparent;border-radius:0;width:auto}
+.ps-drawer{padding-bottom:90px}
+.sa.ps .ps-pn{margin-left:0;font-size:22px;line-height:1;font-weight:700;color:#1d3fd0}
+.sa.ps .ps-dh .ps-pn:first-of-type{margin-left:auto}
+.sa.ps .ps-dh .ps-pn+.ps-x:not(.ps-pn){margin-left:0}
+.ps-radar{max-width:260px}
+@media(prefers-reduced-motion:reduce){.ps-track i{animation:none}.ps-tile,.ps-team,.ps-mini div{transition:none}}
 `;
 
-function Bar({ signed, wait, late, total, className }) {
-  const w = (n) => `${total ? (n / total) * 100 : 0}%`;
-  return (
-    <div className={className} role="img" aria-label={`${signed} signed off, ${wait} not signed yet, ${late} overdue`}>
-      <i className="ok" style={{ width: w(signed) }} /><i className="wait" style={{ width: w(wait) }} /><i className="bad" style={{ width: w(late) }} />
-    </div>
-  );
+function Spark({ points, color }) {
+  const lo = Math.min(...points) - 0.1, hi = Math.max(...points) + 0.1;
+  const pts = points.map((v, i) => `${i * 22 + 4},${22 - ((v - lo) / (hi - lo)) * 18}`).join(" ");
+  return <svg width="70" height="26" viewBox="0 0 70 26" aria-hidden="true"><polyline points={pts} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
-function Ring({ signed, wait, late, total, pct, label }) {
-  const C = 2 * Math.PI * 54;
-  let off = 0;
-  const arcs = [[signed, "#2fd4a0"], [wait, "#7ea3ff"], [late, "#ff6b70"]].map(([n, c]) => {
-    const len = total ? (n / total) * C : 0;
-    const el = <circle key={c} cx="70" cy="70" r="54" fill="none" stroke={c} strokeWidth="14" strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-off} />;
-    off += len;
-    return el;
-  });
+function Ring({ score }) {
+  const C = 2 * Math.PI * 54, len = (score / 5) * C;
+  const stroke = score >= 3.7 && score < TOP ? "#7ea3ff" : toneOf(score);
   return (
-    <svg viewBox="0 0 140 140" className="pf-ring" role="img" aria-label={`${pct}% ${label}`}>
-      <g transform="rotate(-90 70 70)"><circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="14" />{arcs}</g>
-      <text x="70" y="72" textAnchor="middle" fontSize="30" fontWeight="800" fill="#fff">{pct}%</text>
-      <text x="70" y="92" textAnchor="middle" fontSize="11" fontWeight="600" fill="#b9c6ea">{label}</text>
+    <svg viewBox="0 0 140 140" className="ps-ring" role="img" aria-label={`Overall score ${score.toFixed(1)} out of 5`}>
+      <g transform="rotate(-90 70 70)">
+        <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,.14)" strokeWidth="14" />
+        <circle cx="70" cy="70" r="54" fill="none" stroke={stroke} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${len} ${C - len}`} />
+      </g>
+      <text x="70" y="72" textAnchor="middle" fontSize="34" fontWeight="800" fill="#fff">{score.toFixed(1)}</text>
+      <text x="70" y="92" textAnchor="middle" fontSize="12" fontWeight="600" fill="#b9c6ea">out of 5</text>
     </svg>
   );
 }
 
-export default function SuperAdminPerformance() {
-  const [rows, setRows] = useState(INITIAL);
-  const [org, setOrg] = useState(ORGS[0]);
-  const [cad, setCad] = useState("ALL");
-  const [cycles, setCycles] = useState(CYCLES0);
-  const [wizard, setWizard] = useState(false);
-  const [toast, setToast] = useState("");
-  const [help, setHelp] = useState(true);
-  const [reminded, setReminded] = useState({});
-
-  const t = TXT.en;
-  const cl = (k) => CADENCES[k].label;
-  const ds = (k) => DESC[k];
-
-  const inOrg = useMemo(() => (org === ORGS[0] ? rows : rows.filter((r) => r.org === org)), [rows, org]);
-  const visible = cad === "ALL" ? inOrg : inOrg.filter((r) => r.cadence === cad);
-  const emp = sum(inOrg, "employees");
-  const signed = sum(inOrg, "signed");
-  const late = sum(inOrg, "overdue");
-  const wait = Math.max(0, emp - signed - late);
-  const pct = pctOf(signed, emp);
-  const behind = ATTENTION.filter((a) => !reminded[a.id]);
-
-  const notify = (m) => { setToast(m); setTimeout(() => setToast(""), 2600); };
-  const assign = (id, c) => { setRows((rs) => rs.map((r) => (r.id === id ? { ...r, cadence: c } : r))); notify(t.changed(cl(c))); };
-  const remind = (a) => { setReminded((m) => ({ ...m, [a.id]: true })); notify(t.rem(a.who)); };
-  const remindAll = () => { setReminded(Object.fromEntries(ATTENTION.map((a) => [a.id, true]))); notify(t.focusDone); };
-
+function Trend({ points, color }) {
+  const x = (i) => 40 + i * 80, y = (v) => 120 - ((v - 1) / 4) * 100, last = points.length - 1;
   return (
-    <div className="sa pf">
-      <style>{CSS}</style>
-
-      <header className="pf-head">
-        <div><h1>{t.title}</h1><p>{t.sub}</p></div>
-        <div className="pf-act">
-          <select className="pf-sel" value={org} onChange={(e) => setOrg(e.target.value)} aria-label="Organization">{ORGS.map((o) => <option key={o}>{o}</option>)}</select>
-          <button className="pf-go" onClick={() => setWizard(true)}>{t.create}</button>
-        </div>
-      </header>
-
-      <section className="pf-hero" aria-label={t.title}>
-        <div className="pf-hero-main">
-          <h2>{late === 0 ? t.ok : t.late(late)}</h2>
-          <p>{t.line(pct, emp, org === ORGS[0] ? "" : org)}</p>
-          <div className="pf-key">
-            <div><i style={{ background: "#2fd4a0" }} /><strong>{t.signed(signed)}</strong><small>{t.signedS}</small></div>
-            <div><i style={{ background: "#7ea3ff" }} /><strong>{t.wait(wait)}</strong><small>{t.waitS}</small></div>
-            <div><i style={{ background: "#ff6b70" }} /><strong>{t.lateK(late)}</strong><small>{t.lateS}</small></div>
-          </div>
-        </div>
-        <Ring signed={signed} wait={wait} late={late} total={emp} pct={pct} label={t.ring} />
-      </section>
-
-      <section className="pf-focus" aria-live="polite">
-        <span className="pf-focus-ic" aria-hidden="true">{behind.length ? "👉" : "🎉"}</span>
-        <div><strong>{t.focus}</strong><span>{behind.length ? t.focusT(behind.length) : t.focusDone}</span></div>
-        {behind.length > 0 && <button className="pf-go" onClick={remindAll}>{t.focusB}</button>}
-      </section>
-
-      {help && (
-        <section className="pf-how">
-          <ol>{t.steps.map(([a, d]) => <li key={a}><div><strong>{a}</strong><small>{d}</small></div></li>)}</ol>
-          <button className="pf-hide" onClick={() => setHelp(false)}>{t.hide}</button>
-        </section>
-      )}
-
-      <div className="pf-grid">
-        <section className="pf-card">
-          <h2><span aria-hidden="true">📅 </span>{t.teams}</h2>
-          <p className="pf-sub">{t.teamsS}</p>
-          <div className="pf-chips" role="group">
-            {["ALL", ...Object.keys(CADENCES)].map((k) => {
-              const n = k === "ALL" ? inOrg.length : inOrg.filter((r) => r.cadence === k).length;
-              return <button key={k} className={cad === k ? "on" : ""} style={k !== "ALL" ? { "--c": CADENCES[k].color } : undefined} onClick={() => setCad(k)}>{k === "ALL" ? t.all : cl(k)} <b>{n}</b></button>;
-            })}
-          </div>
-          <div className="pf-thead">{t.cols.map((c) => <span key={c}>{c}</span>)}</div>
-          {visible.length === 0 && <p className="pf-empty">{t.none}</p>}
-          {visible.map((r) => {
-            const w = Math.max(0, r.employees - r.signed - r.overdue);
-            return (
-              <div key={r.id} className="pf-trow">
-                <div className="pf-team">
-                  <span className="pf-sq" style={{ background: CADENCES[r.cadence].color }}>{r.name[0]}</span>
-                  <div><strong>{r.name}</strong><small>{r.org}, {r.employees} {t.people}</small></div>
-                </div>
-                <div>
-                  <select className="pf-sel" value={r.cadence} onChange={(e) => assign(r.id, e.target.value)} aria-label={`${t.cols[1]}: ${r.name}`}>
-                    {Object.keys(CADENCES).map((k) => <option key={k} value={k}>{cl(k)}</option>)}
-                  </select>
-                  <span className="pf-cap">{ds(r.cadence)}</span>
-                </div>
-                <div className="pf-prog">
-                  <Bar className="pf-mini" signed={r.signed} wait={w} late={r.overdue} total={r.employees} />
-                  <small><span><b>{r.signed}</b> {t.of} {r.employees} {t.signedOff}</span>{r.overdue > 0 && <em className="pf-od">{r.overdue} {t.od}</em>}</small>
-                </div>
-                <span className="pf-date"><span className="pf-narrow">{t.next}</span>{r.next}</span>
-              </div>
-            );
-          })}
-        </section>
-
-        <div className="pf-side">
-          <section className="pf-card">
-            <h2><span aria-hidden="true">⚠️ </span>{t.att}</h2>
-            <p className="pf-sub">{t.attS}</p>
-            {ATTENTION.map((a) => (
-              <div key={a.id} className="pf-item">
-                <span className="pf-av">{a.who.split(" ").map((w) => w[0]).join("")}</span>
-                <div><strong>{a.who}</strong><small>{a.where}: {a.note}</small></div>
-                <button className="pf-remind" disabled={!!reminded[a.id]} onClick={() => remind(a)}>{reminded[a.id] ? t.reminded : t.remind}</button>
-              </div>
-            ))}
-          </section>
-
-          <section className="pf-card">
-            <h2><span aria-hidden="true">🔄 </span>{t.cyc}</h2>
-            <p className="pf-sub">{t.cycS}</p>
-            {cycles.map((c) => {
-              const p = pctOf(c.done, c.total);
-              return (
-                <div key={c.id} className="pf-cyc">
-                  <div className="pf-cyc-top">
-                    <div><strong>{c.name}</strong><small>{c.start} {t.to} {c.due}, <span className={`pf-state ${c.status === "Active" ? "on" : "soon"}`}>{c.status === "Active" ? t.on : t.soon}</span></small></div>
-                    <span className="pf-tag" style={{ background: CADENCES[c.cadence].color }}>{cl(c.cadence)}</span>
-                  </div>
-                  <div className="pf-mini"><i style={{ width: `${p}%` }} /></div>
-                  <small>{t.done(c.done, c.total, p)}</small>
-                </div>
-              );
-            })}
-          </section>
-        </div>
-      </div>
-
-      {wizard && <Wizard rows={rows} onClose={() => setWizard(false)} onCreate={(c) => { setCycles((x) => [c, ...x]); setWizard(false); notify(`${c.name} created, reminders scheduled`); }} />}
-      {toast && <div className="sa-toast" role="status">{toast}</div>}
-    </div>
+    <svg viewBox="0 0 320 165" className="ps-chart" role="img" aria-label={`Score by quarter: ${points.map((v, i) => `${QUARTERS[i]} ${v.toFixed(1)}`).join(", ")}`}>
+      {[1, 2, 3, 4, 5].map((v) => <g key={v}><line x1="28" x2="300" y1={y(v)} y2={y(v)} stroke="#edf1fb" /><text x="14" y={y(v) + 4} fontSize="10" fill="#8a97b4" textAnchor="middle">{v}</text></g>)}
+      <polyline points={points.map((v, i) => `${x(i)},${y(v)}`).join(" ")} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      {points.map((v, i) => (
+        <g key={QUARTERS[i]}>
+          <circle cx={x(i)} cy={y(v)} r={i === last ? 7 : 5} fill={i === last ? color : "#fff"} stroke={color} strokeWidth="3" />
+          <text x={x(i)} y={y(v) - 13} textAnchor="middle" fontSize="12" fontWeight="700" fill="#14213d">{v.toFixed(1)}</text>
+          <text x={x(i)} y="150" textAnchor="middle" fontSize="11" fill="#5b6b8c">{QUARTERS[i]}</text>
+        </g>
+      ))}
+    </svg>
   );
 }
 
-/* ================= Cadence templates (drive the wizard and review form) ================= */
-const TEMPLATES = {
-  WEEKLY: { tag: "Weekly Check-in", title: "Weekly sync", days: 4, focus: "Immediate roadblocks and upcoming shifts",
-    questions: ["What went well this week?", "Any roadblocks right now?", "What is planned for the upcoming shifts?"],
-    comps: ["Attendance and punctuality", "Task quality", "Teamwork"], goals: ["Weekly target met", "Safety checklist completed"] },
-  MONTHLY: { tag: "Monthly 1-on-1", title: "Monthly one-on-one", days: 29, focus: "Progress on priorities, blockers and support",
-    questions: ["Progress on this month's priorities", "Blockers and support needed", "Wins worth celebrating"],
-    comps: ["Ownership", "Communication", "Delivery"], goals: ["Monthly deliverables on track", "Skill plan progressing"] },
-  QUARTERLY: { tag: "Quarterly OKR Review", title: "Quarterly OKR review", days: 89, focus: "OKR progress, strengths and areas to improve",
-    questions: ["What went well?", "Areas for improvement", "What did you learn this quarter?"],
-    comps: ["Goal delivery", "Collaboration", "Initiative", "Problem solving"], goals: ["OKR 1: Reduce customer churn", "OKR 2: Ship v3 on time", "OKR 3: Grow the team"] },
-  HALF_YEARLY: { tag: "Half-Yearly Review", title: "Half-yearly review", days: 180, focus: "Mid-year growth, skills and development plan",
-    questions: ["Key achievements this half", "Skill growth since January", "Support needed for the next half"],
-    comps: ["Impact", "Skill growth", "Leadership", "Collaboration"], goals: ["Half-year priorities delivered", "Development plan on track"] },
-  YEARLY: { tag: "Yearly Performance Appraisal", title: "Annual appraisal", days: 45, focus: "Compensation, career growth and macro OKRs",
-    questions: ["Year highlights", "Career growth aspirations", "Compensation and promotion view"],
-    comps: ["Business impact", "Leadership", "Strategic thinking", "Culture and values", "Mentoring"], goals: ["Annual macro OKR 1", "Annual macro OKR 2", "Career path milestone reached"] },
+const Avatar = ({ p, cls = "ps-av" }) => <span className={cls} style={{ background: PASTELS[(p.id - 1) % PASTELS.length] }}>{p.name.slice(0, 2).toUpperCase()}</span>;
+const Delta = ({ p }) => {
+  const d = r1(p.score - p.past[2]);
+  return <span className={`ps-tr ${d > 0 ? "ps-up" : d < 0 ? "ps-dn" : "ps-eq"}`}><Spark points={[...p.past, p.score]} color={toneOf(p.score)} />{d > 0 ? `▲ ${d.toFixed(1)}` : d < 0 ? `▼ ${Math.abs(d).toFixed(1)}` : "–"}</span>;
 };
 
-const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const addDays = (s, n) => { const d = new Date(`${s}T00:00:00`); d.setDate(d.getDate() + n); return iso(d); };
-const fmt = (s) => { const d = new Date(`${s}T00:00:00`); return `${d.getDate()} ${d.toLocaleString("en-GB", { month: "short" })}`; };
-const initials = (n) => n.split(" ").map((w) => w[0]).join("").slice(0, 2);
-
-/* ---------- Create review cycle wizard ---------- */
-function Wizard({ rows, onClose, onCreate }) {
-  const [step, setStep] = useState(1);
-  const [cad, setCad] = useState("QUARTERLY");
-  const [name, setName] = useState("");
-  const [group, setGroup] = useState("all");
-  const [start, setStart] = useState("2026-10-26");
-  const [due, setDue] = useState(addDays("2026-10-26", TEMPLATES.QUARTERLY.days));
-  const t = TEMPLATES[cad];
-  const target = group === "all" ? sum(rows.filter((r) => r.cadence === cad), "employees") : rows.find((r) => String(r.id) === group)?.employees || 0;
-  const pick = (k) => { setCad(k); setDue(addDays(start, TEMPLATES[k].days)); };
-  const create = () => onCreate({ id: Date.now(), name: name.trim() || `${t.title}, ${fmt(start)}`, cadence: cad, start: fmt(start), due: fmt(due), done: 0, total: target, status: start <= "2026-10-26" ? "Active" : "Upcoming" });
+const SHORT = ["Technical", "Quality", "Comms", "Teamwork", "Ownership"];
+function Radar({ p }) {
+  const cx = 110, cy = 105, R = 70;
+  const pt = (i, v) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5; return [cx + Math.cos(a) * R * (v / 5), cy + Math.sin(a) * R * (v / 5)]; };
+  const poly = (vals) => vals.map((v, i) => pt(i, v).join(",")).join(" ");
+  const color = toneOf(p.score);
   return (
-    <div className="sa-modal-bg" onClick={onClose}>
-      <div className="sa-modal" role="dialog" aria-modal="true" aria-label="Create review cycle" onClick={(e) => e.stopPropagation()}>
-        <div className="wz-steps">{["Cadence", "Template", "Details"].map((s, i) => <span key={s} className={step === i + 1 ? "on" : step > i + 1 ? "done" : ""}><b>{step > i + 1 ? "✓" : i + 1}</b>{s}</span>)}</div>
-        {step === 1 && (<>
-          <h3>Choose a review cadence</h3>
-          <div className="wz-pick">
-            {Object.entries(CADENCES).map(([k, c]) => (
-              <button key={k} className={cad === k ? "on" : ""} onClick={() => pick(k)}><i style={{ background: c.color }} /><strong>{TEMPLATES[k].tag}</strong><small>{DESC[k]}</small></button>
+    <svg viewBox="0 0 220 210" className="ps-radar" role="img" aria-label={`Skill shape of ${p.name}`}>
+      {[1, 2, 3, 4, 5].map((v) => <polygon key={v} points={poly([v, v, v, v, v])} fill="none" stroke="#e1e8f7" />)}
+      <polygon points={poly(COMPANY_AVG)} fill="none" stroke="#0f1b3d" strokeWidth="1.5" strokeDasharray="4 3" />
+      <polygon points={poly(p.ratings)} fill={color} fillOpacity=".25" stroke={color} strokeWidth="2.5" strokeLinejoin="round" />
+      {p.ratings.map((v, i) => { const [x, y] = pt(i, v), [lx, ly] = pt(i, 6.3); return <g key={i}><circle cx={x} cy={y} r="4" fill={color} /><text x={lx} y={ly + 3} textAnchor="middle" fontSize="10" fontWeight="700" fill="#5b6b8c">{SHORT[i]}</text></g>; })}
+    </svg>
+  );
+}
+
+function Detail({ p, onClose, onNav }) {
+  const rank = [...PEOPLE].sort((a, b) => b.score - a.score).findIndex((x) => x.id === p.id) + 1;
+  const color = toneOf(p.score);
+  const d = r1(p.score - p.past[2]);
+  const strong = SKILLS.filter((_, i) => p.ratings[i] >= 4);
+  const weak = SKILLS.filter((_, i) => p.ratings[i] <= 3);
+  return createPortal(
+    <div className="sa ps ps-portal"><div className="ps-bg" onClick={onClose}>
+      <aside className="ps-drawer" role="dialog" aria-modal="true" aria-label={`${p.name} performance`} onClick={(e) => e.stopPropagation()}>
+        <div className="ps-dh">
+          <Avatar p={p} />
+          <div><h2>{p.name}</h2><p>{p.role}, {p.team} team. Reports to {p.manager}.</p></div>
+          <button className="ps-x ps-pn" onClick={() => onNav(-1)} aria-label="Previous person">‹</button><button className="ps-x ps-pn" onClick={() => onNav(1)} aria-label="Next person">›</button><button className="ps-x" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+        <div className="ps-hero">
+          <Ring score={p.score} />
+          <div>
+            <span className="ps-badge" style={{ background: color }}>{verdictOf(p.score)}</span><span className="ps-rank">🏅 Rank {rank} of {PEOPLE.length}</span>
+            <p>{p.name} scored {p.score.toFixed(1)} out of 5 this quarter. {d > 0 ? `Up ${d.toFixed(1)}` : d < 0 ? `Down ${Math.abs(d).toFixed(1)}` : "No change"} from last quarter.</p>
+          </div>
+        </div>
+        <div className="ps-mini">
+          <div><span>Goals done</span><strong>{p.goals}%</strong></div>
+          <div><span>On time</span><strong>{p.onTime}%</strong></div>
+          <div><span>Attendance</span><strong>{p.attendance}%</strong></div>
+        </div>
+        <section className="ps-card"><h3>Skill shape</h3><Radar p={p} /><p className="ps-note">Coloured area is {p.name}. Dashed line is the company average.</p></section>
+        <section className="ps-card">
+          <h3>Skills</h3>
+          {SKILLS.map((s, i) => (
+            <div key={s} className="ps-sk">
+              <b>{s}</b>
+              <div className="ps-track" style={{ "--c": toneOf(p.ratings[i] + 0.3) }} role="img" aria-label={`${s}: ${p.ratings[i]} out of 5, company average ${COMPANY_AVG[i]}`}>
+                <i style={{ width: `${(p.ratings[i] / 5) * 100}%` }} /><u style={{ left: `calc(${(COMPANY_AVG[i] / 5) * 100}% - 1px)` }} />
+              </div>
+              <span><b>{p.ratings[i]} / 5</b> {skillWord(p.ratings[i])}</span>
+            </div>
+          ))}
+          <p className="ps-note">Black line shows the company average.</p>
+        </section>
+        <section className="ps-card"><h3>Score over time</h3><Trend points={[...p.past, p.score]} color={color} /></section>
+        <div className="ps-two">
+          <div className="ps-box ps-good"><h4>Strengths</h4><ul>{strong.length ? strong.map((s) => <li key={s}>Strong in {s.toLowerCase()}</li>) : <li>Keeps improving each quarter</li>}</ul></div>
+          <div className="ps-box ps-grow"><h4>Areas to improve</h4><ul>{weak.length ? weak.map((s) => <li key={s}>Needs support in {s.toLowerCase()}</li>) : <li>Nothing urgent right now</li>}</ul></div>
+        </div>
+        {!p.done && <p className="ps-note">The manager has not finished this review yet.</p>}
+      </aside>
+    </div></div>,
+    document.body
+  );
+}
+
+export default function Performance() {
+  const [manager, setManager] = useState("All");
+  const [team, setTeam] = useState("All");
+  const [tab, setTab] = useState("board");
+  const [q, setQ] = useState("");
+  const [sort, setSort] = useState("high");
+  const [open, setOpen] = useState(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const k = (e) => e.key === "Escape" && setOpen(null);
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [open]);
+
+  const scoped = useMemo(() => PEOPLE.filter((p) => (manager === "All" || p.manager === manager) && (team === "All" || p.team === team)), [manager, team]);
+  const shown = useMemo(() => {
+    const list = scoped.filter((p) => `${p.name} ${p.role}`.toLowerCase().includes(q.trim().toLowerCase()));
+    return [...list].sort((a, b) => (sort === "name" ? a.name.localeCompare(b.name) : sort === "low" ? a.score - b.score : b.score - a.score));
+  }, [scoped, q, sort]);
+
+  const n = scoped.length;
+  const mean = n ? r1(avg(scoped.map((p) => p.score))) : 0;
+  const tiles = [
+    ["📊", "Average score", mean.toFixed(1), `out of 5, across ${n} people`],
+    ["🏆", "Top performers", scoped.filter((p) => p.score >= TOP).length, `score ${TOP} or higher`],
+    ["🌱", "Need support", scoped.filter((p) => p.score < LOW).length, `score below ${LOW}`],
+    ["⏳", "Reviews pending", scoped.filter((p) => !p.done).length, "manager has not finished"],
+  ];
+  const person = PEOPLE.find((p) => p.id === open);
+
+  return (
+    <div className="sa ps">
+      <style>{CSS}</style>
+
+      <header className="ps-banner">
+        <div><h1>Performance</h1><p>See how every team and person is doing. Open anyone to see their full picture.</p></div>
+        <span className="ps-period">Q3 2026, Jul to Sep</span>
+      </header>
+
+      <section className="ps-tiles" aria-label="Summary">
+        {tiles.map(([ic, l, v, c]) => <div key={l} className="ps-tile"><span className="ps-ic" aria-hidden="true">{ic}</span><div><span>{l}</span><strong>{v}</strong><small>{c}</small></div></div>)}
+      </section>
+
+      <div className="ps-filters">
+        <div className="ps-fl"><span>Manager</span><label><i aria-hidden="true">★</i>
+          <select value={manager} onChange={(e) => setManager(e.target.value)} aria-label="Manager"><option value="All">All managers</option>{MANAGERS.map((m) => <option key={m}>{m}</option>)}</select></label></div>
+        <div className="ps-fl"><span>Team</span><label><i aria-hidden="true">★</i>
+          <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team"><option value="All">All teams</option>{TEAMS.map((t) => <option key={t}>{t}</option>)}</select></label></div>
+      </div>
+
+      <section className="ps-board">
+        <div className="ps-bar">
+          <div className="ps-tabs" role="tablist">
+            {[["board", "People board"], ["teams", "Teams"]].map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}
+          </div>
+          {tab === "board" && <>
+            <input className="ps-search" type="search" placeholder="Search people" aria-label="Search people" value={q} onChange={(e) => setQ(e.target.value)} />
+            <select className="ps-sort" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort by">
+              <option value="high">Highest score first</option><option value="low">Lowest score first</option><option value="name">Name A to Z</option>
+            </select>
+          </>}
+        </div>
+
+        {tab === "board" ? (
+          <div className="ps-scroll">
+            <div className="ps-grid ps-head"><span>{shown.length} people</span><span>Overall score</span><span>Goals done</span><span>On time</span><span>Attendance</span><span>Trend</span><span>Review</span></div>
+            {shown.length === 0 && <p className="ps-empty">No one matches. Clear the search or choose All teams.</p>}
+            {shown.map((p) => (
+              <button key={p.id} className="ps-row ps-grid" onClick={() => setOpen(p.id)} aria-label={`Open ${p.name}, score ${p.score.toFixed(1)}`}>
+                <span className="ps-who"><Avatar p={p} /><span><strong>{p.name}</strong><small>{p.role}</small></span></span>
+                <span className="ps-score" style={{ "--c": toneOf(p.score) }}><b>{p.score.toFixed(1)}</b><small>{verdictOf(p.score)}</small></span>
+                <span className="ps-pct">{p.goals}%<span className="ps-track" style={{ "--c": p.goals >= 80 ? "#12a37a" : p.goals >= 60 ? "#2f5bff" : "#e5484d" }}><i style={{ width: `${p.goals}%` }} /></span></span>
+                <span className="ps-num">{p.onTime}%</span>
+                <span className="ps-num">{p.attendance}%</span>
+                <Delta p={p} />
+                <span className={`ps-chip ${p.done ? "ok" : "wait"}`}>{p.done ? "Reviewed" : "Pending"}</span>
+              </button>
             ))}
           </div>
-        </>)}
-        {step === 2 && (<>
-          <h3>{t.tag} template</h3>
-          <p className="wz-focus">Focus: {t.focus}</p>
-          <div className="wz-tpl">
-            <div><h5>Text blocks</h5><ul>{t.questions.map((q) => <li key={q}>{q}</li>)}</ul></div>
-            <div><h5>Rating scales (1 to 5)</h5><ul>{t.comps.map((q) => <li key={q}>{q}</li>)}</ul></div>
-            <div><h5>Goal alignment toggles</h5><ul>{t.goals.map((q) => <li key={q}>{q}</li>)}</ul></div>
+        ) : (
+          <div className="ps-teams">
+            {TEAMS.filter((t) => team === "All" || t === team).map((t) => {
+              const m = scoped.filter((p) => p.team === t);
+              if (!m.length) return null;
+              const s = r1(avg(m.map((p) => p.score)));
+              return (
+                <div key={t} className="ps-team" style={{ "--c": toneOf(s) }}>
+                  <h3>{t}</h3>
+                  <div><span className="big">{s.toFixed(1)}</span> <small>out of 5, {verdictOf(s).toLowerCase()}</small></div>
+                  <div className="ps-track"><i style={{ width: `${(s / 5) * 100}%` }} /></div>
+                  <ul>
+                    <li>{m.length} people</li>
+                    <li>{m.filter((p) => p.score >= TOP).length} top performers, {m.filter((p) => p.score < LOW).length} need support</li>
+                    <li>{Math.round(avg(m.map((p) => p.onTime)))}% of work delivered on time</li>
+                  </ul>
+                  <button className="ps-link" onClick={() => { setTeam(t); setTab("board"); }}>See people</button>
+                </div>
+              );
+            })}
           </div>
-          <p className="wz-note">Manager and employee fill their sections separately, then both use Lock and sign after the review meeting.</p>
-        </>)}
-        {step === 3 && (<>
-          <h3>Cycle details</h3>
-          <div className="wz-form">
-            <label>Cycle name<input value={name} onChange={(e) => setName(e.target.value)} placeholder={`${t.title}, ${fmt(start)}`} /></label>
-            <label>Applies to<select value={group} onChange={(e) => setGroup(e.target.value)}><option value="all">All groups on {CADENCES[cad].label}</option>{rows.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.org})</option>)}</select></label>
-            <label>Start date<input type="date" value={start} onChange={(e) => { setStart(e.target.value); setDue(addDays(e.target.value, t.days)); }} /></label>
-            <label>Due date<input type="date" value={due} min={start} onChange={(e) => setDue(e.target.value)} /></label>
-          </div>
-          <div className="wz-sum"><strong>{target}</strong> employees will get a <b>{t.tag}</b> from {fmt(start)} to {fmt(due)}. Reminders go out 2 days before the due date.</div>
-        </>)}
-        <div className="wz-foot">
-          <button className="ghostbtn" onClick={step === 1 ? onClose : () => setStep(step - 1)}>{step === 1 ? "Cancel" : "Back"}</button>
-          {step < 3 ? <button className="sa-btn" onClick={() => setStep(step + 1)}>Next</button> : <button className="sa-btn" disabled={!target} onClick={create}>Create cycle</button>}
-        </div>
-      </div>
+        )}
+      </section>
+
+      {person && <Detail p={person} onClose={() => setOpen(null)} onNav={(d) => { if (!shown.length) return; const i = shown.findIndex((x) => x.id === open); setOpen(shown[(i + d + shown.length) % shown.length].id); }} />}
     </div>
   );
 }
