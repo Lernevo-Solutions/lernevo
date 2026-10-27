@@ -1,386 +1,95 @@
-import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState, Fragment } from "react";
+import { Bar, Doughnut, Line } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Tooltip, Legend } from "chart.js";
 import "./Performance.css";
 
-/* ---------- Sample data: 14 people in an IT company ---------- */
-const SKILLS = ["Technical skills", "Quality of work", "Communication", "Teamwork", "Ownership"];
-const QUARTERS = ["Q4 2025", "Q1 2026", "Q2 2026", "Q3 2026"];
-const TOP = 4.3;
-const LOW = 3.3;
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Tooltip, Legend);
 
-// name, role, team, manager, skill ratings, goals %, on-time %, attendance %, last 3 quarters, review finished (1/0)
-const RAW = [
-  ["Arun", "Team Lead", "Support desk", "Priya", [4, 4, 5, 5, 4], 88, 95, 98, [3.9, 4.1, 4.2], 1],
-  ["Meena", "Supervisor", "Quality", "Priya", [4, 5, 4, 4, 4], 92, 97, 99, [3.9, 4.0, 4.2], 1],
-  ["Lakshmi", "Associate", "Support desk", "Priya", [3, 4, 4, 4, 3], 70, 90, 96, [3.3, 3.5, 3.6], 0],
-  ["Hari", "Associate", "Engineering", "Vikram", [4, 4, 3, 4, 4], 75, 88, 96, [3.4, 3.6, 3.7], 1],
-  ["Vikram", "Manager", "Engineering", "Leadership", [4, 3, 3, 3, 4], 55, 82, 94, [3.6, 3.4, 3.4], 0],
-  ["Divya", "Executive", "Engineering", "Vikram", [5, 4, 4, 4, 5], 96, 95, 98, [3.8, 4.1, 4.3], 1],
-  ["Suresh", "Executive", "Quality", "Priya", [3, 3, 4, 3, 3], 48, 80, 92, [3.2, 3.1, 3.1], 0],
-  ["Bala", "Team Lead", "Engineering", "Vikram", [4, 4, 4, 5, 4], 85, 93, 97, [3.8, 3.9, 4.1], 1],
-  ["Ravi", "Associate", "Support desk", "Priya", [3, 3, 3, 4, 3], 52, 84, 93, [3.1, 3.0, 3.2], 0],
-  ["Sana", "Associate", "Support desk", "Priya", [3, 4, 5, 4, 3], 68, 91, 97, [3.5, 3.7, 3.8], 1],
-  ["Karthik", "Associate", "Quality", "Priya", [4, 4, 4, 3, 4], 80, 92, 95, [3.6, 3.7, 3.8], 1],
-  ["Priya", "Manager", "Support desk", "Leadership", [4, 4, 5, 4, 5], 90, 96, 99, [4.0, 4.1, 4.3], 1],
-  ["Naveen", "Associate", "Engineering", "Vikram", [3, 3, 4, 4, 3], 60, 85, 94, [3.2, 3.3, 3.4], 0],
-  ["Anita", "Executive", "Quality", "Priya", [5, 4, 4, 5, 4], 94, 98, 99, [4.0, 4.2, 4.3], 1],
+const periods = ["Weekly", "Monthly", "Quarterly", "Half-Yearly", "Yearly"];
+const criteria = ["Task Completion", "Work Quality", "Productivity", "Communication", "Teamwork", "Ownership", "Problem-Solving", "Role Skills", "Learning & Growth"];
+const teams = [
+  { id: "dev", name: "Development Team", color: "#315efb", metrics: [["Task Completion", 85], ["Quality of Work", 4.2], ["Collaboration", 4.3], ["On-time Delivery", 78]] },
+  { id: "product", name: "Product Team", color: "#8a5cf6", metrics: [["Task Completion", 82], ["Quality of Work", 4.0], ["Collaboration", 4.2], ["On-time Delivery", 80]] },
+  { id: "design", name: "Design Team", color: "#e16a9a", metrics: [["Task Completion", 90], ["Quality of Work", 4.3], ["Collaboration", 4.5], ["On-time Delivery", 86]] },
+  { id: "marketing", name: "Marketing Team", color: "#e79a28", metrics: [["Task Completion", 80], ["Quality of Work", 3.9], ["Collaboration", 4.1], ["On-time Delivery", 83]] },
+  { id: "qa", name: "QA Team", color: "#20a889", metrics: [["Task Completion", 89], ["Quality of Work", 4.4], ["Collaboration", 4.2], ["On-time Delivery", 90]] },
 ];
+const staffRows = [
+  ["Janani", "Frontend Developer", "dev", "Ananya Rao", 4.5], ["Aravind", "Backend Developer", "dev", "Ananya Rao", 4.0], ["Sneha", "UI/UX Designer", "dev", "Ananya Rao", 4.2], ["Karthik", "DevOps Engineer", "dev", "Ananya Rao", 3.8], ["Priya", "QA Engineer", "dev", "Ananya Rao", 4.5],
+  ["Meera Shah", "Product Manager", "product", "Vikram Das", 4.2], ["Rahul Verma", "Product Analyst", "product", "Vikram Das", 4.0], ["Aisha Khan", "Business Analyst", "product", "Vikram Das", 3.9], ["Dev Patel", "Product Operations", "product", "Vikram Das", 3.9],
+  ["Nisha Reddy", "Product Designer", "design", "Meera Shah", 4.4], ["Varun Pillai", "Visual Designer", "design", "Meera Shah", 4.2], ["Tara Bose", "UX Researcher", "design", "Meera Shah", 4.3],
+  ["Rohan Kulkarni", "Marketing Lead", "marketing", "Vikram Das", 4.1], ["Pooja Menon", "Content Strategist", "marketing", "Rohan Kulkarni", 3.9], ["Aman Gill", "Growth Marketer", "marketing", "Rohan Kulkarni", 3.8], ["Ishita Sen", "Social Media Manager", "marketing", "Rohan Kulkarni", 3.8],
+  ["Sanjay Rao", "QA Lead", "qa", "Ananya Rao", 4.5], ["Divya Krishnan", "Automation Engineer", "qa", "Sanjay Rao", 4.4], ["Naveen Thomas", "QA Analyst", "qa", "Sanjay Rao", 4.3],
+].map(([name, role, teamId, manager, rating], i) => ({ id: `LE-${100 + i}`, name, role, teamId, manager, rating }));
+const ratingsFor = (rating) => Object.fromEntries(criteria.map((c, i) => [c, Math.max(1, Math.min(5, Math.round((rating + ((i % 3) - 1) * .2) * 10) / 10))]));
+const seedReviews = staffRows.flatMap((e, i) => ["Quarterly", "Monthly", ...(i % 3 === 0 ? ["Weekly"] : []), ...(i % 4 === 0 ? ["Yearly"] : [])].map((type, j) => ({
+  id: `R-${e.id}-${type}-${j}`, employeeId: e.id, type, period: j === 0 ? "Q3 2026 (Jul - Sep)" : ["Aug 2026", "Q2 2026", "H1 2026"][j % 3], date: j === 0 ? "2026-09-30" : `2026-0${Math.max(3, 8 - j)}-31`, reviewer: e.manager,
+  rating: Math.round((e.rating + (j % 2 ? -.2 : 0)) * 10) / 10, ratings: ratingsFor(e.rating), status: j === 0 && i % 5 === 2 ? "Pending" : "Completed",
+  achievements: "Delivered committed work, improved team workflows, and shared knowledge with colleagues.",
+  strengths: "Reliable execution, thoughtful collaboration, and strong ownership of outcomes.",
+  improvement: "Continue to communicate risks early and strengthen testing documentation.",
+  feedback: "Janani has shown strong performance this quarter. Delivered high quality work and actively supported the team.",
+  goals: ["Complete a role-specific learning plan", "Deliver next quarter priorities with clear milestones"],
+})));
+const seedCycles = [{ id: "C-Q3", name: "Q3 2026 Performance Review", type: "Quarterly", period: "Q3 2026 (Jul - Sep)", status: "Active", teamIds: teams.map(t => t.id) }];
+const avg = values => values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length * 10) / 10 : 0;
+const emp = id => staffRows.find(e => e.id === id);
+const team = id => teams.find(t => t.id === id);
+const initials = name => name.split(" ").map(s => s[0]).join("").slice(0, 2);
+const ratingsAvg = rs => avg(rs.filter(r => r.status === "Completed").map(r => Number(r.rating)));
+const freshForm = (employeeId = "", teamId = "") => ({ employeeId, teamId: teamId || emp(employeeId)?.teamId || "", type: "Weekly", period: "Oct 20, 2026 - Oct 26, 2026", reviewer: "Ananya Rao", ratings: {}, achievements: "", strengths: "", feedback: "", improvement: "", goals: "" });
 
-const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-const r1 = (n) => Math.round(n * 10) / 10;
-const PEOPLE = RAW.map(([name, role, team, manager, ratings, goals, onTime, attendance, past, done], i) => ({
-  id: i + 1, name, role, team, manager, ratings, goals, onTime, attendance, past, done: !!done, score: r1(avg(ratings)),
-}));
-const COMPANY_AVG = SKILLS.map((_, i) => r1(avg(PEOPLE.map((p) => p.ratings[i]))));
-const PASTELS = ["#fdf3c7", "#fde0ea", "#e6e0fb", "#dbe8ff", "#d9f5e5", "#ffe6d2"];
-
-const toneOf = (s) => (s >= TOP ? "#12a37a" : s >= 3.7 ? "#2f5bff" : s >= LOW ? "#d97706" : "#e5484d");
-const verdictOf = (s) => (s >= TOP ? "Outstanding" : s >= 3.7 ? "Strong performer" : s >= LOW ? "Meets expectations" : "Needs support");
-const skillWord = (v) => (v >= 5 ? "Excellent" : v >= 4 ? "Strong" : v >= 3 ? "Good" : "Needs work");
-const uniq = (k) => [...new Set(PEOPLE.map((p) => p[k]))];
-const MANAGERS = uniq("manager");
-const TEAMS = uniq("team");
-
-const CSS = `
-.sa.ps{--ink:#14213d;--mut:#5b6b8c;--ln:#e1e8f7;--blue:#2f5bff;
-  font-family:"Plus Jakarta Sans",system-ui,sans-serif;display:grid;gap:16px;width:100%;margin:0;padding:clamp(14px,2.2vw,28px);border-radius:0;background:#f7f9ff;color:var(--ink);font-size:14px;line-height:1.45}
-.ps h1,.ps h2,.ps h3,.ps h4,.ps p{margin:0}
-.ps-banner{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding:22px 26px;border-radius:20px;background:linear-gradient(120deg,#eaf0ff,#f6f3ff);border:1px solid var(--ln)}
-.ps-banner h1{font-size:clamp(24px,3vw,30px);font-weight:800;letter-spacing:-.02em;color:#0f1b3d}
-.ps-banner p{margin-top:4px;color:var(--mut);font-size:15px;max-width:60ch}
-.ps-period{padding:8px 16px;border-radius:12px;background:#fff;border:1px solid var(--ln);font-weight:700;color:#1d3fd0}
-
-.ps-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
-.ps-tile{display:flex;gap:14px;align-items:center;padding:18px 20px;border-radius:18px;background:#fff;border:1px solid var(--ln)}
-.ps-ic{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#eef2ff;font-size:21px}
-.ps-tile span{display:block;color:var(--mut);font-weight:600;font-size:13.5px}
-.ps-tile strong{display:block;font-size:28px;font-weight:800;line-height:1.15;color:#1d3fd0}
-.ps-tile small{color:var(--mut);font-size:13px}
-
-.ps-filters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
-.ps-fl{display:flex;align-items:center;gap:8px}
-.ps-fl>span{color:var(--mut);font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.ps-fl label{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:14px;background:#fff;border:1.5px solid var(--ln)}
-.ps-fl i{font-style:normal;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:#e0e8ff;color:#1d3fd0;font-size:13px}
-.sa.ps .ps-fl select,.sa.ps .ps-sort{border:0;background:transparent;color:var(--ink);font-weight:700;font-size:15px;padding:6px 2px;cursor:pointer}
-.sa.ps .ps-sort{border:1.5px solid var(--ln);background:#fff;border-radius:12px;padding:9px 12px;font-size:14px}
-
-.ps-board{padding:14px;border-radius:20px;background:#fff;border:1px solid var(--ln)}
-.ps-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
-.ps-tabs{display:flex;padding:4px;border-radius:12px;background:#eef2ff}
-.sa.ps .ps-tabs button{border:0;background:transparent;padding:9px 16px;border-radius:9px;font-weight:700;color:var(--mut)}
-.sa.ps .ps-tabs button.on{background:#fff;color:#1d3fd0;box-shadow:0 1px 3px rgba(20,33,61,.12)}
-.sa.ps .ps-search{flex:1 1 220px;max-width:340px;padding:11px 14px;border-radius:12px;border:1.5px solid var(--ln);font:inherit;color:var(--ink)}
-.ps-bar .ps-sort{margin-left:auto}
-.ps-scroll{overflow-x:auto}
-.ps-grid{min-width:820px;display:grid;grid-template-columns:minmax(190px,1.5fr) 150px minmax(120px,1fr) 80px 100px 120px 120px;gap:10px;align-items:center}
-.ps-head{padding:0 8px 8px}
-.ps-head span{padding:8px 6px;border-radius:12px;background:#eef3ff;color:#4a5b82;font-weight:700;font-size:13px;text-align:center}
-.ps-head span:first-child{background:none;text-align:left;font-size:14px}
-.sa.ps .ps-row{width:100%;padding:9px 8px;border:0;border-top:1px solid #edf1fb;background:transparent;border-radius:14px;text-align:left;color:inherit;cursor:pointer;transition:background .15s}
-.sa.ps .ps-row:hover{background:#f3f6ff}
-.ps-who{display:flex;align-items:center;gap:12px;min-width:0}
-.ps-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#33415f}
-.ps-who strong{display:block;font-size:15px;color:#0f1b3d}.ps-who small{color:var(--mut);font-size:13px}
-.ps-score{display:flex;align-items:center;justify-content:center;gap:8px}
-.ps-score b{min-width:44px;padding:5px 10px;border-radius:10px;background:var(--c);color:#fff;text-align:center;font-size:14px}
-.ps-score small{color:var(--mut);font-size:12px;line-height:1.2;max-width:70px}
-.ps-pct{display:grid;gap:4px;justify-items:center;font-weight:700;font-size:13.5px}
-.ps-pct .ps-track{width:100%}
-.ps-num{text-align:center;font-weight:700;color:#1d3fd0;background:#eef3ff;border-radius:10px;padding:6px 4px;font-size:13.5px}
-.ps-tr{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:13px}
-.ps-up{color:#0b7a57}.ps-dn{color:#b42318}.ps-eq{color:var(--mut)}
-.ps-chip{justify-self:center;padding:4px 12px;border-radius:99px;font-size:12.5px;font-weight:700}
-.ps-chip.ok{background:#dff5ea;color:#0b7a57}.ps-chip.wait{background:#fff1de;color:#b45309}
-.ps-track{position:relative;height:10px;border-radius:9px;background:#edf1fb}
-.ps-track i{display:block;height:100%;border-radius:9px;background:var(--c)}
-.ps-track u{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:2px;background:#0f1b3d;text-decoration:none}
-.ps-empty{padding:28px 10px;text-align:center;color:var(--mut)}
-
-.ps-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.ps-team{padding:18px 20px;border-radius:16px;border:1px solid var(--ln);background:#fbfcff;display:grid;gap:10px}
-.ps-team h3{font-size:18px;font-weight:800;color:#0f1b3d}
-.ps-team .big{font-size:30px;font-weight:800;color:var(--c)}
-.ps-team ul{margin:0;padding:0;list-style:none;display:grid;gap:4px;color:var(--mut);font-size:13.5px}
-.sa.ps .ps-link{justify-self:start;border:0;background:#e0e8ff;color:#1d3fd0;font-weight:700;padding:8px 14px;border-radius:10px;cursor:pointer}
-
-.ps-bg{position:fixed;inset:0;z-index:40;display:flex;justify-content:flex-end;background:rgba(15,27,61,.45)}
-.ps-drawer{width:min(560px,100%);height:100%;overflow:auto;padding:20px;display:grid;gap:14px;align-content:start;background:#f4f6fc;animation:ps-in .25s ease-out}
-@keyframes ps-in{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
-.ps-dh{display:flex;align-items:center;gap:14px}
-.ps-dh .ps-av{width:56px;height:56px;font-size:18px}
-.ps-dh h2{font-size:22px;font-weight:800;color:#0f1b3d}.ps-dh p{color:var(--mut)}
-.sa.ps .ps-x{margin-left:auto;width:38px;height:38px;border-radius:12px;border:1.5px solid var(--ln);background:#fff;font-size:18px;color:var(--ink);cursor:pointer}
-.ps-hero{display:flex;gap:18px;align-items:center;padding:20px 22px;border-radius:20px;color:#fff;background:radial-gradient(circle at 90% 10%,rgba(124,92,255,.5),transparent 55%),#0f1b3d}
-.ps-ring{flex:none;width:128px;height:128px}
-.ps-badge{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:800;font-size:13px;color:#fff}
-.ps-hero p{margin-top:8px;color:#dbe4ff}
-.ps-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.ps-mini div{padding:12px 14px;border-radius:14px;background:#fff;border:1px solid var(--ln)}
-.ps-mini span{display:block;color:var(--mut);font-size:12.5px;font-weight:600}.ps-mini strong{font-size:22px;color:#0f1b3d}
-.ps-card{padding:18px 20px;border-radius:16px;background:#fff;border:1px solid var(--ln)}
-.ps-card h3{font-size:16px;font-weight:800;color:#0f1b3d;margin-bottom:10px}
-.ps-sk{display:grid;grid-template-columns:120px minmax(0,1fr) 96px;gap:10px;align-items:center;padding:7px 0;font-size:13.5px}
-.ps-sk>span{text-align:right;color:var(--mut)}.ps-sk>span b{color:var(--ink)}
-.ps-note{margin-top:8px;color:var(--mut);font-size:12.5px}
-.ps-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ps-box{padding:14px 16px;border-radius:14px}.ps-box h4{margin-bottom:8px;font-size:14px}
-.ps-box ul{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:13.5px}
-.ps-box li{display:flex;gap:8px}.ps-box li:before{flex:none;font-weight:800}
-.ps-good{background:#eefaf4}.ps-good h4,.ps-good li:before{color:#0b7a57}.ps-good li:before{content:"✓"}
-.ps-grow{background:#fff6e8}.ps-grow h4,.ps-grow li:before{color:#b45309}.ps-grow li:before{content:"↑"}
-.ps-chart{width:100%;height:auto;display:block}
-@media(max-width:560px){.ps-two{grid-template-columns:1fr}.ps-sk{grid-template-columns:1fr}.ps-sk>span{text-align:left}.ps-hero{flex-direction:column;align-items:flex-start}}
-@media(prefers-reduced-motion:reduce){.ps-drawer{animation:none}.sa.ps .ps-row{transition:none}}
-
-.ps .ps-banner{position:relative;overflow:hidden;color:#fff;border:0;background:radial-gradient(circle at 85% 0%,rgba(143,180,255,.55),transparent 45%),linear-gradient(115deg,#0b2a6f,#1746c4 60%,#7c5cff);box-shadow:0 14px 34px rgba(23,70,196,.28)}
-.ps .ps-banner:after{content:"";position:absolute;right:-50px;bottom:-80px;width:240px;height:240px;border-radius:50%;border:34px solid rgba(255,255,255,.08)}
-.ps .ps-banner h1{color:#fff}.ps .ps-banner p{color:#d6e2ff}
-.ps .ps-period{position:relative;z-index:1;background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff;backdrop-filter:blur(4px)}
-.ps-tile{position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
-.ps-tile:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(#2f5bff,#7c5cff)}
-.ps-tile:nth-child(2):before{background:linear-gradient(#12a37a,#6ee7b7)}.ps-tile:nth-child(3):before{background:linear-gradient(#e5484d,#fca5a5)}.ps-tile:nth-child(4):before{background:linear-gradient(#d97706,#fcd34d)}
-.ps-tile:hover{transform:translateY(-4px);box-shadow:0 16px 30px rgba(23,70,196,.14)}
-.ps-board{box-shadow:0 10px 30px rgba(23,70,196,.08)}
-.sa.ps .ps-row:hover{background:linear-gradient(90deg,#eef3ff,#f6f3ff);transform:translateX(3px)}
-.ps-av{box-shadow:0 0 0 3px #fff,0 4px 10px rgba(20,33,61,.15)}
-.ps-track i{background:linear-gradient(90deg,var(--c),color-mix(in srgb,var(--c) 60%,#fff));animation:ps-grow .7s ease-out}
-@keyframes ps-grow{from{width:0}}
-.ps-team{transition:transform .2s,box-shadow .2s;border-top:4px solid var(--c)}.ps-team:hover{transform:translateY(-4px);box-shadow:0 14px 28px rgba(23,70,196,.12)}
-.ps-bg{backdrop-filter:blur(3px)}
-.ps-drawer{box-shadow:-20px 0 50px rgba(15,27,61,.3)}
-.ps-hero{box-shadow:0 14px 30px rgba(15,27,61,.3)}
-.ps-rank{display:inline-block;margin-left:8px;padding:4px 12px;border-radius:99px;font-weight:800;font-size:13px;background:rgba(255,255,255,.16);color:#fff}
-.ps-mini div{text-align:center;transition:transform .2s}.ps-mini div:hover{transform:translateY(-3px)}
-.ps-radar{width:100%;max-width:320px;height:auto;display:block;margin:0 auto}
-.ps-nav{display:flex;justify-content:space-between;gap:10px;position:sticky;bottom:-20px;padding:12px 0;background:linear-gradient(transparent,#f4f6fc 30%)}
-.sa.ps .ps-nav button{flex:1;border:0;padding:12px;border-radius:12px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(120deg,#1746c4,#2f6bff);box-shadow:0 6px 16px rgba(23,70,196,.3)}
-.sa.ps.ps-portal{position:fixed;inset:0;z-index:2147483000;display:block;padding:0;margin:0;background:transparent;border-radius:0;width:auto}
-.ps-drawer{padding-bottom:90px}
-.sa.ps .ps-pn{margin-left:0;font-size:22px;line-height:1;font-weight:700;color:#1d3fd0}
-.sa.ps .ps-dh .ps-pn:first-of-type{margin-left:auto}
-.sa.ps .ps-dh .ps-pn+.ps-x:not(.ps-pn){margin-left:0}
-.ps-radar{max-width:260px}
-@media(prefers-reduced-motion:reduce){.ps-track i{animation:none}.ps-tile,.ps-team,.ps-mini div{transition:none}}
-`;
-
-function Spark({ points, color }) {
-  const lo = Math.min(...points) - 0.1, hi = Math.max(...points) + 0.1;
-  const pts = points.map((v, i) => `${i * 22 + 4},${22 - ((v - lo) / (hi - lo)) * 18}`).join(" ");
-  return <svg width="70" height="26" viewBox="0 0 70 26" aria-hidden="true"><polyline points={pts} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-}
-
-function Ring({ score }) {
-  const C = 2 * Math.PI * 54, len = (score / 5) * C;
-  const stroke = score >= 3.7 && score < TOP ? "#7ea3ff" : toneOf(score);
-  return (
-    <svg viewBox="0 0 140 140" className="ps-ring" role="img" aria-label={`Overall score ${score.toFixed(1)} out of 5`}>
-      <g transform="rotate(-90 70 70)">
-        <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,.14)" strokeWidth="14" />
-        <circle cx="70" cy="70" r="54" fill="none" stroke={stroke} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${len} ${C - len}`} />
-      </g>
-      <text x="70" y="72" textAnchor="middle" fontSize="34" fontWeight="800" fill="#fff">{score.toFixed(1)}</text>
-      <text x="70" y="92" textAnchor="middle" fontSize="12" fontWeight="600" fill="#b9c6ea">out of 5</text>
-    </svg>
-  );
-}
-
-function Trend({ points, color }) {
-  const x = (i) => 40 + i * 80, y = (v) => 120 - ((v - 1) / 4) * 100, last = points.length - 1;
-  return (
-    <svg viewBox="0 0 320 165" className="ps-chart" role="img" aria-label={`Score by quarter: ${points.map((v, i) => `${QUARTERS[i]} ${v.toFixed(1)}`).join(", ")}`}>
-      {[1, 2, 3, 4, 5].map((v) => <g key={v}><line x1="28" x2="300" y1={y(v)} y2={y(v)} stroke="#edf1fb" /><text x="14" y={y(v) + 4} fontSize="10" fill="#8a97b4" textAnchor="middle">{v}</text></g>)}
-      <polyline points={points.map((v, i) => `${x(i)},${y(v)}`).join(" ")} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-      {points.map((v, i) => (
-        <g key={QUARTERS[i]}>
-          <circle cx={x(i)} cy={y(v)} r={i === last ? 7 : 5} fill={i === last ? color : "#fff"} stroke={color} strokeWidth="3" />
-          <text x={x(i)} y={y(v) - 13} textAnchor="middle" fontSize="12" fontWeight="700" fill="#14213d">{v.toFixed(1)}</text>
-          <text x={x(i)} y="150" textAnchor="middle" fontSize="11" fill="#5b6b8c">{QUARTERS[i]}</text>
-        </g>
-      ))}
-    </svg>
-  );
-}
-
-const Avatar = ({ p, cls = "ps-av" }) => <span className={cls} style={{ background: PASTELS[(p.id - 1) % PASTELS.length] }}>{p.name.slice(0, 2).toUpperCase()}</span>;
-const Delta = ({ p }) => {
-  const d = r1(p.score - p.past[2]);
-  return <span className={`ps-tr ${d > 0 ? "ps-up" : d < 0 ? "ps-dn" : "ps-eq"}`}><Spark points={[...p.past, p.score]} color={toneOf(p.score)} />{d > 0 ? `▲ ${d.toFixed(1)}` : d < 0 ? `▼ ${Math.abs(d).toFixed(1)}` : "–"}</span>;
-};
-
-const SHORT = ["Technical", "Quality", "Comms", "Teamwork", "Ownership"];
-function Radar({ p }) {
-  const cx = 110, cy = 105, R = 70;
-  const pt = (i, v) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5; return [cx + Math.cos(a) * R * (v / 5), cy + Math.sin(a) * R * (v / 5)]; };
-  const poly = (vals) => vals.map((v, i) => pt(i, v).join(",")).join(" ");
-  const color = toneOf(p.score);
-  return (
-    <svg viewBox="0 0 220 210" className="ps-radar" role="img" aria-label={`Skill shape of ${p.name}`}>
-      {[1, 2, 3, 4, 5].map((v) => <polygon key={v} points={poly([v, v, v, v, v])} fill="none" stroke="#e1e8f7" />)}
-      <polygon points={poly(COMPANY_AVG)} fill="none" stroke="#0f1b3d" strokeWidth="1.5" strokeDasharray="4 3" />
-      <polygon points={poly(p.ratings)} fill={color} fillOpacity=".25" stroke={color} strokeWidth="2.5" strokeLinejoin="round" />
-      {p.ratings.map((v, i) => { const [x, y] = pt(i, v), [lx, ly] = pt(i, 6.3); return <g key={i}><circle cx={x} cy={y} r="4" fill={color} /><text x={lx} y={ly + 3} textAnchor="middle" fontSize="10" fontWeight="700" fill="#5b6b8c">{SHORT[i]}</text></g>; })}
-    </svg>
-  );
-}
-
-function Detail({ p, onClose, onNav }) {
-  const rank = [...PEOPLE].sort((a, b) => b.score - a.score).findIndex((x) => x.id === p.id) + 1;
-  const color = toneOf(p.score);
-  const d = r1(p.score - p.past[2]);
-  const strong = SKILLS.filter((_, i) => p.ratings[i] >= 4);
-  const weak = SKILLS.filter((_, i) => p.ratings[i] <= 3);
-  return createPortal(
-    <div className="sa ps ps-portal"><div className="ps-bg" onClick={onClose}>
-      <aside className="ps-drawer" role="dialog" aria-modal="true" aria-label={`${p.name} performance`} onClick={(e) => e.stopPropagation()}>
-        <div className="ps-dh">
-          <Avatar p={p} />
-          <div><h2>{p.name}</h2><p>{p.role}, {p.team} team. Reports to {p.manager}.</p></div>
-          <button className="ps-x ps-pn" onClick={() => onNav(-1)} aria-label="Previous person">‹</button><button className="ps-x ps-pn" onClick={() => onNav(1)} aria-label="Next person">›</button><button className="ps-x" onClick={onClose} aria-label="Close">✕</button>
-        </div>
-        <div className="ps-hero">
-          <Ring score={p.score} />
-          <div>
-            <span className="ps-badge" style={{ background: color }}>{verdictOf(p.score)}</span><span className="ps-rank">🏅 Rank {rank} of {PEOPLE.length}</span>
-            <p>{p.name} scored {p.score.toFixed(1)} out of 5 this quarter. {d > 0 ? `Up ${d.toFixed(1)}` : d < 0 ? `Down ${Math.abs(d).toFixed(1)}` : "No change"} from last quarter.</p>
-          </div>
-        </div>
-        <div className="ps-mini">
-          <div><span>Goals done</span><strong>{p.goals}%</strong></div>
-          <div><span>On time</span><strong>{p.onTime}%</strong></div>
-          <div><span>Attendance</span><strong>{p.attendance}%</strong></div>
-        </div>
-        <section className="ps-card"><h3>Skill shape</h3><Radar p={p} /><p className="ps-note">Coloured area is {p.name}. Dashed line is the company average.</p></section>
-        <section className="ps-card">
-          <h3>Skills</h3>
-          {SKILLS.map((s, i) => (
-            <div key={s} className="ps-sk">
-              <b>{s}</b>
-              <div className="ps-track" style={{ "--c": toneOf(p.ratings[i] + 0.3) }} role="img" aria-label={`${s}: ${p.ratings[i]} out of 5, company average ${COMPANY_AVG[i]}`}>
-                <i style={{ width: `${(p.ratings[i] / 5) * 100}%` }} /><u style={{ left: `calc(${(COMPANY_AVG[i] / 5) * 100}% - 1px)` }} />
-              </div>
-              <span><b>{p.ratings[i]} / 5</b> {skillWord(p.ratings[i])}</span>
-            </div>
-          ))}
-          <p className="ps-note">Black line shows the company average.</p>
-        </section>
-        <section className="ps-card"><h3>Score over time</h3><Trend points={[...p.past, p.score]} color={color} /></section>
-        <div className="ps-two">
-          <div className="ps-box ps-good"><h4>Strengths</h4><ul>{strong.length ? strong.map((s) => <li key={s}>Strong in {s.toLowerCase()}</li>) : <li>Keeps improving each quarter</li>}</ul></div>
-          <div className="ps-box ps-grow"><h4>Areas to improve</h4><ul>{weak.length ? weak.map((s) => <li key={s}>Needs support in {s.toLowerCase()}</li>) : <li>Nothing urgent right now</li>}</ul></div>
-        </div>
-        {!p.done && <p className="ps-note">The manager has not finished this review yet.</p>}
-      </aside>
-    </div></div>,
-    document.body
-  );
-}
+function Pill({ children, kind }) { return <span className={`pr-pill pr-${(kind || children || "").toString().toLowerCase().replaceAll(" ", "-")}`}>{children}</span>; }
+function Score({ value }) { return <span className="pr-score"><b>★</b> {Number(value || 0).toFixed(1)}</span>; }
+function Modal({ title, close, children, size = "" }) { return <div className="pr-backdrop" onMouseDown={e => e.target === e.currentTarget && close()}><section className={`pr-modal ${size}`} role="dialog" aria-modal="true"><header><h2>{title}</h2><button aria-label="Close" onClick={close}>×</button></header>{children}</section></div>; }
 
 export default function Performance() {
-  const [manager, setManager] = useState("All");
-  const [team, setTeam] = useState("All");
-  const [tab, setTab] = useState("board");
-  const [q, setQ] = useState("");
-  const [sort, setSort] = useState("high");
-  const [open, setOpen] = useState(null);
+  const [reviews, setReviews] = useState(() => { try { return JSON.parse(localStorage.getItem("lernevo-performance-reviews")) || seedReviews; } catch { return seedReviews; } });
+  const [cycles, setCycles] = useState(() => { try { return JSON.parse(localStorage.getItem("lernevo-performance-cycles")) || seedCycles; } catch { return seedCycles; } });
+  const [tab, setTab] = useState("Team View"), [period, setPeriod] = useState("Q3 2026 (Jul - Sep)"), [type, setType] = useState("All"), [status, setStatus] = useState("All"), [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState({}), [modal, setModal] = useState(null), [subtab, setSubtab] = useState("Review History"), [teamTab, setTeamTab] = useState("Overview"), [historyType, setHistoryType] = useState("All"), [historyPeriod, setHistoryPeriod] = useState("All");
+  const [form, setForm] = useState(null), [cycleOpen, setCycleOpen] = useState(false), [toast, setToast] = useState(""), [errors, setErrors] = useState({});
+  const notify = message => { setToast(message); setTimeout(() => setToast(""), 2600); };
+  const saveReviews = next => { setReviews(next); try { localStorage.setItem("lernevo-performance-reviews", JSON.stringify(next)); } catch {} };
+  const saveCycles = next => { setCycles(next); try { localStorage.setItem("lernevo-performance-cycles", JSON.stringify(next)); } catch {} };
+  const visibleReviews = reviews.filter(r => (period === "All Periods" || r.period === period || r.type === period) && (type === "All" || r.type === type) && (status === "All" || r.status === status));
+  const teamsShown = teams.filter(t => (!search || t.name.toLowerCase().includes(search.toLowerCase()) || staffRows.some(e => e.teamId === t.id && e.name.toLowerCase().includes(search.toLowerCase()))));
+  const peopleShown = staffRows.filter(e => (!search || [e.name, e.id, e.role, team(e.teamId).name].some(s => s.toLowerCase().includes(search.toLowerCase()))) && reviewsFor(e.id).length > 0);
+  function reviewsFor(id) { return visibleReviews.filter(r => r.employeeId === id).sort((a,b) => b.date.localeCompare(a.date)); }
+  const openEmployee = id => { setSubtab("Review History"); setModal({ kind: "employee", id }); };
+  const openForm = (employeeId = "", teamId = "") => { setModal(null); setErrors({}); setForm(freshForm(employeeId, teamId)); };
+  const counts = teamId => { const rs = visibleReviews.filter(r => emp(r.employeeId)?.teamId === teamId); return { complete: rs.filter(r => r.status === "Completed").length, pending: rs.filter(r => r.status === "Pending").length, average: ratingsAvg(rs) }; };
+  const currentPerson = modal?.kind === "employee" ? emp(modal.id) : null;
+  const currentTeam = modal?.kind === "team" ? team(modal.id) : null;
+  const detail = modal?.kind === "review" ? reviews.find(r => r.id === modal.id) : null;
+  const detailPerson = detail ? emp(detail.employeeId) : null;
+  const reports = visibleReviews.filter(r => r.status === "Completed");
+  const pageStats = { completed: visibleReviews.filter(r => r.status === "Completed").length, pending: visibleReviews.filter(r => r.status === "Pending").length, average: ratingsAvg(visibleReviews) };
+  const summaryCards = teamId => { const rs = visibleReviews.filter(r => emp(r.employeeId)?.teamId === teamId); return { total: staffRows.filter(e => e.teamId === teamId).length, avg: ratingsAvg(rs), done: rs.filter(r => r.status === "Completed").length, pending: rs.filter(r => r.status === "Pending").length }; };
+  const createReview = draft => {
+    const err = {}; if (!form.employeeId) err.employeeId = "Select an employee."; if (!form.reviewer.trim()) err.reviewer = "Reviewer is required.";
+    criteria.slice(0, 8).forEach(c => { if (!(form.ratings[c] >= 1 && form.ratings[c] <= 5)) err[c] = "Select a rating."; });
+    if (Object.keys(err).length) { setErrors(err); return; }
+    const person = emp(form.employeeId), rating = avg(criteria.slice(0, 8).map(c => form.ratings[c]));
+    const record = { id: `R-${Date.now()}`, employeeId: person.id, type: form.type, period: form.period, date: "2026-10-27", reviewer: form.reviewer, rating, ratings: { ...form.ratings }, status: draft ? "Draft" : "Completed", achievements: form.achievements, strengths: form.strengths, feedback: form.feedback, improvement: form.improvement, goals: [form.goals] };
+    saveReviews([record, ...reviews]); setForm(null); notify(draft ? "Draft saved" : "Review submitted");
+  };
+  const createCycle = e => { e.preventDefault(); const fd = new FormData(e.currentTarget), start = fd.get("start"), end = fd.get("end"), teamIds = fd.getAll("teams"); if (end < start || !teamIds.length) { notify(end < start ? "End date must follow start date." : "Select at least one team."); return; } const next = [{ id: `C-${Date.now()}`, name: fd.get("name"), type: fd.get("type"), period: fd.get("name"), status: fd.get("status"), teamIds }, ...cycles]; saveCycles(next); setCycleOpen(false); notify("Review cycle created"); };
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 5 } } };
 
-  useEffect(() => {
-    if (!open) return undefined;
-    const k = (e) => e.key === "Escape" && setOpen(null);
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  }, [open]);
+  return <main className="sa pr-page">
+    <header className="pr-top"><div><h1>Performance Review</h1><p>Track team and employee performance, provide feedback and help them grow.</p></div><button className="pr-primary" onClick={() => setCycleOpen(true)}>＋ Create Review Cycle</button></header>
+    <div className="pr-kpis pr-main-kpis"><article><small>Total Employees</small><b>{staffRows.length}</b><span>Across {teams.length} teams</span></article><article><small>Completed Reviews</small><b>{pageStats.completed}</b><span>In selected review period</span></article><article><small>Pending Reviews</small><b>{pageStats.pending}</b><span>Awaiting completion</span></article><article><small>Average Rating</small><b>{pageStats.average.toFixed(1)} <small>/ 5</small></b><span>Completed reviews</span></article></div>
+    <div className="pr-tools"><div className="pr-search">⌕ <input placeholder="Search teams or employees..." value={search} onChange={e => setSearch(e.target.value)} /></div><label>Review Period<select value={period} onChange={e => setPeriod(e.target.value)}><option>All Periods</option><option>Q3 2026 (Jul - Sep)</option><option>Aug 2026</option>{periods.map(p => <option key={p}>{p}</option>)}</select></label><label>Review Type<select value={type} onChange={e => setType(e.target.value)}><option>All</option>{periods.map(p => <option key={p}>{p}</option>)}</select></label><label>Status<select value={status} onChange={e => setStatus(e.target.value)}><option>All</option>{["Completed", "Pending", "Draft"].map(s => <option key={s}>{s}</option>)}</select></label></div>
+    <nav className="pr-tabs">{["Team View", "Employee View", "Reports"].map(t => <button className={tab === t ? "active" : ""} onClick={() => setTab(t)} key={t}>{t}</button>)}</nav>
+    {tab === "Team View" && <><div className="pr-title-row"><div><h2>Team / Employee</h2><p>Review performance across your organization</p></div><button className="pr-outline" onClick={() => openForm()}>＋ Add Performance Review</button></div><div className="pr-table-wrap"><table className="pr-table"><thead><tr><th>Team / Employee</th><th>Employees</th><th>Avg Rating</th><th>Completed</th><th>Pending</th><th>Actions</th></tr></thead><tbody>{teamsShown.map(t => { const c = summaryCards(t.id), members = staffRows.filter(e => e.teamId === t.id); return <Fragment key={t.id}><tr className="pr-team-row"><td><button className="pr-expand" onClick={() => setExpanded(x => ({ ...x, [t.id]: !x[t.id] }))}>{expanded[t.id] ? "⌄" : "›"}</button><i style={{ background: `${t.color}20`, color: t.color }}>{t.name[0]}</i><b>{t.name}</b></td><td>{c.total}</td><td><Score value={c.avg} /></td><td>{c.done}</td><td>{c.pending}</td><td><button className="pr-view" onClick={() => { setTeamTab("Overview"); setModal({ kind: "team", id: t.id }); }}>View</button></td></tr>{expanded[t.id] && members.map(e => { const rs = reviewsFor(e.id), last = rs[0]; return <tr className="pr-person-row" key={e.id}><td><i className="pr-avatar">{initials(e.name)}</i><span><b>{e.name}</b><small>{e.role}</small></span></td><td>{e.role}</td><td><Score value={ratingsAvg(rs)} /></td><td><Pill kind={last?.status || "Pending"}>{last?.status || "Pending"}</Pill></td><td></td><td><button className="pr-view" onClick={() => openEmployee(e.id)}>View Review</button></td></tr>; })}</Fragment>; })}</tbody></table>{!teamsShown.length && <div className="pr-empty">No teams match your search.</div>}</div><section className="pr-cycles"><h3>Review cycles</h3>{cycles.map(c => <div key={c.id}><b>{c.name}</b><span>{c.type} · {c.period}</span><Pill kind={c.status}>{c.status}</Pill></div>)}</section></>}
+    {tab === "Employee View" && <><div className="pr-title-row"><div><h2>Employees</h2><p>{peopleShown.length} employees</p></div><button className="pr-outline" onClick={() => openForm()}>＋ Add Performance Review</button></div><div className="pr-table-wrap"><table className="pr-table"><thead><tr><th>Employee</th><th>Designation</th><th>Team</th><th>Rating</th><th>Review count</th><th>Status</th><th /></tr></thead><tbody>{peopleShown.map(e => { const rs = reviewsFor(e.id); return <tr key={e.id}><td><i className="pr-avatar">{initials(e.name)}</i><span><b>{e.name}</b><small>{e.id}</small></span></td><td>{e.role}</td><td>{team(e.teamId).name}</td><td><Score value={ratingsAvg(rs)} /></td><td>{rs.length}</td><td><Pill kind={rs[0]?.status}>{rs[0]?.status || "Pending"}</Pill></td><td><button className="pr-view" onClick={() => openEmployee(e.id)}>View Details</button></td></tr>; })}</tbody></table>{!peopleShown.length && <div className="pr-empty">No employees match the selected filters.</div>}</div></>}
+    {tab === "Reports" && <><div className="pr-title-row"><div><h2>Performance Reports</h2><p>Performance insights for the selected records</p></div></div><div className="pr-kpis"><article><small>Total Employees</small><b>{staffRows.length}</b></article><article><small>Completed Reviews</small><b>{reports.length}</b></article><article><small>Pending Reviews</small><b>{visibleReviews.filter(r => r.status === "Pending").length}</b></article><article><small>Average Rating</small><b>{ratingsAvg(reports).toFixed(1)} <small>/ 5</small></b></article></div><div className="pr-charts"><article><h3>Team-wise performance</h3><div><Bar data={{ labels: teams.map(t => t.name.replace(" Team", "")), datasets: [{ data: teams.map(t => counts(t.id).average), backgroundColor: teams.map(t => t.color), borderRadius: 8 }] }} options={chartOptions} /></div></article><article><h3>Review completion</h3><div><Doughnut data={{ labels: ["Completed", "Pending", "Draft"], datasets: [{ data: ["Completed", "Pending", "Draft"].map(s => visibleReviews.filter(r => r.status === s).length), backgroundColor: ["#19a879", "#f0ad39", "#a8b2c3"], borderWidth: 0 }] }} options={{ maintainAspectRatio: false, plugins: { legend: { position: "bottom" } }, cutout: "68%" }} /></div></article><article><h3>Rating distribution</h3><div><Bar data={{ labels: ["< 3", "3–3.9", "4–4.4", "4.5+"], datasets: [{ data: [reports.filter(r => r.rating < 3).length, reports.filter(r => r.rating >= 3 && r.rating < 4).length, reports.filter(r => r.rating >= 4 && r.rating < 4.5).length, reports.filter(r => r.rating >= 4.5).length], backgroundColor: ["#e46b6b", "#edaa45", "#5b82f1", "#20a889"], borderRadius: 8 }] }} options={{ ...chartOptions, scales: { y: { beginAtZero: true } } }} /></div></article><article><h3>Performance trends</h3><div><Line data={{ labels: periods, datasets: [{ label: "Average rating", data: periods.map(p => avg(reports.filter(r => r.type === p).map(r => r.rating))), borderColor: "#315efb", backgroundColor: "#dce6ff", fill: true, tension: .3 }] }} options={chartOptions} /></div></article></div>{!visibleReviews.length && <div className="pr-empty">No review records match these filters.</div>}</>}
 
-  const scoped = useMemo(() => PEOPLE.filter((p) => (manager === "All" || p.manager === manager) && (team === "All" || p.team === team)), [manager, team]);
-  const shown = useMemo(() => {
-    const list = scoped.filter((p) => `${p.name} ${p.role}`.toLowerCase().includes(q.trim().toLowerCase()));
-    return [...list].sort((a, b) => (sort === "name" ? a.name.localeCompare(b.name) : sort === "low" ? a.score - b.score : b.score - a.score));
-  }, [scoped, q, sort]);
-
-  const n = scoped.length;
-  const mean = n ? r1(avg(scoped.map((p) => p.score))) : 0;
-  const tiles = [
-    ["📊", "Average score", mean.toFixed(1), `out of 5, across ${n} people`],
-    ["🏆", "Top performers", scoped.filter((p) => p.score >= TOP).length, `score ${TOP} or higher`],
-    ["🌱", "Need support", scoped.filter((p) => p.score < LOW).length, `score below ${LOW}`],
-    ["⏳", "Reviews pending", scoped.filter((p) => !p.done).length, "manager has not finished"],
-  ];
-  const person = PEOPLE.find((p) => p.id === open);
-
-  return (
-    <div className="sa ps">
-      <style>{CSS}</style>
-
-      <header className="ps-banner">
-        <div><h1>Performance</h1><p>See how every team and person is doing. Open anyone to see their full picture.</p></div>
-        <span className="ps-period">Q3 2026, Jul to Sep</span>
-      </header>
-
-      <section className="ps-tiles" aria-label="Summary">
-        {tiles.map(([ic, l, v, c]) => <div key={l} className="ps-tile"><span className="ps-ic" aria-hidden="true">{ic}</span><div><span>{l}</span><strong>{v}</strong><small>{c}</small></div></div>)}
-      </section>
-
-      <div className="ps-filters">
-        <div className="ps-fl"><span>Manager</span><label><i aria-hidden="true">★</i>
-          <select value={manager} onChange={(e) => setManager(e.target.value)} aria-label="Manager"><option value="All">All managers</option>{MANAGERS.map((m) => <option key={m}>{m}</option>)}</select></label></div>
-        <div className="ps-fl"><span>Team</span><label><i aria-hidden="true">★</i>
-          <select value={team} onChange={(e) => setTeam(e.target.value)} aria-label="Team"><option value="All">All teams</option>{TEAMS.map((t) => <option key={t}>{t}</option>)}</select></label></div>
-      </div>
-
-      <section className="ps-board">
-        <div className="ps-bar">
-          <div className="ps-tabs" role="tablist">
-            {[["board", "People board"], ["teams", "Teams"]].map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}
-          </div>
-          {tab === "board" && <>
-            <input className="ps-search" type="search" placeholder="Search people" aria-label="Search people" value={q} onChange={(e) => setQ(e.target.value)} />
-            <select className="ps-sort" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort by">
-              <option value="high">Highest score first</option><option value="low">Lowest score first</option><option value="name">Name A to Z</option>
-            </select>
-          </>}
-        </div>
-
-        {tab === "board" ? (
-          <div className="ps-scroll">
-            <div className="ps-grid ps-head"><span>{shown.length} people</span><span>Overall score</span><span>Goals done</span><span>On time</span><span>Attendance</span><span>Trend</span><span>Review</span></div>
-            {shown.length === 0 && <p className="ps-empty">No one matches. Clear the search or choose All teams.</p>}
-            {shown.map((p) => (
-              <button key={p.id} className="ps-row ps-grid" onClick={() => setOpen(p.id)} aria-label={`Open ${p.name}, score ${p.score.toFixed(1)}`}>
-                <span className="ps-who"><Avatar p={p} /><span><strong>{p.name}</strong><small>{p.role}</small></span></span>
-                <span className="ps-score" style={{ "--c": toneOf(p.score) }}><b>{p.score.toFixed(1)}</b><small>{verdictOf(p.score)}</small></span>
-                <span className="ps-pct">{p.goals}%<span className="ps-track" style={{ "--c": p.goals >= 80 ? "#12a37a" : p.goals >= 60 ? "#2f5bff" : "#e5484d" }}><i style={{ width: `${p.goals}%` }} /></span></span>
-                <span className="ps-num">{p.onTime}%</span>
-                <span className="ps-num">{p.attendance}%</span>
-                <Delta p={p} />
-                <span className={`ps-chip ${p.done ? "ok" : "wait"}`}>{p.done ? "Reviewed" : "Pending"}</span>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="ps-teams">
-            {TEAMS.filter((t) => team === "All" || t === team).map((t) => {
-              const m = scoped.filter((p) => p.team === t);
-              if (!m.length) return null;
-              const s = r1(avg(m.map((p) => p.score)));
-              return (
-                <div key={t} className="ps-team" style={{ "--c": toneOf(s) }}>
-                  <h3>{t}</h3>
-                  <div><span className="big">{s.toFixed(1)}</span> <small>out of 5, {verdictOf(s).toLowerCase()}</small></div>
-                  <div className="ps-track"><i style={{ width: `${(s / 5) * 100}%` }} /></div>
-                  <ul>
-                    <li>{m.length} people</li>
-                    <li>{m.filter((p) => p.score >= TOP).length} top performers, {m.filter((p) => p.score < LOW).length} need support</li>
-                    <li>{Math.round(avg(m.map((p) => p.onTime)))}% of work delivered on time</li>
-                  </ul>
-                  <button className="ps-link" onClick={() => { setTeam(t); setTab("board"); }}>See people</button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {person && <Detail p={person} onClose={() => setOpen(null)} onNav={(d) => { if (!shown.length) return; const i = shown.findIndex((x) => x.id === open); setOpen(shown[(i + d + shown.length) % shown.length].id); }} />}
-    </div>
-  );
+    {currentTeam && <Modal title={currentTeam.name + " - Performance Reviews"} close={() => setModal(null)} size="pr-wide"><div className="pr-modal-body"><div className="pr-kpis pr-team-kpis">{Object.entries({ Employees: summaryCards(currentTeam.id).total, "Avg Rating": summaryCards(currentTeam.id).avg, Completed: summaryCards(currentTeam.id).done, Pending: summaryCards(currentTeam.id).pending }).map(([k,v]) => <article key={k}><small>{k}</small><b>{v}</b></article>)}</div><nav className="pr-tabs pr-team-tabbar">{["Overview", "Employees", "Reviews", "Goals", "Analytics"].map(t => <button className={teamTab === t ? "active" : ""} onClick={() => setTeamTab(t)} key={t}>{t}</button>)}</nav>{teamTab === "Overview" && <><h3>Team Performance Summary</h3><div className="pr-metrics">{currentTeam.metrics.map(([name,value]) => <article key={name}><span>{name}</span><b>{value}{name.includes("Quality") || name.includes("Collaboration") ? "/5" : "%"}</b><i><em style={{ width: (name.includes("Quality") || name.includes("Collaboration") ? value * 20 : value) + "%" }} /></i></article>)}</div><div className="pr-team-analytics"><article><h3>Monthly Performance Trend</h3><div><Line data={{ labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep"], datasets: [{ data: [3.8, 4.0, 4.1, 4.0, 4.2, summaryCards(currentTeam.id).avg], borderColor: currentTeam.color, backgroundColor: "#eaf0ff", fill: true, tension: .35 }] }} options={chartOptions} /></div></article><article><h3>Review Completion</h3><div><Doughnut data={{ labels: ["Completed", "Pending"], datasets: [{ data: [summaryCards(currentTeam.id).done, summaryCards(currentTeam.id).pending], backgroundColor: ["#20a879", "#f0ad39"], borderWidth: 0 }] }} options={{ maintainAspectRatio: false, plugins: { legend: { position: "bottom" } }, cutout: "65%" }} /></div></article></div></>}{teamTab === "Employees" && <><h3>Employees ({staffRows.filter(e => e.teamId === currentTeam.id).length})</h3><div className="pr-modal-list">{staffRows.filter(e => e.teamId === currentTeam.id).map(e => <article key={e.id}><i className="pr-avatar">{initials(e.name)}</i><span><b>{e.name}</b><small>{e.role}</small></span><Score value={ratingsAvg(reviewsFor(e.id))} /><Pill kind={reviewsFor(e.id)[0]?.status}>{reviewsFor(e.id)[0]?.status || "Pending"}</Pill><button className="pr-view" onClick={() => openEmployee(e.id)}>View Details</button></article>)}</div></>}{teamTab === "Reviews" && <div className="pr-modal-list">{visibleReviews.filter(r => emp(r.employeeId)?.teamId === currentTeam.id).map(r => <article key={r.id}><span><b>{emp(r.employeeId).name} · {r.period}</b><small>{r.type} · Reviewer {r.reviewer}</small></span><Score value={r.rating} /><Pill kind={r.status}>{r.status}</Pill><button className="pr-view" onClick={() => setModal({ kind: "review", id: r.id })}>View Review</button></article>)}{!visibleReviews.some(r => emp(r.employeeId)?.teamId === currentTeam.id) && <div className="pr-empty">No team reviews match these filters.</div>}</div>}{teamTab === "Goals" && <div className="pr-modal-list">{visibleReviews.filter(r => emp(r.employeeId)?.teamId === currentTeam.id).slice(0,8).map(r => <article key={r.id}><span><b>{emp(r.employeeId).name} · {r.period}</b><small>{r.goals.join(" · ")}</small></span><Pill kind={r.status}>{r.status}</Pill></article>)}</div>}{teamTab === "Analytics" && <div className="pr-team-analytics"><article><h3>Team average rating by review period</h3><div><Bar data={{ labels: periods, datasets: [{ data: periods.map(p => ratingsAvg(reviews.filter(r => r.type === p && emp(r.employeeId)?.teamId === currentTeam.id))), backgroundColor: currentTeam.color, borderRadius: 7 }] }} options={chartOptions} /></div></article><article><h3>Review status distribution</h3><div><Doughnut data={{ labels: ["Completed", "Pending", "Draft"], datasets: [{ data: ["Completed", "Pending", "Draft"].map(s => reviews.filter(r => r.status === s && emp(r.employeeId)?.teamId === currentTeam.id).length), backgroundColor: ["#20a879", "#f0ad39", "#a8b2c3"], borderWidth: 0 }] }} options={{ maintainAspectRatio: false, plugins: { legend: { position: "bottom" } }, cutout: "65%" }} /></div></article></div>}</div></Modal>}{currentPerson && <Modal title={`${currentPerson.name} - Performance Reviews`} close={() => setModal(null)} size="pr-wide"><div className="pr-modal-body"><div className="pr-person-summary"><i className="pr-avatar pr-large">{initials(currentPerson.name)}</i><div><b>{currentPerson.id} · {currentPerson.role}</b><small>{team(currentPerson.teamId).name} · Reports to {currentPerson.manager}</small></div><article><small>Overall Rating</small><b>{ratingsAvg(reviews.filter(r => r.employeeId === currentPerson.id)).toFixed(1)}/5</b></article><article><small>Total Reviews</small><b>{reviews.filter(r => r.employeeId === currentPerson.id).length}</b></article></div><nav className="pr-detail-tabs">{["Review History", "Goals & Achievements", "Feedback", "Skills & Competencies", "Development Plan"].map(t => <button className={subtab === t ? "on" : ""} onClick={() => setSubtab(t)} key={t}>{t}</button>)}</nav>{subtab === "Review History" && <><div className="pr-history-tools"><label>Review Type<select value={historyType} onChange={e => setHistoryType(e.target.value)}><option>All</option>{periods.map(p => <option key={p}>{p}</option>)}</select></label><label>Time Period<select value={historyPeriod} onChange={e => setHistoryPeriod(e.target.value)}><option>All</option><option>Q3 2026 (Jul - Sep)</option><option>Aug 2026</option></select></label><button className="pr-primary" onClick={() => openForm(currentPerson.id)}>＋ Add Review</button></div><div className="pr-modal-list">{reviews.filter(r => r.employeeId === currentPerson.id && (historyType === "All" || r.type === historyType) && (historyPeriod === "All" || r.period === historyPeriod)).sort((a,b) => b.date.localeCompare(a.date)).map(r => <article key={r.id}><i className="pr-history-icon">◉</i><span><b>{r.period}</b><small><Pill kind={r.type}>{r.type} Review</Pill></small></span><Score value={r.rating} /><Pill kind={r.status}>{r.status}</Pill><small>Reviewed by: {r.reviewer}<br />{r.date}</small><button className="pr-view" onClick={() => setModal({ kind: "review", id: r.id })}>View Details</button></article>)}{!reviews.some(r => r.employeeId === currentPerson.id && (historyType === "All" || r.type === historyType) && (historyPeriod === "All" || r.period === historyPeriod)) && <div className="pr-empty">No reviews for this period.</div>}</div></>}{subtab !== "Review History" && <div className="pr-tab-content"><h3>{subtab}</h3>{reviews.filter(r => r.employeeId === currentPerson.id).slice(0,3).map(r => <article key={r.id}><b>{r.period} · {r.type}</b><p>{subtab === "Goals & Achievements" ? r.achievements : subtab === "Feedback" ? r.feedback : subtab === "Skills & Competencies" ? criteria.slice(0,6).join(" · ") : r.goals.join(" · ")}</p></article>)}</div>}</div></Modal>}
+    {detail && detailPerson && <Modal title={`${detailPerson.name} - ${detail.period} Review`} close={() => openEmployee(detailPerson.id)} size="pr-wide"><div className="pr-modal-body"><div className="pr-detail-heading"><div><b>{detailPerson.id} · {detailPerson.role} · {team(detailPerson.teamId).name}</b><small>Reviewer: {detail.reviewer} · {detail.type} · {detail.period}</small></div><Score value={detail.rating} /><Pill kind={detail.status}>{detail.status}</Pill></div><h3>Overall Performance</h3><div className="pr-overall"><b>★ {detail.rating}/5</b><p>{detail.feedback}</p></div><h3>Key Metrics</h3><div className="pr-rating-grid">{criteria.map(c => <article key={c}><span>{c}</span><b>{detail.ratings?.[c] || detail.rating}/5</b></article>)}</div><h3>Major Achievements</h3><p>{detail.achievements}</p><h3>Strengths & feedback</h3><p>{detail.strengths} {detail.feedback}</p><h3>Areas for improvement</h3><p>{detail.improvement}</p><h3>Development goals</h3><ul>{detail.goals.map(g => <li key={g}>{g}</li>)}</ul><button className="pr-primary" onClick={() => { const old = freshForm(detail.employeeId, detailPerson.teamId); setModal(null); setForm({ ...old, type: detail.type, period: detail.period, reviewer: detail.reviewer, ratings: detail.ratings, achievements: detail.achievements, strengths: detail.strengths, feedback: detail.feedback, improvement: detail.improvement, goals: detail.goals[0] }); }}>Add / Edit Feedback</button></div></Modal>}
+    {form && <Modal title={`Add Performance Review${form.employeeId ? ` - ${emp(form.employeeId)?.name}` : ""}`} close={() => { if (window.confirm("Discard changes?")) setForm(null); }} size="pr-form-modal"><form className="pr-form" onSubmit={e => { e.preventDefault(); createReview(false); }}><div className="pr-form-grid"><label>Team<select value={form.teamId} onChange={e => setForm({ ...form, teamId: e.target.value, employeeId: "" })}><option value="">Select Team</option>{teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label><label>Employee<select value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value, teamId: emp(e.target.value)?.teamId || form.teamId })}><option value="">Select Employee</option>{staffRows.filter(e => !form.teamId || e.teamId === form.teamId).map(e => <option value={e.id} key={e.id}>{e.name} - {e.role}</option>)}</select>{errors.employeeId && <small className="pr-error">{errors.employeeId}</small>}</label><label>Reviewer<input value={form.reviewer} onChange={e => setForm({ ...form, reviewer: e.target.value })} /></label><label>Review Type<select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>{periods.map(p => <option key={p}>{p}</option>)}</select></label><label>Review Period<input value={form.period} onChange={e => setForm({ ...form, period: e.target.value })} /></label></div><h3>Ratings</h3><div className="pr-form-ratings">{criteria.slice(0,8).map(c => <label key={c}>{c}<div>{[1,2,3,4,5].map(n => <button type="button" className={(form.ratings[c] || 0) >= n ? "on" : ""} onClick={() => setForm({ ...form, ratings: { ...form.ratings, [c]: n } })} key={n}>★</button>)}</div>{errors[c] && <small className="pr-error">{errors[c]}</small>}</label>)}</div><h3>Feedback</h3><div className="pr-form-grid">{[["achievements","Achievements"],["strengths","Strengths"],["feedback","What went well / Manager feedback"],["improvement","Areas for improvement"],["goals","Next-period goals"]].map(([key,label]) => <label key={key}>{label}<textarea rows="3" value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}</div><footer><button type="button" className="pr-outline" onClick={() => { if (window.confirm("Discard changes?")) setForm(null); }}>Cancel</button><span /><button type="button" className="pr-outline" onClick={() => createReview(true)}>Save Draft</button><button className="pr-primary">Submit Review</button></footer></form></Modal>}
+    {cycleOpen && <Modal title="Create Review Cycle" close={() => setCycleOpen(false)}><form className="pr-cycle-form" onSubmit={createCycle}><label>Cycle Name<input name="name" required /></label><label>Review Type<select name="type">{periods.map(p => <option key={p}>{p}</option>)}</select></label><label>Start Date<input name="start" type="date" required /></label><label>End Date<input name="end" type="date" required /></label><label>Review Deadline<input name="deadline" type="date" required /></label><label>Assigned Reviewer<input name="reviewer" defaultValue="People Managers" /></label><label>Status<select name="status"><option>Active</option><option>Upcoming</option></select></label><fieldset><legend>Teams Included</legend>{teams.map(t => <label key={t.id}><input type="checkbox" name="teams" value={t.id} defaultChecked />{t.name}</label>)}</fieldset><footer><button type="button" className="pr-outline" onClick={() => setCycleOpen(false)}>Cancel</button><button className="pr-primary">Create Cycle</button></footer></form></Modal>}
+    {toast && <div className="pr-toast">{toast}</div>}
+  </main>;
 }
