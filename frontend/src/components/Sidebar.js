@@ -52,6 +52,8 @@ export const ROUTE_MAP = {
   Payslips: "/payslip",
   "Compliance Documents": "/document",
   "Performance Review": "/performance",
+  "Goals Review": "/goals",
+  "Job Portal": "/jobportal",
   Profile: "/profile",
   "Leave and Permissions": "/leave-permission",
 };

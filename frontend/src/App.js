@@ -65,6 +65,8 @@ import Payslip from "./components/Payslip";
 import Employeetimesheet from "./components/Employeetimesheet";
 import Leavepermission from "./components/Leavepermission";
 import Performance from "./components/Performance";
+import GoalsReview from "./components/GoalsReview";
+import Jobportal from "./components/Jobportal";
 const AppLayout = () => {
   const location = useLocation();
 
@@ -91,6 +93,8 @@ const AppLayout = () => {
     "/employeetimesheet",
     "/leave-permission",
     "/performance",
+    "/goals",
+    "/jobportal",
   ];
 
   const hideNavbarRoutes = [
@@ -109,6 +113,8 @@ const AppLayout = () => {
     "/employeetimesheet",
     "/leave-permission",
     "/performance",
+    "/goals",
+    "/jobportal",
   
   ];
 
@@ -266,6 +272,8 @@ const AppLayout = () => {
         />
 <Route path="/performance" element={ <AdminLayout><Performance /></AdminLayout> } />
     <Route path="/payslip" element={ <AdminLayout><Payslip /></AdminLayout> } />   
+    <Route path="/jobportal" element={ <AdminLayout><Jobportal /></AdminLayout> } />
+    <Route path="/goals" element={ <AdminLayout><GoalsReview /></AdminLayout> } />
       </Routes>
 
       {!hideFooter && <Footer />}
