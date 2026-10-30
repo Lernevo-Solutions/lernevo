@@ -54,6 +54,7 @@ export const ROUTE_MAP = {
   "Performance Review": "/performance",
   "Goals Review": "/goals",
   "Job Portal": "/jobportal",
+  "Offboarding": "/offboarding",
   Profile: "/profile",
   "Leave and Permissions": "/leave-permission",
 };

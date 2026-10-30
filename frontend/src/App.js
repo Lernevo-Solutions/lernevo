@@ -67,6 +67,7 @@ import Leavepermission from "./components/Leavepermission";
 import Performance from "./components/Performance";
 import GoalsReview from "./components/GoalsReview";
 import Jobportal from "./components/Jobportal";
+import Offboarding from "./components/Offboarding";
 const AppLayout = () => {
   const location = useLocation();
 
@@ -95,6 +96,7 @@ const AppLayout = () => {
     "/performance",
     "/goals",
     "/jobportal",
+    "/offboarding",
   ];
 
   const hideNavbarRoutes = [
@@ -115,7 +117,7 @@ const AppLayout = () => {
     "/performance",
     "/goals",
     "/jobportal",
-  
+    "/offboarding",
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
@@ -274,6 +276,7 @@ const AppLayout = () => {
     <Route path="/payslip" element={ <AdminLayout><Payslip /></AdminLayout> } />   
     <Route path="/jobportal" element={ <AdminLayout><Jobportal /></AdminLayout> } />
     <Route path="/goals" element={ <AdminLayout><GoalsReview /></AdminLayout> } />
+    <Route path="/offboarding" element={ <AdminLayout><Offboarding /></AdminLayout> } />
       </Routes>
 
       {!hideFooter && <Footer />}

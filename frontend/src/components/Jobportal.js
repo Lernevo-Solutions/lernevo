@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./Jobportal.css";
 
 /* =====================================================================
    SAMPLE DATA  (backend API vandha idha replace pannunga)
    ===================================================================== */
-const DEPARTMENTS = ["Engineering", "Human Resources", "Finance", "Sales", "Marketing", "Operations", "Design"];
+const DEFAULT_DEPARTMENTS = ["Engineering", "Human Resources", "Finance", "Sales", "Marketing", "Operations", "Design"];
 
 const initialJobs = [
   {
@@ -41,10 +41,36 @@ const initialApplicants = [
   { id: 5, jobId: 3, name: "Harini S", email: "harini@mail.com", phone: "9444012233", experience: 0, expectedCtc: 1.5, noticePeriod: "Immediate", isEmployee: false, empId: "", designation: "", department: "", tenure: "", status: "Hired", appliedOn: "2026-10-05" },
 ];
 
+const defaultUi = {
+  title: "Manage every vacancy in one place",
+  sub: "Create openings, track who applied, and see which applicants already work in the company.",
+  theme: "blue",
+  labels: {
+    total: "Total vacancies", open: "Open now", closing: "Closing in 7 days",
+    applications: "Applications received", employees: "From current employees",
+  },
+};
+
 const emptyJob = {
-  title: "", department: "Engineering", location: "", workMode: "On-site", type: "Full-time",
+  title: "", department: "", location: "", workMode: "On-site", type: "Full-time",
   expMin: 0, expMax: 2, salMin: 3, salMax: 6, openings: 1, deadline: "", status: "Open",
   urgent: false, internalOpen: true, manager: "", qualification: "", skills: "", description: "",
+};
+
+const emptyApplicant = {
+  name: "", email: "", phone: "", experience: 0, expectedCtc: 3, noticePeriod: "30 days",
+  isEmployee: false, empId: "", designation: "", department: "", tenure: "", status: "Applied", appliedOn: "",
+};
+
+const Svg = ({ children }) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
+);
+const STAT_ICONS = {
+  total: <Svg><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></Svg>,
+  open: <Svg><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></Svg>,
+  closing: <Svg><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></Svg>,
+  applications: <Svg><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z" /></Svg>,
+  employees: <Svg><rect x="4" y="2" width="16" height="20" rx="2" /><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01" /></Svg>,
 };
 
 const STATUSES = ["Applied", "Shortlisted", "Hired", "Rejected"];
@@ -52,14 +78,14 @@ const STATUSES = ["Applied", "Shortlisted", "Hired", "Rejected"];
 /* =====================================================================
    HELPERS
    ===================================================================== */
-const initials = (name) => name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+const initials = (name) => name.split(" ").filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
 const today = () => new Date().toISOString().slice(0, 10);
 const daysLeft = (date) => Math.ceil((new Date(date) - new Date(today())) / 86400000);
-const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-const money = (a, b) => `₹${a}–${b} LPA`;
+const fmtDate = (d) => (d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—");
 
 function deadlineInfo(job) {
-  if (job.status !== "Open") return { text: "Closed", tone: "muted" };
+  if (job.status !== "Open") return { text: job.status === "Draft" ? "Draft" : "Closed", tone: "muted" };
+  if (!job.deadline) return { text: "No deadline", tone: "muted" };
   const d = daysLeft(job.deadline);
   if (d < 0) return { text: "Deadline passed", tone: "red" };
   if (d === 0) return { text: "Closes today", tone: "red" };
@@ -80,9 +106,103 @@ function exportCsv(job, list) {
   URL.revokeObjectURL(url);
 }
 
+/* Data refresh pannaalum poga koodathu - browser la save aagum */
+function usePersisted(key, initial) {
+  const [value, setValue] = useState(() => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : initial;
+    } catch { return initial; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage full / blocked */ }
+  }, [key, value]);
+  return [value, setValue];
+}
+
 /* =====================================================================
-   MODAL
+   SMALL REUSABLE PIECES
    ===================================================================== */
+function Avatar({ name, small, more }) {
+  return <span className={`jp-avatar ${small ? "jp-avatar--sm" : ""} ${more ? "jp-avatar--more" : ""}`}>{more || initials(name)}</span>;
+}
+
+/* Click panni appadiye type pannalaam. Enter = save, Esc = cancel */
+function Editable({ value, onSave, multiline = false, as: Tag = "span", className = "", placeholder = "Click to add", type = "text", allowEmpty = false }) {
+  const [on, setOn] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const cancelled = useRef(false);
+
+  const start = () => { cancelled.current = false; setDraft(value); setOn(true); };
+  const commit = () => {
+    if (cancelled.current) return;
+    setOn(false);
+    const v = String(draft).trim();
+    if ((v || allowEmpty) && v !== String(value)) onSave(type === "number" ? Number(v) : v);
+  };
+  const onKey = (e) => {
+    if (e.key === "Escape") { cancelled.current = true; setOn(false); }
+    if (e.key === "Enter" && (!multiline || e.ctrlKey || e.metaKey)) { e.preventDefault(); commit(); }
+  };
+
+  if (on) {
+    const Field = multiline ? "textarea" : "input";
+    return (
+      <Field
+        autoFocus className={`jp-inline ${className}`} value={draft} type={multiline ? undefined : type}
+        rows={multiline ? 3 : undefined} onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={onKey}
+      />
+    );
+  }
+  return (
+    <Tag className={`jp-editable ${className}`} onClick={start} onKeyDown={(e) => e.key === "Enter" && start()} tabIndex={0} role="button" title="Click to edit">
+      {value === "" || value === undefined ? <em>{placeholder}</em> : value}
+    </Tag>
+  );
+}
+
+/* Chinna number box - type pannitu Enter / veliya click panna save aagum */
+function NumInput({ value, onSave, step = 1, min = 0, label }) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => {
+    const n = Number(draft);
+    if (draft.trim() === "" || Number.isNaN(n) || n < min) return setDraft(String(value));
+    if (n !== value) onSave(n);
+  };
+  return (
+    <input
+      className="jp-mini-input jp-mini-input--num" type="number" min={min} step={step} value={draft} aria-label={label}
+      onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
+    />
+  );
+}
+
+function SkillEditor({ skills, onChange }) {
+  const [adding, setAdding] = useState(false);
+  const [text, setText] = useState("");
+  const add = () => {
+    const v = text.trim();
+    if (v && !skills.includes(v)) onChange([...skills, v]);
+    setText(""); setAdding(false);
+  };
+  return (
+    <div className="jp-skills">
+      {skills.map((s) => (
+        <span key={s}>{s}<button aria-label={`Remove ${s}`} onClick={() => onChange(skills.filter((x) => x !== s))}>✕</button></span>
+      ))}
+      {adding ? (
+        <input
+          autoFocus className="jp-skill-input" value={text} placeholder="Skill name" onChange={(e) => setText(e.target.value)} onBlur={add}
+          onKeyDown={(e) => { if (e.key === "Enter") add(); if (e.key === "Escape") { setText(""); setAdding(false); } }}
+        />
+      ) : (
+        <button className="jp-skill-add" onClick={() => setAdding(true)}>+ Skill</button>
+      )}
+    </div>
+  );
+}
+
 function Modal({ title, subtitle, onClose, children, size = "md" }) {
   return (
     <div className="jp-overlay" onClick={onClose}>
@@ -103,9 +223,14 @@ function Modal({ title, subtitle, onClose, children, size = "md" }) {
 /* =====================================================================
    CREATE / EDIT VACANCY
    ===================================================================== */
-function JobForm({ initial, onSave, onClose }) {
+function JobForm({ initial, departments, onSave, onClose }) {
   const editing = Boolean(initial.id);
-  const [form, setForm] = useState({ ...initial, skills: Array.isArray(initial.skills) ? initial.skills.join(", ") : initial.skills });
+  const deptOptions = departments.includes(initial.department) || !initial.department ? departments : [initial.department, ...departments];
+  const [form, setForm] = useState({
+    ...initial,
+    department: initial.department || deptOptions[0] || "",
+    skills: Array.isArray(initial.skills) ? initial.skills.join(", ") : initial.skills,
+  });
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value });
 
   const submit = (e) => {
@@ -133,7 +258,7 @@ function JobForm({ initial, onSave, onClose }) {
         </label>
         <label className="jp-field">Department
           <select value={form.department} onChange={set("department")}>
-            {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
+            {deptOptions.map((d) => <option key={d}>{d}</option>)}
           </select>
         </label>
         <label className="jp-field">Hiring manager
@@ -207,9 +332,112 @@ function JobForm({ initial, onSave, onClose }) {
 }
 
 /* =====================================================================
+   ADD / EDIT APPLICANT
+   ===================================================================== */
+function ApplicantForm({ initial, departments, onSave, onClose }) {
+  const editing = Boolean(initial.id);
+  const [form, setForm] = useState({ ...initial, appliedOn: initial.appliedOn || today() });
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value });
+
+  const submit = (e) => {
+    e.preventDefault();
+    const base = { ...form, experience: Number(form.experience), expectedCtc: Number(form.expectedCtc) };
+    onSave(form.isEmployee ? base : { ...base, empId: "", designation: "", department: "", tenure: "" });
+  };
+
+  return (
+    <Modal title={editing ? "Edit applicant" : "Add applicant"} subtitle={editing ? initial.name : "Enter the candidate's details"} onClose={onClose} size="lg">
+      <form className="jp-form" onSubmit={submit}>
+        <p className="jp-form__group">Candidate</p>
+        <label className="jp-field jp-full">Full name
+          <input required value={form.name} onChange={set("name")} placeholder="e.g. Priya Sharma" />
+        </label>
+        <label className="jp-field">Email
+          <input type="email" required value={form.email} onChange={set("email")} placeholder="name@mail.com" />
+        </label>
+        <label className="jp-field">Phone
+          <input required value={form.phone} onChange={set("phone")} placeholder="98765 43210" />
+        </label>
+        <label className="jp-field">Experience (yrs)
+          <input type="number" min="0" step="0.5" required value={form.experience} onChange={set("experience")} />
+        </label>
+        <label className="jp-field">Expected CTC (₹ LPA)
+          <input type="number" min="0" step="0.5" required value={form.expectedCtc} onChange={set("expectedCtc")} />
+        </label>
+        <label className="jp-field">Notice period
+          <input value={form.noticePeriod} onChange={set("noticePeriod")} placeholder="30 days" />
+        </label>
+        <label className="jp-field">Applied on
+          <input type="date" required value={form.appliedOn} onChange={set("appliedOn")} />
+        </label>
+        <label className="jp-field">Status
+          <select value={form.status} onChange={set("status")}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
+        </label>
+        <label className="jp-check">
+          <input type="checkbox" checked={form.isEmployee} onChange={set("isEmployee")} />
+          Currently works in our company
+        </label>
+
+        {form.isEmployee && (
+          <>
+            <p className="jp-form__group">Employee details</p>
+            <label className="jp-field">Employee ID
+              <input required value={form.empId} onChange={set("empId")} placeholder="EMP-1001" />
+            </label>
+            <label className="jp-field">Current designation
+              <input required value={form.designation} onChange={set("designation")} placeholder="Software Engineer" />
+            </label>
+            <label className="jp-field">Department
+              <select value={form.department || departments[0]} onChange={set("department")}>
+                {departments.map((d) => <option key={d}>{d}</option>)}
+              </select>
+            </label>
+            <label className="jp-field">Time in company
+              <input value={form.tenure} onChange={set("tenure")} placeholder="2 yrs" />
+            </label>
+          </>
+        )}
+
+        <div className="jp-actions jp-full">
+          <button type="button" className="jp-btn jp-btn--ghost" onClick={onClose}>Cancel</button>
+          <button type="submit" className="jp-btn jp-btn--primary">{editing ? "Save changes" : "Add applicant"}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* =====================================================================
+   DEPARTMENTS MANAGER  (add / rename / delete)
+   ===================================================================== */
+function DepartmentManager({ departments, jobs, onAdd, onRename, onDelete, onClose }) {
+  const [name, setName] = useState("");
+  const usedIn = (d) => jobs.filter((j) => j.department === d).length;
+  const add = (e) => { e.preventDefault(); if (name.trim()) { onAdd(name.trim()); setName(""); } };
+
+  return (
+    <Modal title="Departments" subtitle="Rename, add or remove departments used in vacancies" onClose={onClose}>
+      <ul className="jp-deptlist">
+        {departments.map((d) => (
+          <li key={d}>
+            <Editable value={d} onSave={(v) => onRename(d, v)} className="jp-deptname" />
+            <small>{usedIn(d)} {usedIn(d) === 1 ? "vacancy" : "vacancies"}</small>
+            <button className="jp-btn jp-btn--danger jp-btn--xs" disabled={usedIn(d) > 0} title={usedIn(d) > 0 ? "Move its vacancies first" : "Delete department"} onClick={() => onDelete(d)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+      <form className="jp-adddept" onSubmit={add}>
+        <input className="jp-search jp-search--sm" placeholder="New department name" value={name} onChange={(e) => setName(e.target.value)} />
+        <button className="jp-btn jp-btn--primary" type="submit">Add department</button>
+      </form>
+    </Modal>
+  );
+}
+
+/* =====================================================================
    APPLICANTS
    ===================================================================== */
-function Applicants({ job, applicants, onStatus, onClose }) {
+function Applicants({ job, applicants, onStatus, onAdd, onEdit, onDelete, onClose }) {
   const [tab, setTab] = useState("All");
   const [q, setQ] = useState("");
   const empCount = applicants.filter((a) => a.isEmployee).length;
@@ -241,18 +469,19 @@ function Applicants({ job, applicants, onStatus, onClose }) {
         <div className="jp-applicants-tools">
           <input className="jp-search jp-search--sm" placeholder="Search name, email or emp ID" value={q} onChange={(e) => setQ(e.target.value)} />
           <button className="jp-btn jp-btn--ghost" onClick={() => exportCsv(job, shown)} disabled={!shown.length}>Export CSV</button>
+          <button className="jp-btn jp-btn--primary" onClick={onAdd}>+ Add applicant</button>
         </div>
       </div>
 
       {shown.length === 0 ? (
-        <p className="jp-empty">No applicants match this list.</p>
+        <p className="jp-empty">No applicants in this list yet. Use “Add applicant” to enter one.</p>
       ) : (
         <div className="jp-table-wrap">
           <table className="jp-table">
             <thead>
               <tr>
                 <th>Candidate</th><th>Experience</th><th>Working in company?</th>
-                <th>Expected CTC</th><th>Applied on</th><th>Status</th>
+                <th>Expected CTC</th><th>Applied on</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -260,7 +489,7 @@ function Applicants({ job, applicants, onStatus, onClose }) {
                 <tr key={a.id}>
                   <td>
                     <div className="jp-person">
-                      <span className="jp-avatar">{initials(a.name)}</span>
+                      <Avatar name={a.name} />
                       <div>
                         <strong>{a.name}</strong>
                         <small>{a.email}</small>
@@ -290,6 +519,12 @@ function Applicants({ job, applicants, onStatus, onClose }) {
                       {STATUSES.map((s) => <option key={s}>{s}</option>)}
                     </select>
                   </td>
+                  <td>
+                    <div className="jp-rowactions">
+                      <button className="jp-btn jp-btn--ghost jp-btn--xs" onClick={() => onEdit(a)}>Edit</button>
+                      <button className="jp-btn jp-btn--danger jp-btn--xs" onClick={() => onDelete(a)}>Delete</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -304,17 +539,22 @@ function Applicants({ job, applicants, onStatus, onClose }) {
    MAIN PAGE  (Super Admin only)
    ===================================================================== */
 export default function JobPortal() {
-  const [jobs, setJobs] = useState(initialJobs);
-  const [applicants, setApplicants] = useState(initialApplicants);
+  const [jobs, setJobs] = usePersisted("jp:jobs", initialJobs);
+  const [applicants, setApplicants] = usePersisted("jp:applicants", initialApplicants);
+  const [departments, setDepartments] = usePersisted("jp:departments", DEFAULT_DEPARTMENTS);
+  const [ui, setUi] = usePersisted("jp:ui", defaultUi);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("All");
   const [dept, setDept] = useState("All");
   const [sort, setSort] = useState("newest");
   const [modal, setModal] = useState(null); // { type, job }
+  const [sub, setSub] = useState(null);     // { type, app } - applicants popup mele varra chinna popup
   const [toast, setToast] = useState("");
 
   const notify = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
   const appsOf = (id) => applicants.filter((a) => a.jobId === id);
+  const liveJob = (m) => jobs.find((j) => j.id === m.job.id) || m.job;
+  const labels = { ...defaultUi.labels, ...ui.labels };
 
   /* ---- stats ---- */
   const stats = useMemo(() => {
@@ -351,7 +591,9 @@ export default function JobPortal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, applicants, query, status, dept, sort]);
 
-  /* ---- actions ---- */
+  /* ---- vacancy actions ---- */
+  const patchJob = (id, patch) => setJobs(jobs.map((j) => (j.id === id ? { ...j, ...patch } : j)));
+
   const saveJob = (data) => {
     if (data.id) {
       setJobs(jobs.map((j) => (j.id === data.id ? data : j)));
@@ -372,7 +614,7 @@ export default function JobPortal() {
 
   const toggleStatus = (job) => {
     const next = job.status === "Open" ? "Closed" : "Open";
-    setJobs(jobs.map((j) => (j.id === job.id ? { ...j, status: next } : j)));
+    patchJob(job.id, { status: next });
     notify(next === "Open" ? "Vacancy reopened" : "Vacancy closed");
   };
 
@@ -383,28 +625,81 @@ export default function JobPortal() {
     notify("Vacancy deleted");
   };
 
+  /* ---- applicant actions ---- */
   const changeStatus = (id, s) => setApplicants(applicants.map((a) => (a.id === id ? { ...a, status: s } : a)));
+
+  const saveApplicant = (data) => {
+    if (data.id) {
+      setApplicants(applicants.map((a) => (a.id === data.id ? data : a)));
+      notify("Applicant updated");
+    } else {
+      setApplicants([...applicants, { ...data, id: Date.now(), jobId: modal.job.id }]);
+      notify("Applicant added");
+    }
+    setSub(null);
+  };
+
+  const deleteApplicant = (id) => {
+    setApplicants(applicants.filter((a) => a.id !== id));
+    setSub(null);
+    notify("Applicant removed");
+  };
+
+  /* ---- department actions ---- */
+  const addDept = (name) => {
+    if (departments.some((d) => d.toLowerCase() === name.toLowerCase())) return notify("Department already exists");
+    setDepartments([...departments, name]);
+    notify("Department added");
+  };
+  const renameDept = (from, to) => {
+    if (departments.some((d) => d !== from && d.toLowerCase() === to.toLowerCase())) return notify("Department already exists");
+    setDepartments(departments.map((d) => (d === from ? to : d)));
+    setJobs(jobs.map((j) => (j.department === from ? { ...j, department: to } : j)));
+    if (dept === from) setDept(to);
+    notify("Department renamed");
+  };
+  const deleteDept = (name) => {
+    setDepartments(departments.filter((d) => d !== name));
+    if (dept === name) setDept("All");
+    notify("Department deleted");
+  };
+
+  /* ---- page text / theme ---- */
+  const setLabel = (k) => (v) => setUi({ ...ui, labels: { ...labels, [k]: v } });
+  const resetAll = () => {
+    setJobs(initialJobs); setApplicants(initialApplicants); setDepartments(DEFAULT_DEPARTMENTS); setUi(defaultUi);
+    setModal(null); notify("Everything reset to sample data");
+  };
 
   return (
     <div className="jp">
       {/* ---------- Hero ---------- */}
       <section className="jp-hero">
         <div className="jp-hero__text">
-          <h1>Manage every vacancy in one place</h1>
-          <p>Create openings, track who applied, and see which applicants already work in the company.</p>
+          <Editable as="h1" value={ui.title} onSave={(v) => setUi({ ...ui, title: v })} />
+          <Editable as="p" multiline value={ui.sub} onSave={(v) => setUi({ ...ui, sub: v })} />
+          <span className="jp-hero__hint">✎ Click the heading or this text to edit it</span>
         </div>
-        <button className="jp-btn jp-btn--cta" onClick={() => setModal({ type: "form", job: emptyJob })}>
-          <span className="jp-plus">+</span> Create vacancy
-        </button>
+        <div className="jp-hero__side">
+          <div className="jp-hero__btns">
+            <button className="jp-btn jp-btn--cta" onClick={() => setModal({ type: "form", job: emptyJob })}>
+              <span className="jp-plus">+</span> Create vacancy
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* ---------- Stats ---------- */}
       <section className="jp-stats">
-        <div className="jp-stat"><b>{stats.total}</b><span>Total vacancies</span></div>
-        <div className="jp-stat"><b>{stats.open}</b><span>Open now</span></div>
-        <div className="jp-stat jp-stat--warn"><b>{stats.closing}</b><span>Closing in 7 days</span></div>
-        <div className="jp-stat"><b>{stats.applications}</b><span>Applications received</span></div>
-        <div className="jp-stat jp-stat--accent"><b>{stats.employees}</b><span>From current employees</span></div>
+        {Object.keys(labels).map((k) => (
+          <div key={k} className={`jp-stat ${k === "closing" ? "jp-stat--warn" : ""} ${k === "employees" ? "jp-stat--accent" : ""}`}>
+            <span className="jp-stat__icon">{STAT_ICONS[k]}</span>
+            <div>
+              <b>{stats[k]}</b>
+              <Editable value={labels[k]} onSave={setLabel(k)} />
+            </div>
+          </div>
+        ))}
       </section>
 
       {/* ---------- Pipeline ---------- */}
@@ -428,7 +723,7 @@ export default function JobPortal() {
         <input className="jp-search" placeholder="Search by title, code, skill or location" value={query} onChange={(e) => setQuery(e.target.value)} />
         <select className="jp-select" value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
           <option value="All">All departments</option>
-          {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
+          {departments.map((d) => <option key={d}>{d}</option>)}
         </select>
         <select className="jp-select" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort by">
           <option value="newest">Newest first</option>
@@ -468,23 +763,60 @@ export default function JobPortal() {
                   {job.internalOpen && <span className="jp-badge jp-badge--internal">Open to employees</span>}
                 </div>
 
-                <h2>{job.title}</h2>
+                <Editable as="h2" value={job.title} onSave={(v) => patchJob(job.id, { title: v })} />
                 <p className="jp-card__meta">{job.department} · {job.location} · {job.type}</p>
-                <p className="jp-card__desc">{job.description}</p>
+                <Editable as="p" multiline className="jp-card__desc" value={job.description} onSave={(v) => patchJob(job.id, { description: v })} />
 
-                <div className="jp-skills">
-                  {job.skills.map((s) => <span key={s}>{s}</span>)}
-                </div>
+                <SkillEditor skills={job.skills} onChange={(skills) => patchJob(job.id, { skills })} />
 
                 <dl className="jp-facts">
-                  <div><dt>Salary</dt><dd>{money(job.salMin, job.salMax)}</dd></div>
-                  <div><dt>Experience</dt><dd>{job.expMin}–{job.expMax} yrs</dd></div>
-                  <div><dt>Work mode</dt><dd>{job.workMode}</dd></div>
-                  <div><dt>Openings</dt><dd>{job.openings}</dd></div>
-                  <div><dt>Qualification</dt><dd>{job.qualification}</dd></div>
-                  <div><dt>Hiring manager</dt><dd>{job.manager}</dd></div>
-                  <div><dt>Posted</dt><dd>{fmtDate(job.postedOn)}</dd></div>
-                  <div><dt>Apply by</dt><dd>{fmtDate(job.deadline)} <em className={`jp-due jp-due--${dl.tone}`}>{dl.text}</em></dd></div>
+                  <div>
+                    <dt>Salary (₹ LPA)</dt>
+                    <dd className="jp-range">
+                      <NumInput label="Minimum salary" step={0.5} value={job.salMin} onSave={(v) => patchJob(job.id, { salMin: v })} />
+                      <span>–</span>
+                      <NumInput label="Maximum salary" step={0.5} value={job.salMax} onSave={(v) => patchJob(job.id, { salMax: v })} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Experience (yrs)</dt>
+                    <dd className="jp-range">
+                      <NumInput label="Minimum experience" step={0.5} value={job.expMin} onSave={(v) => patchJob(job.id, { expMin: v })} />
+                      <span>–</span>
+                      <NumInput label="Maximum experience" step={0.5} value={job.expMax} onSave={(v) => patchJob(job.id, { expMax: v })} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Work mode</dt>
+                    <dd>
+                      <select className="jp-mini-input jp-mini-select" value={job.workMode} aria-label="Work mode" onChange={(e) => patchJob(job.id, { workMode: e.target.value })}>
+                        <option>On-site</option><option>Hybrid</option><option>Remote</option>
+                      </select>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Openings</dt>
+                    <dd><NumInput label="Openings" min={1} value={job.openings} onSave={(v) => patchJob(job.id, { openings: Math.max(1, Math.round(v)) })} /></dd>
+                  </div>
+                  <div>
+                    <dt>Qualification</dt>
+                    <dd><Editable value={job.qualification} onSave={(v) => patchJob(job.id, { qualification: v })} /></dd>
+                  </div>
+                  <div>
+                    <dt>Hiring manager</dt>
+                    <dd><Editable value={job.manager} onSave={(v) => patchJob(job.id, { manager: v })} /></dd>
+                  </div>
+                  <div>
+                    <dt>Posted</dt>
+                    <dd><input className="jp-mini-input jp-mini-input--date" type="date" value={job.postedOn} aria-label="Posted on" onChange={(e) => e.target.value && patchJob(job.id, { postedOn: e.target.value })} /></dd>
+                  </div>
+                  <div>
+                    <dt>Apply by</dt>
+                    <dd>
+                      <input className="jp-mini-input jp-mini-input--date" type="date" value={job.deadline} aria-label="Last date to apply" onChange={(e) => patchJob(job.id, { deadline: e.target.value })} />
+                      <em className={`jp-due jp-due--${dl.tone}`}>{dl.text}</em>
+                    </dd>
+                  </div>
                 </dl>
               </div>
 
@@ -495,8 +827,8 @@ export default function JobPortal() {
                     <span>{apps.length === 1 ? "application" : "applications"}</span>
                   </div>
                   <div className="jp-stack">
-                    {apps.slice(0, 4).map((a) => <span key={a.id} className="jp-avatar jp-avatar--sm">{initials(a.name)}</span>)}
-                    {apps.length > 4 && <span className="jp-avatar jp-avatar--sm jp-avatar--more">+{apps.length - 4}</span>}
+                    {apps.slice(0, 4).map((a) => <Avatar key={a.id} name={a.name} small />)}
+                    {apps.length > 4 && <Avatar name="more" small more={`+${apps.length - 4}`} />}
                     {apps.length === 0 && <small>No one has applied yet</small>}
                   </div>
                   <ul>
@@ -504,7 +836,7 @@ export default function JobPortal() {
                     <li><b>{shortlisted}</b> shortlisted</li>
                     <li><b>{hired}</b> hired</li>
                   </ul>
-                  <span className="jp-applied__cta">View applicants</span>
+                  <span className="jp-applied__cta">View and edit applicants</span>
                 </button>
 
                 <div className="jp-card__actions">
@@ -521,10 +853,34 @@ export default function JobPortal() {
         })}
       </main>
 
+      <footer className="jp-footer">
+        <span>Changes are saved in this browser automatically.</span>
+        <button className="jp-btn jp-btn--ghost jp-btn--xs" onClick={() => setModal({ type: "reset" })}>Reset to sample data</button>
+      </footer>
+
       {/* ---------- Modals ---------- */}
-      {modal?.type === "form" && <JobForm initial={modal.job} onSave={saveJob} onClose={() => setModal(null)} />}
+      {modal?.type === "form" && <JobForm initial={modal.job} departments={departments} onSave={saveJob} onClose={() => setModal(null)} />}
+      {modal?.type === "depts" && (
+        <DepartmentManager departments={departments} jobs={jobs} onAdd={addDept} onRename={renameDept} onDelete={deleteDept} onClose={() => setModal(null)} />
+      )}
       {modal?.type === "applicants" && (
-        <Applicants job={modal.job} applicants={appsOf(modal.job.id)} onStatus={changeStatus} onClose={() => setModal(null)} />
+        <Applicants
+          job={liveJob(modal)} applicants={appsOf(modal.job.id)} onStatus={changeStatus}
+          onAdd={() => setSub({ type: "appForm", app: emptyApplicant })}
+          onEdit={(a) => setSub({ type: "appForm", app: a })}
+          onDelete={(a) => setSub({ type: "delApp", app: a })}
+          onClose={() => { setSub(null); setModal(null); }}
+        />
+      )}
+      {sub?.type === "appForm" && <ApplicantForm initial={sub.app} departments={departments} onSave={saveApplicant} onClose={() => setSub(null)} />}
+      {sub?.type === "delApp" && (
+        <Modal title="Remove this applicant?" onClose={() => setSub(null)}>
+          <p className="jp-confirm">{sub.app.name}’s application will be removed from this vacancy. This cannot be undone.</p>
+          <div className="jp-actions">
+            <button className="jp-btn jp-btn--ghost" onClick={() => setSub(null)}>Cancel</button>
+            <button className="jp-btn jp-btn--danger-solid" onClick={() => deleteApplicant(sub.app.id)}>Remove applicant</button>
+          </div>
+        </Modal>
       )}
       {modal?.type === "delete" && (
         <Modal title="Delete this vacancy?" onClose={() => setModal(null)}>
@@ -534,6 +890,15 @@ export default function JobPortal() {
           <div className="jp-actions">
             <button className="jp-btn jp-btn--ghost" onClick={() => setModal(null)}>Cancel</button>
             <button className="jp-btn jp-btn--danger-solid" onClick={() => deleteJob(modal.job.id)}>Delete vacancy</button>
+          </div>
+        </Modal>
+      )}
+      {modal?.type === "reset" && (
+        <Modal title="Reset to sample data?" onClose={() => setModal(null)}>
+          <p className="jp-confirm">All vacancies, applicants, departments, texts and theme will go back to the original sample. Your edits will be lost.</p>
+          <div className="jp-actions">
+            <button className="jp-btn jp-btn--ghost" onClick={() => setModal(null)}>Cancel</button>
+            <button className="jp-btn jp-btn--danger-solid" onClick={resetAll}>Reset everything</button>
           </div>
         </Modal>
       )}
