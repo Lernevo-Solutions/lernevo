@@ -57,6 +57,7 @@ export const ROUTE_MAP = {
   "Offboarding": "/offboarding",
   Profile: "/profile",
   "Leave and Permissions": "/leave-permission",
+  "HR Reports": "/hrreport",
 };
 
 export const NAV_SECTIONS = [

@@ -668,7 +668,7 @@ export default function JobPortal() {
   const setLabel = (k) => (v) => setUi({ ...ui, labels: { ...labels, [k]: v } });
   const resetAll = () => {
     setJobs(initialJobs); setApplicants(initialApplicants); setDepartments(DEFAULT_DEPARTMENTS); setUi(defaultUi);
-    setModal(null); notify("Everything reset to sample data");
+    
   };
 
   return (
@@ -853,10 +853,6 @@ export default function JobPortal() {
         })}
       </main>
 
-      <footer className="jp-footer">
-        <span>Changes are saved in this browser automatically.</span>
-        <button className="jp-btn jp-btn--ghost jp-btn--xs" onClick={() => setModal({ type: "reset" })}>Reset to sample data</button>
-      </footer>
 
       {/* ---------- Modals ---------- */}
       {modal?.type === "form" && <JobForm initial={modal.job} departments={departments} onSave={saveJob} onClose={() => setModal(null)} />}
