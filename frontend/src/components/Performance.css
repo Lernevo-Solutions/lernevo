@@ -287,3 +287,34 @@ background:var(--t-bg);color:var(--t-ink);font-size:14px;font-variant-numeric:ta
 .pr-report-team-section .pr-team-checks label{min-width:0;color:var(--t-ink,#0f1f45);font-size:11px}
 @media(max-width:760px){.pr-header-actions{width:100%;justify-content:flex-start}.pr-settings-modal{width:100%}.pr-settings-tabs{padding-inline:12px}.pr-settings-content{padding:14px 12px}.pr-settings-list>article{gap:5px;padding:9px 7px}.pr-settings-list>article>.pr-icon-button{width:30px;height:30px}.pr-settings-copy small{font-size:9px}.pr-inline-actions{justify-content:flex-end}}
 @media(max-width:520px){.pr-settings-heading{align-items:flex-start;flex-direction:column}.pr-settings-heading .pr-primary{width:100%}.pr-settings-footer{flex-wrap:wrap}.pr-settings-footer>span{order:3;flex-basis:100%}.pr-settings-footer button{flex:1}.pr-team-checks,.pr-report-team-section .pr-team-checks{grid-template-columns:1fr}.pr-report-team-filter{flex:1}.pr-report-team-filter select{flex:1;min-width:0}.pr-cycle-actions>*{flex:1}.pr-header-actions>*{flex:1}.pr-settings-list>article .pr-order-actions{display:none}}
+
+/* Performance Review inline option and field editors */
+.pr-cycle-type-field,.pr-filter-edit{display:flex;align-items:end;gap:6px}
+.pr-cycle-type-field>label,.pr-filter-edit>label{display:grid;flex:1;gap:5px;color:var(--t-mute);font-size:12px;font-weight:600}
+.pr-option-editor,.pr-period-editor{display:grid;grid-template-columns:1fr auto;gap:7px;padding:10px;border:1px solid var(--t-line);border-radius:9px;background:var(--t-card);font-size:11px}
+.pr-option-editor>b,.pr-period-editor>b{grid-column:1/-1;color:var(--t-ink)}
+.pr-option-editor>div,.pr-period-editor>div{display:flex;align-items:center;gap:6px;min-width:0}
+.pr-option-editor input,.pr-period-editor input,.pr-feedback-edit input,.pr-rating-label input{min-width:0;width:100%;padding:7px 8px;border:1px solid var(--t-line);border-radius:7px;background:var(--t-card);color:var(--t-ink);font-size:12px}
+.pr-option-editor>.pr-outline,.pr-period-editor>.pr-outline{grid-column:1/-1;justify-self:start}
+.pr-option-editor>.pr-primary,.pr-period-editor>.pr-primary{grid-column:1/-1;justify-self:end}
+.pr-cycle-form .pr-cycle-teams{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px 12px;padding:10px 12px;margin:0}
+.pr-cycle-form .pr-cycle-teams label{display:flex;align-items:center;gap:8px;min-width:0;font-size:12px}
+.pr-cycle-form .pr-cycle-teams input{width:16px;height:16px;flex:0 0 16px;margin:0}
+.pr-cycle-form .pr-cycle-teams label span{line-height:1.35}
+.pr-section-heading{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.pr-section-heading h3{margin:0}
+.pr-form-ratings .pr-rating-label,.pr-feedback-edit{display:flex;align-items:center;gap:6px;min-width:0}
+.pr-form-ratings .pr-rating-label>input,.pr-feedback-edit>input{flex:1}
+.pr-form-ratings .pr-rating-label .pr-icon-button,.pr-feedback-edit .pr-icon-button{width:30px;height:30px}
+.pr-tools>.pr-period-editor{flex-basis:100%}
+@media(max-width:520px){.pr-cycle-form .pr-cycle-teams{grid-template-columns:1fr}.pr-period-editor{flex-basis:100%}}
+.pr-cycle-form .pr-cycle-teams legend{grid-column:1/-1}
+.pr-modal>header .pr-back-arrow{font-size:18px;line-height:1;border:1px solid var(--t-line);padding:6px 10px;margin-right:10px}
+.pr-modal>header h2{flex:1}
+.pr-person-actions{display:flex;justify-content:flex-end;margin:8px 0}
+.pr-skill-editor{display:grid;gap:7px;grid-column:1/-1}
+.pr-skill-editor>div{display:grid;grid-template-columns:1fr 110px 34px;gap:7px;align-items:center}
+.pr-tab-content article .pr-list-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pr-tab-content article .pr-list-head .pr-outline{padding:6px 9px}
+.pr-tab-content article footer{display:flex;align-items:center;gap:8px;margin-top:10px}
+.pr-tab-content article footer span{flex:1}
