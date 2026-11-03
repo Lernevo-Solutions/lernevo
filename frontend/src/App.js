@@ -68,6 +68,7 @@ import Performance from "./components/Performance";
 import GoalsReview from "./components/GoalsReview";
 import Jobportal from "./components/Jobportal";
 import Offboarding from "./components/Offboarding";
+import Onboarding from "./components/onboarding";
 import Hrreport from "./components/Hrreport";
 const AppLayout = () => {
   const location = useLocation();
@@ -98,6 +99,7 @@ const AppLayout = () => {
     "/goals",
     "/jobportal",
     "/offboarding",
+    "/onboarding",
     "/hrreport",
   ];
 
@@ -120,6 +122,7 @@ const AppLayout = () => {
     "/goals",
     "/jobportal",
     "/offboarding",
+    "/onboarding",
     "/hrreport",
   ];
 
@@ -279,6 +282,7 @@ const AppLayout = () => {
     <Route path="/payslip" element={ <AdminLayout><Payslip /></AdminLayout> } />   
     <Route path="/jobportal" element={ <AdminLayout><Jobportal /></AdminLayout> } />
     <Route path="/goals" element={ <AdminLayout><GoalsReview /></AdminLayout> } />
+    <Route path="/onboarding" element={ <AdminLayout><Onboarding /></AdminLayout> } />
     <Route path="/offboarding" element={ <AdminLayout><Offboarding /></AdminLayout> } />
     <Route path="/hrreport" element={ <AdminLayout><Hrreport /></AdminLayout> } />
       </Routes>
