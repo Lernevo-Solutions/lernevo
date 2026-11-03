@@ -174,3 +174,15 @@ body:has(.ob-overlay) .feedback-launcher { display:none; }
 .ob-assign .ob-assign-hire b, .ob-assign .ob-assign-hire small { white-space: normal; overflow-wrap: anywhere; }
 .ob-assign input[type="checkbox"] { width: 16px; min-width: 16px; max-width: 16px; height: 16px; min-height: 0; margin: 0; padding: 0; flex: none; accent-color: #2563eb; }
 .ob-assign .ob-assign-session > label { display: flex; align-items: center; justify-content: flex-start; gap: 10px; text-align: left; }
+
+/* Quick actions */
+.ob-quick-count { margin-left: auto; min-width: 22px; padding: 1px 8px; border-radius: 20px; background: #eff6ff; color: #2563eb; font-size: 11px; font-weight: 600; text-align: center; }
+.ob-quick .ob-quick-count + svg { margin-left: 10px; }
+.ob-assign .ob-assign-hire.off { opacity: .6; cursor: not-allowed; background: #fafbfc; }
+.ob-assign-text { width: 100%; min-height: 150px; resize: vertical; border: 1px solid #dbe3ed; border-radius: 7px; background: #fff; padding: 9px 10px; font: inherit; font-size: 12px; line-height: 1.5; color: #334155; }
+.ob-assign-text:focus, .ob-assign-note:focus { outline: 0; border-color: #93c5fd; box-shadow: 0 0 0 3px #dbeafe; }
+.ob-assign-preview { display: grid; gap: 4px; padding: 11px 13px; background: #f8fafc; border: 1px solid #edf1f6; border-radius: 8px; }
+.ob-assign-preview small { color: #8491a5; font-size: 11px; }
+.ob-assign-preview b { font-size: 12px; color: #172554; font-weight: 600; }
+.ob-assign-preview p { margin: 0; white-space: pre-wrap; font-size: 12px; color: #475569; max-height: 130px; overflow: auto; }
+.ob-assign-col select.ob-assign-note { width: 100%; }

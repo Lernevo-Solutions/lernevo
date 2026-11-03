@@ -25,6 +25,15 @@ const orientationTemplates = [
   { id: "team", name: "Team introduction & buddy meet", day: 1, start: "10:00", end: "11:00", owner: "Reporting manager" },
   { id: "role", name: "Role & tools training", day: 2, start: "10:00", end: "13:00", owner: "Reporting manager" },
 ];
+const isPendingDoc = d => !["Verified", "Submitted", "Under Verification"].includes(d.status);
+const reminderItems = (e, type) => type === "Documents" ? (e.docs || []).filter(isPendingDoc).map(d => d.name) : (e.tasks || []).filter(t => !t.done).map(t => t.title);
+const todayLabel = () => new Date().toLocaleDateString("en-IN");
+const fillTemplate = (tpl, e, extra = {}) => tpl.replace(/\{(\w+)\}/g, (m, k) => ({ name: e.name, position: e.position, joining: e.joining, manager: e.manager || "your manager", ...extra })[k] ?? m);
+const welcomeDefaults = { subject: "Welcome to Lernevo, {name}!", body: "Hi {name},\n\nWelcome aboard! We are excited to have you join us as {position} on {joining}.\n\nYour reporting manager is {manager}. Please keep your ID proof and certificates ready. We will share your first-day schedule soon.\n\nSee you soon,\nPeople Operations" };
+const reminderDefaults = {
+  Documents: { subject: "Reminder: pending documents for your onboarding", body: "Hi {name},\n\nA few documents are still pending for your onboarding: {items}.\nPlease upload them before your joining date ({joining}) so your first day is not delayed.\n\nThanks,\nPeople Operations" },
+  Tasks: { subject: "Reminder: onboarding steps still open", body: "Hi {name},\n\nYou have {count} onboarding steps still open: {items}.\nPlease complete them before your joining date ({joining}).\n\nThanks,\nPeople Operations" },
+};
 const pad2 = n => String(n).padStart(2, "0");
 const dateKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 // Day 0 = joining day. Later days skip Saturday / Sunday.
@@ -36,7 +45,7 @@ const workingDayFrom = (joining, offset) => {
 const dayLabel = n => n === 0 ? "Joining day" : `Working day +${n}`;
 const statusClass = s => (s || "pending").toLowerCase().replaceAll(" ", "-");
 
-export default function Onboarding({ onAssignOrientation }) {
+export default function Onboarding({ onAssignOrientation, onSendMessage }) {
   const [employees, setEmployees] = useState(() => initialEmployees.map(e => ({ ...e, tasks: e.tasks.map((title, i) => ({ id: `task-${e.id}-${i}`, title, done: i < Math.round(e.progress / 20), owner: e.manager, due: e.joining })) })));
   const [tab, setTab] = useState("Dashboard"), [search, setSearch] = useState(""), [dept, setDept] = useState("All departments"), [filterStatus, setFilterStatus] = useState("All statuses");
   const [selected, setSelected] = useState(null), [profileTab, setProfileTab] = useState("Overview"), [modal, setModal] = useState(false), [step, setStep] = useState(0), [notice, setNotice] = useState("");
@@ -49,6 +58,7 @@ export default function Onboarding({ onAssignOrientation }) {
   const [setupIndustry, setSetupIndustry] = useState("IT & Technology"), [setupStatuses, setSetupStatuses] = useState({}), [orientations, setOrientations] = useState([{ empId: 2, name: "Company introduction", date: "2026-11-04 10:00", end: "11:00", owner: "People Operations", status: "Scheduled" }, { empId: 2, name: "IT setup & security awareness", date: "2026-11-04 14:00", end: "15:00", owner: "IT Team", status: "Scheduled" }]);
   const [assignOpen, setAssignOpen] = useState(false), [assignWho, setAssignWho] = useState([]), [assignWhat, setAssignWhat] = useState({}), [assignSearch, setAssignSearch] = useState(""), [assignMode, setAssignMode] = useState("In person"), [assignNote, setAssignNote] = useState(""), [orientFilter, setOrientFilter] = useState("All new joiners"), [customTitle, setCustomTitle] = useState("");
   const [activities, setActivities] = useState([{ title: "Priya Raman uploaded Educational Certificate", time: "2 hours ago" }, { title: "Appointment letter verified by HR", time: "4 hours ago" }, { title: "IT setup task assigned", time: "Yesterday" }]);
+  const [quick, setQuick] = useState(null), [quickWho, setQuickWho] = useState([]), [quickSubject, setQuickSubject] = useState(""), [quickBody, setQuickBody] = useState(""), [reminderType, setReminderType] = useState("Documents"), [quickIndustry, setQuickIndustry] = useState("IT & Technology");
   const flash = msg => { setNotice(msg); window.setTimeout(() => setNotice(""), 2800); };
   const log = title => setActivities(a => [{ title, time: "Just now" }, ...a]);
   const visible = useMemo(() => employees.filter(e => (e.name + e.position + e.department).toLowerCase().includes(search.toLowerCase()) && (dept === "All departments" || e.department === dept) && (filterStatus === "All statuses" || e.status === filterStatus)), [employees, search, dept, filterStatus]);
@@ -196,6 +206,72 @@ export default function Onboarding({ onAssignOrientation }) {
     if (!window.confirm(`Remove "${o.name}" from this new joiner?`)) return;
     setOrientations(cur => cur.filter(x => x !== o)); log("Orientation session removed");
   };
+  // ---- Quick actions: welcome email / reminder / IT setup ----
+  const quickInfo = (kind, e, type = reminderType) => {
+    if (kind === "welcome") return e.welcomeSent ? { ok: false, badge: `Sent ${e.welcomeSent}` } : { ok: true, badge: "Not sent" };
+    if (kind === "reminder") { const n = reminderItems(e, type).length; return n ? { ok: true, badge: `${n} pending${e.lastReminder ? ` · reminded ${e.lastReminder}` : ""}` } : { ok: false, badge: "Nothing pending" }; }
+    return e.itAssigned ? { ok: false, badge: `Assigned · ${e.itAssigned}` } : { ok: true, badge: "Not assigned" };
+  };
+  const quickCount = { welcome: employees.filter(e => !e.welcomeSent).length, reminder: employees.filter(e => reminderItems(e, "Documents").length || reminderItems(e, "Tasks").length).length, it: employees.filter(e => !e.itAssigned).length, orient: employees.filter(e => !hireOrientations(e.id).length).length };
+  const openQuick = kind => {
+    const type = kind === "reminder" && !employees.some(e => reminderItems(e, "Documents").length) ? "Tasks" : "Documents";
+    setReminderType(type); setQuickIndustry(setupIndustry);
+    if (kind === "welcome") { setQuickSubject(welcomeDefaults.subject); setQuickBody(welcomeDefaults.body); }
+    if (kind === "reminder") { setQuickSubject(reminderDefaults[type].subject); setQuickBody(reminderDefaults[type].body); }
+    setQuickWho(employees.filter(e => quickInfo(kind, e, type).ok).map(e => e.id)); setQuick(kind);
+  };
+  const changeReminderType = type => {
+    setReminderType(type); setQuickSubject(reminderDefaults[type].subject); setQuickBody(reminderDefaults[type].body);
+    setQuickWho(employees.filter(e => quickInfo("reminder", e, type).ok).map(e => e.id));
+  };
+  const submitQuick = () => {
+    const targets = employees.filter(e => quickWho.includes(e.id) && quickInfo(quick, e).ok);
+    if (!targets.length) { flash("Select at least one new joiner."); return; }
+    if (quick !== "it" && (!quickSubject.trim() || !quickBody.trim())) { flash("Subject and message cannot be empty."); return; }
+    if (quick === "it") {
+      setSetupStatuses(cur => { const next = { ...cur }; targets.forEach(e => setupPlans[quickIndustry].forEach((_, i) => { const k = `${e.id}:${quickIndustry}:${i}`; if (!next[k] || next[k] === "Pending") next[k] = "In Progress"; })); return next; });
+      targets.forEach(e => updateEmployee(e.id, x => ({ ...x, itAssigned: quickIndustry })));
+      setSetupIndustry(quickIndustry); log(`${quickIndustry} setup assigned to ${targets.length} new ${targets.length === 1 ? "joiner" : "joiners"}`);
+      setQuick(null); setTab("Setup"); flash(`IT setup started for ${targets.length} new ${targets.length === 1 ? "joiner" : "joiners"}.`); return;
+    }
+    const messages = targets.map(e => { const items = reminderItems(e, reminderType); const extra = quick === "reminder" ? { items: items.join(", "), count: items.length } : {}; return { type: quick, empId: e.id, to: e.email, subject: fillTemplate(quickSubject, e, extra), body: fillTemplate(quickBody, e, extra) }; });
+    if (typeof onSendMessage === "function") onSendMessage(messages);
+    const today = todayLabel();
+    targets.forEach(e => updateEmployee(e.id, x => quick === "welcome" ? { ...x, welcomeSent: today } : { ...x, lastReminder: today }));
+    log(`${quick === "welcome" ? "Welcome email" : "Reminder"} sent to ${targets.length} new ${targets.length === 1 ? "joiner" : "joiners"}`);
+    setQuick(null); flash(`${quick === "welcome" ? "Welcome email" : "Reminder"} sent to ${targets.length} new ${targets.length === 1 ? "joiner" : "joiners"}.`);
+  };
+  const renderQuickModal = () => {
+    const meta = { welcome: ["WELCOME", "Send welcome email", "Send email"], reminder: ["REMINDER", "Send a reminder", "Send reminder"], it: ["IT SETUP", "Assign IT setup", "Assign IT setup"] }[quick];
+    const preview = employees.find(e => quickWho.includes(e.id));
+    const items = preview ? reminderItems(preview, reminderType) : [];
+    const extra = quick === "reminder" ? { items: items.join(", "), count: items.length } : {};
+    return <div className="ob-overlay" onMouseDown={e => e.target === e.currentTarget && setQuick(null)}><section className="ob-modal ob-assign">
+      <header><div><span className="ob-eyebrow">{meta[0]}</span><h2>{meta[1]}</h2></div><button className="ob-icon-button" aria-label="Close" onClick={() => setQuick(null)}><X size={19} /></button></header>
+      <div className="ob-assign-body">
+        <div className="ob-assign-col"><h3>Who?</h3>
+          <button className="ob-link" onClick={() => setQuickWho(employees.filter(e => quickInfo(quick, e).ok).map(e => e.id))}>Select all eligible</button>
+          <div className="ob-assign-list">{employees.map(e => { const info = quickInfo(quick, e); return <label className={`ob-assign-hire ${info.ok ? "" : "off"}`} key={e.id}><input type="checkbox" disabled={!info.ok} checked={quickWho.includes(e.id)} onChange={() => setQuickWho(l => l.includes(e.id) ? l.filter(x => x !== e.id) : [...l, e.id])} /><span className="ob-avatar">{e.name.split(" ").map(x => x[0]).join("")}</span><span><b>{e.name}</b><small>{e.position} · joins {e.joining}</small></span><em className={info.ok ? "" : "has"}>{info.badge}</em></label>; })}</div>
+        </div>
+        <div className="ob-assign-col">
+          {quick === "it" ? <>
+            <h3>Which setup?</h3>
+            <select className="ob-assign-note" value={quickIndustry} onChange={e => setQuickIndustry(e.target.value)}>{Object.keys(setupPlans).map(k => <option key={k}>{k}</option>)}</select>
+            <p className="ob-muted">These items will be moved to In Progress on the Setup tab:</p>
+            <div className="ob-assign-list">{setupPlans[quickIndustry].map(x => <div className="ob-setup-task" key={x}><span className="ob-setup-task-icon"><Laptop size={15} /></span><span className="ob-setup-task-title">{x}</span></div>)}</div>
+          </> : <>
+            <h3>Message</h3>
+            {quick === "reminder" && <div className="ob-assign-mode">{[["Documents", "Pending documents"], ["Tasks", "Open tasks"]].map(([v, l]) => <button type="button" key={v} className={reminderType === v ? "active" : ""} onClick={() => changeReminderType(v)}>{l}</button>)}</div>}
+            <input className="ob-assign-note" aria-label="Subject" value={quickSubject} onChange={e => setQuickSubject(e.target.value)} placeholder="Subject" />
+            <textarea className="ob-assign-text" aria-label="Message" value={quickBody} onChange={e => setQuickBody(e.target.value)} />
+            <small className="ob-muted">Placeholders: {"{name} {position} {joining} {manager}"}{quick === "reminder" ? " {items} {count}" : ""}</small>
+            {preview && <div className="ob-assign-preview"><small>Preview for {preview.name} ({preview.email})</small><b>{fillTemplate(quickSubject, preview, extra)}</b><p>{fillTemplate(quickBody, preview, extra)}</p></div>}
+          </>}
+        </div>
+      </div>
+      <footer><button className="ob-outline" onClick={() => setQuick(null)}>Cancel</button><small className="ob-assign-count">{quickWho.length} selected</small><button className="ob-primary" onClick={submitQuick}><Check size={16} /> {meta[2]}</button></footer>
+    </section></div>;
+  };
   const renderProfileEditor = scope => {
     const personalFields = [["name", "Full name", "text"], ["email", "Email", "email"], ["phone", "Phone", "tel"]];
     const employmentFields = [["position", "Position", "text"], ["department", "Department", "department"], ["employment", "Employment type", "employment"], ["manager", "Manager", "text"], ["location", "Work location", "text"], ["joining", "Joining date", "date"]];
@@ -214,7 +290,7 @@ export default function Onboarding({ onAssignOrientation }) {
     {tab === "Dashboard" && <>
       <section className="ob-card ob-pipeline"><div className="ob-card-title"><div><h2>Onboarding Pipeline</h2><p>Track each hire from accepted offer through the first week</p></div><span className="ob-muted">{employees.length} employees</span></div><div className="ob-stages">{["Offer Accepted","Documents","Pre-boarding","Joining Day","First Week","Completed"].map((s,i)=>{const n=employees.filter(e=>e.stage===s || (i===0&&e.stage!=="Completed")).length;return <div className="ob-stage" key={s}><span className={i<2?"done":i===2?"current":""}>{i<2?<Check size={15}/>:i+1}</span><b>{s}</b><small>{n} employees</small></div>})}</div></section>
       <section className="ob-card ob-hires">{sectionHead(`New Hires (${visible.length})`, "Track and manage all new hires and their onboarding progress", <button className="ob-outline" onClick={()=>setTab("Pre-boarding")}>View tasks <ArrowRight size={14}/></button>)}<div className="ob-filters"><label className="ob-search"><Search size={16}/><input placeholder="Search name, position, department…" value={search} onChange={e=>setSearch(e.target.value)}/></label><select value={dept} onChange={e=>setDept(e.target.value)}><option>All departments</option>{departments.map(d=><option key={d}>{d}</option>)}</select><select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}><option>All statuses</option>{["In Progress","Ready to Join","Documents Pending","Action Required","On Hold","Joined"].map(s=><option key={s}>{s}</option>)}</select></div>{renderRows(visible)}</section>
-      <div className="ob-two-col"><section className="ob-card">{sectionHead("Recent Activities","Latest onboarding updates")}{activities.slice(0,5).map((a,i)=><div className="ob-activity" key={i}><span><Activity size={16}/></span><div><b>{a.title}</b><small>{a.time}</small></div></div>)}</section><section className="ob-card">{sectionHead("Quick Actions","Common onboarding tasks")}{[[Mail,"Send welcome email"],[Bell,"Send a reminder"],[Laptop,"Assign IT setup"],[CalendarDays,"Schedule orientation"]].map(([Icon,label])=><button className="ob-quick" key={label} onClick={()=>{if(label==="Schedule orientation"){setTab("Orientation");openAssign();return}log(label);flash(`${label} recorded in the demo.`)}}><Icon size={17}/>{label}<ArrowRight size={14}/></button>)}</section></div>
+      <div className="ob-two-col"><section className="ob-card">{sectionHead("Recent Activities","Latest onboarding updates")}{activities.slice(0,5).map((a,i)=><div className="ob-activity" key={i}><span><Activity size={16}/></span><div><b>{a.title}</b><small>{a.time}</small></div></div>)}</section><section className="ob-card">{sectionHead("Quick Actions","Common onboarding tasks")}{[[Mail,"Send welcome email","welcome"],[Bell,"Send a reminder","reminder"],[Laptop,"Assign IT setup","it"],[CalendarDays,"Schedule orientation","orient"]].map(([Icon,label,kind])=><button className="ob-quick" key={kind} onClick={()=>kind==="orient"?(setTab("Orientation"),openAssign()):openQuick(kind)}><Icon size={17}/>{label}{quickCount[kind]>0&&<span className="ob-quick-count" title="Still to do">{quickCount[kind]}</span>}<ArrowRight size={14}/></button>)}</section></div>
     </>}
     {tab === "Pre-boarding" && <section className="ob-card ob-preboarding">{sectionHead("Pre-boarding Checklist","Complete activities before each employee's first day")}<div className="ob-task-summary"><article><small>Open tasks</small><b>{taskCounts.open}</b></article><article><small>Completed tasks</small><b>{taskCounts.complete}</b></article><article><small>Total checklist items</small><b>{taskCounts.total}</b></article></div><div className="ob-filters"><label className="ob-search"><Search size={16}/><input placeholder="Search employee or department" value={search} onChange={e=>setSearch(e.target.value)}/></label><select value={dept} onChange={e=>setDept(e.target.value)}><option>All departments</option>{departments.map(d=><option key={d}>{d}</option>)}</select></div>{visible.map(e=><div className="ob-task-group" key={e.id}><div className="ob-task-employee"><span className="ob-avatar">{e.name.split(" ").map(x=>x[0]).join("")}</span><span><b>{e.name}</b><small>{e.position} · joins {e.joining}</small></span><span className={`ob-badge ${statusClass(e.status)}`}>{e.status}</span><button type="button" className="ob-outline ob-add-task" disabled={editingTask?.employeeId===e.id} onClick={()=>addTask(e)}><Plus size={14}/> Add task</button></div><div className="ob-task-list">{e.tasks.map((t,i)=>{const isEditing=editingTask?.employeeId===e.id&&editingTask?.taskId===t.id;return <article className="ob-task ob-task-manage" key={t.id||t.title}><input type="checkbox" aria-label={`Mark ${t.title||"task"} complete`} disabled={isEditing} checked={t.done} onChange={()=>updateTask(e.id,i)}/>{isEditing?<div className="ob-task-edit"><input autoFocus aria-label="Task name" value={taskDraft.title} onChange={event=>setTaskDraft({...taskDraft,title:event.target.value})} onKeyDown={event=>{if(event.key==="Enter"){event.preventDefault();saveTask(e.id)}if(event.key==="Escape")cancelTaskEdit(e.id)}}/><div><label>Owner<input aria-label="Task owner" value={taskDraft.owner} onChange={event=>setTaskDraft({...taskDraft,owner:event.target.value})}/></label><label>Due date<input aria-label="Task due date" type="date" value={taskDraft.due} onChange={event=>setTaskDraft({...taskDraft,due:event.target.value})}/></label></div></div>:<div className="ob-task-content"><span className={t.done?"is-done":""}>{t.title}</span><small>{t.owner} · due {t.due}</small></div>}<div className="ob-task-actions">{isEditing?<><button type="button" className="ob-task-icon save" aria-label="Save task" disabled={!taskDraft.title.trim()} onClick={()=>saveTask(e.id)}><Check size={15}/></button><button type="button" className="ob-task-icon" aria-label="Cancel task edit" onClick={()=>cancelTaskEdit(e.id)}><X size={15}/></button></>:<><button type="button" className="ob-task-icon" aria-label={`Edit ${t.title}`} onClick={()=>editTask(e.id,t)}><Pencil size={14}/></button><button type="button" className="ob-task-icon danger" aria-label={`Remove ${t.title}`} onClick={()=>removeTask(e.id,t)}><Trash2 size={14}/></button></>}</div></article>})}</div></div>)}{!visible.length&&<div className="ob-empty">No employees match these filters.</div>}</section>}
     {tab === "Document Verification" && <section className="ob-card">{sectionHead("Document Verification","Review submissions, track missing files, and update verification status",<label className="ob-primary ob-upload"><UploadCloud size={16}/> Upload document<input type="file" onChange={e=>{const file=e.target.files?.[0];const target=employees.find(person=>person.docs.some(d=>d.status==="Pending"||d.status==="Not Submitted"));if(file&&target){const index=target.docs.findIndex(d=>d.status==="Pending"||d.status==="Not Submitted");upload(target,index,file)}else if(file)flash("No pending demo document is available to attach this file.")}}/></label>)}<div className="ob-filters"><label className="ob-search"><Search size={16}/><input placeholder="Search employee or document" value={search} onChange={e=>setSearch(e.target.value)}/></label><select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}><option>All statuses</option>{["Not Submitted","Submitted","Under Verification","Verified","Rejected","Pending"].map(s=><option key={s}>{s}</option>)}</select></div><div className="ob-table-wrap"><table className="ob-table"><thead><tr><th>Employee</th><th>Document type</th><th>Submitted</th><th>Verification status</th><th>Actions</th></tr></thead><tbody>{allDocs.filter(d=>(d.employee.name+d.name).toLowerCase().includes(search.toLowerCase())&&(filterStatus==="All statuses"||d.status===filterStatus)).map(d=><tr key={d.key}><td><b>{d.employee.name}</b></td><td><FileText size={15}/> {d.name}</td><td>{d.submitted||"—"}</td><td><span className={`ob-badge ${statusClass(d.status)}`}>{d.status}</span></td><td className="ob-actions"><label className="ob-link">Upload<input type="file" onChange={ev=>upload(d.employee,d.employee.docs.findIndex(x=>x.name===d.name),ev.target.files?.[0])}/></label><select aria-label={`Update ${d.name} status`} value={d.status} onChange={ev=>updateDoc(d.employee.id,d.employee.docs.findIndex(x=>x.name===d.name),ev.target.value)}>{["Not Submitted","Submitted","Under Verification","Verified","Rejected","Not Applicable"].map(s=><option key={s}>{s}</option>)}</select></td></tr>)}</tbody></table></div></section>}
@@ -230,6 +306,7 @@ export default function Onboarding({ onAssignOrientation }) {
       {employees.length===0&&<div className="ob-empty">No new joiners yet. Add a new hire first.</div>}
     </section>}
 
+    {quick && renderQuickModal()}
     {assignOpen && <div className="ob-overlay" onMouseDown={e=>e.target===e.currentTarget&&setAssignOpen(false)}><section className="ob-modal ob-assign"><header><div><span className="ob-eyebrow">ORIENTATION</span><h2>Assign orientation</h2></div><button className="ob-icon-button" aria-label="Close" onClick={()=>setAssignOpen(false)}><X size={19}/></button></header>
       <div className="ob-assign-body">
         <div className="ob-assign-col"><h3>1. Who is joining?</h3><label className="ob-search"><Search size={14}/><input placeholder="Search new joiners" value={assignSearch} onChange={e=>setAssignSearch(e.target.value)}/></label>
