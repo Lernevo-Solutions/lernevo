@@ -676,9 +676,8 @@ export default function JobPortal() {
       {/* ---------- Hero ---------- */}
       <section className="jp-hero">
         <div className="jp-hero__text">
-          <Editable as="h1" value={ui.title} onSave={(v) => setUi({ ...ui, title: v })} />
-          <Editable as="p" multiline value={ui.sub} onSave={(v) => setUi({ ...ui, sub: v })} />
-          <span className="jp-hero__hint">✎ Click the heading or this text to edit it</span>
+          <h1>{ui.title}</h1>
+          <p>{ui.sub}</p>
         </div>
         <div className="jp-hero__side">
           <div className="jp-hero__btns">
