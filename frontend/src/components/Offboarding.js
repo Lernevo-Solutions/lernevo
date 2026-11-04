@@ -34,6 +34,7 @@ const rupees = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
 const initials = (n) => n.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 const doneCount = (e) => CHECKLIST.filter((c) => e.checklist[c.key]).length;
 const statusOf = (e) => (e.relievedOn ? "Relieved" : doneCount(e) > 0 ? "Clearance" : "Notice Period");
+const pendingOwners = (e) => [...new Set(CHECKLIST.filter((c) => !e.checklist[c.key]).map((c) => c.owner))];
 const stageKey = (e) => statusOf(e).split(" ")[0].toLowerCase();
 const fnfTone = (s) => (s === "Paid" ? "green" : s === "Processing" ? "amber" : "red");
 
@@ -256,7 +257,7 @@ function Details({ emp, patch, onRelieve, onClose }) {
 export default function Offboarding() {
   const [emps, setEmps] = useState(initialEmployees);
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState("All");
+  const [status, setStatus] = useState("Notice Period"); // no "Everyone" tab, starts on first stage
   const [dept, setDept] = useState("All");
   const [type, setType] = useState("All");
   const [sort, setSort] = useState("lwd");
@@ -275,6 +276,9 @@ export default function Offboarding() {
     soon: emps.filter((e) => !e.relievedOn && daysBetween(today(), e.lastWorkingDay) <= 7).length,
     relieved: count("Relieved"),
     fnf: emps.filter((e) => e.fnfStatus !== "Paid").length,
+    fnfDue: emps.filter((e) => e.fnfStatus !== "Paid").reduce((s, e) => s + Number(e.fnfAmount || 0), 0),
+    live: emps.filter((e) => !e.relievedOn).length,
+    depts: new Set(emps.filter((e) => !e.relievedOn).map((e) => e.department)).size,
   };
 
   const visible = useMemo(() => {
@@ -283,7 +287,7 @@ export default function Offboarding() {
       name: (a, b) => a.name.localeCompare(b.name),
     };
     return emps
-      .filter((e) => status === "All" || statusOf(e) === status)
+      .filter((e) => statusOf(e) === status)
       .filter((e) => dept === "All" || e.department === dept)
       .filter((e) => type === "All" || e.exitType === type)
       .filter((e) => `${e.name} ${e.empId} ${e.designation}`.toLowerCase().includes(q.toLowerCase()))
@@ -302,8 +306,8 @@ export default function Offboarding() {
     notify(`${e.name} relieved`);
   };
   const remove = (id) => { setEmps(emps.filter((e) => e.id !== id)); setModal(null); if (openId === id) setOpenId(null); notify("Record deleted"); };
-  const filtersOn = q || dept !== "All" || type !== "All" || status !== "All";
-  const clearFilters = () => { setQ(""); setDept("All"); setType("All"); setStatus("All"); };
+  const filtersOn = q || dept !== "All" || type !== "All";
+  const clearFilters = () => { setQ(""); setDept("All"); setType("All"); };
 
   const summary = (() => {
     if (!stats.soon && !stats.fnf) return "Nobody leaves in the next 7 days and every settlement is paid.";
@@ -314,7 +318,6 @@ export default function Offboarding() {
   })();
 
   const tabs = [
-    { key: "All", label: "Everyone", n: emps.length },
     { key: "Notice Period", label: "Serving notice", n: stats.notice },
     { key: "Clearance", label: "In clearance", n: stats.clearance },
     { key: "Relieved", label: "Relieved", n: stats.relieved },
@@ -323,13 +326,31 @@ export default function Offboarding() {
   return (
     <div className="ob">
       <header className="ob-top">
-        <div>
+        <div className="ob-top__main">
           <h1>Offboarding</h1>
           <p>{summary}</p>
         </div>
-        <button className="ob-btn ob-btn--primary ob-btn--lg" onClick={() => setModal({ type: "form", emp: blank })}>
+        <button className="ob-btn ob-btn--primary ob-btn--lg ob-top__cta" onClick={() => setModal({ type: "form", emp: blank })}>
           <span className="ob-plus" aria-hidden="true">+</span> Start offboarding
         </button>
+        <div className="ob-kpis">
+          <div className="ob-kpi"><span>Leaving within 7 days</span><strong>{stats.soon}</strong></div>
+          <div className="ob-kpi"><span>Still on the rolls</span><strong>{stats.live}</strong></div>
+          <div className="ob-kpi"><span>Departments affected</span><strong>{stats.depts}</strong></div>
+        </div>
+        <div className="ob-flow" aria-label="Offboarding pipeline">
+          <div className="ob-flow__bar">
+            {tabs.map((t, i) => (
+              <button key={t.key} className={`ob-flow__seg ob-flow__seg--${i}`} style={{ flexGrow: Math.max(t.n, 0.35) }}
+                onClick={() => setStatus(t.key)} aria-label={`${t.label}: ${t.n}`} />
+            ))}
+          </div>
+          <div className="ob-flow__legend">
+            {tabs.map((t, i) => (
+              <button key={t.key} onClick={() => setStatus(t.key)}><i className={`ob-flow__seg--${i}`} />{t.label} <b>{t.n}</b></button>
+            ))}
+          </div>
+        </div>
       </header>
 
       <div className="ob-tabs" role="tablist" aria-label="Offboarding stage">
@@ -363,9 +384,9 @@ export default function Offboarding() {
 
         {visible.length === 0 && (
           <div className="ob-emptybox">
-            <h3>No one matches these filters</h3>
-            <p>Clear the filters to see everyone, or start a new offboarding.</p>
-            <button className="ob-btn ob-btn--ghost" onClick={clearFilters}>Clear filters</button>
+            <h3>{filtersOn ? "No one matches these filters" : `No one is ${tabs.find((t) => t.key === status).label.toLowerCase()} right now`}</h3>
+            <p>{filtersOn ? "Clear the filters to see everyone in this stage." : "Try another stage above, or start a new offboarding."}</p>
+            {filtersOn && <button className="ob-btn ob-btn--ghost" onClick={clearFilters}>Clear filters</button>}
           </div>
         )}
 
@@ -385,6 +406,7 @@ export default function Offboarding() {
                     <button className="ob-name" aria-expanded={open} onClick={(ev) => { ev.stopPropagation(); toggleRow(); }}>{e.name}</button>
                     <p>{e.designation}, {e.department}</p>
                     <small>{e.empId}, {e.exitType}</small>
+                    <small className="ob-mgr">Reports to {e.manager}</small>
                   </div>
                 </div>
 
@@ -394,6 +416,9 @@ export default function Offboarding() {
                     {CHECKLIST.map((c, i) => <i key={c.key} className={i < done ? "is-on" : ""} />)}
                   </div>
                   <small>{done} of {CHECKLIST.length} cleared</small>
+                  {!e.relievedOn && (
+                    <span className="ob-wait">Waiting on {pendingOwners(e).map((o) => <b key={o}>{o}</b>)}</span>
+                  )}
                 </div>
 
                 <div className="ob-td" data-label="Last working day">

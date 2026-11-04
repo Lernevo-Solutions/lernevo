@@ -67,7 +67,7 @@ export const NAV_SECTIONS = [
     items: [{ icon: LayoutGrid, label: "Dashboard" }],
   },
  {
-  label: "People & Organization",
+  label: "Organization & People ",
   items: [
     { icon: Building2, label: "Organizations" },
     { icon: Users, label: "Users" },
