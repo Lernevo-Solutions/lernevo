@@ -318,3 +318,10 @@ background:var(--t-bg);color:var(--t-ink);font-size:14px;font-variant-numeric:ta
 .pr-tab-content article .pr-list-head .pr-outline{padding:6px 9px}
 .pr-tab-content article footer{display:flex;align-items:center;gap:8px;margin-top:10px}
 .pr-tab-content article footer span{flex:1}
+
+/* Team and employee administration controls */
+.pr-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap}.pr-row-actions .pr-icon-button{width:32px;height:32px}.pr-star-rating,.pr-team-members{border:1px solid var(--t-line);border-radius:10px;padding:12px;margin:0;min-width:0}.pr-star-rating legend{padding:0 5px;color:var(--t-mute);font-size:12px;font-weight:700}.pr-star-buttons{display:flex;gap:5px}.pr-star-buttons button{display:grid;place-items:center;padding:5px;border:0;background:transparent;color:#cbd5e1;cursor:pointer}.pr-star-buttons button.selected{color:#f59e0b}.pr-rating-value{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:7px;color:var(--t-mute);font-size:12px}.pr-rating-value input{max-width:100px}.pr-team-members{display:grid;gap:8px}.pr-team-members>b{font-size:12px}.pr-team-members>div{display:flex;align-items:center;gap:9px}.pr-team-members>div span{display:grid;gap:2px}.pr-team-members strong{font-size:12px}.pr-team-members small{font-size:11px;color:var(--t-mute)}.pr-confirm-delete{background:#c2414c}.pr-confirm-delete:hover:not(:disabled){background:#a92f3b}.pr-form button:disabled{opacity:.6;cursor:wait}@media(max-width:520px){.pr-row-actions{gap:4px}.pr-row-actions .pr-icon-button{width:30px;height:30px}.pr-team-members{padding:10px}}
+.pr-form .pr-team-checks{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;padding:12px 14px;align-items:start}
+.pr-form .pr-team-checks label{display:flex;align-items:flex-start;justify-content:flex-start;min-width:0;gap:8px;text-align:left;line-height:1.4}
+.pr-form .pr-team-checks input[type="checkbox"]{width:16px;height:16px;min-width:16px;flex:0 0 16px;margin:2px 0 0;padding:0;accent-color:var(--t-blue,#2563eb)}
+@media(max-width:520px){.pr-form .pr-team-checks{grid-template-columns:1fr}}
