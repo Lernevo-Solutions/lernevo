@@ -20,6 +20,7 @@ import {
 
 import "./UserAssignments.css";
 import Sidebar from "./Sidebar";
+import { useOrganizations, useAssignments } from "./Orgstore";
 const PAGE_SIZE = 10;
 
 /* ============================== EXCEL HELPERS ============================== */
@@ -70,29 +71,6 @@ function initials(name) {
 
 /* ============================== SEED DATA ============================== */
 
-const seedAssignments = [
-  {
-    id: 1,
-    userName: "Saranya P",
-    email: "saranyapandiyarajan30@gmail.com",
-    organization: "Lernevo Tech",
-    jobCode: "React Developer",
-    startDate: "2025-04-01",
-    endDate: "",
-    status: "Active",
-  },
-  {
-    id: 2,
-    userName: "Thanga Janani",
-    email: "thangajanani6@gmail.com",
-    organization: "Lernevo Tech",
-    jobCode: "UI Designer",
-    startDate: "2025-05-15",
-    endDate: "",
-    status: "Active",
-  },
-];
-
 /* ============================== SMALL BITS ============================== */
 
 function StatusBadge({ status }) {
@@ -136,7 +114,7 @@ function Footer({ countLabel, page, totalPages, onPrev, onNext }) {
 
 /* ============================== ASSIGN MODAL ============================== */
 
-function AssignModal({ initial, onClose, onSave }) {
+function AssignModal({ initial, orgOptions, onClose, onSave }) {
   const [form, setForm] = useState(
     initial || {
       userName: "",
@@ -178,11 +156,15 @@ function AssignModal({ initial, onClose, onSave }) {
           </label>
           <label>
             Organization
-            <input
+            <select
               value={form.organization}
               onChange={(e) => update("organization", e.target.value)}
-              placeholder="e.g. Lernevo Tech"
-            />
+            >
+              <option value="">Select organization</option>
+              {orgOptions.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
           </label>
           <label>
             Job Code
@@ -221,7 +203,7 @@ function AssignModal({ initial, onClose, onSave }) {
           <button
             className="btn btn-primary"
             onClick={() => {
-              if (!form.userName.trim()) return;
+              if (!form.userName.trim() || !form.organization) return;
               onSave(form);
             }}
           >
@@ -236,7 +218,8 @@ function AssignModal({ initial, onClose, onSave }) {
 /* ============================== USER ASSIGNMENTS PAGE ============================== */
 
 export default function UserAssignments() {
-  const [assignments, setAssignments] = useState(seedAssignments);
+  const [assignments, setAssignments] = useAssignments();
+  const [organizations] = useOrganizations();
   const [search, setSearch] = useState("");
   const [orgFilter, setOrgFilter] = useState("All");
   const [jobFilter, setJobFilter] = useState("All");
@@ -246,6 +229,13 @@ export default function UserAssignments() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const fileInputRef = useRef(null);
+
+  // organizations created on the Organizations page (active ones; keep the current one when editing)
+  const orgOptions = useMemo(() => {
+    const names = organizations.filter((o) => o.status === "Active").map((o) => o.name);
+    if (editing?.organization && !names.includes(editing.organization)) names.push(editing.organization);
+    return names;
+  }, [organizations, editing]);
 
   const orgs = useMemo(() => uniqueValues(assignments, "organization"), [assignments]);
   const jobs = useMemo(() => uniqueValues(assignments, "jobCode"), [assignments]);
@@ -448,6 +438,7 @@ export default function UserAssignments() {
         {modalOpen && (
           <AssignModal
             initial={editing}
+            orgOptions={orgOptions}
             onClose={() => { setModalOpen(false); setEditing(null); }}
             onSave={handleSave}
           />

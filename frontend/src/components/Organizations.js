@@ -12,43 +12,14 @@ import {
   X,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
+import { useOrganizations, useAssignments } from "./Orgstore";
 import "./Organizations.css";
-
-const INITIAL_ORGANIZATIONS = [
-  {
-    name: "Lernevo Tech",
-    industry: "Technology",
-    country: "United States",
-    website: "https://lernevo.tech",
-    status: "Active",
-  },
-  {
-    name: "GreenLeaf Wellness",
-    industry: "Health & Wellness",
-    country: "Canada",
-    website: "https://greenleaf.ca",
-    status: "Active",
-  },
-  {
-    name: "Northwind Logistics",
-    industry: "Logistics",
-    country: "United Kingdom",
-    website: "https://northwind.co.uk",
-    status: "Active",
-  },
-  {
-    name: "Acme Retail",
-    industry: "Retail",
-    country: "Australia",
-    website: "https://acme.com.au",
-    status: "Inactive",
-  },
-];
 
 const STATUS_OPTIONS = ["All", "Active", "Inactive"];
 
 const EMPTY_FORM = {
   name: "",
+  department: "",
   industry: "",
   country: "",
   website: "",
@@ -56,7 +27,8 @@ const EMPTY_FORM = {
 };
 
 export default function Organizations() {
-  const [organizations, setOrganizations] = useState(INITIAL_ORGANIZATIONS);
+  const [organizations, setOrganizations] = useOrganizations();
+  const [, setAssignments] = useAssignments();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [statusOpen, setStatusOpen] = useState(false);
@@ -100,14 +72,20 @@ export default function Organizations() {
   };
 
   const handleSave = () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim() || !form.department.trim()) return;
 
     if (modal.mode === "add") {
       setOrganizations((prev) => [...prev, { ...form }]);
     } else if (modal.mode === "edit") {
       setOrganizations((prev) =>
-        prev.map((o) => (o === modal.org ? { ...form } : o))
+        prev.map((o) => (o.name === modal.org.name ? { ...form } : o))
       );
+      // keep user assignments linked if the organization is renamed
+      if (modal.org.name !== form.name) {
+        setAssignments((prev) =>
+          prev.map((a) => (a.organization === modal.org.name ? { ...a, organization: form.name } : a))
+        );
+      }
       if (selected === modal.org.name && modal.org.name !== form.name) {
         setSelected(form.name);
       }
@@ -116,7 +94,7 @@ export default function Organizations() {
   };
 
   const handleConfirmDelete = () => {
-    setOrganizations((prev) => prev.filter((o) => o !== modal.org));
+    setOrganizations((prev) => prev.filter((o) => o.name !== modal.org.name));
     if (selected === modal.org.name) setSelected(null);
     closeModal();
   };
@@ -191,6 +169,7 @@ export default function Organizations() {
                 <tr>
                   <th className="orgs-checkbox-col"></th>
                   <th>Name</th>
+                  <th>Department</th>
                   <th>Industry</th>
                   <th>Country</th>
                   <th>Website</th>
@@ -201,7 +180,7 @@ export default function Organizations() {
               <tbody>
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="orgs-empty-row">
+                    <td colSpan={8} className="orgs-empty-row">
                       No organizations found.
                     </td>
                   </tr>
@@ -217,6 +196,7 @@ export default function Organizations() {
                       />
                     </td>
                     <td className="orgs-name-cell">{org.name}</td>
+                    <td className="orgs-dim-cell">{org.department}</td>
                     <td className="orgs-dim-cell">{org.industry}</td>
                     <td className="orgs-dim-cell">{org.country}</td>
                     <td>
@@ -313,6 +293,16 @@ export default function Organizations() {
               </label>
 
               <label className="orgs-field">
+                <span>Department</span>
+                <input
+                  type="text"
+                  value={form.department}
+                  onChange={(e) => handleFormChange("department", e.target.value)}
+                  placeholder="e.g. Engineering"
+                />
+              </label>
+
+              <label className="orgs-field">
                 <span>Industry</span>
                 <input
                   type="text"
@@ -361,7 +351,7 @@ export default function Organizations() {
               <button
                 className="orgs-btn-primary"
                 onClick={handleSave}
-                disabled={!form.name.trim()}
+                disabled={!form.name.trim() || !form.department.trim()}
               >
                 {modal.mode === "add" ? "Add Organization" : "Save Changes"}
               </button>
@@ -385,6 +375,10 @@ export default function Organizations() {
               <div className="orgs-view-row">
                 <span className="orgs-view-label">Name</span>
                 <span className="orgs-view-value">{modal.org.name}</span>
+              </div>
+              <div className="orgs-view-row">
+                <span className="orgs-view-label">Department</span>
+                <span className="orgs-view-value">{modal.org.department}</span>
               </div>
               <div className="orgs-view-row">
                 <span className="orgs-view-label">Industry</span>

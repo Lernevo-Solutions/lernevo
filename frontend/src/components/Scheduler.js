@@ -424,7 +424,7 @@ function DayModal({ emp, date, items, onEdit, onAdd, onClose }) {
         <button type="button" className="sc-x" onClick={onClose} aria-label="Close">×</button>
         <div className="sc-dm-head">
           <Avatar emp={emp} />
-          <div><b>{emp.name}</b><small>{emp.role} · {emp.dept}</small></div>
+          <div><b>{emp.name}</b><small>{emp.role} · {emp.dept}{emp.org ? ` · ${emp.org}` : ""}</small></div>
         </div>
         <div className="sc-dm-date">
           <b>{relDay(date)}</b> · {FULL_DAYS[parseKey(date).getDay()]}, {niceDate(date)}
@@ -568,7 +568,7 @@ export function TeamModal({ team, people, teams, onSave, onDelete, onClose }) {
                   <label className={on ? "is-on" : ""}>
                     <input type="checkbox" checked={on} disabled={String(e.id) === lead} onChange={() => toggle(e.id)} />
                     <Avatar emp={e} />
-                    <span className="sc-pn"><b>{e.name}</b><small>{e.role} · {e.dept}</small></span>
+                    <span className="sc-pn"><b>{e.name}</b><small>{e.role} · {e.dept}{e.org ? ` · ${e.org}` : ""}</small></span>
                     {e.isNew && <em className="sc-new">New</em>}
                     {String(e.id) === lead && <em className="sc-lead">Lead</em>}
                     {from && on && String(e.id) !== lead && <em className="sc-moves">moves from {from}</em>}
@@ -1021,7 +1021,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, mana
                   <div className="sc-brow" key={e.id}>
                     <div className="sc-bwho">
                       <Avatar emp={e} />
-                      <span><b>{e.name}</b><small>{e.role}</small></span>
+                      <span><b>{e.name}</b><small>{e.role}{e.org ? ` · ${e.org}` : ""}</small></span>
                     </div>
                     {days.map((day) => planCell(e, day))}
                   </div>
@@ -1049,7 +1049,7 @@ function AdminScheduler({ people, teams, plans, setPlans, onTeam, holidays, mana
                   <div className="sc-brow" key={e.id}>
                     <div className="sc-bwho">
                       <Avatar emp={e} />
-                      <span><b>{e.name}</b><small>{e.role}</small></span>
+                      <span><b>{e.name}</b><small>{e.role}{e.org ? ` · ${e.org}` : ""}</small></span>
                     </div>
                     {monthDays.map((day) => planCell(e, day))}
                   </div>

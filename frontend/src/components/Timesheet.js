@@ -3,6 +3,7 @@ import "./Timesheet.css";
 import { useSearchParams } from "react-router-dom";
 import EmployeeTimesheet from "./Employeetimesheet";
 import Scheduler, { TeamModal, seedPlans } from "./Scheduler";
+import { useAssignments, useOrganizations, assignmentsToPeople } from "./Orgstore";
 
 /* =====================================================================
    Timesheet — super-admin view for ANY company or team. Shifts, work types,
@@ -595,7 +596,7 @@ function WeekView({ list, totals, from, to, infoOf, onPick, onReview, onOpen }) 
                 <Avatar emp={e} />
                 <div>
                   <button className="ts-name" onClick={() => onPick(e.id)}>{e.name}</button>
-                  <small className="ts-eid">{empCode(e)}</small>
+                  <small className="ts-eid">{empCode(e)}{e.org ? ` · ${e.org}` : ""}</small>
                   <small className="ts-hrs" title="Calculated / Current">
                     <b>{fmt(t.calc)}</b> / <b className={Math.abs(t.calc - t.total) > 0.01 ? "is-edited" : ""}>{fmt(t.total)}</b>
                   </small>
@@ -678,7 +679,7 @@ function TeamGrid({ list, totals, from, to, infoOf, onPick, onOpen, showTeam }) 
               <Avatar emp={e} />
               <div>
                 <button className="ts-name" onClick={() => onPick(e.id)}>{e.name}</button>
-                <small>{showTeam ? e.teamName : e.role}</small>
+                <small>{showTeam ? e.teamName : e.role}{e.org ? ` · ${e.org}` : ""}</small>
               </div>
             </div>
             <div className="ts-mdays">
@@ -805,6 +806,19 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
   const [teams, setTeams] = useState(config.teams || []);
   const [people, setPeople] = useState(config.employees);
   const [plans, setPlans] = useState(() => config.plans || seedPlans(config.employees));
+
+  // Users assigned on the "User Assignments" page (with their organization + department) show up here and in the Scheduler
+  const [assignments] = useAssignments();
+  const [organizations] = useOrganizations();
+  const assignedPeople = useMemo(() => assignmentsToPeople(assignments, organizations), [assignments, organizations]);
+  useEffect(() => {
+    setPeople((prev) => {
+      const oldTeam = Object.fromEntries(prev.filter((p) => p.assignmentId != null).map((p) => [p.id, p.team]));
+      const base = prev.filter((p) => p.assignmentId == null);
+      return [...base, ...assignedPeople.map((p) => ({ ...p, team: oldTeam[p.id] || "" }))];
+    });
+  }, [assignedPeople]);
+  const [org, setOrg] = useState("all");
   const [teamModal, setTeamModal] = useState(null); // null = closed, { team } = open (team null = create new)
   const hasTeams = teams.length > 0;
   const [teamId, setTeamId] = useState("all");
@@ -846,13 +860,14 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
   const { list, totals } = useMemo(() => {
     const base = scoped.filter((e) =>
       (dept === "all" || e.dept === dept) &&
+      (org === "all" || e.org === org) &&
       (empId === "all" || e.id === Number(empId)) &&
-      `${e.name} ${e.teamName}`.toLowerCase().includes(query.trim().toLowerCase()));
+      `${e.name} ${e.teamName} ${e.org || ""}`.toLowerCase().includes(query.trim().toLowerCase()));
     const all = base.map((e) => calcTotals(from, to, e, infoOf));
     const keep = all.map((t) =>
       status === "all" || (status === "pending" && t.pending > 0) || (status === "missing" && t.missing > 0) || (status === "leave" && t.leave > 0));
     return { list: base.filter((_, i) => keep[i]), totals: all.filter((_, i) => keep[i]) };
-  }, [scoped, dept, empId, query, status, from, to, infoOf]);
+  }, [scoped, dept, org, empId, query, status, from, to, infoOf]);
   const agg = useMemo(() => sumTotals(totals), [totals]);
 
   const move = (n) =>
@@ -983,6 +998,10 @@ export default function Timesheet({ config = DEFAULT_CONFIG, myEmployeeId = "EMP
               {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
           )}
+          <select value={org} onChange={(e) => setOrg(e.target.value)} aria-label="Organization">
+            <option value="all">All organizations</option>
+            {[...new Set(scoped.map((e) => e.org).filter(Boolean))].map((x) => <option key={x}>{x}</option>)}
+          </select>
           <select value={dept} onChange={(e) => setDept(e.target.value)} aria-label="Department">
             <option value="all">All {labels.departments.toLowerCase()}</option>
             {[...new Set(scoped.map((e) => e.dept))].map((x) => <option key={x}>{x}</option>)}
