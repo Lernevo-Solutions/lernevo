@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
 import { useOrganizations, useAssignments } from "./Orgstore";
 import "./Organizations.css";
 
@@ -104,7 +105,8 @@ export default function Organizations() {
   return (
     <div style={{ display: "flex" }}>
       <Sidebar />
-      <div style={{ flex: 1, overflowY: "auto", height: "100vh" }}>
+      <div style={{ flex: 1, overflowY: "auto", height: "100vh", paddingTop: 64 }}>
+        <Topbar />
         <div className="orgs-page">
           <div className="orgs-header">
             <div className="orgs-header-left">

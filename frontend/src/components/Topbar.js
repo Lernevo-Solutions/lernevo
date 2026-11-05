@@ -175,15 +175,17 @@ export default function Topbar({
     location.pathname === "/timesheet" && !location.search
       ? "/timesheet?tab=scheduler"
       : location.pathname + location.search;
+  // look through the real menu items (ROUTE_MAP also has alias keys like "Users")
+  const menuLabels = NAV_SECTIONS.flatMap((s) => s.items.map((it) => it.label));
   const matchedLabel =
-    Object.keys(ROUTE_MAP).find((label) => ROUTE_MAP[label] === currentUrl) ||
-    Object.keys(ROUTE_MAP).find((label) => ROUTE_MAP[label] === location.pathname);
+    menuLabels.find((label) => ROUTE_MAP[label] === currentUrl) ||
+    menuLabels.find((label) => ROUTE_MAP[label] === location.pathname);
 
   const section = NAV_SECTIONS.find((s) =>
     s.items.some((it) => it.label === matchedLabel)
   );
 
-  const sectionLabel = section ? section.label : "";
+  const sectionLabel = section ? section.label.trim() : "";
   const pageTitle = matchedLabel || "Dashboard";
 
   const time = now.toLocaleTimeString("en-IN", {

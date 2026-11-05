@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { BriefcaseBusiness, Eye, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
 import "./jobcode.css";
 
 const CATEGORY_OPTIONS = [
@@ -70,7 +71,7 @@ export default function JobCode() {
   };
 
   return (
-    <div className="job-codes-layout"><Sidebar /><div className="job-codes-content-scroll"><main className="job-codes-page">
+    <div className="job-codes-layout"><Sidebar /><div className="job-codes-content-scroll" style={{ paddingTop: 64 }}><Topbar /><main className="job-codes-page">
       <header className="job-codes-header"><div className="job-codes-header-left"><div className="job-codes-icon-box" aria-hidden="true"><BriefcaseBusiness /></div><div><h1>Job Codes</h1><p>Define job titles and departments.</p></div></div><button className="job-codes-add-button" type="button" onClick={openAdd}><Plus size={16} />Add Job Code</button></header>
       <section className="job-codes-toolbar" aria-label="Job code filters"><div className="job-codes-search"><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Search job codes..." aria-label="Search job codes" /></div><div className="job-codes-filters"><label><span>Organization:</span><select value={organization} onChange={(event) => setOrganization(event.target.value)} aria-label="Filter by organization">{organizations.map((option) => <option key={option} value={option}>{option}</option>)}</select></label><label><span>Status:</span><select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter by status"><option value="All">All</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select></label></div></section>
       <div className="job-codes-category-tabs" role="tablist" aria-label="Filter by category">{["All", ...CATEGORY_OPTIONS.map((option) => option.value)].map((value) => { const meta = value === "All" ? null : categoryMeta(value); return <button key={value} type="button" role="tab" aria-selected={category === value} className={`job-codes-category-tab ${category === value ? "job-codes-category-tab-active" : ""} ${meta ? meta.className : ""}`} onClick={() => setCategory(value)}>{value === "All" ? "All" : meta.label}</button>; })}</div>

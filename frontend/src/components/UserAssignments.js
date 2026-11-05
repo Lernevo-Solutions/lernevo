@@ -20,6 +20,7 @@ import {
 
 import "./UserAssignments.css";
 import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
 import { useOrganizations, useAssignments } from "./Orgstore";
 const PAGE_SIZE = 10;
 
@@ -323,7 +324,8 @@ export default function UserAssignments() {
     <div className="admin-layout">
       <Sidebar />
 
-      <div className="admin-main">
+      <div className="admin-main" style={{ paddingTop: 88 }}>
+        <Topbar />
         {/* ===== Header ===== */}
         <div className="admin-header">
           <div className="admin-header-left">

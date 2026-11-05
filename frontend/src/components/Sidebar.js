@@ -70,7 +70,6 @@ export const NAV_SECTIONS = [
   label: "Organization & People ",
   items: [
     { icon: Building2, label: "Organizations" },
-    { icon: Users, label: "Users" },
     { icon: UserCog, label: "User Assignments" },
     { icon: Briefcase, label: "Job Codes" },
   ],
@@ -149,11 +148,15 @@ export default function Sidebar() {
   const [roleOpen, setRoleOpen] = useState(false);
 
   // Track which sections are expanded (dropdown open)
-  const [openSections, setOpenSections] = useState({
-    Overview: true,
-    "People & Organization": true,
-    "HR Operations": true,
+  // Every page renders its own <Sidebar/>, so it remounts on each click. The open/closed state is
+  // remembered in sessionStorage so a dropdown never snaps shut when you move to another page.
+  const [openSections, setOpenSections] = useState(() => {
+    const all = Object.fromEntries(NAV_SECTIONS.map((s) => [s.label, true]));
+    try { return { ...all, ...JSON.parse(sessionStorage.getItem("lv-open-sections") || "{}") }; } catch (err) { return all; }
   });
+  useEffect(() => {
+    try { sessionStorage.setItem("lv-open-sections", JSON.stringify(openSections)); } catch (err) { /* ignore */ }
+  }, [openSections]);
 
   const roles = ["Super Admin", "Org Admin", "Manager", "Employee"];
 
@@ -164,9 +167,11 @@ export default function Sidebar() {
       location.pathname === "/timesheet" && !location.search
         ? "/timesheet?tab=scheduler"
         : location.pathname + location.search;
+    // look through the real menu items (ROUTE_MAP also has alias keys like "Users")
+    const menuLabels = NAV_SECTIONS.flatMap((s) => s.items.map((it) => it.label));
     const matchedLabel =
-      Object.keys(ROUTE_MAP).find((label) => ROUTE_MAP[label] === current) ||
-      Object.keys(ROUTE_MAP).find((label) => ROUTE_MAP[label] === location.pathname);
+      menuLabels.find((label) => ROUTE_MAP[label] === current) ||
+      menuLabels.find((label) => ROUTE_MAP[label] === location.pathname);
     if (matchedLabel) {
       setActive(matchedLabel);
       // Auto-open the section that contains the active item
