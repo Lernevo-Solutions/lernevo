@@ -1,0 +1,187 @@
+.uc-page {
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --border: #e7eaef;
+  --text: #14161a;
+  --text-dim: #6b7280;
+  --text-faint: #9aa1ac;
+  --blue-tint: #eaf0ff;
+  --blue: #3b6bf5;
+  --dark: #16181d;
+  --green-bg: #e5f6ea;
+  --green-text: #1e8a4c;
+  --grey-bg: #eef0f3;
+  --red: #dc2626;
+
+  min-height: 100%;
+  background: transparent; /* the layout already provides the page background */
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+  padding: 0 0 24px; /* no extra padding: AdminLayout already adds it (same as the Organizations page) */
+  box-sizing: border-box;
+}
+.uc-page *, .uc-modal * { box-sizing: border-box; }
+
+/* Header */
+.uc-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+.uc-header-left { display: flex; align-items: flex-start; gap: 14px; }
+.uc-icon-box { width: 40px; height: 40px; margin-top: 2px; border-radius: 11px; background: var(--blue-tint); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.uc-icon-box svg { width: 19px; height: 19px; color: var(--blue); }
+.uc-title { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.uc-subtitle { margin: 3px 0 0; font-size: 13px; color: var(--text-dim); }
+.uc-add-btn { display: flex; align-items: center; gap: 7px; padding: 10px 16px; border: none; border-radius: 9px; background: var(--dark); color: #fff; font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.uc-add-btn:hover { background: #000; }
+
+/* Toolbar */
+.uc-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.uc-search { position: relative; flex: 1; min-width: 220px; max-width: 340px; }
+.uc-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-faint); }
+.uc-search input { width: 100%; padding: 9px 12px 9px 34px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 13px; color: var(--text); outline: none; }
+.uc-filters { display: flex; align-items: center; gap: 18px; }
+.uc-filters label { display: flex; align-items: center; gap: 8px; }
+.uc-filters span { font-size: 13px; font-weight: 500; color: var(--text-dim); }
+.uc-filters select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 13px; font-weight: 500; color: var(--text); outline: none; cursor: pointer; }
+.uc-search input:focus, .uc-filters select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59, 107, 245, 0.12); }
+
+/* Table */
+.uc-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow-x: auto; }
+.uc-table { width: 100%; min-width: 860px; border-collapse: collapse; }
+.uc-table thead th { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 12.5px; font-weight: 600; color: var(--text-dim); }
+.uc-table tbody td { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: middle; }
+.uc-table tbody tr:last-child td { border-bottom: none; }
+.uc-table tbody tr:hover { background: #fafbfc; }
+.uc-dim { color: var(--text-dim); }
+.uc-actions-col { text-align: right !important; white-space: nowrap; }
+.uc-empty { text-align: center; padding: 36px 18px !important; color: var(--text-dim); }
+.uc-user-cell { display: flex; align-items: center; gap: 11px; }
+.uc-user-cell b { display: block; font-weight: 600; }
+.uc-user-cell small { display: block; margin-top: 2px; color: var(--text-dim); font-size: 12.5px; }
+.uc-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--blue-tint); color: var(--blue); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.uc-role { display: inline-block; padding: 3px 10px; border-radius: 6px; background: var(--grey-bg); color: #4b5563; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.uc-badge { display: inline-block; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.uc-badge-active { background: var(--green-bg); color: var(--green-text); }
+.uc-badge-inactive { background: var(--grey-bg); color: var(--text-dim); }
+.uc-icon-btn { width: 28px; height: 28px; margin-left: 2px; border: none; border-radius: 7px; background: transparent; color: var(--text-faint); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.uc-icon-btn:hover { background: #f2f4f7; color: var(--text); }
+.uc-icon-btn.uc-danger:hover { background: #fdecec; color: #c0392b; }
+
+/* Footer */
+.uc-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.uc-showing, .uc-page-label { font-size: 13px; color: var(--text-dim); }
+.uc-showing strong { color: var(--text); font-weight: 600; }
+.uc-pagination { display: flex; align-items: center; gap: 10px; }
+.uc-page-btn { display: flex; align-items: center; gap: 4px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 13px; color: var(--text-dim); cursor: pointer; }
+.uc-page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Access denied */
+.uc-denied { max-width: 420px; margin: 80px auto; text-align: center; color: var(--text-dim); }
+.uc-denied svg { color: var(--red); }
+.uc-denied h2 { margin: 12px 0 6px; font-size: 18px; color: var(--text); }
+.uc-denied p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+
+/* Modal */
+.uc-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(20, 22, 26, 0.45); }
+.uc-modal { width: 100%; max-width: 500px; max-height: 92vh; overflow-y: auto; background: #fff; border-radius: 14px; box-shadow: 0 20px 50px rgba(20, 22, 26, 0.25); color: #14161a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+.uc-modal-small { max-width: 420px; }
+.uc-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #e7eaef; }
+.uc-modal-header h2 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+.uc-close { width: 28px; height: 28px; border: none; border-radius: 7px; background: transparent; color: #9aa1ac; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.uc-close:hover { background: #f2f4f7; color: #14161a; }
+.uc-modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.uc-modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid #e7eaef; }
+.uc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.uc-field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #14161a; }
+.uc-field b { color: #e14646; }
+.uc-field input, .uc-field select { width: 100%; padding: 9px 12px; border: 1px solid #e7eaef; border-radius: 8px; background: #fff; font-size: 13.5px; font-weight: 400; color: #14161a; outline: none; font-family: inherit; }
+.uc-field input:focus, .uc-field select:focus { border-color: #3b6bf5; box-shadow: 0 0 0 3px rgba(59, 107, 245, 0.12); }
+.uc-field em { font-style: normal; font-size: 12px; font-weight: 500; color: #dc2626; }
+.uc-field small { font-size: 12px; font-weight: 400; color: #6b7280; }
+
+.uc-pwd { display: flex; align-items: center; gap: 6px; }
+.uc-pwd input { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.02em; }
+.uc-pwd button { width: 36px; height: 36px; flex-shrink: 0; border: 1px solid #e7eaef; border-radius: 8px; background: #fff; color: #6b7280; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.uc-pwd button:hover { background: #f2f4f7; color: #14161a; }
+
+.uc-text { margin: 0; font-size: 13.5px; line-height: 1.55; color: #4b5563; }
+.uc-text b { color: #14161a; }
+.uc-cred { display: grid; gap: 10px; padding: 14px; border: 1px dashed #c9d0da; border-radius: 10px; background: #f9fafc; }
+.uc-cred div { display: grid; gap: 3px; }
+.uc-cred span { font-size: 12px; font-weight: 600; color: #6b7280; }
+.uc-cred b { font-size: 14px; word-break: break-all; }
+.uc-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.03em; }
+
+.uc-view-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 3px 0; }
+.uc-view-row span { font-size: 12.5px; font-weight: 600; color: #6b7280; }
+.uc-view-row b { font-size: 13.5px; font-weight: 500; text-align: right; word-break: break-all; }
+
+.uc-btn-secondary, .uc-btn-primary, .uc-btn-danger { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.uc-btn-secondary { border: 1px solid #e7eaef; background: #fff; color: #14161a; }
+.uc-btn-secondary:hover { background: #f2f4f7; }
+.uc-btn-primary { border: none; background: #16181d; color: #fff; }
+.uc-btn-primary:hover { background: #000; }
+.uc-btn-danger { border: none; background: #dc2626; color: #fff; }
+.uc-btn-danger:hover { background: #b91c1c; }
+
+@media (max-width: 720px) {
+  .uc-page { padding: 0 0 24px; }
+  .uc-header { flex-direction: column; align-items: stretch; }
+  .uc-add-btn { align-self: flex-start; }
+  .uc-row { grid-template-columns: 1fr; }
+}
+/* email option + feedback */
+.uc-api-error { padding: 10px 12px; border: 1px solid #fcd5d5; border-radius: 8px; background: #fff1f1; color: #b42318; font-size: 12.5px; line-height: 1.45; }
+.uc-note { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.45; }
+.uc-note svg { flex-shrink: 0; margin-top: 2px; }
+.uc-note-ok { background: #e5f6ea; color: #1e8a4c; }
+.uc-note-warn { background: #fff7e0; color: #9a6700; }
+.uc-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* "Email the login details" option (toggle card) */
+.uc-modal label.uc-option { position: relative; display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #e7eaef; border-radius: 10px; background: #f9fafc; cursor: pointer; transition: border-color .15s, background .15s; }
+.uc-modal label.uc-option:hover { border-color: #c9d0da; }
+.uc-modal label.uc-option:has(input:checked) { border-color: #b9ccff; background: #f3f7ff; }
+.uc-modal label.uc-option input { position: absolute; opacity: 0; width: 0; height: 0; padding: 0; border: 0; }
+.uc-switch { position: relative; flex-shrink: 0; width: 38px; height: 22px; border-radius: 999px; background: #cfd5df; transition: background .15s; }
+.uc-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(20,22,26,.3); transition: transform .15s; }
+.uc-modal label.uc-option input:checked + .uc-switch { background: #3b6bf5; }
+.uc-modal label.uc-option input:checked + .uc-switch::after { transform: translateX(16px); }
+.uc-modal label.uc-option input:focus-visible + .uc-switch { box-shadow: 0 0 0 3px rgba(59,107,245,.25); }
+.uc-option-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.uc-option-text b { font-size: 13px; font-weight: 600; color: #14161a; }
+.uc-option-text small { font-size: 12px; font-weight: 400; color: #6b7280; line-height: 1.4; word-break: break-word; }
+.uc-option-text i { font-style: normal; font-weight: 600; color: #3b5bdb; }
+
+/* Extra (custom) fields */
+.uc-extra { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px dashed #c9d0da; border-radius: 10px; background: #f9fafc; }
+.uc-extra-head { display: flex; flex-direction: column; gap: 2px; }
+.uc-extra-head b { font-size: 13px; font-weight: 600; color: #14161a; }
+.uc-extra-head small { font-size: 12px; color: #6b7280; }
+.uc-extra-row { display: grid; grid-template-columns: 1fr 1fr 32px; gap: 8px; align-items: center; }
+.uc-extra-row input { width: 100%; padding: 9px 12px; border: 1px solid #e7eaef; border-radius: 8px; background: #fff; font-size: 13.5px; color: #14161a; outline: none; font-family: inherit; }
+.uc-extra-row input:focus { border-color: #3b6bf5; box-shadow: 0 0 0 3px rgba(59, 107, 245, 0.12); }
+.uc-extra-row .uc-icon-btn { margin-left: 0; width: 32px; height: 32px; }
+.uc-extra-error { font-style: normal; font-size: 12px; font-weight: 500; color: #dc2626; }
+.uc-extra-add { align-self: flex-start; }
+@media (max-width: 720px) {
+  .uc-extra-row { grid-template-columns: 1fr 32px; }
+  .uc-extra-row input:nth-child(2) { grid-column: 1; }
+  .uc-extra-row .uc-icon-btn { grid-row: 1 / span 2; grid-column: 2; }
+}
+
+
+/* Renamable field labels */
+.uc-hint { margin: -4px 0 0; display: flex; align-items: center; gap: 4px; font-size: 12px; color: #6b7280; }
+.uc-label-row { display: flex; align-items: center; gap: 6px; min-height: 24px; }
+.uc-label-row label { font-size: 13px; font-weight: 600; color: #14161a; cursor: pointer; }
+.uc-label-edit { width: 22px; height: 22px; border: none; border-radius: 6px; background: transparent; color: #9aa1ac; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.uc-label-edit:hover { background: #eaf0ff; color: #3b6bf5; }
+.uc-field .uc-label-input { width: auto; min-width: 140px; max-width: 240px; padding: 3px 8px; font-size: 13px; font-weight: 600; border-radius: 6px; }
+
+
+/* Rename-fields toggle (pencils only show while it is on) */
+.uc-rename-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: -4px; }
+.uc-rename-bar span { font-size: 12px; color: #6b7280; }
+.uc-rename-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #e7eaef; border-radius: 7px; background: #fff; color: #4b5563; font-size: 12px; font-weight: 600; cursor: pointer; }
+.uc-rename-toggle:hover { background: #f2f4f7; color: #14161a; }
+.uc-rename-toggle.on { border-color: #b9ccff; background: #eaf0ff; color: #3b6bf5; }

@@ -8,12 +8,18 @@ import { useSyncExternalStore } from "react";
 
 const ORG_KEY = "lv-organizations";
 const ASG_KEY = "lv-assignments";
+const USR_KEY = "lv-users";
 
 const SEED_ORGS = [
   { name: "Lernevo Tech", department: "Engineering", industry: "Technology", country: "United States", website: "https://lernevo.tech", status: "Active" },
   { name: "GreenLeaf Wellness", department: "Operations", industry: "Health & Wellness", country: "Canada", website: "https://greenleaf.ca", status: "Active" },
   { name: "Northwind Logistics", department: "Logistics", industry: "Logistics", country: "United Kingdom", website: "https://northwind.co.uk", status: "Active" },
   { name: "Acme Retail", department: "Sales", industry: "Retail", country: "Australia", website: "https://acme.com.au", status: "Inactive" },
+];
+
+const SEED_USERS = [
+  { id: 101, code: "USR-0001", name: "Ganga", email: "Ganga30@gmail.com", phone: "+91 98765 43210", role: "Employee", organization: "Lernevo Tech", department: "Engineering", status: "Active", createdAt: "2026-10-01" },
+  { id: 102, code: "USR-0002", name: "Meera Iyer", email: "meera.iyer@greenleaf.ca", phone: "+91 91234 56780", role: "HR Manager", organization: "GreenLeaf Wellness", department: "Operations", status: "Active", createdAt: "2026-10-12" },
 ];
 
 const SEED_ASSIGNMENTS = [
@@ -54,6 +60,7 @@ function makeStore(key, seed) {
 
 const orgStore = makeStore(ORG_KEY, SEED_ORGS);
 const asgStore = makeStore(ASG_KEY, SEED_ASSIGNMENTS);
+const usrStore = makeStore(USR_KEY, SEED_USERS);
 
 const useStore = (store) => [
   useSyncExternalStore(store.subscribe, store.get),
@@ -62,6 +69,8 @@ const useStore = (store) => [
 
 export const useOrganizations = () => useStore(orgStore);
 export const useAssignments = () => useStore(asgStore);
+// Users created by the Super Admin on the User Creation page (passwords are never stored here)
+export const useUsers = () => useStore(usrStore);
 
 // Assignment id -> Timesheet/Scheduler employee id (offset so it never clashes with the demo employees)
 export const ASSIGNED_ID_OFFSET = 1000000;

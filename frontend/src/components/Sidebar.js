@@ -41,7 +41,7 @@ CalendarCheck,
 // Add an entry here whenever a real page exists for that item.
 export const ROUTE_MAP = {
   Dashboard: "/admin-dashboard",
-  Users: "/user-assignments",
+  Users: "/users",
   "User Assignments": "/user-assignments",
   Organizations: "/organizations",
   "Job Codes": "/job",
@@ -70,6 +70,7 @@ export const NAV_SECTIONS = [
   label: "Organization & People ",
   items: [
     { icon: Building2, label: "Organizations" },
+      { icon: Users, label: "Users" },
     { icon: UserCog, label: "User Assignments" },
     { icon: Briefcase, label: "Job Codes" },
   ],
