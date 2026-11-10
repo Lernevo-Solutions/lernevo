@@ -93,6 +93,7 @@ const AppLayout = () => {
     "/timesheet",
     "/document",
     "/my-documents",
+     "/job",
     "/payslip",
     "/employeetimesheet",
     "/leave-permission",
