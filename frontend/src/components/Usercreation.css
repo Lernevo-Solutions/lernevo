@@ -13,11 +13,18 @@
   --grey-bg: #eef0f3;
   --red: #dc2626;
 
-  min-height: 100%;
-  background: transparent; /* the layout already provides the page background */
+  min-height: calc(100vh - 72px); /* fill the screen under the topbar */
+  background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
-  padding: 0 0 24px; /* no extra padding: AdminLayout already adds it (same as the Organizations page) */
+  /* The layout around this page adds its own white gutter (--layout-pad).
+     The negative margin cancels it so the grey background reaches every edge,
+     exactly like the Organizations page. --uc-pad is the inner spacing. */
+  --layout-pad: 32px;
+  --uc-pad: 36px;
+  margin: calc(-1 * var(--layout-pad));
+  padding: var(--uc-pad);
+  width: auto;
   box-sizing: border-box;
 }
 .uc-page *, .uc-modal * { box-sizing: border-box; }
@@ -124,7 +131,7 @@
 .uc-btn-danger:hover { background: #b91c1c; }
 
 @media (max-width: 720px) {
-  .uc-page { padding: 0 0 24px; }
+  .uc-page { --uc-pad: 16px; }
   .uc-header { flex-direction: column; align-items: stretch; }
   .uc-add-btn { align-self: flex-start; }
   .uc-row { grid-template-columns: 1fr; }

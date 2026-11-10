@@ -121,8 +121,10 @@ export default function UserCreation() {
 
   const roleRaw = readRole();
   const roleKey = String(roleRaw).replace(/[\s-]+/g, "_").toUpperCase();
-  // only block when we know the person is NOT a super admin
-  const isSuperAdmin = !roleRaw || roleKey === "SUPER_ADMIN";
+  // Super Admin and Admin can open this page / create users.
+  // (If the role can't be read at all we don't block, same as before.)
+  const CAN_MANAGE_USERS = ["SUPER_ADMIN", "ADMIN"];
+  const canManageUsers = !roleRaw || CAN_MANAGE_USERS.includes(roleKey);
 
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
@@ -309,11 +311,11 @@ export default function UserCreation() {
     // Sidebar + Topbar come from <AdminLayout> (see the route in App.js), same as Timesheet / Payslip pages
     <>
       <main className="uc-page">
-          {!isSuperAdmin ? (
+          {!canManageUsers ? (
             <div className="uc-denied">
               <ShieldAlert size={34} />
               <h2>Access restricted</h2>
-              <p>Only a Super Admin can create users. Please contact your Super Admin.</p>
+              <p>Only a Super Admin or an Admin can create users. Please contact your administrator.</p>
             </div>
           ) : (
             <>
