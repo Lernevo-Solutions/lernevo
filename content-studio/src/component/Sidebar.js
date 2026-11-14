@@ -16,8 +16,6 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 
-import "./Sidebar.css";
-
 const SECTIONS = [
   {
     label: "Workspace",
