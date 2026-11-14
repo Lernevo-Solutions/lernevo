@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   Home,
   BookOpen,
@@ -10,7 +11,11 @@ import {
   Settings,
   LifeBuoy,
   PanelLeft,
+  UserRound,
 } from "lucide-react";
+
+import { useNavigate, useLocation } from "react-router-dom";
+
 import "./Sidebar.css";
 
 const SECTIONS = [
@@ -35,18 +40,31 @@ const SECTIONS = [
     label: "Workspace Settings",
     items: [
       { id: "settings", label: "Settings", icon: Settings },
-      { id: "help", label: "Help & docs", icon: LifeBuoy },
+      { id: "help", label: "Help & Docs", icon: LifeBuoy },
     ],
   },
 ];
 
-export default function Sidebar({ onNavigate }) {
-  const [active, setActive] = useState("courses");
+const ROUTES = {
+  home: "/",
+  courses: "/courses",
+  templates: "/templates",
+  questions: "/questions",
+  media: "/media",
+  studio: "/studio",
+  branding: "/branding",
+  settings: "/settings",
+  help: "/help",
+};
+
+export default function Sidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [collapsed, setCollapsed] = useState(false);
 
   const handleClick = (id) => {
-    setActive(id);
-    if (onNavigate) onNavigate(id);
+    navigate(ROUTES[id]);
   };
 
   return (
@@ -82,24 +100,38 @@ export default function Sidebar({ onNavigate }) {
             </div>
 
             <ul className="sb__list">
-              {section.items.map(({ id, label, icon: Icon }) => (
-                <li key={id}>
-                  <button
-                    type="button"
-                    className={`sb__item ${active === id ? "is-active" : ""}`}
-                    aria-current={active === id ? "page" : undefined}
-                    title={collapsed ? label : undefined}
-                    onClick={() => handleClick(id)}
-                  >
-                    <Icon size={15} strokeWidth={1.75} />
-                    <span className="sb__item-text">{label}</span>
-                  </button>
-                </li>
-              ))}
+              {section.items.map(({ id, label, icon: Icon }) => {
+                const isActive = location.pathname === ROUTES[id];
+
+                return (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      className={`sb__item ${isActive ? "is-active" : ""}`}
+                      aria-current={isActive ? "page" : undefined}
+                      title={collapsed ? label : undefined}
+                      onClick={() => handleClick(id)}
+                    >
+                      <Icon size={15} strokeWidth={1.75} />
+                      <span className="sb__item-text">{label}</span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
       </nav>
+
+      {/* Profile card (bottom) */}
+      <div className="sb__profile">
+        <div className="sb__avatar">AM</div>
+        <div className="sb__profile-copy">
+          <strong>Arjun Mehta</strong>
+          <span>Content Creator</span>
+        </div>
+        <UserRound className="sb__profile-mark" size={15} />
+      </div>
     </aside>
   );
 }
