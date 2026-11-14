@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import "./course.css";
+import Edit from "./Edit";   // new PowerPoint-style editor (edit.js + edit.css)
+import Preview from "./Preview"; // voice-guided preview (Preview.js + Preview.css)
 
 /* ---------- media (swap these URLs for your own images / videos) ---------- */
 const PHOTO = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=70`;
@@ -77,6 +79,11 @@ const I = {
   send: "M4 12l16-8-6 16-3-7z",
   more: "M5 12h.01|M12 12h.01|M19 12h.01",
   play: "M6 4l14 8-14 8z",
+  user: "M20 21a8 8 0 00-16 0|M12 12a4 4 0 100-8 4 4 0 000 8z",
+  tag: "M3 12V4h8l10 10-8 8z|M7.5 7.5h.01",
+  shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z|M9 12l2 2 4-4",
+  award: "M12 14a6 6 0 100-12 6 6 0 000 12z|M8.5 13l-1.5 8 5-3 5 3-1.5-8",
+  globe: "M12 21a9 9 0 100-18 9 9 0 000 18z|M3 12h18|M12 3c3 3 3 15 0 18|M12 3c-3 3-3 15 0 18",
 };
 
 /* ---------- hero illustration (no photo, no faces) ---------- */
@@ -669,9 +676,32 @@ function WizArt() {
 function CreateCourse({ onCancel, onSave }) {
   const [step, setStep] = useState(1);
   const [over, setOver] = useState(false);
-  const [f, setF] = useState({ img: "", title: "", desc: "", category: "Product knowledge", lang: "English", owner: "Priya Nair", dept: "Human Resources", audience: "All employees" });
+  const DEFAULT_CATS = ["Product knowledge", "Compliance", "Onboarding", "Security awareness"];
+  const [cats, setCats] = useState(() => {
+    try { const v = JSON.parse(localStorage.getItem("lernevo.categories")); if (Array.isArray(v)) return v; } catch (e) { /* ignore */ }
+    return DEFAULT_CATS;
+  });
+  const [adding, setAdding] = useState(false);
+  const [newCat, setNewCat] = useState("");
+  useEffect(() => { try { localStorage.setItem("lernevo.categories", JSON.stringify(cats)); } catch (e) { /* ignore */ } }, [cats]);
+  const [f, setF] = useState({ img: "", title: "", desc: "", category: cats[0] || "", lang: "English", owner: "Priya Nair", dept: "Human Resources", audience: "All employees" });
   const [cfg, setCfg] = useState({ dur: 20, pass: 70, attempts: "Unlimited", cert: "Issue on pass" });
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const addCat = () => {
+    const v = newCat.trim().replace(/\s+/g, " ");
+    if (v) {
+      const ex = cats.find((c) => c.toLowerCase() === v.toLowerCase());
+      const name = ex || v;
+      if (!ex) setCats([...cats, name]);
+      setF((p) => ({ ...p, category: name }));
+    }
+    setNewCat(""); setAdding(false);
+  };
+  const removeCat = (c) => {
+    const rest = cats.filter((x) => x !== c);
+    setCats(rest);
+    if (f.category === c) setF((p) => ({ ...p, category: rest[0] || "" }));
+  };
   const setC = (k) => (e) => setCfg({ ...cfg, [k]: e.target.value });
   const steps = ["Basic information", "Learning configuration", "Branding & review"];
   const heads = [
@@ -679,10 +709,11 @@ function CreateCourse({ onCancel, onSave }) {
     { icon: I.gear, t: "Set up the learning experience", s: "Duration, pass mark and certificate. You can fine-tune these in the editor." },
     { icon: I.check, t: "Review and create", s: "Everything looks good? Create the course and jump straight into the editor." },
   ];
+  const cat = f.category || "General";
   const initials = f.title.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "NC";
   const pickFile = (file) => { if (file && file.type.startsWith("image/")) setF((p) => ({ ...p, img: URL.createObjectURL(file) })); };
   const finish = (status) => onSave({
-    id: Date.now(), status, art: initials, sub: f.category, tag: `${f.category} · ${f.dept}`,
+    id: Date.now(), status, art: initials, sub: cat, tag: `${cat} · ${f.dept}`,
     title: f.title || "Untitled course", desc: f.desc || "No description yet.", slides: 0, min: Number(cfg.dur) || 10, q: 0, img: f.img, done: 5, edited: "just now",
   });
   const ready = [
@@ -715,18 +746,26 @@ function CreateCourse({ onCancel, onSave }) {
       <div className="wz-grid">
         <div className="wz-main">
           <section className="panel wz-panel">
+            <div className="wz-topbar"><i style={{ width: `${step * 33.4}%` }} /></div>
             <div className="wz-ph">
               <span className="wz-ph-ico"><Icon d={head.icon} size={20} /></span>
               <div><h2>{head.t}</h2><p>{head.s}</p></div>
             </div>
             <div className="wz-body" key={step}>
               {step === 1 && (<>
+                <div className="wz-sec"><span>01</span> Basics</div>
                 <label className="field"><span>Course title</span>
-                  <input maxLength={70} value={f.title} onChange={set("title")} placeholder="e.g. Product Portfolio Essentials" />
-                  <small className="wz-count">{f.title.length}/70</small></label>
+                  <div className="wz-input"><Icon d={I.edit} size={16} /><input maxLength={70} value={f.title} onChange={set("title")} placeholder="e.g. Product Portfolio Essentials" /></div>
+                  <small className="wz-count">{f.title.length}/70</small>
+                  {!f.title && (
+                    <div className="wz-ideas"><small>Quick ideas:</small>
+                      {["Product Portfolio Essentials", "Data Security Basics", "Welcome to Lernevo"].map((t) => <button type="button" key={t} onClick={() => setF({ ...f, title: t })}>{t}</button>)}
+                    </div>
+                  )}</label>
                 <label className="field"><span>Course description</span>
                   <textarea rows="3" maxLength={220} value={f.desc} onChange={set("desc")} placeholder="A friendly, practical introduction to…" />
                   <small className="wz-hint"><span>One or two sentences — what will employees be able to do?</span><span>{f.desc.length}/220</span></small></label>
+                <div className="wz-sec"><span>02</span> Look and feel</div>
                 <div className="field"><span>Course thumbnail</span>
                   <label className={`wz-drop${over ? " over" : ""}${f.img ? " has" : ""}`}
                     onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
@@ -740,28 +779,73 @@ function CreateCourse({ onCancel, onSave }) {
                     <input type="file" accept="image/*" hidden onChange={(e) => pickFile(e.target.files?.[0])} />
                   </label>
                 </div>
-                <div className="two">
-                  <label className="field"><span>Category</span>
-                    <select value={f.category} onChange={set("category")}><option>Product knowledge</option><option>Compliance</option><option>Onboarding</option><option>Security awareness</option></select></label>
-                  <label className="field"><span>Course language</span>
-                    <select value={f.lang} onChange={set("lang")}><option>English</option><option>Tamil</option><option>Hindi</option></select></label>
-                  <label className="field"><span>Content owner</span><input value={f.owner} onChange={set("owner")} /></label>
-                  <label className="field"><span>Department</span><input value={f.dept} onChange={set("dept")} /></label>
-                  <label className="field"><span>Target audience</span><input value={f.audience} onChange={set("audience")} /><small>Who is this course for?</small></label>
+                <div className="wz-sec"><span>03</span> Details</div>
+                  <div className="two">
+                  <div className="field span2"><span>Category <small className="wz-sub">Pick one, or add your own</small></span>
+                    <div className="wz-chips">
+                      {cats.map((c) => (
+                        <span key={c} className={`wz-cw${f.category === c ? " on" : ""}`}>
+                          <button type="button" className="wz-chip-opt" onClick={() => setF({ ...f, category: c })}>
+                            <Icon d={{ "Product knowledge": I.book, Compliance: I.check, Onboarding: I.users, "Security awareness": I.shield }[c] || I.tag} size={15} /> {c}
+                          </button>
+                          <button type="button" className="wz-x" aria-label={`Remove ${c}`} title="Remove category" onClick={() => removeCat(c)}>×</button>
+                        </span>
+                      ))}
+                      {adding ? (
+                        <span className="wz-add-box">
+                          <Icon d={I.tag} size={15} />
+                          <input autoFocus maxLength={30} value={newCat} placeholder="New category name" onChange={(e) => setNewCat(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCat(); } if (e.key === "Escape") { setAdding(false); setNewCat(""); } }} />
+                          <button type="button" className="wz-add-ok" onClick={addCat}><Icon d={I.check} size={14} /> Add</button>
+                          <button type="button" className="wz-add-cancel" onClick={() => { setAdding(false); setNewCat(""); }}>Cancel</button>
+                        </span>
+                      ) : (
+                        <button type="button" className="wz-chip-add" onClick={() => setAdding(true)}><Icon d={I.plus} size={15} /> Add category</button>
+                      )}
+                    </div>
+                    {cats.length === 0 && !adding && <small>No categories yet. Add your first one.</small>}
+                  </div>
+                  <div className="field span2"><span>Course language</span>
+                    <div className="wz-seg">
+                      {["English", "Tamil", "Hindi"].map((l) => <button type="button" key={l} className={f.lang === l ? "on" : ""} onClick={() => setF({ ...f, lang: l })}><Icon d={I.globe} size={13} /> {l}</button>)}
+                    </div></div>
+                  <label className="field"><span>Content owner</span><div className="wz-input"><Icon d={I.user} size={16} /><input value={f.owner} onChange={set("owner")} /></div></label>
+                  <label className="field"><span>Department</span><div className="wz-input"><Icon d={I.grid} size={16} /><input value={f.dept} onChange={set("dept")} /></div></label>
+                  <label className="field"><span>Target audience</span><div className="wz-input"><Icon d={I.users} size={16} /><input value={f.audience} onChange={set("audience")} /></div><small>Who is this course for?</small></label>
                 </div>
               </>)}
               {step === 2 && (
-                <div className="two">
-                  <label className="field"><span>Estimated duration (min)</span><input type="number" min="1" value={cfg.dur} onChange={setC("dur")} /></label>
-                  <label className="field"><span>Pass mark (%)</span><input type="number" min="0" max="100" value={cfg.pass} onChange={setC("pass")} /></label>
-                  <label className="field"><span>Quiz attempts allowed</span><select value={cfg.attempts} onChange={setC("attempts")}><option>Unlimited</option><option>3</option><option>1</option></select></label>
-                  <label className="field"><span>Certificate</span><select value={cfg.cert} onChange={setC("cert")}><option>Issue on pass</option><option>None</option></select></label>
+                <div className="wz-cfg">
+                  <div className="field"><span>Estimated duration</span>
+                    <div className="wz-pills">
+                      {[10, 20, 30, 45, 60].map((m) => <button type="button" key={m} className={`wz-pill${Number(cfg.dur) === m ? " on" : ""}`} onClick={() => setCfg({ ...cfg, dur: m })}>{m} min</button>)}
+                    </div></div>
+                  <div className="field"><span>Pass mark <b className="wz-bubble">{cfg.pass}%</b></span>
+                    <input type="range" className="wz-range" min="40" max="100" step="5" value={cfg.pass} onChange={setC("pass")} style={{ "--p": `${((cfg.pass - 40) / 60) * 100}%` }} />
+                    <small>Learners need at least {cfg.pass}% on the quiz to pass.</small></div>
+                  <div className="field"><span>Quiz attempts allowed</span>
+                    <div className="wz-seg">
+                      {["Unlimited", "3", "1"].map((a) => <button type="button" key={a} className={cfg.attempts === a ? "on" : ""} onClick={() => setCfg({ ...cfg, attempts: a })}>{a === "Unlimited" ? "Unlimited" : `${a} ${a === "1" ? "attempt" : "attempts"}`}</button>)}
+                    </div></div>
+                  <div className="field"><span>Certificate</span>
+                    <div className="wz-opts">
+                      {[["Issue on pass", "Learners receive a certificate when they pass", I.award], ["None", "No certificate for this course", I.exit]].map(([k, d, ic]) => (
+                        <button type="button" key={k} className={`wz-opt${cfg.cert === k ? " on" : ""}`} onClick={() => setCfg({ ...cfg, cert: k })}>
+                          <span className="wz-opt-ico"><Icon d={ic} size={18} /></span><b>{k}</b><small>{d}</small>
+                        </button>
+                      ))}
+                    </div></div>
                 </div>
               )}
               {step === 3 && (
                 <div className="wz-review">
+                  <div className="wz-done">
+                    <div className="wz-confetti" aria-hidden="true">{Array.from({ length: 18 }).map((_, i) => <span key={i} style={{ left: `${(i * 5.6 + 2) % 100}%`, animationDelay: `${(i % 6) * 0.12}s`, background: ["#22d3ee", "#a78bfa", "#f472b6", "#fbbf24", "#34d399"][i % 5] }} />)}</div>
+                    <span className="wz-done-ico"><Icon d={I.check} size={22} /></span>
+                    <div><b>{f.title || "Untitled course"}</b><small>is ready to be created. You can edit everything later.</small></div>
+                  </div>
                   <div className="wz-facts">
-                    {[["Category", f.category], ["Language", f.lang], ["Owner", f.owner], ["Department", f.dept], ["Audience", f.audience], ["Duration", `${cfg.dur} min`], ["Pass mark", `${cfg.pass}%`], ["Attempts", cfg.attempts], ["Certificate", cfg.cert]].map(([k, v]) => (
+                    {[["Category", cat], ["Language", f.lang], ["Owner", f.owner], ["Department", f.dept], ["Audience", f.audience], ["Duration", `${cfg.dur} min`], ["Pass mark", `${cfg.pass}%`], ["Attempts", cfg.attempts], ["Certificate", cfg.cert]].map(([k, v]) => (
                       <div key={k}><small>{k}</small><b>{v || "—"}</b></div>
                     ))}
                   </div>
@@ -792,11 +876,11 @@ function CreateCourse({ onCancel, onSave }) {
           <div className="wz-aside-top"><span className="wz-live"><i /> Live preview</span><small>Updates as you type</small></div>
           <div className="wz-prev">
             <div className="wz-prev-cover">
-              {f.img ? <img src={f.img} alt="" /> : <div className="wz-prev-ph"><strong>{initials}</strong><span>{f.category}</span></div>}
+              {f.img ? <img src={f.img} alt="" /> : <div className="wz-prev-ph"><strong>{initials}</strong><span>{cat}</span></div>}
               <em>Draft</em>
             </div>
             <div className="wz-prev-body">
-              <small className="wz-prev-tag">{f.category} · {f.dept}</small>
+              <small className="wz-prev-tag">{cat} · {f.dept}</small>
               <h3>{f.title || "Your course title"}</h3>
               <p>{f.desc || "Your short description will appear here so employees know what to expect."}</p>
               <div className="wz-prev-meta"><span><Icon d={I.clock} size={12} /> {cfg.dur} min</span><span><Icon d={I.users} size={12} /> {f.audience || "Everyone"}</span><span>{f.lang}</span></div>
@@ -961,7 +1045,20 @@ export default function Course() {
       </div>
     );
 
-  // every other screen opens full-screen on top of the sidebar
+  // create screen stays inside the content area, so your sidebar stays visible
+  if (view === "create")
+    return (
+      <div className="course-area">
+        <main className="content">
+          <CreateCourse
+            onCancel={() => setView("courses")}
+            onSave={(c) => { setCourses([c, ...courses]); setView("courses"); }}
+          />
+        </main>
+      </div>
+    );
+
+  // preview / player / editor still open full-screen on top of the sidebar
   return (
     <div className="overlay">
       {view === "create" && (
@@ -970,12 +1067,12 @@ export default function Course() {
           onSave={(c) => { setCourses([c, ...courses]); setView("courses"); }}
         />
       )}
-      {view === "landing" && (
-        <PreviewLanding course={current} onStart={() => setView("player")} onExit={() => setView("courses")} />
+      {/* landing + player now live inside Preview.js */}
+      {(view === "landing" || view === "player") && (
+        <Preview course={current} onExit={() => setView("courses")} onClose={() => setView("editor")} />
       )}
-      {view === "player" && <Player course={current} onExit={() => setView("editor")} />}
       {view === "editor" && (
-        <Editor course={current} onBack={() => setView("courses")} onPreview={() => setView("landing")} />
+        <Edit course={current} onBack={() => setView("courses")} onPreview={() => setView("landing")} />
       )}
     </div>
   );
