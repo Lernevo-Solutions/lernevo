@@ -3,7 +3,6 @@ import "./course.css";
 
 /* ---------- media (swap these URLs for your own images / videos) ---------- */
 const PHOTO = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=70`;
-const HERO_IMG = PHOTO("photo-1522202176988-66273c2fd55f");
 const SAMPLE_VIDEO = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 const SAMPLE_POSTER = PHOTO("photo-1550751827-4bd374c3f58b");
 
@@ -79,6 +78,282 @@ const I = {
   more: "M5 12h.01|M12 12h.01|M19 12h.01",
   play: "M6 4l14 8-14 8z",
 };
+
+/* ---------- hero illustration (no photo, no faces) ---------- */
+function HeroArt() {
+  return (
+    <svg viewBox="0 0 800 280" preserveAspectRatio="xMaxYMid meet" aria-hidden="true">
+      <defs>
+        <linearGradient id="hr-play" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#22d3ee" /><stop offset=".55" stopColor="#6366f1" /><stop offset="1" stopColor="#a855f7" /></linearGradient>
+        <linearGradient id="hr-screen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#1b1757" /><stop offset=".6" stopColor="#2a237c" /><stop offset="1" stopColor="#3a2c9c" /></linearGradient>
+        <linearGradient id="hr-bezel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#3b3a86" /><stop offset=".5" stopColor="#14123f" /><stop offset="1" stopColor="#262468" /></linearGradient>
+        <linearGradient id="hr-rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset=".5" stopColor="#c7d2fe" /><stop offset="1" stopColor="#a5b4fc" /></linearGradient>
+        <linearGradient id="hr-base" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset=".45" stopColor="#e3e9ff" /><stop offset="1" stopColor="#9aa8f5" /></linearGradient>
+        <linearGradient id="hr-bar" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#6366f1" /><stop offset="1" stopColor="#22d3ee" /></linearGradient>
+        <linearGradient id="hr-prog" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#22d3ee" /><stop offset="1" stopColor="#c4b5fd" /></linearGradient>
+        <linearGradient id="hr-sh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8be9ff" /><stop offset="1" stopColor="#6a4cff" /></linearGradient>
+        <linearGradient id="hr-cap" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5b6cff" /><stop offset="1" stopColor="#2a35b8" /></linearGradient>
+        <linearGradient id="hr-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fde68a" /><stop offset="1" stopColor="#f59e0b" /></linearGradient>
+        <linearGradient id="hr-card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#eef2ff" /></linearGradient>
+        <linearGradient id="hr-glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".22" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></linearGradient>
+        <radialGradient id="hr-glow"><stop offset="0" stopColor="#fff" stopOpacity=".55" /><stop offset=".5" stopColor="#c7d2fe" stopOpacity=".28" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
+        <radialGradient id="hr-plat" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#a5b4fc" stopOpacity=".7" /><stop offset=".7" stopColor="#c4b5fd" stopOpacity=".25" /><stop offset="1" stopColor="#c4b5fd" stopOpacity="0" /></radialGradient>
+        <filter id="hr-soft" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="8" stdDeviation="8" floodColor="#3b4bdc" floodOpacity=".22" /></filter>
+        <filter id="hr-blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14" /></filter>
+        <linearGradient id="hr-shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#fff" stopOpacity="0" /><stop offset=".5" stopColor="#fff" stopOpacity=".28" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></linearGradient>
+        <linearGradient id="hr-aur1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#a5f3fc" /><stop offset="1" stopColor="#c4b5fd" /></linearGradient>
+        <linearGradient id="hr-aur2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fbcfe8" /><stop offset="1" stopColor="#a5b4fc" /></linearGradient>
+        <linearGradient id="hr-bk1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#4f46e5" /><stop offset="1" stopColor="#7c3aed" /></linearGradient>
+        <linearGradient id="hr-bk2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#06b6d4" /><stop offset="1" stopColor="#3b82f6" /></linearGradient>
+        <linearGradient id="hr-bk3" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#f59e0b" /><stop offset="1" stopColor="#fb7185" /></linearGradient>
+        <linearGradient id="hr-neon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#22d3ee" /><stop offset=".5" stopColor="#8b5cf6" /><stop offset="1" stopColor="#f472b6" /></linearGradient>
+        <linearGradient id="hr-ray" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#fff" stopOpacity=".5" /><stop offset="1" stopColor="#c7d2fe" stopOpacity="0" /></linearGradient>
+        <radialGradient id="hr-bulb" cx=".4" cy=".35" r=".7"><stop offset="0" stopColor="#fff7c2" /><stop offset=".6" stopColor="#fbbf24" /><stop offset="1" stopColor="#f59e0b" /></radialGradient>
+        <pattern id="hr-dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#6366f1" opacity=".22" /></pattern>
+        <clipPath id="hr-scr"><rect x="472" y="56" width="256" height="138" rx="7" /></clipPath>
+        <clipPath id="hr-vid"><rect x="484" y="80" width="134" height="84" rx="10" /></clipPath>
+      </defs>
+
+      {/* aurora blobs + dotted grid */}
+      <g filter="url(#hr-blur)" opacity=".75">
+        <ellipse cx="520" cy="70" rx="120" ry="60" fill="url(#hr-aur1)" opacity=".7"><animate attributeName="cx" values="520;560;520" dur="9s" repeatCount="indefinite" /></ellipse>
+        <ellipse cx="700" cy="210" rx="110" ry="55" fill="url(#hr-aur2)" opacity=".7"><animate attributeName="cx" values="700;660;700" dur="11s" repeatCount="indefinite" /></ellipse>
+      </g>
+      <rect x="360" y="10" width="110" height="80" fill="url(#hr-dots)" />
+      <rect x="690" y="196" width="100" height="70" fill="url(#hr-dots)" />
+
+      {/* ambient glow + orbit rings with travelling dots */}
+      <circle cx="600" cy="130" r="210" fill="url(#hr-glow)" />
+      <g opacity=".55">
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+          <path key={a} d="M600 128L588 -40H612z" fill="url(#hr-ray)" transform={`rotate(${a} 600 128)`} />
+        ))}
+        <animateTransform attributeName="transform" type="rotate" from="0 600 128" to="-360 600 128" dur="70s" repeatCount="indefinite" />
+      </g>
+      <g>
+        <circle cx="600" cy="128" r="152" fill="none" stroke="url(#hr-neon)" strokeWidth="1.6" strokeDasharray="2 9" opacity=".7" />
+        <circle cx="600" cy="128" r="130" fill="none" stroke="url(#hr-neon)" strokeWidth="2" strokeDasharray="70 46" strokeLinecap="round" opacity=".5" />
+        <animateTransform attributeName="transform" type="rotate" from="0 600 128" to="360 600 128" dur="40s" repeatCount="indefinite" />
+      </g>
+      <g fill="none" strokeWidth="1.5">
+        <ellipse cx="600" cy="140" rx="250" ry="92" stroke="#c5b6ff" opacity=".85" transform="rotate(-11 600 140)" />
+        <ellipse cx="600" cy="140" rx="228" ry="84" stroke="#b9d9ff" strokeDasharray="3 7" opacity=".95" transform="rotate(15 600 140)" />
+      </g>
+      <g transform="rotate(-11 600 140)">
+        <circle r="5" fill="#8b5cf6"><animateMotion dur="16s" repeatCount="indefinite" path="M350 140a250 92 0 1 1 500 0a250 92 0 1 1 -500 0" /></circle>
+      </g>
+      <g transform="rotate(15 600 140)">
+        <circle r="4" fill="#22d3ee"><animateMotion dur="12s" repeatCount="indefinite" path="M372 140a228 84 0 1 0 456 0a228 84 0 1 0 -456 0" /></circle>
+      </g>
+      <g fill="#6d7dff"><circle cx="740" cy="40" r="70" opacity=".09" /><circle cx="440" cy="250" r="46" opacity=".08" /></g>
+
+      {/* sparkles (twinkle) */}
+      <g fill="#f5b301">
+        <path className="twk" d="M392 26l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" />
+        <path className="twk tw2" d="M780 128l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" />
+        <path className="twk tw3" d="M560 18l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
+        <circle cx="782" cy="246" r="3.5" opacity=".7" />
+      </g>
+      <g fill="#a78bfa"><path className="twk tw2" d="M446 200l1.8 4.6 4.6 1.8-4.6 1.8-1.8 4.6-1.8-4.6-4.6-1.8 4.6-1.8z" opacity=".8" /><circle cx="690" cy="262" r="2.5" opacity=".6" /></g>
+
+      {/* glowing platform */}
+      <ellipse cx="600" cy="240" rx="230" ry="20" fill="url(#hr-plat)" />
+      {[0, 1.6].map((d) => (
+        <ellipse key={d} cx="600" cy="240" rx="120" ry="8" fill="none" stroke="#8b5cf6" strokeWidth="1.6">
+          <animate attributeName="rx" values="120;250" dur="3.2s" begin={`${d}s`} repeatCount="indefinite" />
+          <animate attributeName="ry" values="8;22" dur="3.2s" begin={`${d}s`} repeatCount="indefinite" />
+          <animate attributeName="opacity" values=".6;0" dur="3.2s" begin={`${d}s`} repeatCount="indefinite" />
+        </ellipse>
+      ))}
+      <ellipse cx="600" cy="240" rx="196" ry="13" fill="none" stroke="#a5b4fc" strokeWidth="1.2" opacity=".6" />
+      <ellipse cx="600" cy="241" rx="176" ry="10" fill="#0b0a33" opacity=".3" />
+
+      {/* screen back-glow */}
+      <rect x="480" y="70" width="240" height="130" rx="20" fill="#6366f1" opacity=".45" filter="url(#hr-blur)" />
+
+      {/* laptop lid */}
+      <rect x="460" y="44" width="280" height="162" rx="14" fill="url(#hr-bezel)" />
+      <rect x="460" y="44" width="280" height="162" rx="14" fill="none" stroke="url(#hr-rim)" strokeWidth="3" />
+      <rect x="460" y="44" width="280" height="162" rx="14" fill="none" stroke="url(#hr-neon)" strokeWidth="3.4" strokeLinecap="round" pathLength="100" strokeDasharray="16 84" filter="url(#hr-soft)">
+        <animate attributeName="stroke-dashoffset" values="0;-100" dur="5s" repeatCount="indefinite" />
+      </rect>
+      <circle cx="600" cy="50" r="1.8" fill="#8b93ff" opacity=".8" />
+      <rect x="472" y="56" width="256" height="138" rx="7" fill="url(#hr-screen)" />
+      <g clipPath="url(#hr-scr)">
+        <path d="M472 56h150l-86 138H472z" fill="url(#hr-glare)" />
+        <rect x="440" y="40" width="70" height="170" fill="url(#hr-shine)" transform="skewX(-18)" opacity=".9">
+          <animate attributeName="x" values="380;760;760" keyTimes="0;.35;1" dur="6s" repeatCount="indefinite" />
+        </rect>
+        {/* top bar */}
+        <circle cx="484" cy="68" r="2.6" fill="#fb7185" /><circle cx="493" cy="68" r="2.6" fill="#fbbf24" /><circle cx="502" cy="68" r="2.6" fill="#34d399" />
+        <rect x="540" y="64" width="110" height="8" rx="4" fill="#fff" opacity=".14" />
+        <circle cx="714" cy="68" r="5" fill="#c4b5fd" />
+        {/* video */}
+        <rect x="484" y="80" width="134" height="84" rx="10" fill="url(#hr-play)" />
+        <g clipPath="url(#hr-vid)">
+          <circle cx="592" cy="102" r="13" fill="#fff" opacity=".3" />
+          <path d="M484 164l38-36 26 22 22-18 48 32z" fill="#fff" opacity=".22" />
+          <path d="M484 164l22-18 22 12 24-22 66 28z" fill="#fff" opacity=".14" />
+          <path d="M484 80h70l-40 84h-30z" fill="#fff" opacity=".07" />
+        </g>
+        <rect x="490" y="86" width="38" height="14" rx="7" fill="#0f0d3a" opacity=".55" />
+        <circle cx="499" cy="93" r="3" fill="#fb7185"><animate attributeName="opacity" values="1;.2;1" dur="1.2s" repeatCount="indefinite" /></circle>
+        <text x="505" y="96.5" fontSize="8" fontWeight="800" fill="#fff" fontFamily="Inter, system-ui, sans-serif">LIVE</text>
+        <circle cx="551" cy="122" r="23" fill="none" stroke="#fff" strokeWidth="2" opacity=".5">
+          <animate attributeName="r" values="22;29;22" dur="2.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values=".55;0;.55" dur="2.6s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="551" cy="122" r="17" fill="#fff" />
+        <path d="M546 113l15 9-15 9z" fill="#4f46e5" />
+        <rect x="484" y="172" width="134" height="6" rx="3" fill="#fff" opacity=".16" />
+        <rect x="484" y="172" width="86" height="6" rx="3" fill="url(#hr-prog)">
+          <animate attributeName="width" values="40;96;40" dur="7s" repeatCount="indefinite" />
+        </rect>
+        <circle cx="570" cy="175" r="5" fill="#fff" />
+        {/* lessons */}
+        {[84, 108, 132].map((y, k) => (
+          <g key={y}>
+            <circle cx="634" cy={y + 6} r="7" fill={k < 2 ? "#22c55e" : "none"} stroke={k < 2 ? "none" : "#67e8f9"} strokeWidth="2" />
+            {k < 2
+              ? <path d={`M630.5 ${y + 6}l2.5 2.5 4.5-5`} fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              : <circle cx="634" cy={y + 6} r="2.6" fill="#67e8f9" />}
+            <rect x="648" y={y} width="62" height="7" rx="3.5" fill="#fff" opacity={k < 2 ? ".22" : ".4"} />
+            <rect x="648" y={y + 10} width="40" height="5" rx="2.5" fill="#fff" opacity=".12" />
+          </g>
+        ))}
+        {/* mini chart (bars grow) */}
+        {[14, 24, 18, 32].map((h, k) => (
+          <rect key={k} x={650 + k * 16} y={178 - h} width="10" height={h} rx="3" fill="url(#hr-bar)">
+            <animate attributeName="height" values={`${h};${h + 6};${h}`} dur={`${3 + k * 0.4}s`} repeatCount="indefinite" />
+            <animate attributeName="y" values={`${178 - h};${172 - h};${178 - h}`} dur={`${3 + k * 0.4}s`} repeatCount="indefinite" />
+          </rect>
+        ))}
+      </g>
+
+      {/* hinge + base */}
+      <rect x="546" y="203" width="108" height="6" rx="3" fill="#4338ca" opacity=".55" />
+      <path d="M468 205H732" stroke="#fff" strokeWidth="1.5" opacity=".5" />
+      <path d="M436 208H764L752 224Q750 229 743 229H457Q450 229 448 224Z" fill="url(#hr-base)" />
+      <rect x="436" y="208" width="328" height="2" rx="1" fill="#fff" opacity=".9" />
+      {[0, 1].map((r) => (
+        <g key={r} fill="#6366f1" opacity=".16">
+          {Array.from({ length: 16 }).map((_, k) => <rect key={k} x={452 + k * 18.5 + r * 4} y={211 + r * 7} width="14" height="4.5" rx="1.5" />)}
+        </g>
+      ))}
+      <path d="M562 218h76q-3 5-10 5h-56q-7 0-10-5z" fill="#818cf8" opacity=".5" />
+      <path d="M452 226H748" stroke="#6366f1" strokeWidth="1" opacity=".25" />
+
+      {/* graduation cap on the lid */}
+      <g className="fl">
+        <path d="M652 36v18c0 9 60 9 60 0V36" fill="url(#hr-cap)" />
+        <path d="M682 6l50 20-50 20-50-20z" fill="#4a5cf0" />
+        <path d="M682 6l50 20-50 20z" fill="#fff" opacity=".12" />
+        <g>
+          <path d="M732 26v24" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" /><circle cx="732" cy="53" r="4" fill="url(#hr-gold)" />
+          <animateTransform attributeName="transform" type="rotate" values="-9 732 26;9 732 26;-9 732 26" dur="3s" repeatCount="indefinite" />
+        </g>
+      </g>
+
+      {/* new-lesson notification */}
+      <g className="fl" filter="url(#hr-soft)">
+        <rect x="378" y="50" width="92" height="30" rx="15" fill="url(#hr-card)" stroke="#e0e7ff" strokeWidth="1" />
+        <circle cx="395" cy="65" r="8" fill="#22c55e" opacity=".22"><animate attributeName="r" values="5;10;5" dur="2s" repeatCount="indefinite" /><animate attributeName="opacity" values=".4;0;.4" dur="2s" repeatCount="indefinite" /></circle>
+        <circle cx="395" cy="65" r="5" fill="#22c55e" />
+        <text x="406" y="69" fontSize="11" fontWeight="700" fill="#4f46e5" fontFamily="Inter, system-ui, sans-serif">New lesson</text>
+      </g>
+
+      {/* certificate */}
+      <g className="fl fl2" filter="url(#hr-soft)">
+        <rect x="366" y="98" width="104" height="64" rx="10" fill="url(#hr-card)" stroke="#e0e7ff" strokeWidth="1" />
+        <rect x="377" y="109" width="54" height="6" rx="3" fill="#c7d2fe" /><rect x="377" y="121" width="38" height="5" rx="2.5" fill="#e2e8f0" />
+        <rect x="377" y="132" width="28" height="4" rx="2" fill="#e2e8f0" />
+        <path d="M438 147l-4 13 10-5 10 5-4-13z" fill="#f59e0b" />
+        <circle cx="444" cy="138" r="11" fill="url(#hr-gold)" /><circle cx="444" cy="138" r="8" fill="none" stroke="#fff" strokeWidth="1" opacity=".6" />
+        <path d="M440 138l3 3 6-6" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
+
+      {/* progress ring card */}
+      <g className="fl fl3" filter="url(#hr-soft)">
+        <rect x="384" y="176" width="96" height="52" rx="12" fill="url(#hr-card)" stroke="#e0e7ff" strokeWidth="1" />
+        <circle cx="410" cy="202" r="14" fill="none" stroke="#e2e8f0" strokeWidth="6" />
+        <circle cx="410" cy="202" r="14" fill="none" stroke="#6366f1" strokeWidth="6" strokeLinecap="round" strokeDasharray="75 88" transform="rotate(-90 410 202)">
+          <animate attributeName="stroke-dasharray" values="10 88;75 88;75 88" keyTimes="0;.45;1" dur="5s" repeatCount="indefinite" />
+        </circle>
+        <text x="434" y="201" fontSize="15" fontWeight="800" fill="#4f46e5" fontFamily="Plus Jakarta Sans, Inter, system-ui, sans-serif">85%</text>
+        <text x="434" y="215" fontSize="9" fill="#94a3b8" fontFamily="Inter, system-ui, sans-serif">complete</text>
+      </g>
+
+      {/* rating chip */}
+      <g transform="translate(742 82)">
+        <g className="fl fl2" filter="url(#hr-soft)">
+          <rect x="0" y="0" width="52" height="24" rx="12" fill="url(#hr-card)" stroke="#e0e7ff" strokeWidth="1" />
+          <path d="M14 5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="url(#hr-gold)" />
+          <text x="26" y="16.5" fontSize="10.5" fontWeight="800" fill="#4f46e5" fontFamily="Inter, system-ui, sans-serif">4.9</text>
+        </g>
+      </g>
+
+      {/* secure badge: translate sits on the OUTER group so the float animation can't override it */}
+      <g transform="translate(716 168)">
+        <g className="fl" filter="url(#hr-soft)">
+          <path d="M30 3l24 9v20c0 17-11 28-24 35C17 60 6 49 6 32V12z" fill="url(#hr-sh)" />
+          <path d="M30 3l24 9v20c0 17-11 28-24 35z" fill="#fff" opacity=".14" />
+          <path d="M20 33l8 8 14-16" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+      </g>
+
+      {/* code chip */}
+      <g transform="translate(498 8)">
+        <g className="fl fl3" filter="url(#hr-soft)">
+          <rect x="0" y="0" width="58" height="26" rx="13" fill="url(#hr-card)" stroke="#e0e7ff" strokeWidth="1" />
+          <text x="29" y="17.5" textAnchor="middle" fontSize="12" fontWeight="800" fill="#7c3aed" fontFamily="ui-monospace, Menlo, monospace">{"</>"}</text>
+        </g>
+      </g>
+
+      {/* chat bubble */}
+      <g transform="translate(300 118)">
+        <g className="fl" filter="url(#hr-soft)">
+          <path d="M10 0h40a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10H26l-10 9v-9h-6A10 10 0 0 1 0 26V10A10 10 0 0 1 10 0z" fill="url(#hr-card)" stroke="#e0e7ff" strokeWidth="1" />
+          <circle cx="18" cy="18" r="3" fill="#6366f1"><animate attributeName="opacity" values=".25;1;.25" dur="1.4s" repeatCount="indefinite" /></circle>
+          <circle cx="30" cy="18" r="3" fill="#8b5cf6"><animate attributeName="opacity" values=".25;1;.25" dur="1.4s" begin=".2s" repeatCount="indefinite" /></circle>
+          <circle cx="42" cy="18" r="3" fill="#22d3ee"><animate attributeName="opacity" values=".25;1;.25" dur="1.4s" begin=".4s" repeatCount="indefinite" /></circle>
+        </g>
+      </g>
+
+      {/* book stack */}
+      <g transform="translate(318 204)">
+        <g className="fl fl2" filter="url(#hr-soft)">
+          <rect x="0" y="22" width="56" height="10" rx="3" fill="url(#hr-bk1)" />
+          <rect x="5" y="12" width="48" height="10" rx="3" fill="url(#hr-bk2)" />
+          <rect x="2" y="2" width="52" height="10" rx="3" fill="url(#hr-bk3)" />
+          <rect x="8" y="5" width="18" height="2.5" rx="1.2" fill="#fff" opacity=".7" />
+          <rect x="10" y="15" width="14" height="2.5" rx="1.2" fill="#fff" opacity=".6" />
+          <rect x="6" y="25" width="20" height="2.5" rx="1.2" fill="#fff" opacity=".55" />
+        </g>
+      </g>
+
+      {/* idea bulb */}
+      <g transform="translate(318 56)">
+        <g className="fl" filter="url(#hr-soft)">
+          <circle cx="16" cy="16" r="22" fill="#fbbf24" opacity=".18"><animate attributeName="r" values="18;26;18" dur="2.4s" repeatCount="indefinite" /></circle>
+          <path d="M16 3a12 12 0 0 0-6 22.4V30h12v-4.6A12 12 0 0 0 16 3z" fill="url(#hr-bulb)" />
+          <rect x="10" y="30" width="12" height="3.5" rx="1.7" fill="#a5b4fc" />
+          <rect x="12" y="34" width="8" height="3" rx="1.5" fill="#818cf8" />
+          <path d="M11 14q5-6 10 0" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" opacity=".8" />
+        </g>
+      </g>
+
+      {/* rising particles */}
+      <g>
+        {[[500, 232, "#22d3ee", 0], [560, 236, "#a78bfa", 1.2], [640, 234, "#f472b6", 2.1], [700, 238, "#fbbf24", 0.6], [610, 232, "#6366f1", 3], [740, 236, "#22d3ee", 1.8]].map(([x, y, c, d], i) => (
+          <circle key={i} cx={x} cy={y} r="2.6" fill={c}>
+            <animate attributeName="cy" values={`${y};${y - 90}`} dur="5s" begin={`${d}s`} repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0;.9;0" dur="5s" begin={`${d}s`} repeatCount="indefinite" />
+          </circle>
+        ))}
+      </g>
+    </svg>
+  );
+}
 
 /* ---------- media helpers ---------- */
 function CoverPhoto({ src }) {
@@ -249,7 +524,7 @@ function Topbar({ onCreate }) {
       <label className="search"><Icon d={I.search} /><input placeholder="Search courses…" /></label>
       <div className="top-actions">
         <button className="btn btn-primary btn-sm" onClick={onCreate}><Icon d={I.plus} size={13} /> Create course</button>
-        <img className="avatar" alt="" src="https://i.pravatar.cc/60?img=12" />
+        <span className="avatar">AM</span>
       </div>
     </header>
   );
@@ -268,10 +543,10 @@ function MyCourses({ courses, onCreate, onPreview, onEdit }) {
   return (
     <div className="page">
       <section className="hero">
-        <div className="hero-bg" style={{ backgroundImage: `linear-gradient(90deg, rgba(22,30,120,.82) 0%, rgba(40,50,185,.42) 34%, rgba(0,0,0,0) 62%), linear-gradient(0deg, rgba(10,10,50,.28), rgba(0,0,0,0) 45%), url(${HERO_IMG})` }} />
+        <div className="hero-bg"><HeroArt /></div>
         <div className="hero-text">
           <span className="hero-chip"><Icon d={I.wand} size={12} /> Lernevo Academy</span>
-          <h1>My courses</h1>
+          <h1>My <span>courses</span></h1>
           <p>{courses.length} courses in this demo workspace · everything saves in your browser.</p>
           <div className="hero-chips">
             <span><i className="dot-green" /> {count("Published")} live</span>
@@ -280,8 +555,8 @@ function MyCourses({ courses, onCreate, onPreview, onEdit }) {
           </div>
         </div>
         <div className="hero-actions">
-          <button className="btn btn-glass btn-lg" onClick={() => setTour(true)}><Icon d={I.play} size={13} /> Watch quick tour</button>
-          <button className="btn btn-white btn-lg" onClick={onCreate}><Icon d={I.plus} /> Create course</button>
+          <button className="btn btn-primary btn-lg" onClick={onCreate}><Icon d={I.plus} size={16} /> Create course</button>
+          <button className="btn btn-outline btn-lg" onClick={() => setTour(true)}><Icon d={I.play} size={13} /> Watch quick tour</button>
         </div>
       </section>
       {tour && <VideoModal src={SAMPLE_VIDEO} poster={SAMPLE_POSTER} title="Quick tour: build a course in minutes" onClose={() => setTour(false)} />}
@@ -308,6 +583,10 @@ function MyCourses({ courses, onCreate, onPreview, onEdit }) {
           ))}
         </div>
         <select className="sort"><option>Recently edited</option><option>Title</option></select>
+      </div>
+      <div className="section-heading">
+        <h2>All courses</h2>
+        <span className="section-note">{shown.length} shown</span>
       </div>
       <div className="grid">
         {shown.map((c) => (
@@ -355,74 +634,177 @@ function MyCourses({ courses, onCreate, onPreview, onEdit }) {
 }
 
 /* ---------- 2. Create course wizard ---------- */
+function WizArt() {
+  return (
+    <svg viewBox="0 0 240 130" aria-hidden="true">
+      <defs>
+        <linearGradient id="wz-a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#22d3ee" /><stop offset=".55" stopColor="#6366f1" /><stop offset="1" stopColor="#a855f7" /></linearGradient>
+        <linearGradient id="wz-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" /><stop offset="1" stopColor="#eef2ff" /></linearGradient>
+        <linearGradient id="wz-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fde68a" /><stop offset="1" stopColor="#f59e0b" /></linearGradient>
+        <filter id="wz-s" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#3b4bdc" floodOpacity=".22" /></filter>
+      </defs>
+      <circle cx="130" cy="64" r="58" fill="#c7d2fe" opacity=".35" />
+      <circle cx="130" cy="64" r="46" fill="none" stroke="#a5b4fc" strokeWidth="1.4" strokeDasharray="3 7" opacity=".9">
+        <animateTransform attributeName="transform" type="rotate" from="0 130 64" to="360 130 64" dur="30s" repeatCount="indefinite" />
+      </circle>
+      <g className="fl" filter="url(#wz-s)">
+        <rect x="64" y="30" width="112" height="72" rx="12" fill="url(#wz-b)" />
+        <rect x="64" y="30" width="112" height="34" rx="12" fill="url(#wz-a)" />
+        <rect x="64" y="52" width="112" height="12" fill="url(#wz-a)" />
+        <path d="M112 38l16 9-16 9z" fill="#fff" />
+        <rect x="74" y="74" width="62" height="6" rx="3" fill="#c7d2fe" />
+        <rect x="74" y="86" width="40" height="5" rx="2.5" fill="#e2e8f0" />
+        <circle cx="156" cy="84" r="9" fill="url(#wz-g)" /><path d="M152 84l3 3 5-6" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
+      <g className="fl fl2" filter="url(#wz-s)">
+        <circle cx="42" cy="40" r="15" fill="url(#wz-b)" />
+        <path d="M42 31v18M33 40h18" stroke="#4f46e5" strokeWidth="3.4" strokeLinecap="round" />
+      </g>
+      <g fill="#f5b301"><path className="twk" d="M200 22l2.6 7 7 2.6-7 2.6-2.6 7-2.6-7-7-2.6 7-2.6z" /><path className="twk tw2" d="M24 92l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" /></g>
+      <circle cx="206" cy="96" r="4" fill="#a78bfa" opacity=".8"><animate attributeName="cy" values="100;84;100" dur="4s" repeatCount="indefinite" /></circle>
+    </svg>
+  );
+}
+
 function CreateCourse({ onCancel, onSave }) {
   const [step, setStep] = useState(1);
+  const [over, setOver] = useState(false);
   const [f, setF] = useState({ img: "", title: "", desc: "", category: "Product knowledge", lang: "English", owner: "Priya Nair", dept: "Human Resources", audience: "All employees" });
+  const [cfg, setCfg] = useState({ dur: 20, pass: 70, attempts: "Unlimited", cert: "Issue on pass" });
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const setC = (k) => (e) => setCfg({ ...cfg, [k]: e.target.value });
   const steps = ["Basic information", "Learning configuration", "Branding & review"];
+  const heads = [
+    { icon: I.book, t: "Tell us about your course", s: "A clear title and short description help employees decide to start." },
+    { icon: I.gear, t: "Set up the learning experience", s: "Duration, pass mark and certificate. You can fine-tune these in the editor." },
+    { icon: I.check, t: "Review and create", s: "Everything looks good? Create the course and jump straight into the editor." },
+  ];
+  const initials = f.title.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "NC";
+  const pickFile = (file) => { if (file && file.type.startsWith("image/")) setF((p) => ({ ...p, img: URL.createObjectURL(file) })); };
   const finish = (status) => onSave({
-    id: Date.now(), status, art: (f.title.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "NC"), sub: f.category, tag: `${f.category} · ${f.dept}`,
-    title: f.title || "Untitled course", desc: f.desc || "No description yet.", slides: 0, min: 10, q: 0, img: f.img, done: 5, edited: "just now",
+    id: Date.now(), status, art: initials, sub: f.category, tag: `${f.category} · ${f.dept}`,
+    title: f.title || "Untitled course", desc: f.desc || "No description yet.", slides: 0, min: Number(cfg.dur) || 10, q: 0, img: f.img, done: 5, edited: "just now",
   });
+  const ready = [
+    { ok: !!f.title.trim(), label: "Course title added" },
+    { ok: !!f.desc.trim(), label: "Description added" },
+    { ok: !!f.img, label: "Cover uploaded", optional: true },
+  ];
+  const head = heads[step - 1];
   return (
     <div className="wizard">
-      <button className="link-back" onClick={onCancel}><Icon d={I.back} size={13} /> Back</button>
-      <h1>Create a new course</h1>
-      <p className="muted">Three quick steps, then you are in the editor. Nothing here is permanent — you can change it later.</p>
-      <ol className="stepper">
+      <div className="wz-hero">
+        <div className="wz-hero-text">
+          <button className="link-back" onClick={onCancel}><Icon d={I.back} size={13} /> Back</button>
+          <span className="wz-chip"><Icon d={I.wand} size={12} /> New course</span>
+          <h1>Create a new <span>course</span></h1>
+          <p>Three quick steps, then you are in the editor. Nothing here is permanent — you can change it later.</p>
+        </div>
+        <div className="wz-hero-art"><WizArt /></div>
+      </div>
+
+      <ol className="wz-steps">
         {steps.map((s, i) => (
-          <li key={s} className={step === i + 1 ? "on" : step > i + 1 ? "done" : ""}><b>{i + 1}</b> {s}</li>
+          <li key={s} className={step === i + 1 ? "on" : step > i + 1 ? "done" : ""}>
+            <span className="wz-dot">{step > i + 1 ? <Icon d={I.check} size={13} /> : i + 1}</span>
+            <span className="wz-lbl"><em>Step {i + 1}</em>{s}</span>
+          </li>
         ))}
       </ol>
-      <section className="panel">
-        {step === 1 && (<>
-          <label className="field"><span>Course title</span><input value={f.title} onChange={set("title")} placeholder="e.g. Product Portfolio Essentials" /></label>
-          <label className="field"><span>Course description</span><textarea rows="3" value={f.desc} onChange={set("desc")} placeholder="A friendly, practical introduction to…" /><small>One or two sentences — what will employees be able to do?</small></label>
-          <div className="field"><span>Course thumbnail</span>
-            <div className="thumb-row">
-              <div className="thumb-drop">{f.img ? <img src={f.img} alt="Cover preview" /> : <Icon d={I.image} size={22} />}</div>
-              <div>
-                <label className="btn btn-ghost btn-sm"><Icon d={I.upload} size={13} /> {f.img ? "Change cover" : "Upload cover"}
-                  <input type="file" accept="image/*" hidden onChange={(e) => { const file = e.target.files?.[0]; if (file) setF({ ...f, img: URL.createObjectURL(file) }); }} />
-                </label>
-                <small className="block">PNG or JPG, under 2.5 MB</small>
-              </div>
+
+      <div className="wz-grid">
+        <div className="wz-main">
+          <section className="panel wz-panel">
+            <div className="wz-ph">
+              <span className="wz-ph-ico"><Icon d={head.icon} size={20} /></span>
+              <div><h2>{head.t}</h2><p>{head.s}</p></div>
+            </div>
+            <div className="wz-body" key={step}>
+              {step === 1 && (<>
+                <label className="field"><span>Course title</span>
+                  <input maxLength={70} value={f.title} onChange={set("title")} placeholder="e.g. Product Portfolio Essentials" />
+                  <small className="wz-count">{f.title.length}/70</small></label>
+                <label className="field"><span>Course description</span>
+                  <textarea rows="3" maxLength={220} value={f.desc} onChange={set("desc")} placeholder="A friendly, practical introduction to…" />
+                  <small className="wz-hint"><span>One or two sentences — what will employees be able to do?</span><span>{f.desc.length}/220</span></small></label>
+                <div className="field"><span>Course thumbnail</span>
+                  <label className={`wz-drop${over ? " over" : ""}${f.img ? " has" : ""}`}
+                    onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
+                    onDrop={(e) => { e.preventDefault(); setOver(false); pickFile(e.dataTransfer.files?.[0]); }}>
+                    <div className="wz-drop-prev">{f.img ? <img src={f.img} alt="Cover preview" /> : <Icon d={I.image} size={26} />}</div>
+                    <div className="wz-drop-txt">
+                      <b>{f.img ? "Looking good! Click to change" : "Drag & drop your cover here"}</b>
+                      <small>or <u>browse files</u> · PNG or JPG, under 2.5 MB</small>
+                      <span className="btn btn-ghost btn-sm"><Icon d={I.upload} size={13} /> {f.img ? "Change cover" : "Upload cover"}</span>
+                    </div>
+                    <input type="file" accept="image/*" hidden onChange={(e) => pickFile(e.target.files?.[0])} />
+                  </label>
+                </div>
+                <div className="two">
+                  <label className="field"><span>Category</span>
+                    <select value={f.category} onChange={set("category")}><option>Product knowledge</option><option>Compliance</option><option>Onboarding</option><option>Security awareness</option></select></label>
+                  <label className="field"><span>Course language</span>
+                    <select value={f.lang} onChange={set("lang")}><option>English</option><option>Tamil</option><option>Hindi</option></select></label>
+                  <label className="field"><span>Content owner</span><input value={f.owner} onChange={set("owner")} /></label>
+                  <label className="field"><span>Department</span><input value={f.dept} onChange={set("dept")} /></label>
+                  <label className="field"><span>Target audience</span><input value={f.audience} onChange={set("audience")} /><small>Who is this course for?</small></label>
+                </div>
+              </>)}
+              {step === 2 && (
+                <div className="two">
+                  <label className="field"><span>Estimated duration (min)</span><input type="number" min="1" value={cfg.dur} onChange={setC("dur")} /></label>
+                  <label className="field"><span>Pass mark (%)</span><input type="number" min="0" max="100" value={cfg.pass} onChange={setC("pass")} /></label>
+                  <label className="field"><span>Quiz attempts allowed</span><select value={cfg.attempts} onChange={setC("attempts")}><option>Unlimited</option><option>3</option><option>1</option></select></label>
+                  <label className="field"><span>Certificate</span><select value={cfg.cert} onChange={setC("cert")}><option>Issue on pass</option><option>None</option></select></label>
+                </div>
+              )}
+              {step === 3 && (
+                <div className="wz-review">
+                  <div className="wz-facts">
+                    {[["Category", f.category], ["Language", f.lang], ["Owner", f.owner], ["Department", f.dept], ["Audience", f.audience], ["Duration", `${cfg.dur} min`], ["Pass mark", `${cfg.pass}%`], ["Attempts", cfg.attempts], ["Certificate", cfg.cert]].map(([k, v]) => (
+                      <div key={k}><small>{k}</small><b>{v || "—"}</b></div>
+                    ))}
+                  </div>
+                  <ul className="wz-ready">
+                    {ready.map((r) => (
+                      <li key={r.label} className={r.ok ? "ok" : r.optional ? "opt" : "no"}>
+                        <span>{r.ok ? <Icon d={I.check} size={12} /> : r.optional ? "–" : "!"}</span>{r.label}{!r.ok && r.optional ? " (optional)" : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <div className="wizard-foot wz-foot">
+            <button className="btn btn-ghost" onClick={step === 1 ? onCancel : () => setStep(step - 1)}><Icon d={I.back} size={13} /> {step === 1 ? "Cancel" : "Previous"}</button>
+            <div>
+              <button className="btn btn-ghost" onClick={() => finish("Draft")}>Save as draft</button>
+              {step < 3
+                ? <button className="btn btn-primary" onClick={() => setStep(step + 1)}>Continue <Icon d={I.next} size={13} /></button>
+                : <button className="btn btn-primary" onClick={() => finish("Draft")}>Create course <Icon d={I.check} size={13} /></button>}
             </div>
           </div>
-          <div className="two">
-            <label className="field"><span>Category</span>
-              <select value={f.category} onChange={set("category")}><option>Product knowledge</option><option>Compliance</option><option>Onboarding</option><option>Security awareness</option></select></label>
-            <label className="field"><span>Course language</span>
-              <select value={f.lang} onChange={set("lang")}><option>English</option><option>Tamil</option><option>Hindi</option></select></label>
-            <label className="field"><span>Content owner</span><input value={f.owner} onChange={set("owner")} /></label>
-            <label className="field"><span>Department</span><input value={f.dept} onChange={set("dept")} /></label>
-            <label className="field"><span>Target audience</span><input value={f.audience} onChange={set("audience")} /><small>Who is this course for?</small></label>
-          </div>
-        </>)}
-        {step === 2 && (
-          <div className="two">
-            <label className="field"><span>Estimated duration (min)</span><input type="number" defaultValue={20} /></label>
-            <label className="field"><span>Pass mark (%)</span><input type="number" defaultValue={70} /></label>
-            <label className="field"><span>Quiz attempts allowed</span><select><option>Unlimited</option><option>3</option><option>1</option></select></label>
-            <label className="field"><span>Certificate</span><select><option>Issue on pass</option><option>None</option></select></label>
-          </div>
-        )}
-        {step === 3 && (
-          <div className="review">
-            <h3>{f.title || "Untitled course"}</h3>
-            <p className="muted">{f.desc || "No description yet."}</p>
-            <p><b>{f.category}</b> · {f.lang} · {f.owner} · {f.dept} · {f.audience}</p>
-          </div>
-        )}
-      </section>
-      <div className="wizard-foot">
-        <button className="btn btn-ghost" onClick={step === 1 ? onCancel : () => setStep(step - 1)}><Icon d={I.back} size={13} /> {step === 1 ? "Cancel" : "Previous"}</button>
-        <div>
-          <button className="btn btn-ghost" onClick={() => finish("Draft")}>Save as draft</button>
-          {step < 3
-            ? <button className="btn btn-primary" onClick={() => setStep(step + 1)}>Continue <Icon d={I.next} size={13} /></button>
-            : <button className="btn btn-primary" onClick={() => finish("Draft")}>Create course <Icon d={I.check} size={13} /></button>}
         </div>
+
+        <aside className="wz-aside">
+          <div className="wz-aside-top"><span className="wz-live"><i /> Live preview</span><small>Updates as you type</small></div>
+          <div className="wz-prev">
+            <div className="wz-prev-cover">
+              {f.img ? <img src={f.img} alt="" /> : <div className="wz-prev-ph"><strong>{initials}</strong><span>{f.category}</span></div>}
+              <em>Draft</em>
+            </div>
+            <div className="wz-prev-body">
+              <small className="wz-prev-tag">{f.category} · {f.dept}</small>
+              <h3>{f.title || "Your course title"}</h3>
+              <p>{f.desc || "Your short description will appear here so employees know what to expect."}</p>
+              <div className="wz-prev-meta"><span><Icon d={I.clock} size={12} /> {cfg.dur} min</span><span><Icon d={I.users} size={12} /> {f.audience || "Everyone"}</span><span>{f.lang}</span></div>
+              <div className="wz-prev-bar"><i style={{ width: `${step * 33.4}%` }} /></div>
+              <small>{Math.round(step * 33.4)}% set up</small>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );
@@ -435,7 +817,7 @@ function PreviewLanding({ course, onStart, onExit }) {
   return (
     <div className="landing">
       <div className="landing-bg" />
-      <div className="landing-photo" style={{ backgroundImage: `url(${course.img || HERO_IMG})` }} />
+      <div className="landing-photo" style={course.img ? { backgroundImage: `url(${course.img})` } : undefined} />
       <div className="landing-card">
         <div className="lbrand"><span className="logo sm">L</span> LERNEVO SOLUTIONS</div>
         <p className="l-cat">{course.tag.split(" · ")[0].toUpperCase()}</p>
