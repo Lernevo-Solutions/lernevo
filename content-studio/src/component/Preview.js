@@ -64,7 +64,7 @@ const splitSentences = (t) => (t.match(/[^.!?।]+[.!?।]*\s*/g) || [t]).map((x
 const fallbackSlides = (c) => {
   const u = () => Math.random().toString(36).slice(2, 9);
   const base = { items: ["First point", "Second point", "Third point"], points: [["Recognise", "what matters in everyday work"], ["Apply", "it confidently with your team"], ["Report", "problems quickly and clearly"]], options: [], answer: 0, explain: "", img: "", video: SAMPLE_VIDEO, poster: "", flip: false, bg: "#ffffff", fg: "#0f172a", font: "Inter, system-ui, sans-serif", k: 1, align: "left", voice: { ...DEFAULT_VOICE } };
-  const dark = { bg: "radial-gradient(circle at 70% 30%,#3a3fc9,#17124d 70%)", fg: "#ffffff", align: "center" };
+  const dark = { bg: "linear-gradient(135deg,#312e81,#1e1b4b)", fg: "#ffffff", align: "center" };
   return [
     { ...base, ...dark, id: u(), layout: "title", title: c.title, body: c.desc },
     { ...base, id: u(), layout: "content", title: "Course overview", body: "A quick look at what you will cover.", items: [`${c.min || 20} minutes`, "Short, practical sections", `${c.q || 5} quiz questions`] },
@@ -217,7 +217,7 @@ function downloadCertificate(name, title, score) {
   grad.addColorStop(0, "#ffffff"); grad.addColorStop(1, "#eef2ff");
   g.fillStyle = grad; g.fillRect(0, 0, 1600, 1100);
   const bar = g.createLinearGradient(0, 0, 1600, 0);
-  bar.addColorStop(0, "#22d3ee"); bar.addColorStop(.5, "#6366f1"); bar.addColorStop(1, "#a855f7");
+  bar.addColorStop(0, "#818cf8"); bar.addColorStop(.5, "#6366f1"); bar.addColorStop(1, "#4338ca");
   g.strokeStyle = bar; g.lineWidth = 14; g.strokeRect(40, 40, 1520, 1020);
   g.strokeStyle = "#c7d2fe"; g.lineWidth = 2; g.strokeRect(70, 70, 1460, 960);
   g.textAlign = "center"; g.fillStyle = "#4f46e5";
@@ -238,7 +238,7 @@ function Art() {
   return (
     <svg viewBox="0 0 400 300" className="pv-art" aria-hidden="true">
       <defs>
-        <linearGradient id="pva" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#22d3ee" /><stop offset=".55" stopColor="#6366f1" /><stop offset="1" stopColor="#a855f7" /></linearGradient>
+        <linearGradient id="pva" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#818cf8" /><stop offset=".55" stopColor="#6366f1" /><stop offset="1" stopColor="#4338ca" /></linearGradient>
       </defs>
       <rect width="400" height="300" fill="url(#pva)" />
       <circle cx="320" cy="60" r="90" fill="#fff" opacity=".12" /><circle cx="60" cy="260" r="110" fill="#fff" opacity=".1" />
@@ -249,7 +249,7 @@ function Art() {
 }
 
 /* ---------- one slide ---------- */
-function Slide({ s, n, total, title, name, pick, onPick, score, onVideoPlay }) {
+function Slide({ s, n, total, title, name, pick, onPick, score, passed, onRetry, onVideoPlay }) {
   const tone = lum(s.fg) > 0.6 ? "dark" : "light";
   const style = { background: s.bg, color: s.fg, fontFamily: s.font, textAlign: s.align, "--k": s.k || 1 };
   const cls = `pv-slide pv-${s.layout} tone-${tone}${s.flip ? " flip" : ""}${s.bold ? " is-bold" : ""}${s.ital ? " is-ital" : ""}`;
@@ -270,8 +270,10 @@ function Slide({ s, n, total, title, name, pick, onPick, score, onVideoPlay }) {
             {s.body && <p className="pv-text pv-r" style={r(2)}>{s.body}</p>}
             {s.layout === "thanks" && (
               <div className="pv-r pv-thx" style={r(3)}>
-                {score && <span className="pv-score"><Ic n="check" size={14} /> Quiz score {score}</span>}
-                <button className="pv-cert" onClick={() => downloadCertificate(name, title, score)}><Ic n="dl" size={16} /> Download certificate</button>
+                {score && <span className={`pv-score${passed ? "" : " bad"}`}><Ic n={passed ? "check" : "x"} size={14} /> Quiz score {score}</span>}
+                {passed
+                  ? <button className="pv-cert" onClick={() => downloadCertificate(name, title, score)}><Ic n="dl" size={16} /> Download certificate</button>
+                  : <><button className="pv-cert" onClick={onRetry}><Ic n="replay" size={16} /> Retry the quiz</button><p className="pv-note">You need 70% or more in the quiz to get your certificate.</p></>}
               </div>
             )}
           </div>
@@ -338,12 +340,12 @@ function Slide({ s, n, total, title, name, pick, onPick, score, onVideoPlay }) {
 /* =========================================================
    PLAYER
    ========================================================= */
-function Player({ course, slides, name, startAuto, onClose }) {
-  const [i, setI] = useState(0);
+function Player({ course, slides, name, startAuto, startAt, startAnswers, onClose, onFinish }) {
+  const [i, setI] = useState(Math.min(Math.max(startAt || 0, 0), slides.length - 1));
   const [dir, setDir] = useState(1);
   const [auto, setAuto] = useState(startAuto);
   const [rate, setRate] = useState(1);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState(startAnswers || {});
   const root = useRef(null);
   const rateRef = useRef(1); rateRef.current = rate;
   const autoRef = useRef(auto); autoRef.current = auto;
@@ -353,6 +355,11 @@ function Player({ course, slides, name, startAuto, onClose }) {
   const s = slides[i];
   const total = slides.length;
   const pct = ((i + 1) / total) * 100;
+  const pkey = `lernevo.progress.${course.id}`;
+
+  /* remember where the learner is, so leaving and coming back resumes the same slide */
+  useEffect(() => { try { localStorage.setItem(pkey, JSON.stringify({ i, answers, name })); } catch (e) { /* ignore */ } }, [i, answers, name, pkey]);
+  const finish = () => { try { localStorage.removeItem(pkey); } catch (e) { /* ignore */ } (onFinish || onClose)(); };
 
   const goTo = useCallback((n) => {
     clearTimeout(timer.current);
@@ -404,7 +411,9 @@ function Player({ course, slides, name, startAuto, onClose }) {
 
   const quizzes = slides.filter((x) => x.layout === "quiz");
   const right = quizzes.filter((x) => answers[x.id] === x.answer).length;
-  const score = quizzes.length && quizzes.every((x) => answers[x.id] != null) ? `${right}/${quizzes.length}` : quizzes.length ? `${right}/${quizzes.length}` : "";
+  const score = quizzes.length ? `${right}/${quizzes.length}` : "";
+  const passed = !quizzes.length || (right / quizzes.length) * 100 >= 70;
+  const retry = () => { setAnswers({}); const q = slides.findIndex((x) => x.layout === "quiz"); if (q >= 0) goTo(q); };
 
   useEffect(() => {
     const h = (e) => {
@@ -439,7 +448,7 @@ function Player({ course, slides, name, startAuto, onClose }) {
       <main className="pv-stage-wrap">
         <div className="pv-stage">
           <div key={s.id} className={`pv-slide-in ${dir > 0 ? "fwd" : "back"}`}>
-            <Slide s={s} n={i + 1} total={total} title={course.title} name={name} pick={answers[s.id]} onPick={pick} score={score} onVideoPlay={nar.stop} />
+            <Slide s={s} n={i + 1} total={total} title={course.title} name={name} pick={answers[s.id]} onPick={pick} score={score} passed={passed} onRetry={retry} onVideoPlay={nar.stop} />
           </div>
         </div>
       </main>
@@ -465,7 +474,7 @@ function Player({ course, slides, name, startAuto, onClose }) {
         </div>
 
         {i === total - 1
-          ? <button className="pv-nav primary" onClick={onClose}><span>Finish</span> <Ic n="check" size={15} /></button>
+          ? <button className="pv-nav primary" onClick={finish}><span>Finish</span> <Ic n="check" size={15} /></button>
           : <button className="pv-nav primary" onClick={() => goTo(i + 1)}><span>Next</span> <Ic n="next" size={15} /></button>}
         <div className="pv-bar-prog"><i style={{ width: `${pct}%` }} /></div>
       </footer>
@@ -480,8 +489,8 @@ function HeroShield() {
   return (
     <svg viewBox="0 0 420 460" className="pl-shield" aria-hidden="true">
       <defs>
-        <linearGradient id="ph-s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8be9ff" /><stop offset=".55" stopColor="#6a8bff" /><stop offset="1" stopColor="#8b5cf6" /></linearGradient>
-        <radialGradient id="ph-g"><stop offset="0" stopColor="#6366f1" stopOpacity=".25" /><stop offset="1" stopColor="#6366f1" stopOpacity="0" /></radialGradient>
+        <linearGradient id="ph-s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#818cf8" /><stop offset=".55" stopColor="#6366f1" /><stop offset="1" stopColor="#4338ca" /></linearGradient>
+        <radialGradient id="ph-g"><stop offset="0" stopColor="#6366f1" stopOpacity=".12" /><stop offset="1" stopColor="#6366f1" stopOpacity="0" /></radialGradient>
         <linearGradient id="ph-r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#22d3ee" /><stop offset=".5" stopColor="#8b5cf6" /><stop offset="1" stopColor="#f472b6" /></linearGradient>
       </defs>
       <circle cx="210" cy="230" r="200" fill="url(#ph-g)" />
@@ -492,7 +501,7 @@ function HeroShield() {
         <path d="M210 90v240c50-20 92-62 92-128v-78z" fill="#fff" opacity=".16" />
         <rect x="186" y="196" width="48" height="42" rx="9" fill="#fff" />
         <path d="M195 196v-10a15 15 0 0130 0v10" fill="none" stroke="#fff" strokeWidth="9" strokeLinecap="round" />
-        <circle cx="210" cy="217" r="6" fill="#6a4cff" />
+        <circle cx="210" cy="217" r="6" fill="#4f46e5" />
       </g>
       <g fill="#8be9ff"><circle cx="70" cy="120" r="4"><animate attributeName="opacity" values=".2;1;.2" dur="2.4s" repeatCount="indefinite" /></circle><circle cx="360" cy="150" r="5"><animate attributeName="opacity" values=".2;1;.2" dur="3s" repeatCount="indefinite" /></circle><circle cx="340" cy="360" r="4"><animate attributeName="opacity" values=".2;1;.2" dur="2.7s" repeatCount="indefinite" /></circle><circle cx="80" cy="340" r="5"><animate attributeName="opacity" values=".2;1;.2" dur="3.3s" repeatCount="indefinite" /></circle></g>
     </svg>
@@ -530,10 +539,10 @@ function Landing({ course, slides, onStart, onExit }) {
       <div className="pl-wrap">
         <section className="pl-card">
           <div className="pl-top">
-            <span className="pl-brand"><b>L</b> LERNEVO SOLUTIONS</span>
+            <span className="pl-brand"><b>L</b> Lernevo Solutions</span>
             <span className="pl-badge"><i /> Preview mode</span>
           </div>
-          <span className="pl-cat">{cat.toUpperCase()}</span>
+          <span className="pl-cat">{cat}</span>
           <h1>{course.title}</h1>
           <p className="pl-desc">{course.desc}</p>
 
@@ -564,7 +573,7 @@ function Landing({ course, slides, onStart, onExit }) {
             </label>
           </div>
 
-          <label className="pl-label" htmlFor="pl-name">YOUR NAME (FOR THE CERTIFICATE)</label>
+          <label className="pl-label" htmlFor="pl-name">Your name (for the certificate)</label>
           <div className="pl-input"><Ic n="user" size={17} /><input id="pl-name" placeholder="e.g. Aarav Sharma" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && start()} /></div>
 
           <div className="pl-actions">
@@ -573,11 +582,15 @@ function Landing({ course, slides, onStart, onExit }) {
           </div>
         </section>
 
-        <aside className="pl-visual" aria-hidden="true">
-          <HeroShield />
-          <span className="pl-chip c1"><Ic n="speaker" size={14} /> Voice guided</span>
-          <span className="pl-chip c2"><Ic n="check" size={14} /> Quick quizzes</span>
-          <span className="pl-chip c3"><Ic n="award" size={14} /> Certificate</span>
+        <aside className="pl-visual">
+          <div className="pl-medal"><HeroShield /></div>
+          <h3>What you will get</h3>
+          <p className="pl-sub">A short, friendly course you can finish at your own pace.</p>
+          <ul className="pl-feats">
+            <li><span><Ic n="speaker" size={18} /></span><div><b>Voice guided</b><small>Every slide is read aloud, hands-free.</small></div></li>
+            <li><span><Ic n="quiz" size={18} /></span><div><b>Quick quizzes</b><small>Check what you learned as you go.</small></div></li>
+            <li><span><Ic n="award" size={18} /></span><div><b>Certificate</b><small>Score 70% or more and download yours.</small></div></li>
+          </ul>
         </aside>
       </div>
       <p className="pl-foot">Participant preview · answers and results are stored in this browser only</p>
@@ -589,12 +602,13 @@ function Landing({ course, slides, onStart, onExit }) {
 /* =========================================================
    ROOT  —  landing first, then the voice-guided player
    ========================================================= */
-export default function Preview({ course, onExit, onClose }) {
+export default function Preview({ course, onExit, onClose, onFinish }) {
   const slides = useMemo(() => loadSlides(course), [course]);
-  const [stage, setStage] = useState("landing");
-  const [learner, setLearner] = useState("");
+  const saved = useMemo(() => { try { const v = JSON.parse(localStorage.getItem(`lernevo.progress.${course.id}`)); return v && typeof v.i === "number" ? v : null; } catch (e) { return null; } }, [course.id]);
+  const [stage, setStage] = useState(saved ? "play" : "landing");
+  const [learner, setLearner] = useState((saved && saved.name) || "");
   const [auto, setAuto] = useState(false);
   if (stage === "play")
-    return <Player course={course} slides={slides} name={learner} startAuto={auto} onClose={onClose || onExit} />;
+    return <Player course={course} slides={slides} name={learner} startAuto={auto} startAt={saved ? saved.i : 0} startAnswers={saved ? saved.answers : undefined} onClose={onClose || onExit} onFinish={onFinish || (() => window.location.assign("/courses"))} />;
   return <Landing course={course} slides={slides} onExit={onExit} onStart={(n, a) => { setLearner(n); setAuto(a); setStage("play"); }} />;
 }
