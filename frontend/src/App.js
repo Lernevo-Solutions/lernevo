@@ -6,7 +6,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-
+import { useState } from "react";
 import Navbar from "./components/Navbar";
 import LandingPage from "./components/landingpage";
 import AboutUs from "./components/AboutUs";
@@ -71,9 +71,13 @@ import Offboarding from "./components/Offboarding";
 import Onboarding from "./components/onboarding";
 import Hrreport from "./components/Hrreport";
 import Userscreation from "./components/Usercreation";
+import course from "./components/studio/course";
+import Course from "./components/studio/course";
+import HomePageStudio from "./components/studio/HomePageStudio";
+import TemplatesPage from "./components/studio/TemplatesPage";
 const AppLayout = () => {
   const location = useLocation();
-
+   const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
   const hideFooterRoutes = [
     "/get-started",
     "/reset-password",
@@ -104,6 +108,9 @@ const AppLayout = () => {
     "/onboarding",
     "/hrreport",
     "/users",
+    "/homestudio",
+    "/courses",
+    "/templatesstudio"
   ];
 
   const hideNavbarRoutes = [
@@ -128,6 +135,9 @@ const AppLayout = () => {
     "/onboarding",
     "/hrreport",
     "/users",
+    "/homestudio",
+    "/courses",
+    "/templatesstudio"
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
@@ -290,6 +300,32 @@ const AppLayout = () => {
     <Route path="/offboarding" element={ <AdminLayout><Offboarding /></AdminLayout> } />
     <Route path="/hrreport" element={ <AdminLayout><Hrreport /></AdminLayout> } />
     <Route path="/users" element={ <AdminLayout><Userscreation /></AdminLayout> } />
+    
+          {/* Home Page */}
+          <Route
+            path="/homestudio"
+            element={<AdminLayout><HomePageStudio /></AdminLayout>}
+          />
+
+          {/* Courses Page */}
+          <Route
+            path="/courses"
+            element={<AdminLayout><Course /></AdminLayout>}
+          />
+
+          {/* Other Pages */}
+          <Route
+            path="/templatesstudio"
+            element={<AdminLayout><TemplatesPage onEditorOpenChange={setTemplateEditorOpen} /></AdminLayout>}
+          />
+
+         
+
+          {/* Default Route */}
+          <Route
+            path="*"
+            element={<Navigate to="/courses" replace />}
+          />
       </Routes>
 
       {!hideFooter && <Footer />}

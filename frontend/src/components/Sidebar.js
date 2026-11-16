@@ -7,7 +7,6 @@ import {
   Building2,
   Briefcase,
   UserCog,
-  Clock,
   Wallet,
   FileText,
   BookOpen,
@@ -25,16 +24,19 @@ import {
   User,
   CalendarDays,
   CalendarClock,
-ClipboardCheck,
-CalendarCheck,
- UserRoundCheck,
+  CalendarCheck,
+  UserRoundCheck,
   BriefcaseBusiness,
-  UserRoundCog,
   UserRoundPlus,
   UserRoundMinus,
   ChartNoAxesCombined,
-  
-
+  Home,
+  LayoutTemplate,
+  ListChecks,
+  Image as ImageIcon,
+  Sparkles,
+  Palette,
+  LifeBuoy,
 } from "lucide-react";
 
 // Maps sidebar item labels to actual app routes.
@@ -59,6 +61,16 @@ export const ROUTE_MAP = {
   Profile: "/profile",
   "Leave and Permissions": "/leave-permission",
   "HR Reports": "/hrreport",
+  "Settings": "/settings",
+  // Content Studio section (change these paths to match your router)
+  Home: "/homestudio",
+  "Courses": "/courses",
+  Templates: "/templatesstudio",
+  "Question Bank": "/questions",
+  "Media Library": "/media",
+  "Content Studio": "/studio",
+  Branding: "/branding",
+  "Help & Docs": "/help",
 };
 
 export const NAV_SECTIONS = [
@@ -66,32 +78,45 @@ export const NAV_SECTIONS = [
     label: "Overview",
     items: [{ icon: LayoutGrid, label: "Dashboard" }],
   },
- {
-  label: "Organization & People ",
-  items: [
-    { icon: Building2, label: "Organizations" },
+  {
+    label: "Organization & People ",
+    items: [
+      { icon: Building2, label: "Organizations" },
       { icon: Users, label: "Users" },
-    { icon: UserCog, label: "User Assignments" },
-    { icon: Briefcase, label: "Job Codes" },
-  ],
-},
-{
-  label: "HR Operations",
-  items: [
-    { icon: CalendarClock, label: "Scheduler" },
-    { icon: CalendarDays, label: "Timesheets" },
-    { icon: CalendarCheck, label: "Leave and Permissions" },
-    { icon: Wallet, label: "Payslips" },
-    { icon: FileText, label: "Compliance Documents" },
-    { icon: Brain, label: "Performance Review" },
-    { icon: UserRoundCheck, label: "Goals Review" },
-    { icon: BriefcaseBusiness, label: "Job Portal" },
-    { icon: UserRoundPlus, label: "Onboarding" },
-    { icon: UserRoundMinus, label: "Offboarding" },
-    { icon: ChartNoAxesCombined, label: "HR Reports" },
-    { icon: Settings, label: "Settings" },
-  ],
-},
+      { icon: UserCog, label: "User Assignments" },
+      { icon: Briefcase, label: "Job Codes" },
+    ],
+  },
+  {
+    label: "HR Operations",
+    items: [
+      { icon: CalendarClock, label: "Scheduler" },
+      { icon: CalendarDays, label: "Timesheets" },
+      { icon: CalendarCheck, label: "Leave and Permissions" },
+      { icon: Wallet, label: "Payslips" },
+      { icon: FileText, label: "Compliance Documents" },
+      { icon: Brain, label: "Performance Review" },
+      { icon: UserRoundCheck, label: "Goals Review" },
+      { icon: BriefcaseBusiness, label: "Job Portal" },
+      { icon: UserRoundPlus, label: "Onboarding" },
+      { icon: UserRoundMinus, label: "Offboarding" },
+      { icon: ChartNoAxesCombined, label: "HR Reports" },
+      { icon: Settings, label: "Settings" },
+    ],
+  },
+  {
+    label: "Content Studio",
+    items: [
+      { icon: Home, label: "Home" },
+      { icon: BookOpen, label: "Courses" },
+      { icon: LayoutTemplate, label: "Templates" },
+      { icon: ListChecks, label: "Question Bank" },
+      { icon: ImageIcon, label: "Media Library" },
+      { icon: Sparkles, label: "Content Studio" },
+      { icon: Palette, label: "Branding" },
+      { icon: LifeBuoy, label: "Help & Docs" },
+    ],
+  },
   {
     label: "Learning",
     items: [
@@ -417,7 +442,7 @@ export default function Sidebar() {
         }
 
         .lv-section-items[data-open="true"] {
-          max-height: 500px;
+          max-height: 700px;
           opacity: 1;
           margin-top: 4px;
         }
@@ -527,20 +552,20 @@ export default function Sidebar() {
                 {section.items
                   .filter((item) => !(role === "Employee" && item.label === "Timesheets"))
                   .map((item) => {
-                  const Icon = item.icon;
-                  const isActive = active === item.label;
-                  return (
-                    <div
-                      className="lv-item"
-                      data-active={isActive}
-                      key={item.label}
-                      onClick={() => handleItemClick(item.label)}
-                    >
-                      <Icon />
-                      {item.label}
-                    </div>
-                  );
-                })}
+                    const Icon = item.icon;
+                    const isActive = active === item.label;
+                    return (
+                      <div
+                        className="lv-item"
+                        data-active={isActive}
+                        key={item.label}
+                        onClick={() => handleItemClick(item.label)}
+                      >
+                        <Icon />
+                        {item.label}
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           );
