@@ -654,3 +654,12 @@ button.ps-nb.pri:hover:not(:disabled) { background: linear-gradient(110deg, #4c6
 button.ps-nb:disabled { opacity: .4; cursor: default; box-shadow: none; }
 button.ps-nb:focus-visible { outline: 2px solid var(--b); outline-offset: 2px; }
 
+/* video upload on the canvas */
+.ps-mbtn.ps-m2 { right: 116px; }
+.ps-bigup { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 11px 20px; border-radius: 99px; background: #fff; color: #3b3ad8; font-size: 14px; font-weight: 700; box-shadow: 0 8px 22px #0005; cursor: pointer; }
+.ps-bigup:hover { transform: translateY(-1px); }
+.ps-note { position: absolute; left: 12px; bottom: 14px; max-width: 55%; padding: 6px 10px; border-radius: 8px; background: #000a; color: #fff; font-size: 12px; font-weight: 600; }
+
+/* Video + text layout: the video fills its half like a 16:9 picture */
+.ps-main .ps-media.is-video { aspect-ratio: 16 / 9; }
+.ps-media.fit-contain video { object-fit: contain; background: #000; }

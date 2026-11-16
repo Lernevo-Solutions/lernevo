@@ -75,7 +75,7 @@ export default function Sidebar() {
 
         <div className="sb__brand">
           <span className="sb__title">Content Studio</span>
-          <span className="sb__subtitle">Lernevo Academy</span>
+          <span className="sb__subtitle">Lernevo Solutions</span>
         </div>
 
         <button

@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import "./Preview.css";
+import { loadCourse, useVideoSrc } from "./Edit";   // same slide model as the editor
 
 /* =========================================================
    Preview (landing + voice-guided player)
    Usage (from course.js):
      <Preview course={course} onExit={() => ...} onClose={() => ...} />
        onExit  -> "Exit preview" on the landing screen
-       onClose -> "Exit" inside the player
+       onClose -> only used if onExit is not given; "Exit" and the back arrow inside the player use onExit (courses page)
    Reads the slides saved by Edit.js (localStorage) and the
    recorded voices (IndexedDB), so what you edit is what you hear.
    ========================================================= */
@@ -54,28 +55,28 @@ const aGet = async (k) => { const d = await idb(); return new Promise((res, rej)
 
 const slideText = (s) => {
   const parts = [s.title, s.body];
-  if (s.layout === "content") parts.push(...(s.items || []));
-  if (s.layout === "points") (s.points || []).forEach(([h, t]) => parts.push(`${h}. ${t}`));
-  if (s.layout === "quiz") { parts.push(s.q); (s.options || []).forEach((o, i) => parts.push(`Option ${String.fromCharCode(65 + i)}. ${o}`)); }
+  if (["content", "vidtext", "overview", "takeaways"].includes(s.layout)) parts.push(...(s.items || []));
+  if (["points", "objectives"].includes(s.layout)) (s.points || []).forEach(([h, t]) => parts.push(`${h}. ${t}`));
+  if (s.layout === "twocol") (s.cols || []).forEach(([h, t]) => parts.push(`${h}. ${t}`));
+  if (["mcq", "multi"].includes(s.layout)) { parts.push(s.q); (s.options || []).forEach((o, i) => parts.push(`Option ${String.fromCharCode(65 + i)}. ${o}`)); }
+  if (s.layout === "tf") parts.push(s.q, "True or false?");
+  if (s.layout === "short") parts.push(s.q);
   return parts.filter(Boolean).join(". ").replace(/\.\s*\./g, ".");
 };
 const splitSentences = (t) => (t.match(/[^.!?।]+[.!?।]*\s*/g) || [t]).map((x) => x.trim()).filter(Boolean);
 
-const fallbackSlides = (c) => {
-  const u = () => Math.random().toString(36).slice(2, 9);
-  const base = { items: ["First point", "Second point", "Third point"], points: [["Recognise", "what matters in everyday work"], ["Apply", "it confidently with your team"], ["Report", "problems quickly and clearly"]], options: [], answer: 0, explain: "", img: "", video: SAMPLE_VIDEO, poster: "", flip: false, bg: "#ffffff", fg: "#0f172a", font: "Inter, system-ui, sans-serif", k: 1, align: "left", voice: { ...DEFAULT_VOICE } };
-  const dark = { bg: "linear-gradient(135deg,#312e81,#1e1b4b)", fg: "#ffffff", align: "center" };
-  return [
-    { ...base, ...dark, id: u(), layout: "title", title: c.title, body: c.desc },
-    { ...base, id: u(), layout: "content", title: "Course overview", body: "A quick look at what you will cover.", items: [`${c.min || 20} minutes`, "Short, practical sections", `${c.q || 5} quiz questions`] },
-    { ...base, id: u(), layout: "points", title: "Learning objectives", body: "By the end you will be able to:" },
-    { ...base, id: u(), layout: "quiz", title: "Quick check", q: "Which option is correct?", options: ["The correct answer", "A wrong answer", "Another wrong answer"], explain: "Well done." },
-    { ...base, ...dark, id: u(), layout: "thanks", title: "Thank you", body: "You have completed the course." },
-  ];
+const QUIZ = ["mcq", "multi", "tf", "short"];
+const isRight = (s, a) => {
+  if (a == null) return false;
+  if (s.layout === "multi") return [...a].sort((x, y) => x - y).join() === [...(s.answers || [])].sort((x, y) => x - y).join();
+  if (s.layout === "short") return String(s.accepted || "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean).includes(String(a).trim().toLowerCase());
+  return a === s.answer;
 };
+const passMark = (slides) => { const c = slides.find((x) => x.layout === "config"); return (c && c.cfg && c.cfg.pass) || 70; };
+const withBrand = (list, brand) => list.map((s) => (s.ownBrand ? s : { ...s, bg: brand.bg, fg: brand.fg, font: brand.font }));
 const loadSlides = (course) => {
-  try { const v = JSON.parse(localStorage.getItem(`lernevo.edit.${course.id}`)); if (Array.isArray(v) && v.length) return v; } catch (e) { /* ignore */ }
-  return fallbackSlides(course);
+  const { slides, brand } = loadCourse(course);   // exactly what the editor holds (or would open with)
+  return withBrand(slides, brand);
 };
 
 /* ---------- narrator: browser voice OR recorded audio ---------- */
@@ -249,85 +250,144 @@ function Art() {
 }
 
 /* ---------- one slide ---------- */
-function Slide({ s, n, total, title, name, pick, onPick, score, passed, onRetry, onVideoPlay }) {
+function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect, onRetry, onVideoPlay, result }) {
+  const [sel, setSel] = useState([]);
+  const [txt, setTxt] = useState("");
+  const vsrc = useVideoSrc(s);
+  const [vbad, setVbad] = useState(false);
+  useEffect(() => setVbad(false), [vsrc]);
+  const vidBlock = (<>
+    {vsrc && !vbad ? <video key={vsrc} controls playsInline preload="metadata" poster={s.poster || undefined} src={vsrc} onPlay={onVideoPlay} onError={() => setVbad(true)} /> : <Art />}
+    {vbad && <p style={{ position: "absolute", left: 0, right: 0, bottom: 10, margin: 0, textAlign: "center", fontSize: 13, color: "#fff", textShadow: "0 1px 4px #000a" }}>This video can't be played right now.</p>}
+  </>);
+  const L = s.layout;
   const tone = lum(s.fg) > 0.6 ? "dark" : "light";
   const style = { background: s.bg, color: s.fg, fontFamily: s.font, textAlign: s.align, "--k": s.k || 1 };
-  const cls = `pv-slide pv-${s.layout} tone-${tone}${s.flip ? " flip" : ""}${s.bold ? " is-bold" : ""}${s.ital ? " is-ital" : ""}`;
+  const cls = `pv-slide lay-${L} tone-${tone}${s.flip ? " flip" : ""}${s.bold ? " is-bold" : ""}${s.ital ? " is-ital" : ""}`;
   const hasVoice = s.voice && s.voice.mode !== "none";
   const r = (i) => ({ "--i": i });
+  const isQuiz = QUIZ.includes(L);
+  const sub = pick != null;
+  const opts = L === "tf" ? ["True", "False"] : s.options || [];
+  const ok = sub && isRight(s, pick);
+  const st = (k) => {
+    if (!sub) return L === "multi" && sel.includes(k) ? " sel" : "";
+    if (L === "multi") return (s.answers || []).includes(k) ? " right" : pick.includes(k) ? " wrong" : " dim";
+    return k === s.answer ? " right" : pick === k ? " wrong" : " dim";
+  };
+  const retry = <button className="pv-cert" onClick={onRetry}><Ic n="replay" size={16} /> Retry the quiz</button>;
+  const cards = (list, num) => (
+    <div className="pv-cards" style={num ? undefined : { gridTemplateColumns: "repeat(2, 1fr)" }}>
+      {(list || []).map(([h, t], k) => <div className="pv-card pv-r" style={r(k + 2)} key={k}>{num && <span className="pv-num">{k + 1}</span>}<b>{h}</b><p>{t}</p></div>)}
+    </div>
+  );
+  const head = (
+    <>
+      <h2 className="pv-title pv-r" style={r(0)}>{s.title}</h2>
+      {s.body && <p className="pv-text pv-r" style={r(1)}>{s.body}</p>}
+    </>
+  );
   return (
     <div className={cls} style={style}>
       <i className="pv-glow" /><i className="pv-gridbg" /><i className="pv-orb o1" /><i className="pv-orb o2" />
-      {s.layout === "thanks" && <div className="pv-confetti" aria-hidden="true">{Array.from({ length: 34 }, (_, k) => <i key={k} style={{ "--x": `${(k * 37) % 100}%`, "--d": `${(k % 8) * 0.14}s`, "--h": (k * 47) % 360 }} />)}</div>}
+      {L === "thanks" && perfect && <div className="pv-confetti" aria-hidden="true">{Array.from({ length: 34 }, (_, k) => <i key={k} style={{ "--x": `${(k * 37) % 100}%`, "--d": `${(k % 8) * 0.14}s`, "--h": (k * 47) % 360 }} />)}</div>}
       <div className="pv-head"><span className="pv-brand"><b>L</b> LERNEVO SOLUTIONS</span><small>{title}</small></div>
 
       <div className="pv-body">
-        {(s.layout === "title" || s.layout === "section" || s.layout === "thanks") && (
+        {(L === "welcome" || L === "thanks") && (
           <div className="pv-hero">
-            {s.layout === "section" && <span className="pv-kicker pv-r" style={r(0)}>SECTION</span>}
-            {s.layout === "thanks" && <span className="pv-medal pv-r" style={r(0)}><Ic n="award" size={34} /></span>}
-            <h1 className="pv-title pv-r" style={r(1)}>{s.layout === "thanks" && name ? `${s.title}, ${name.split(" ")[0]}!` : s.title}</h1>
+            {L === "thanks" && passed && <span className="pv-medal pv-r" style={r(0)}><Ic n="award" size={34} /></span>}
+            <h1 className="pv-title pv-r" style={r(1)}>{L === "thanks" && name ? `${s.title}, ${name.split(" ")[0]}!` : s.title}</h1>
             {s.body && <p className="pv-text pv-r" style={r(2)}>{s.body}</p>}
-            {s.layout === "thanks" && (
+            {L === "thanks" && (
               <div className="pv-r pv-thx" style={r(3)}>
                 {score && <span className={`pv-score${passed ? "" : " bad"}`}><Ic n={passed ? "check" : "x"} size={14} /> Quiz score {score}</span>}
                 {passed
                   ? <button className="pv-cert" onClick={() => downloadCertificate(name, title, score)}><Ic n="dl" size={16} /> Download certificate</button>
-                  : <><button className="pv-cert" onClick={onRetry}><Ic n="replay" size={16} /> Retry the quiz</button><p className="pv-note">You need 70% or more in the quiz to get your certificate.</p></>}
+                  : <>{retry}<p className="pv-note">You need {result.mark}% or more in the quiz to get your certificate.</p></>}
               </div>
             )}
           </div>
         )}
 
-        {s.layout === "content" && (
+        {L === "result" && (
+          <div className="pv-hero">
+            <span className="pv-medal pv-r" style={r(0)}><Ic n={passed ? "award" : "x"} size={34} /></span>
+            <h1 className="pv-title pv-r" style={r(1)}>{s.title}</h1>
+            <p className="pv-text pv-r" style={r(2)}>{result.total ? `You answered ${result.right} of ${result.total} correctly (${result.pct}%). Pass mark: ${result.mark}%.` : "This course has no questions."}</p>
+            <div className="pv-r pv-thx" style={r(3)}>
+              <span className={`pv-score${passed ? "" : " bad"}`}><Ic n={passed ? "check" : "x"} size={14} /> {passed ? s.passMsg : s.failMsg}</span>
+              {!passed && retry}
+            </div>
+          </div>
+        )}
+
+        {L === "content" && (
           <div className="pv-split">
             <div className="pv-col">
-              <h2 className="pv-title pv-r" style={r(0)}>{s.title}</h2>
-              {s.body && <p className="pv-text pv-r" style={r(1)}>{s.body}</p>}
-              <ul className="pv-items">
-                {(s.items || []).map((t, k) => <li className="pv-r" style={r(k + 2)} key={k}><span><Ic n="check" size={13} /></span>{t}</li>)}
-              </ul>
+              {head}
+              <ul className="pv-items">{(s.items || []).map((t, k) => <li className="pv-r" style={r(k + 2)} key={k}><span><Ic n="check" size={13} /></span>{t}</li>)}</ul>
             </div>
             <div className="pv-media pv-r" style={r(2)}>{s.img ? <img src={s.img} alt="" /> : <Art />}</div>
           </div>
         )}
 
-        {s.layout === "points" && (
+        {(L === "overview" || L === "takeaways") && (
           <div className="pv-stack">
-            <h2 className="pv-title pv-r" style={r(0)}>{s.title}</h2>
-            {s.body && <p className="pv-text pv-r" style={r(1)}>{s.body}</p>}
-            <div className="pv-cards">
-              {(s.points || []).map(([h, t], k) => (
-                <div className="pv-card pv-r" style={r(k + 2)} key={k}><span className="pv-num">{k + 1}</span><b>{h}</b><p>{t}</p></div>
-              ))}
-            </div>
+            {head}
+            <ul className="pv-items">{(s.items || []).map((t, k) => <li className="pv-r" style={r(k + 2)} key={k}><span><Ic n="check" size={13} /></span>{t}</li>)}</ul>
           </div>
         )}
 
-        {s.layout === "video" && (
+        {(L === "points" || L === "objectives") && <div className="pv-stack">{head}{cards(s.points, true)}</div>}
+        {L === "twocol" && <div className="pv-stack">{head}{cards(s.cols, false)}</div>}
+
+        {(L === "text" || L === "config") && (
           <div className="pv-stack">
-            <h2 className="pv-title pv-r" style={r(0)}>{s.title}</h2>
-            {s.body && <p className="pv-text pv-r" style={r(1)}>{s.body}</p>}
-            <div className="pv-media pv-vid pv-r" style={r(2)}>
-              {s.video ? <video controls playsInline preload="metadata" poster={s.poster || undefined} src={s.video} onPlay={onVideoPlay} /> : <Art />}
-            </div>
+            {head}
+            {L === "config" && <p className="pv-text pv-r" style={r(2)}><b>Pass mark: {result.mark}%</b> · {result.total} questions</p>}
           </div>
         )}
 
-        {s.layout === "quiz" && (
+        {L === "vidtext" && (
+          <div className="pv-split">
+            <div className="pv-col">
+              {head}
+              <ul className="pv-items">{(s.items || []).map((t, k) => <li className="pv-r" style={r(k + 2)} key={k}><span><Ic n="check" size={13} /></span>{t}</li>)}</ul>
+            </div>
+            <div className="pv-media pv-vid pv-r" style={r(2)}>{vidBlock}</div>
+          </div>
+        )}
+
+        {L === "video" && (
+          <div className={`pv-stack pv-vs${s.vfit === "contain" ? " fit" : ""}`}>
+            {head}
+            <div className="pv-media pv-vid pv-r" style={r(2)}>{vidBlock}</div>
+          </div>
+        )}
+
+        {isQuiz && (
           <div className="pv-stack">
             <h2 className="pv-title pv-r" style={r(0)}>{s.title}</h2>
             <p className="pv-q pv-r" style={r(1)}>{s.q}</p>
-            <div className="pv-opts">
-              {(s.options || []).map((o, k) => (
-                <button key={k} className={`pv-opt pv-r${pick == null ? "" : k === s.answer ? " right" : pick === k ? " wrong" : " dim"}`} style={r(k + 2)} disabled={pick != null} onClick={() => onPick(k)}>
-                  <em>{String.fromCharCode(65 + k)}</em><span>{o}</span>
-                  {pick != null && k === s.answer && <Ic n="check" size={16} />}
-                  {pick === k && k !== s.answer && <Ic n="x" size={16} />}
-                </button>
-              ))}
-            </div>
-            {pick != null && <p className={`pv-fb ${pick === s.answer ? "ok" : "no"}`}><b>{pick === s.answer ? "Correct! " : "Not quite. "}</b>{s.explain}</p>}
+            {L === "short" ? (
+              <div className="pv-short pv-r" style={r(2)}>
+                <input value={sub ? pick : txt} disabled={sub} placeholder="Type your answer" onChange={(e) => setTxt(e.target.value)} onKeyDown={(e) => e.key === "Enter" && txt.trim() && onPick(txt.trim())} />
+                {!sub && <button className="pv-cert" disabled={!txt.trim()} onClick={() => onPick(txt.trim())}>Submit</button>}
+              </div>
+            ) : (
+              <div className="pv-opts">
+                {opts.map((o, k) => (
+                  <button key={k} className={`pv-opt pv-r${st(k)}`} style={r(k + 2)} disabled={sub} onClick={() => (L === "multi" ? setSel((a) => (a.includes(k) ? a.filter((x) => x !== k) : [...a, k])) : onPick(k))}>
+                    <em>{String.fromCharCode(65 + k)}</em><span>{o}</span>
+                    {sub && (L === "multi" ? (s.answers || []).includes(k) : k === s.answer) && <Ic n="check" size={16} />}
+                    {sub && (L === "multi" ? pick.includes(k) && !(s.answers || []).includes(k) : pick === k && k !== s.answer) && <Ic n="x" size={16} />}
+                  </button>
+                ))}
+                {L === "multi" && !sub && <button className="pv-cert pv-submit" disabled={!sel.length} onClick={() => onPick(sel)}>Check answer</button>}
+              </div>
+            )}
+            {sub && <p className={`pv-fb ${ok ? "ok" : "no"}`}><b>{ok ? "Correct! " : "Not quite. "}</b>{L === "short" && !ok ? `Answer: ${String(s.accepted || "").split(",")[0].trim()}. ` : ""}{s.explain}</p>}
           </div>
         )}
       </div>
@@ -358,7 +418,7 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
   const pkey = `lernevo.progress.${course.id}`;
 
   /* remember where the learner is, so leaving and coming back resumes the same slide */
-  useEffect(() => { try { localStorage.setItem(pkey, JSON.stringify({ i, answers, name })); } catch (e) { /* ignore */ } }, [i, answers, name, pkey]);
+  useEffect(() => { try { if (i >= total - 1) localStorage.removeItem(pkey); else localStorage.setItem(pkey, JSON.stringify({ i, answers, name })); } catch (e) { /* ignore */ } }, [i, answers, name, pkey, total]);   // reaching the last slide = finished, so nothing to resume
   const finish = () => { try { localStorage.removeItem(pkey); } catch (e) { /* ignore */ } (onFinish || onClose)(); };
 
   const goTo = useCallback((n) => {
@@ -371,7 +431,7 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
   const narrate = useCallback((slide) => {
     nar.play(slide, {
       onEnd: () => {
-        if (!autoRef.current || slide.layout === "quiz" || slide.layout === "thanks") return;
+        if (!autoRef.current || QUIZ.includes(slide.layout) || slide.layout === "thanks") return;
         timer.current = setTimeout(() => { if (autoRef.current) goTo(iRef.current + 1); }, 1400);
       },
     });
@@ -404,16 +464,20 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
   const pick = (k) => {
     setAnswers((a) => ({ ...a, [s.id]: k }));
     if (autoRef.current) {
-      const ok = k === s.answer;
+      const ok = isRight(s, k);
       nar.play(s, { text: `${ok ? "Correct." : "Not quite."} ${s.explain || ""}`, onEnd: () => { timer.current = setTimeout(() => goTo(iRef.current + 1), 1200); } });
     }
   };
 
-  const quizzes = slides.filter((x) => x.layout === "quiz");
-  const right = quizzes.filter((x) => answers[x.id] === x.answer).length;
+  const quizzes = slides.filter((x) => QUIZ.includes(x.layout));
+  const right = quizzes.filter((x) => isRight(x, answers[x.id])).length;
+  const mark = passMark(slides);
+  const scorePct = quizzes.length ? Math.round((right / quizzes.length) * 100) : 100;
   const score = quizzes.length ? `${right}/${quizzes.length}` : "";
-  const passed = !quizzes.length || (right / quizzes.length) * 100 >= 70;
-  const retry = () => { setAnswers({}); const q = slides.findIndex((x) => x.layout === "quiz"); if (q >= 0) goTo(q); };
+  const passed = !quizzes.length || scorePct >= mark;
+  const perfect = !quizzes.length || right === quizzes.length;   // full marks: only then the celebration
+  const result = { right, total: quizzes.length, pct: scorePct, mark };
+  const retry = () => { setAnswers({}); const q = slides.findIndex((x) => QUIZ.includes(x.layout)); if (q >= 0) goTo(q); };
 
   useEffect(() => {
     const h = (e) => {
@@ -435,7 +499,7 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
     <div className="pv" ref={root}>
       <div className="pl-aurora"><i /><i /><i /></div>
       <header className="pv-top">
-        <div className="pv-ttl"><span className="pv-logo">L</span><div><strong>{course.title}</strong><small>Slide {i + 1} of {total}</small></div></div>
+        <div className="pv-ttl"><button type="button" className="pv-ib pv-back" onClick={onClose} title="Back to courses" aria-label="Back to courses"><Ic n="back" size={16} /></button><span className="pv-logo">L</span><div><strong>{course.title}</strong><small>Slide {i + 1} of {total}</small></div></div>
         <div className="pv-steps" role="tablist" aria-label="Slides">
           {slides.map((x, k) => <button key={x.id} role="tab" aria-selected={k === i} title={x.title} className={k === i ? "on" : k < i ? "done" : ""} onClick={() => goTo(k)} />)}
         </div>
@@ -448,7 +512,7 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
       <main className="pv-stage-wrap">
         <div className="pv-stage">
           <div key={s.id} className={`pv-slide-in ${dir > 0 ? "fwd" : "back"}`}>
-            <Slide s={s} n={i + 1} total={total} title={course.title} name={name} pick={answers[s.id]} onPick={pick} score={score} passed={passed} onRetry={retry} onVideoPlay={nar.stop} />
+            <Slide s={s} n={i + 1} total={total} title={course.title} name={name} pick={answers[s.id]} onPick={pick} score={score} passed={passed} perfect={perfect} result={result} onRetry={retry} onVideoPlay={nar.stop} />
           </div>
         </div>
       </main>
@@ -509,12 +573,12 @@ function HeroShield() {
 }
 
 function Landing({ course, slides, onStart, onExit }) {
-  const [name, setName] = useState(() => { try { return localStorage.getItem("lernevo.learner") || ""; } catch (e) { return ""; } });
+  const [name, setName] = useState("");
   const [auto, setAuto] = useState(false);
   const [trailer, setTrailer] = useState(false);
   const rateRef = useRef(1);
   const nar = useNarrator(rateRef);
-  const quizzes = slides.filter((x) => x.layout === "quiz").length;
+  const quizzes = slides.filter((x) => QUIZ.includes(x.layout)).length;
   const voiced = slides.filter((x) => x.voice && x.voice.mode !== "none").length;
   const cat = (course.tag || "Course").split(" · ")[0];
   const talking = nar.state === "playing";
@@ -525,7 +589,6 @@ function Landing({ course, slides, onStart, onExit }) {
   };
   const start = () => {
     nar.stop();
-    try { localStorage.setItem("lernevo.learner", name.trim()); } catch (e) { /* ignore */ }
     onStart(name.trim(), auto);
   };
 
@@ -550,7 +613,7 @@ function Landing({ course, slides, onStart, onExit }) {
             <div><Ic n="clock" size={17} /><b>{course.min || 20}</b><small>minutes</small></div>
             <div><Ic n="layers" size={17} /><b>{slides.length}</b><small>slides</small></div>
             <div><Ic n="quiz" size={17} /><b>{quizzes}</b><small>questions</small></div>
-            <div><Ic n="award" size={17} /><b>70%</b><small>to pass</small></div>
+            <div><Ic n="award" size={17} /><b>{passMark(slides)}%</b><small>to pass</small></div>
           </div>
 
           <div className={`pl-voice${talking ? " on" : ""}`}>
@@ -589,7 +652,7 @@ function Landing({ course, slides, onStart, onExit }) {
           <ul className="pl-feats">
             <li><span><Ic n="speaker" size={18} /></span><div><b>Voice guided</b><small>Every slide is read aloud, hands-free.</small></div></li>
             <li><span><Ic n="quiz" size={18} /></span><div><b>Quick quizzes</b><small>Check what you learned as you go.</small></div></li>
-            <li><span><Ic n="award" size={18} /></span><div><b>Certificate</b><small>Score 70% or more and download yours.</small></div></li>
+            <li><span><Ic n="award" size={18} /></span><div><b>Certificate</b><small>Score {passMark(slides)}% or more and download yours.</small></div></li>
           </ul>
         </aside>
       </div>
@@ -602,13 +665,14 @@ function Landing({ course, slides, onStart, onExit }) {
 /* =========================================================
    ROOT  —  landing first, then the voice-guided player
    ========================================================= */
-export default function Preview({ course, onExit, onClose, onFinish }) {
+export default function Preview({ course, onExit, onClose, onFinish, startSlide }) {
+  const jump = typeof startSlide === "number";          // opened from the editor on a chosen slide
   const slides = useMemo(() => loadSlides(course), [course]);
-  const saved = useMemo(() => { try { const v = JSON.parse(localStorage.getItem(`lernevo.progress.${course.id}`)); return v && typeof v.i === "number" ? v : null; } catch (e) { return null; } }, [course.id]);
-  const [stage, setStage] = useState(saved ? "play" : "landing");
+  const saved = useMemo(() => { if (typeof startSlide === "number") return null; try { const v = JSON.parse(localStorage.getItem(`lernevo.progress.${course.id}`)); return v && typeof v.i === "number" && v.i > 0 && v.i < slides.length - 1 ? v : null; } catch (e) { return null; } }, [course.id, startSlide, slides]);
+  const [stage, setStage] = useState(jump || saved ? "play" : "landing");
   const [learner, setLearner] = useState((saved && saved.name) || "");
   const [auto, setAuto] = useState(false);
   if (stage === "play")
-    return <Player course={course} slides={slides} name={learner} startAuto={auto} startAt={saved ? saved.i : 0} startAnswers={saved ? saved.answers : undefined} onClose={onClose || onExit} onFinish={onFinish || (() => window.location.assign("/courses"))} />;
+    return <Player course={course} slides={slides} name={learner} startAuto={auto} startAt={jump ? startSlide : saved ? saved.i : 0} startAnswers={saved ? saved.answers : undefined} onClose={onExit || onClose} onFinish={onFinish || (() => window.location.assign("/courses"))} />;
   return <Landing course={course} slides={slides} onExit={onExit} onStart={(n, a) => { setLearner(n); setAuto(a); setStage("play"); }} />;
 }

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./course.css";
-import Edit from "./Edit";   // new PowerPoint-style editor (edit.js + edit.css)
+import Edit, { courseStats } from "./Edit";   // new PowerPoint-style editor (edit.js + edit.css)
 import Preview from "./Preview"; // voice-guided preview (Preview.js + Preview.css)
 
 /* ---------- media (swap these URLs for your own images / videos) ---------- */
@@ -54,6 +54,8 @@ const Icon = ({ d, size = 15 }) => (
   </svg>
 );
 const I = {
+  bell: "M6 8a6 6 0 1112 0c0 7 3 8 3 8H3s3-1 3-8|M10 20a2 2 0 004 0",
+  chev: "M6 9l6 6 6-6",
   home: "M3 11l9-8 9 8|M5 10v10h14V10",
   book: "M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z|M4 21V5",
   grid: "M4 4h7v7H4z|M13 4h7v7h-7z|M4 13h7v7H4z|M13 13h7v7h-7z",
@@ -452,7 +454,7 @@ function SlideFrame({ course, s, editor }) {
         </div>
         {withMedia && <SlideMedia s={s} />}
       </div>
-      <div className="slide-foot"><small>Lernevo Academy · Internal training</small><i /></div>
+      <div className="slide-foot"><small>Lernevo Solutions · Internal training</small><i /></div>
     </div>
   );
 }
@@ -525,22 +527,81 @@ function CoverArt({ course }) {
 }
 
 /* ---------- top bar (sidebar comes from your Sidebar.js) ---------- */
-function Topbar({ onCreate }) {
+const NOTES = [
+  { t: "Phishing Awareness: Spot the Fake is ready for review", s: "today" },
+  { t: "64 learners are working through Product Knowledge", s: "yesterday" },
+  { t: "New Joiner Onboarding was edited", s: "3 days ago" },
+];
+
+function Topbar({ onCreate, search, onSearch }) {
+  const [open, setOpen] = useState(null);          // "bell" | "me" | null
+  const [unread, setUnread] = useState(true);
+  const ref = useRef(null);
+  const input = useRef(null);
+  const mac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
+
+  useEffect(() => {
+    const key = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); if (input.current) input.current.focus(); }
+      if (e.key === "Escape") setOpen(null);
+    };
+    const click = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(null); };
+    window.addEventListener("keydown", key);
+    document.addEventListener("mousedown", click);
+    return () => { window.removeEventListener("keydown", key); document.removeEventListener("mousedown", click); };
+  }, []);
+
+  const toggle = (k) => { setOpen(open === k ? null : k); if (k === "bell") setUnread(false); };
+
   return (
-    <header className="topbar">
-      <label className="search"><Icon d={I.search} /><input placeholder="Search courses…" /></label>
-      <div className="top-actions">
-        <button className="btn btn-primary btn-sm" onClick={onCreate}><Icon d={I.plus} size={13} /> Create course</button>
-        <span className="avatar">AM</span>
+    <header className="hdr" ref={ref}>
+      <div className="hdr-title"><span className="hdr-ic"><Icon d={I.grid} size={18} /></span><span>My courses</span></div>
+
+      <label className="hdr-search">
+        <Icon d={I.search} size={16} />
+        <input ref={input} value={search || ""} onChange={(e) => onSearch && onSearch(e.target.value)} placeholder="Search courses, templates, questions…" />
+        <kbd>{mac ? "⌘ K" : "Ctrl K"}</kbd>
+      </label>
+
+      <div className="hdr-right">
+        <button className="hdr-create" onClick={onCreate}><span>Create Course</span><Icon d={I.next} size={15} /></button>
+
+        <div className="hdr-pop">
+          <button className="hdr-ib" aria-label="Notifications" aria-expanded={open === "bell"} onClick={() => toggle("bell")}>
+            <Icon d={I.bell} size={18} />{unread && <i className="hdr-dot" />}
+          </button>
+          {open === "bell" && (
+            <div className="hdr-menu wide" role="menu">
+              <p className="hdr-mh">Notifications</p>
+              {NOTES.map((n, k) => <div className="hdr-note" key={k}><b>{n.t}</b><small>{n.s}</small></div>)}
+            </div>
+          )}
+        </div>
+
+        <button className="hdr-ib" aria-label="Help"><Icon d={I.help} size={18} /></button>
+
+        <div className="hdr-pop">
+          <button className="hdr-me" aria-expanded={open === "me"} onClick={() => toggle("me")}>
+            <span className="hdr-av">AM</span><b>Arjun Mehta</b><Icon d={I.chev} size={13} />
+          </button>
+          {open === "me" && (
+            <div className="hdr-menu" role="menu">
+              <button role="menuitem"><Icon d={I.user} size={15} /> My profile</button>
+              <button role="menuitem"><Icon d={I.gear} size={15} /> Settings</button>
+              <button role="menuitem"><Icon d={I.exit} size={15} /> Sign out</button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
 }
 
 /* ---------- 1. My courses ---------- */
-function MyCourses({ courses, onCreate, onPreview, onEdit }) {
+function MyCourses({ courses, onCreate, onPreview, onEdit, search }) {
   const [filter, setFilter] = useState("All");
   const [q, setQ] = useState("");
+  useEffect(() => { setQ(search || ""); }, [search]);   // header search drives this list
   const [tour, setTour] = useState(false);
   const count = (st) => courses.filter((c) => c.status === st).length;
   const shown = courses.filter(
@@ -552,7 +613,7 @@ function MyCourses({ courses, onCreate, onPreview, onEdit }) {
       <section className="hero">
         <div className="hero-bg"><HeroArt /></div>
         <div className="hero-text">
-          <span className="hero-chip"><Icon d={I.wand} size={12} /> Lernevo Academy</span>
+          <span className="hero-chip"><Icon d={I.wand} size={12} /> Lernevo Solutions</span>
           <h1>My <span>courses</span></h1>
           <p>{courses.length} courses in this demo workspace · everything saves in your browser.</p>
           <div className="hero-chips">
@@ -618,7 +679,7 @@ function MyCourses({ courses, onCreate, onPreview, onEdit }) {
                 </div>
               )}
               <div className="meta">
-                <span>{c.slides} slides</span><span><Icon d={I.clock} size={11} /> {c.min} min</span><span>{c.q} questions</span>
+                <span>{courseStats(c).slides} slides</span><span><Icon d={I.clock} size={11} /> {c.min} min</span><span>{courseStats(c).q} {courseStats(c).q === 1 ? "question" : "questions"}</span>
               </div>
               {c.learners && (
                 <div className="social">
@@ -909,7 +970,7 @@ function PreviewLanding({ course, onStart, onExit }) {
         <p className="l-desc">{course.desc}</p>
         <div className="chips">
           <span><Icon d={I.clock} size={11} /> {course.min} minutes</span>
-          <span>{course.q} questions</span>
+          <span>{courseStats(course).q} questions</span>
           <span><Icon d={I.users} size={11} /> All employees</span>
           <span>70% to pass</span>
         </div>
@@ -1029,16 +1090,19 @@ export default function Course() {
   const [view, setView] = useState("courses");   // courses | create | landing | player | editor
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [current, setCurrent] = useState(INITIAL_COURSES[0]);
+  const [gq, setGq] = useState("");
+  const [startSlide, setStartSlide] = useState(null);   // slide to open when previewing from the editor
 
   if (view === "courses")
     return (
       <div className="course-area">
-        <Topbar onCreate={() => setView("create")} />
+        <Topbar onCreate={() => setView("create")} search={gq} onSearch={setGq} />
         <main className="content">
           <MyCourses
             courses={courses}
+            search={gq}
             onCreate={() => setView("create")}
-            onPreview={(c) => { setCurrent(c); setView("landing"); }}
+            onPreview={(c) => { setCurrent(c); setStartSlide(null); setView("landing"); }}
             onEdit={(c) => { setCurrent(c); setView("editor"); }}
           />
         </main>
@@ -1069,10 +1133,10 @@ export default function Course() {
       )}
       {/* landing + player now live inside Preview.js */}
       {(view === "landing" || view === "player") && (
-        <Preview course={current} onExit={() => setView("courses")} onClose={() => setView("editor")} />
+        <Preview key={`${current.id}-${startSlide}`} course={current} startSlide={startSlide} onExit={() => setView("courses")} onClose={() => setView("editor")} />
       )}
       {view === "editor" && (
-        <Edit course={current} onBack={() => setView("courses")} onPreview={() => setView("landing")} />
+        <Edit course={current} onBack={() => setView("courses")} onPreview={(idx) => { setStartSlide(typeof idx === "number" ? idx : null); setView("landing"); }} />
       )}
     </div>
   );

@@ -82,6 +82,26 @@ const aPut = async (k, blob) => { const d = await idb(); return new Promise((res
 const aGet = async (k) => { const d = await idb(); return new Promise((res, rej) => { const q = d.transaction("a").objectStore("a").get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); };
 const aDel = async (k) => { const d = await idb(); return new Promise((res, rej) => { const t = d.transaction("a", "readwrite"); t.objectStore("a").delete(k); t.oncomplete = res; t.onerror = () => rej(t.error); }); };
 
+const isVideoFile = (f) => !!f && ((f.type || "").startsWith("video/") || /\.(mp4|m4v|webm|ogv|mov)$/i.test(f.name || ""));
+// keep an uploaded video on this device; returns "" when saved, or the reason it was not
+const storeVideo = async (f, id) => {
+  if (!isVideoFile(f)) return "Please choose a video file (MP4 or WebM)";
+  if (f.size > 300 * 1024 * 1024) return "That video is over 300 MB. Use a smaller file or a link";
+  try { await aPut(`v:${id}`, f); } catch (e) { return "Couldn't store the video on this device"; }
+  return "";
+};
+// a slide's video: an uploaded file (kept in IndexedDB, key "v:<slide id>") wins over the pasted link
+function useVideoSrc(s) {
+  const [url, setUrl] = useState("");
+  useEffect(() => {
+    if (!s.vfile) { setUrl(""); return undefined; }
+    let dead = false, u = "";
+    aGet(`v:${s.id}`).then((b) => { if (!dead && b) { u = URL.createObjectURL(b); setUrl(u); } }).catch(() => {});
+    return () => { dead = true; if (u) URL.revokeObjectURL(u); };
+  }, [s.id, s.vfile, s.vver]);
+  return s.vfile ? url : s.video;
+}
+
 /* ---------- sections + slide types (the "Course structure") ---------- */
 const SECTIONS = ["Introduction", "Content", "Questions", "Result", "Conclusion"];
 // [icon colour, icon background]
@@ -102,6 +122,7 @@ const LAYOUTS = [
   { k: "points", n: "Key points", tag: "KEY POINTS", ic: "pcheck", sec: "Content", d: "Highlight cards" },
   { k: "text", n: "Text", tag: "TEXT", ic: "aL", sec: "Content", d: "Reading slide" },
   { k: "video", n: "Video", tag: "VIDEO", ic: "pplay", sec: "Content", d: "Play a video" },
+  { k: "vidtext", n: "Video + text", tag: "VIDEO + TEXT", ic: "pplay", sec: "Content", d: "Text beside a video" },
   { k: "twocol", n: "Two-column", tag: "TWO-COLUMN", ic: "cols", sec: "Content", d: "Side by side" },
   { k: "config", n: "Configuration", tag: "CONFIGURATION", ic: "help", sec: "Questions", d: "Quiz rules" },
   { k: "mcq", n: "Multiple choice", tag: "MULTIPLE CHOICE", ic: "list", sec: "Questions", d: "One right answer" },
@@ -157,7 +178,7 @@ const mk = (layout, o = {}) => ({
   q: "Which option is correct?", options: ["Option A", "Option B", "Option C"], answer: 0, answers: [0], accepted: "", explain: "",
   cfg: { pass: 80, tries: 3, shuffle: true, review: true },
   passMsg: "Well done! You passed the course.", failMsg: "You did not reach the pass mark. Review the slides and try again.",
-  img: "", video: SAMPLE_VIDEO, poster: "", flip: false,
+  img: "", video: "", poster: "", vfile: "", vver: 0, vfit: "cover", flip: false,
   bg: BRAND0.bg, fg: BRAND0.fg, font: BRAND0.font, k: 1, align: "left", bold: false, ital: false, notes: "",
   ownBrand: false, delay: 0, duration: 0, mandatory: false, nav: true,
   voice: { ...DEFAULT_VOICE },
@@ -185,6 +206,7 @@ const NEW_DEFAULTS = {
   points: { title: "Key points", body: "Three things to remember:" },
   text: { title: "Slide title", body: "Write your explanation here. Keep it short, clear and friendly." },
   video: { title: "Watch this video", body: "A short explainer to get you started." },
+  vidtext: { title: "Watch and learn", body: "A short video with the key points beside it.", items: ["First key point", "Second key point", "Third key point"] },
   twocol: { title: "Do and don't", body: "Two things side by side." },
   config: { title: "Quiz instructions", body: "Read this before you begin." },
   mcq: { title: "Quick check", q: "Which of these is correct?", options: ["Option A", "Option B", "Option C"], explain: "Explain why the answer is right." },
@@ -197,30 +219,113 @@ const NEW_DEFAULTS = {
 };
 
 const S = (layout, o) => mk(layout, { ...NEW_DEFAULTS[layout], ...o });
-const starterSlides = (course) => [
-  S("welcome", { title: "Welcome", body: course.desc || course.title }),
-  S("overview", { title: "Course overview", body: "A quick look at what you will cover and how long it takes.", items: [`${course.min || 20} minutes`, "Short, practical sections", `${course.q || 5} quiz questions`] }),
-  S("objectives", { title: "Learning objectives", body: "By the end you will be able to:" }),
-  S("content", { title: "What is personal data", body: "Personal data is any information that can identify a living person.", items: ["Name, email and phone number", "Photos and ID numbers", "Online identifiers"] }),
-  S("points", { title: "The six principles", body: "Every use of personal data should follow these:", points: [["Lawful", "have a valid reason to use it"], ["Fair", "be open about what you do"], ["Secure", "protect it from misuse"]] }),
-  S("text", { title: "Lawful basis", body: "Before you use personal data you need a lawful basis, such as consent, a contract, or a legal duty." }),
-  S("video", { title: "Breach response", body: "Watch what to do the moment you spot a breach." }),
-  S("twocol", { title: "Safe sharing", body: "Share only what is needed, only with who needs it.", cols: [["Do", "Use approved tools and share the minimum."], ["Don't", "Send personal data to private email or chat apps."]] }),
-  S("config", { title: "Quiz instructions", body: "Answer every question. You need the pass mark below to complete the course." }),
-  S("mcq", { title: "Question 1", q: "Which of these is personal data?", options: ["A staff email address", "A company logo", "A public holiday date"], answer: 0, explain: "An email address can identify a person." }),
-  S("multi", { title: "Question 2", q: "Which of these are valid lawful bases? Select all that apply.", options: ["Consent", "Legal obligation", "Curiosity", "Contract"], answers: [0, 1, 3], explain: "Curiosity is never a lawful basis." }),
-  S("tf", { title: "Question 3", q: "You can share a colleague's personal data with anyone who asks.", answer: 1, explain: "Share only with people who have a reason to see it." }),
-  S("short", { title: "Question 4", q: "Within how many hours must a serious breach be reported?", accepted: "72, 72 hours", explain: "Serious breaches are reported within 72 hours." }),
-  S("mcq", { title: "Question 5", q: "An email asks you to reset your password through a link. What do you do?", options: ["Click the link at once", "Report it and do not click", "Forward it to a friend"], answer: 1, explain: "Report suspicious emails and never click the link." }),
-  S("result", { title: "Your result" }),
-  S("thanks", { title: "Thank you", body: "You have completed the course. Your certificate is ready." }),
-  S("takeaways", { title: "Key takeaways", body: "Remember these three things:", items: ["Know what counts as personal data", "Share only what is needed", "Report problems straight away"] }),
+/* ---------- 4 starter templates: each course opens with its own look + content ---------- */
+const ACC = (i) => ({ ownBrand: true, bg: THEMES[i].bg, fg: THEMES[i].fg });   // accent look for the opening / closing slides
+const TPL_BRANDS = [
+  { bg: THEMES[2].bg, fg: THEMES[2].fg, font: FONTS[0][1] },    // 1 Compliance:  Sky + Inter
+  { bg: THEMES[8].bg, fg: THEMES[8].fg, font: FONTS[1][1] },    // 2 Product:     Aqua + Plus Jakarta Sans
+  { bg: THEMES[7].bg, fg: THEMES[7].fg, font: FONTS[2][1] },    // 3 Onboarding:  Peach + Georgia
+  { bg: THEMES[11].bg, fg: THEMES[11].fg, font: FONTS[3][1] },  // 4 Security:    Midnight + Mono
 ];
+// choose the template from the course topic; any other course cycles through the four
+const tplIndex = (course) => {
+  const t = `${course.title || ""} ${course.tag || ""}`.toLowerCase();
+  if (/phish|security|cyber/.test(t)) return 3;
+  if (/onboard|joiner|people|welcome/.test(t)) return 2;
+  if (/product|pulse|sales|marketing/.test(t)) return 1;
+  if (/compliance|data|protect|privacy|gdpr/.test(t)) return 0;
+  return (Math.abs(parseInt(course.id, 10)) || 0) % 4;
+};
+const starterBrand = (course) => TPL_BRANDS[tplIndex(course)];
+
+const starterSlides = (course) => {
+  const min = course.min || 20;
+  const intro = course.desc || course.title;
+  const T = [
+    /* 1 · Compliance */ [
+      S("welcome", { title: course.title || "Welcome", body: intro, ...ACC(11) }),
+      S("overview", { title: "Course overview", body: "A quick look at what you will cover and how long it takes.", items: [`${min} minutes`, "Short, practical sections", "5 quiz questions"] }),
+      S("objectives", { title: "Learning objectives", body: "By the end you will be able to:", points: [["Recognise", "personal data in everyday work"], ["Apply", "the six principles"], ["Report", "a breach within 72 hours"]] }),
+      S("content", { title: "What is personal data", body: "Personal data is any information that can identify a living person.", items: ["Name, email and phone number", "Photos and ID numbers", "Online identifiers"] }),
+      S("points", { title: "The six principles", body: "Every use of personal data should follow these:", points: [["Lawful", "have a valid reason to use it"], ["Fair", "be open about what you do"], ["Secure", "protect it from misuse"]] }),
+      S("text", { title: "Lawful basis", body: "Before you use personal data you need a lawful basis, such as consent, a contract, or a legal duty." }),
+      S("video", { title: "Breach response", body: "Watch what to do the moment you spot a breach." }),
+      S("twocol", { title: "Safe sharing", body: "Share only what is needed, only with who needs it.", cols: [["Do", "Use approved tools and share the minimum."], ["Don't", "Send personal data to private email or chat apps."]] }),
+      S("config", { title: "Quiz instructions", body: "Answer every question. You need the pass mark below to complete the course." }),
+      S("mcq", { title: "Question 1", q: "Which of these is personal data?", options: ["A staff email address", "A company logo", "A public holiday date"], answer: 0, explain: "An email address can identify a person." }),
+      S("multi", { title: "Question 2", q: "Which of these are valid lawful bases? Select all that apply.", options: ["Consent", "Legal obligation", "Curiosity", "Contract"], answers: [0, 1, 3], explain: "Curiosity is never a lawful basis." }),
+      S("tf", { title: "Question 3", q: "You can share a colleague's personal data with anyone who asks.", answer: 1, explain: "Share only with people who have a reason to see it." }),
+      S("short", { title: "Question 4", q: "Within how many hours must a serious breach be reported?", accepted: "72, 72 hours", explain: "Serious breaches are reported within 72 hours." }),
+      S("mcq", { title: "Question 5", q: "An email asks you to reset your password through a link. What do you do?", options: ["Click the link at once", "Report it and do not click", "Forward it to a friend"], answer: 1, explain: "Report suspicious emails and never click the link." }),
+      S("result", { title: "Your result" }),
+      S("thanks", { title: "Thank you", body: "You have completed the course. Your certificate is ready.", ...ACC(11) }),
+      S("takeaways", { title: "Key takeaways", body: "Remember these three things:", items: ["Know what counts as personal data", "Share only what is needed", "Report problems straight away"] }),
+    ],
+    /* 2 · Product knowledge */ [
+      S("welcome", { title: course.title || "Product knowledge", body: intro, ...ACC(9) }),
+      S("overview", { title: "What is inside the suite", body: "A fast tour of the product and how to talk about it.", items: [`${min} minutes`, "Four product modules", "5-question knowledge check"] }),
+      S("objectives", { title: "Learning objectives", body: "After this course you can:", points: [["Explain", "what the product does in one minute"], ["Match", "each module to a customer need"], ["Position", "it clearly against other tools"]] }),
+      S("content", { title: "Meet the Pulse Suite", body: "Pulse helps teams build, deliver and track training in one place.", items: ["Author: build courses fast", "Deliver: share with any team", "Track: see progress and scores"] }),
+      S("points", { title: "Four modules", body: "Each module solves one job:", points: [["Author", "build slides and quizzes"], ["Deliver", "assign to teams in a click"], ["Track", "live progress and reports"]] }),
+      S("text", { title: "Who it is for", body: "Pulse suits HR, compliance and sales teams that need quick, trackable training." }),
+      S("video", { title: "Pulse in 90 seconds", body: "A short demo you can reuse with customers." }),
+      S("twocol", { title: "Talking to customers", body: "Keep the conversation about their problem.", cols: [["Say", "Lead with the customer's training problem."], ["Avoid", "Reading out a long list of features."]] }),
+      S("config", { title: "Knowledge check", body: "Answer every question. You need the pass mark below to finish." }),
+      S("mcq", { title: "Question 1", q: "Which module is used to build slides and quizzes?", options: ["Author", "Deliver", "Track"], answer: 0, explain: "Author is where courses are built." }),
+      S("multi", { title: "Question 2", q: "What does Pulse help with? Select all that apply.", options: ["Building courses", "Assigning to teams", "Tracking scores", "Payroll processing"], answers: [0, 1, 2], explain: "Pulse is about training, not payroll." }),
+      S("tf", { title: "Question 3", q: "Pulse can show learner progress and quiz scores.", answer: 0, explain: "The Track module shows both." }),
+      S("short", { title: "Question 4", q: "Which module shows learner progress reports?", accepted: "track, tracking", explain: "Track holds progress and reports." }),
+      S("mcq", { title: "Question 5", q: "A customer says training is hard to follow up. What do you lead with?", options: ["A long feature list", "How Track shows progress live", "The price"], answer: 1, explain: "Start with the problem the customer has." }),
+      S("result", { title: "Your result" }),
+      S("thanks", { title: "Thank you", body: "You now know the suite well enough to demo it with confidence.", ...ACC(9) }),
+      S("takeaways", { title: "Key takeaways", body: "Remember these three things:", items: ["Author, Deliver, Track", "Lead with the customer's problem", "Show progress, not features"] }),
+    ],
+    /* 3 · Onboarding */ [
+      S("welcome", { title: course.title || "Welcome aboard", body: intro, ...ACC(10) }),
+      S("overview", { title: "Your first week", body: "Here is how the week looks.", items: ["Day 1: meet your team and get set up", "Days 2-3: tools and policies", "Day 5: check in with your manager"] }),
+      S("objectives", { title: "Learning objectives", body: "By the end of this course you will:", points: [["Meet", "the people you will work with"], ["Set up", "your accounts and tools"], ["Know", "where to find help"]] }),
+      S("content", { title: "Who to ask for what", body: "You never need to guess who can help.", items: ["Manager: your role and goals", "People team: pay, leave and benefits", "IT desk: laptop and accounts"] }),
+      S("points", { title: "Our values", body: "These guide how we work:", points: [["Own it", "take responsibility for results"], ["Be kind", "assume good intent"], ["Keep learning", "ask and share often"]] }),
+      S("text", { title: "How we work", body: "We work in short cycles, share progress openly and ask for help early." }),
+      S("video", { title: "A tour of the office", body: "Take a quick walk around before you arrive." }),
+      S("twocol", { title: "First-week etiquette", body: "Small habits that help you settle in.", cols: [["Do", "Introduce yourself and ask plenty of questions."], ["Don't", "Wait to be asked before you reach out."]] }),
+      S("config", { title: "Quick check", body: "Five short questions. You need the pass mark below to finish." }),
+      S("mcq", { title: "Question 1", q: "Who do you contact for a laptop problem?", options: ["The IT desk", "The finance team", "A client"], answer: 0, explain: "The IT desk looks after laptops and accounts." }),
+      S("multi", { title: "Question 2", q: "What should you do in week one? Select all that apply.", options: ["Meet your team", "Set up your accounts", "Skip the policies", "Agree goals with your manager"], answers: [0, 1, 3], explain: "Read the policies too, they matter." }),
+      S("tf", { title: "Question 3", q: "You should wait until someone asks before you ask for help.", answer: 1, explain: "Ask early, everyone expects it." }),
+      S("short", { title: "Question 4", q: "On which day of your first week is the manager check-in?", accepted: "5, day 5, five", explain: "The check-in is on day 5." }),
+      S("mcq", { title: "Question 5", q: "Where do you find leave and benefits information?", options: ["The People team", "A competitor", "Social media"], answer: 0, explain: "The People team looks after pay, leave and benefits." }),
+      S("result", { title: "Your result" }),
+      S("thanks", { title: "You are ready", body: "We are glad you joined. See you on day one!", ...ACC(10) }),
+      S("takeaways", { title: "Key takeaways", body: "Remember these three things:", items: ["Ask for help early", "Know who to contact", "Live our values every day"] }),
+    ],
+    /* 4 · Security awareness */ [
+      S("welcome", { title: course.title || "Phishing awareness", body: intro, ...ACC(9) }),
+      S("overview", { title: "What you will learn", body: "Learn to spot a fake before it spots you.", items: [`${min} minutes`, "Real examples of fake emails", "5 quick checks"] }),
+      S("objectives", { title: "Learning objectives", body: "By the end you will be able to:", points: [["Spot", "the warning signs of a fake email"], ["Check", "links and senders before you click"], ["Report", "anything suspicious straight away"]] }),
+      S("content", { title: "Anatomy of a phishing email", body: "Fake emails try to rush you into acting without thinking.", items: ["Urgent or threatening language", "A sender address that looks slightly wrong", "Links or attachments you did not expect"] }),
+      S("points", { title: "Red flags", body: "Stop if you see any of these:", points: [["Urgency", "pressure to act right now"], ["Mismatch", "link text differs from the real address"], ["Requests", "passwords, codes or payments"]] }),
+      S("text", { title: "Check before you click", body: "Hover over a link to see where it really goes. If anything feels off, stop and ask." }),
+      S("video", { title: "How a phishing attack works", body: "Follow one attack from the first email to the damage." }),
+      S("twocol", { title: "Safe habits", body: "Two habits that stop most attacks.", cols: [["Do", "Report suspicious email with the report button."], ["Don't", "Click links or open files from unknown senders."]] }),
+      S("config", { title: "Quiz instructions", body: "Answer every question. You need the pass mark below to complete the course." }),
+      S("mcq", { title: "Question 1", q: "Which is a common sign of phishing?", options: ["An urgent request for your password", "A newsletter you subscribed to", "A calendar invite from your team"], answer: 0, explain: "Urgency and password requests are classic signs." }),
+      S("multi", { title: "Question 2", q: "Which of these are red flags? Select all that apply.", options: ["Misspelled sender address", "Unexpected attachment", "Message from a known colleague", "Threat to close your account"], answers: [0, 1, 3], explain: "A normal message from a colleague is not a red flag." }),
+      S("tf", { title: "Question 3", q: "It is safe to click a link if the email looks professional.", answer: 1, explain: "Attackers copy professional designs." }),
+      S("short", { title: "Question 4", q: "What do you do with a suspicious email? (one word)", accepted: "report, reported", explain: "Always report it." }),
+      S("mcq", { title: "Question 5", q: "A text says your parcel is held and asks for a card payment. What do you do?", options: ["Pay quickly", "Ignore it and report it", "Reply with your details"], answer: 1, explain: "Never pay or reply. Report it." }),
+      S("result", { title: "Your result" }),
+      S("thanks", { title: "Thank you", body: "You are now a human firewall. Stay alert!", ...ACC(9) }),
+      S("takeaways", { title: "Key takeaways", body: "Remember these three things:", items: ["Pause before you click", "Check the sender and the link", "Report anything suspicious"] }),
+    ],
+  ];
+  return T[tplIndex(course)];
+};
 
 // the text the browser voice reads for a slide
 const slideText = (s) => {
   const parts = [s.title, s.body];
-  if (["content", "overview", "takeaways"].includes(s.layout)) parts.push(...s.items);
+  if (["content", "vidtext", "overview", "takeaways"].includes(s.layout)) parts.push(...s.items);
   if (["points", "objectives"].includes(s.layout)) s.points.forEach(([h, t]) => parts.push(`${h}. ${t}`));
   if (s.layout === "twocol") s.cols.forEach(([h, t]) => parts.push(`${h}. ${t}`));
   if (s.layout === "result") parts.push(s.passMsg);
@@ -255,23 +360,45 @@ const Switch = ({ on, set, t, d }) => (
 /* ---------- media block ---------- */
 function Media({ s, edit, upd, video }) {
   const file = useRef(null);
+  const vpick = useRef(null);
   const src = video ? s.poster : s.img;
+  const vsrc = useVideoSrc(s);
+  const [bad, setBad] = useState(false);
+  useEffect(() => setBad(false), [vsrc]);
+  const [note, setNote] = useState("");
+  const readVideo = async (f) => {
+    if (!f) return;
+    setNote("Saving video…");
+    const err = await storeVideo(f, s.id);
+    if (err) return setNote(err);
+    upd({ vfile: f.name, vver: Date.now() }); setNote("");
+  };
   const read = (f) => {
-    if (!f || !f.type.startsWith("image/")) return;
+    if (video && isVideoFile(f)) { readVideo(f); return; }   // a video picked with the Poster button is still a video
+    if (!f || !f.type.startsWith("image/")) { if (f) setNote("The poster must be an image (JPG or PNG)"); return; }
     const r = new FileReader();
     r.onload = () => upd(video ? { poster: r.result } : { img: r.result });
     r.readAsDataURL(f);
   };
   return (
-    <div className={`ps-media${video ? " is-video" : ""}${src ? " has-img" : ""}`}>
-      {video && edit && s.video
-        ? <video src={s.video} poster={s.poster || undefined} controls playsInline preload="metadata" />
+    <div className={`ps-media${video ? " is-video" : ""}${src ? " has-img" : ""}${video && s.vfit === "contain" ? " fit-contain" : ""}`}>
+      {video && edit && vsrc && !bad
+        ? <video key={vsrc} src={vsrc} poster={s.poster || undefined} controls playsInline preload="metadata" onError={() => setBad(true)} />
         : src
           ? <img src={src} alt="" />
-          : <div className="ps-ph"><Ic n={video ? "play" : "image"} size={44} /><span>{video ? "Add a video link in Content" : "Add an image"}</span></div>}
+          : <div className="ps-ph"><Ic n={video ? "play" : "image"} size={44} /><span>{video ? (bad ? "This video can't be played. Upload an MP4 or check the link." : "Upload a video or paste a link in Content") : "Add an image"}</span>
+            {video && edit && (
+              <label className="ps-bigup"><Ic n="upload" size={16} /> Upload video
+                <input type="file" accept="video/*" hidden onChange={(e) => { readVideo(e.target.files?.[0]); e.target.value = ""; }} />
+              </label>
+            )}
+          </div>}
+      {note && <small className="ps-note">{note}</small>}
       {video && !edit && <span className="ps-play"><Ic n="play" size={30} /></span>}
       {edit && (
         <>
+          {video && vsrc && <button type="button" className="ps-mbtn ps-m2" onClick={() => vpick.current?.click()}><Ic n="upload" size={14} /> Video</button>}
+          {video && <input ref={vpick} type="file" accept="video/*" hidden onChange={(e) => { readVideo(e.target.files?.[0]); e.target.value = ""; }} />}
           <button type="button" className="ps-mbtn" onClick={() => file.current?.click()}><Ic n="image" size={14} /> {src ? "Replace" : video ? "Poster" : "Upload"}</button>
           {src && <button type="button" className="ps-mbtn ps-mdel" onClick={() => upd(video ? { poster: "" } : { img: "" })}><Ic n="x" size={13} /></button>}
           <input ref={file} type="file" accept="image/*" hidden onChange={(e) => read(e.target.files?.[0])} />
@@ -401,6 +528,17 @@ function SlideView({ s, n, title, edit, upd, scale, go, hasPrev, hasNext }) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {L === "vidtext" && (
+          <div className="ps-main">
+            <div className="ps-text">
+              {head("Slide title")}
+              <Ed edit={edit} cls="ps-body" v={s.body} on={set("body")} ph="Add text" />
+              {itemsBlock}
+            </div>
+            <Media s={s} edit={edit} upd={upd} video />
           </div>
         )}
 
@@ -572,13 +710,33 @@ function ImageField({ label, value, onChange }) {
 }
 
 /* ---------- load / save ---------- */
+// the very first starter deck (Data Protection content for every course). If a course still holds exactly that
+// untouched deck but should have its own template, swap it for the right one.
+const OLD_SIG = "welcome|overview|objectives|content:What is personal data|points:The six principles|text:Lawful basis|video:Breach response|twocol:Safe sharing|config|mcq:Question 1|multi:Question 2|tf:Question 3|short:Question 4|mcq:Question 5|result|thanks|takeaways";
+const FIXED = ["welcome", "overview", "objectives", "config", "result", "thanks", "takeaways"];
+const sigOf = (arr) => arr.map((s) => (FIXED.includes(s.layout) ? s.layout : `${s.layout}:${s.title}`)).join("|");
+const isOldStarter = (arr) => {
+  if (sigOf(arr) !== OLD_SIG) return false;
+  const c = arr.find((x) => x.layout === "content");
+  return !!c && c.body === "Personal data is any information that can identify a living person.";
+};
+
 const load = (KEY, course) => {
   try {
     const v = JSON.parse(localStorage.getItem(KEY));
     const arr = Array.isArray(v) ? v : v && v.slides;
-    if (Array.isArray(arr) && arr.length) return { slides: bySec(arr.map(norm)), brand: v && v.brand ? { ...BRAND0, ...v.brand } : BRAND0 };
+    if (Array.isArray(arr) && arr.length) {
+      if (tplIndex(course) !== 0 && isOldStarter(arr)) return { slides: starterSlides(course), brand: starterBrand(course) };
+      return { slides: bySec(arr.map(norm)), brand: v && v.brand ? { ...BRAND0, ...v.brand } : BRAND0 };
+    }
   } catch (e) { /* ignore */ }
-  return { slides: starterSlides(course), brand: BRAND0 };
+  return { slides: starterSlides(course), brand: starterBrand(course) };
+};
+const loadCourse = (course) => load(`lernevo.edit.${course.id}`, course);
+// real numbers for the course cards: whatever the editor holds (or would open with)
+const courseStats = (course) => {
+  const sl = loadCourse(course).slides;
+  return { slides: sl.length, q: sl.filter((x) => QUIZ.includes(x.layout)).length };
 };
 
 /* ---------- editor ---------- */
@@ -668,6 +826,15 @@ export default function Edit({ course, onBack, onPreview }) {
     flash("Voice saved to this slide");
   };
   const pickAudio = (f) => { if (!f) return; if (f.type.startsWith("audio/")) saveAudio(f, f.name, selId); else flash("Please choose an audio file"); };
+  const pickVideo = async (f) => {
+    if (!f) return;
+    const id = selId;
+    const err = await storeVideo(f, id);
+    if (err) return flash(err);
+    commit((sl) => sl.map((x) => (x.id === id ? { ...x, vfile: f.name, vver: Date.now() } : x)));
+    flash("Video added to this slide");
+  };
+  const removeVideo = () => { const id = selId; aDel(`v:${id}`).catch(() => {}); upd({ vfile: "", vver: 0 }); };
   const toggleRec = async () => {
     if (rec) { recRef.current?.stop(); return; }
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") return flash("Recording isn't supported in this browser");
@@ -693,6 +860,19 @@ export default function Edit({ course, onBack, onPreview }) {
     }, 500);
     return () => clearTimeout(t);
   }, [slides, brand, KEY]);
+
+  /* save right now: Save button, Ctrl/Cmd+S, Back, Preview, and when the editor closes */
+  const latest = useRef({ slides, brand });
+  latest.current = { slides, brand };
+  const saveNow = (say) => {
+    try { localStorage.setItem(KEY, JSON.stringify({ v: 2, slides: latest.current.slides, brand: latest.current.brand })); setSaved("saved"); if (say) { setToast("Saved"); setTimeout(() => setToast(""), 1800); } } catch (e) { setSaved("local"); }
+  };
+  useEffect(() => () => { try { localStorage.setItem(KEY, JSON.stringify({ v: 2, slides: latest.current.slides, brand: latest.current.brand })); } catch (e) { /* ignore */ } }, [KEY]);
+  useEffect(() => {
+    const k = (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); saveNow(true); } };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  });
 
   /* stage size → fit scale */
   useEffect(() => {
@@ -720,6 +900,7 @@ export default function Edit({ course, onBack, onPreview }) {
   const dupSlide = () => {
     const c = { ...cur, id: uid(), items: [...cur.items], points: cur.points.map((p) => [...p]), cols: cur.cols.map((p) => [...p]), options: [...cur.options], answers: [...cur.answers], cfg: { ...cur.cfg }, voice: { ...DEFAULT_VOICE, ...(cur.voice || {}) } };
     if (cur.voice?.has) aGet(cur.id).then((b) => b && aPut(c.id, b)).catch(() => {});
+    if (cur.vfile) aGet(`v:${cur.id}`).then((b) => b && aPut(`v:${c.id}`, b)).catch(() => {});
     commit((sl) => { const a = [...sl]; a.splice(idx + 1, 0, c); return a; });
     setSelId(c.id);
   };
@@ -807,6 +988,23 @@ export default function Edit({ course, onBack, onPreview }) {
   const bullets = <StrList label="Bullet points" items={cur.items} onChange={(items) => quiet({ items })} />;
   const feedback = area("Feedback after answering", "explain", 3, "Shown to learners after they answer (optional)");
   let contentBody;
+  const videoFields = (<>
+        <Field label="Upload a video" hint="MP4 (H.264) or WebM works best. The file stays on this device.">
+          <label className="pe-btn full pe-up"><Ic n="upload" size={14} /> {cur.vfile ? "Replace video file" : "Choose a video file"}
+            <input type="file" accept="video/*" hidden onChange={(e) => { pickVideo(e.target.files?.[0]); e.target.value = ""; }} />
+          </label>
+          {cur.vfile && (
+            <div className="pe-clip"><Ic n="pplay" size={16} /><span>{cur.vfile}</span>
+              <button type="button" onClick={removeVideo} aria-label="Remove uploaded video"><Ic n="trash" size={13} /></button>
+            </div>
+          )}
+        </Field>
+        <Field label="Or paste a video link" hint={cur.vfile ? "The uploaded file is used first. Remove it to use the link." : "Paste a direct .mp4 link."}>
+          <input className="pe-in" aria-label="Video link" value={cur.video} placeholder="https://…/video.mp4" onChange={(e) => quiet({ video: e.target.value })} />
+        </Field>
+        <Switch on={cur.vfit === "contain"} set={(v) => upd({ vfit: v ? "contain" : "cover" })} t="Show the whole video" d="No cropping. Black bars may show" />
+        <ImageField label="Poster image URL" value={cur.poster} onChange={(poster) => quiet({ poster })} />
+  </>);
   switch (cur.layout) {
     case "overview": case "takeaways":
       contentBody = <>{heading}{desc}{bullets}</>; break;
@@ -821,11 +1019,10 @@ export default function Edit({ course, onBack, onPreview }) {
     case "twocol":
       contentBody = <>{heading}{desc}<PairList label="Columns" pairs={cur.cols} onChange={(cols) => quiet({ cols })} min={2} max={2} ph={["Column heading", "Column text"]} /></>; break;
     case "video":
-      contentBody = (<>{heading}{desc}
-        <Field label="Video link" hint="Paste a direct .mp4 link.">
-          <input className="pe-in" aria-label="Video link" value={cur.video} placeholder="https://…/video.mp4" onChange={(e) => quiet({ video: e.target.value })} />
-        </Field>
-        <ImageField label="Poster image URL" value={cur.poster} onChange={(poster) => quiet({ poster })} /></>); break;
+      contentBody = (<>{heading}{desc}{videoFields}</>); break;
+    case "vidtext":
+      contentBody = (<>{heading}{desc}{bullets}{videoFields}
+        <button className="pe-btn full" onClick={() => upd({ flip: !cur.flip })}><Ic n="swap" size={14} /> Video on the {cur.flip ? "right" : "left"}</button></>); break;
     case "config":
       contentBody = (<>{heading}{desc}
         <Field label="Pass mark (%)"><input className="pe-in" type="number" min="0" max="100" aria-label="Pass mark" value={cur.cfg.pass} onChange={(e) => quiet({ cfg: { ...cur.cfg, pass: clamp(e.target.value, 0, 100) } })} /></Field>
@@ -871,7 +1068,7 @@ export default function Edit({ course, onBack, onPreview }) {
       {/* ---- top bar ---- */}
       <header className="pe-top">
         <div className="pe-left">
-          <button className="pe-ib" onClick={onBack} aria-label="Back to courses"><Ic n="back" /></button>
+          <button className="pe-ib" onClick={() => { saveNow(); onBack(); }} aria-label="Back to courses"><Ic n="back" /></button>
           <span className="pe-logo">L</span>
           <div>
             <input className="pe-title" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Course title" />
@@ -882,7 +1079,8 @@ export default function Edit({ course, onBack, onPreview }) {
           </div>
         </div>
         <div className="pe-right">
-          <button className="pe-btn" onClick={onPreview}><Ic n="eye" size={15} /> Preview</button>
+          <button className="pe-btn" onClick={() => saveNow(true)} title="Save (Ctrl+S)"><Ic n="check" size={15} /> Save</button>
+          <button className="pe-btn" onClick={() => { saveNow(); onPreview(slides.findIndex((x) => x.id === selId)); }}><Ic n="eye" size={15} /> Preview</button>
           <button className="pe-btn" onClick={exportJson}><Ic n="dl" size={15} /> Export</button>
           <button className="pe-btn pe-primary" onClick={() => flash("Published to learners (demo)")}><Ic n="send" size={15} /> Publish</button>
         </div>
@@ -908,8 +1106,7 @@ export default function Edit({ course, onBack, onPreview }) {
           </div>
           <button className="pe-tool" onClick={dupSlide} title="Duplicate (Ctrl+D)"><Ic n="copy" /><span>Duplicate</span></button>
           <button className="pe-tool" onClick={delSlide} title="Delete (Del)"><Ic n="trash" /><span>Delete</span></button>
-          <button className="pe-tool" onClick={() => move(-1)} disabled={idx === 0} title="Move up"><Ic n="up" /><span>Up</span></button>
-          <button className="pe-tool" onClick={() => move(1)} disabled={idx === slides.length - 1} title="Move down"><Ic n="down" /><span>Down</span></button>
+          <button className="pe-tool" onClick={() => saveNow(true)} title="Save (Ctrl+S)"><Ic n="check" /><span>Save</span></button>
         </div>
         <i className="pe-sep" />
         <div className="pe-grp">
@@ -993,8 +1190,7 @@ export default function Edit({ course, onBack, onPreview }) {
                       {rowMenu === x.id && (
                         <div className="pe-rowmenu" onClick={(e) => e.stopPropagation()}>
                           <button type="button" onClick={() => { dupSlide(); setRowMenu(null); }}><Ic n="copy" size={14} />Duplicate</button>
-                          <button type="button" onClick={() => move(-1)} disabled={idx === 0}><Ic n="up" size={14} />Up</button>
-                          <button type="button" onClick={() => move(1)} disabled={idx === slides.length - 1}><Ic n="down" size={14} />Down</button>
+                          <button type="button" onClick={() => { saveNow(true); setRowMenu(null); }}><Ic n="check" size={14} />Save</button>
                           <button type="button" className="del" onClick={() => { delSlide(); setRowMenu(null); }}><Ic n="trash" size={14} />Delete</button>
                         </div>
                       )}
@@ -1167,3 +1363,5 @@ export default function Edit({ course, onBack, onPreview }) {
     </div>
   );
 }
+/* used by Preview.js so the preview shows exactly what the editor saved */
+export { starterSlides, starterBrand, loadCourse, courseStats, useVideoSrc, norm, bySec, BRAND0 };

@@ -797,3 +797,107 @@ label.btn { cursor: pointer; }
 .wz-confetti span { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; opacity: 0; animation: wzFall 2.4s ease-in 1 both; }
 @keyframes wzFall { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(120px) rotate(540deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .wz-prev, .wz-confetti span, .wz-hero { animation: none !important; } }
+
+/* =====================================================
+   HEADER — same layout as the Templates page header
+   (title · search · create · bell · help · profile)
+   ===================================================== */
+.course-area .hdr { height: 72px; position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 28px; padding: 0 34px; border-bottom: 1px solid #e6ebf4; background: #fff; color: #15213b; font-family: Inter, system-ui, sans-serif; }
+.course-area .hdr button { font: inherit; color: inherit; cursor: pointer; }
+.course-area .hdr button:focus-visible, .course-area .hdr input:focus-visible { outline: 2px solid #3159e8; outline-offset: 2px; }
+
+.course-area .hdr-title { display: flex; align-items: center; gap: 10px; min-width: 190px; flex: none; font-size: 14px; font-weight: 650; white-space: nowrap; }
+.course-area .hdr-ic { display: grid; place-items: center; color: #4165ec; }
+
+.course-area .hdr-search { display: flex; align-items: center; gap: 10px; width: min(460px, 42vw); min-width: 0; height: 40px; margin: auto; padding: 0 13px; border: 1px solid #e3e8f1; border-radius: 12px; background: #fff; color: #7b89a1; box-shadow: none; transition: border-color .15s, box-shadow .15s; }
+.course-area .hdr-search:focus-within { border-color: #9db8f7; box-shadow: 0 0 0 3px #3159e812; }
+.course-area .hdr-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 12px; color: #25334c; }
+.course-area .hdr-search input::placeholder { color: #8e9bb0; }
+.course-area .hdr-search kbd { flex: none; padding: 3px 5px; border: 1px solid #e6eaf0; border-radius: 5px; background: none; color: #9aa5b5; font: inherit; font-size: 9px; }
+
+.course-area .hdr-right { display: flex; align-items: center; gap: 16px; flex: none; white-space: nowrap; }
+.course-area .hdr-create { display: flex; align-items: center; gap: 9px; height: 38px; flex: none; margin-right: 5px; padding: 0 16px; border: 0; border-radius: 9px; background: #3159e8; color: #fff !important; font-size: 11px; font-weight: 650; white-space: nowrap; box-shadow: 0 3px 8px #3159e82b; transition: background .18s, transform .18s, box-shadow .18s; }
+.course-area .hdr-create:hover { background: #264bd0; box-shadow: 0 5px 12px #3159e83b; transform: translateY(-1px); }
+
+.course-area .hdr-pop { position: relative; flex: none; }
+.course-area .hdr-ib { position: relative; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #56647c; }
+.course-area .hdr-ib:hover { background: #f3f6fc; }
+.course-area .hdr-dot { position: absolute; top: 6px; right: 7px; width: 7px; height: 7px; border: 1px solid #fff; border-radius: 50%; background: #f17482; }
+
+.course-area .hdr-me { display: flex; align-items: center; gap: 8px; padding: 2px 6px 2px 2px; border: 0; border-radius: 99px; background: transparent; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.course-area .hdr-me:hover { background: #f3f6fc; }
+.course-area .hdr-me b { font-weight: 600; white-space: nowrap; }
+.course-area .hdr-me svg { color: #6b7388; flex: none; }
+.course-area .hdr-av { display: grid; place-items: center; flex: none; width: 31px; height: 31px; border: 2px solid #fff; border-radius: 50%; background: linear-gradient(140deg, #5b7cf2, #473bd0); color: #fff; font-size: 10px; font-weight: 700; box-shadow: 0 0 0 1px #e6eaf2; }
+
+.course-area .hdr-menu { position: absolute; right: 0; top: calc(100% + 10px); z-index: 40; min-width: 180px; padding: 6px; border: 1px solid #e6ebf4; border-radius: 12px; background: #fff; box-shadow: 0 20px 44px -18px #1e1b4b55; animation: hdrIn .16s ease-out both; }
+.course-area .hdr-menu.wide { width: 310px; }
+@keyframes hdrIn { from { opacity: 0; transform: translateY(-6px); } }
+.course-area .hdr-menu > button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 11px; border: 0; border-radius: 8px; background: none; font-size: 12px; font-weight: 600; text-align: left; }
+.course-area .hdr-menu > button:hover { background: #f3f6fc; }
+.course-area .hdr-mh { margin: 4px 8px 6px; font-size: 11px; font-weight: 700; color: #71809a; }
+.course-area .hdr-note { display: grid; gap: 2px; padding: 9px 11px; border-radius: 8px; }
+.course-area .hdr-note:hover { background: #f6f8fd; }
+.course-area .hdr-note b { font-size: 12px; font-weight: 600; line-height: 1.4; white-space: normal; }
+.course-area .hdr-note small { font-size: 11px; color: #8e9bb0; }
+
+@media (max-width: 1050px) { .course-area .hdr { gap: 14px; padding: 0 22px; } .course-area .hdr-title { min-width: 140px; } }
+@media (max-width: 760px) {
+  .course-area .hdr { height: 62px; padding: 0 14px; }
+  .course-area .hdr-title { min-width: auto; } .course-area .hdr-title span { display: none; }
+  .course-area .hdr-search { width: auto; flex: 1; } .course-area .hdr-search kbd { display: none; }
+  .course-area .hdr-right { gap: 4px; } .course-area .hdr-me b, .course-area .hdr-me svg { display: none; }
+  .course-area .hdr-create { height: 32px; gap: 5px; margin: 0; padding: 0 9px; font-size: 9px; }
+}
+@media (max-width: 520px) { .course-area .hdr { gap: 10px; } .course-area .hdr-create { width: 32px; justify-content: center; padding: 0; } .course-area .hdr-create span { display: none; } }
+
+/* =====================================================
+   TEMPLATES SCALE — course page content sized like the
+   Templates page (compact type, 34px page padding)
+   Delete this block to go back to the larger sizes.
+   ===================================================== */
+.course-area .content { padding: 0 34px 56px; }
+.course-area .page { max-width: none; }
+
+/* hero */
+.course-area .hero { min-height: clamp(200px, 26vh, 250px); padding: 24px 34px; }
+.course-area .hero h1 { margin: 10px 0 6px; font-size: clamp(32px, 3.1vw, 44px); font-weight: 730; letter-spacing: -.045em; line-height: 1.05; }
+.course-area .hero p { font-size: 13px; }
+.course-area .hero-chip { padding: 4px 10px; font-size: 10.5px; }
+.course-area .hero-chips span { padding: 5px 11px; font-size: 11px; }
+.course-area .hero-actions { gap: 10px; }
+.course-area .btn { border-radius: 9px; font-size: 11px; font-weight: 650; }
+.course-area .btn-lg { height: 38px; padding: 0 16px; font-size: 11px; }
+.course-area .btn-sm { padding: 0 12px; height: 32px; font-size: 10.5px; }
+
+/* stats */
+.course-area .stats { gap: 12px; margin: 16px 0 18px; }
+.course-area .stat { min-height: 72px; gap: 14px; padding: 12px 16px; }
+.course-area .stat-icon { width: 40px; height: 40px; }
+.course-area .stat-icon svg { width: 18px; height: 18px; }
+.course-area .stat strong { font-size: 22px; }
+.course-area .stat small { font-size: 11px; }
+
+/* filters */
+.course-area .filters { padding: 8px; gap: 10px; }
+.course-area .filters .search { height: 36px; border-radius: 10px; font-size: 12px; }
+.course-area .filters .search input { font-size: 12px; }
+.course-area .tabs button { padding: 7px 12px; font-size: 10.5px; }
+.course-area .sort { height: 34px; padding: 0 10px; font-size: 10.5px; }
+.course-area .section-heading h2 { font-size: 16px; }
+.course-area .section-note { font-size: 11px; }
+
+/* cards */
+.course-area .grid { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; }
+.course-area .card-media { height: 150px; }
+.course-area .badge { padding: 3px 9px; font-size: 9.5px; }
+.course-area .card-body { padding: 13px 14px 14px; gap: 7px; }
+.course-area .eyebrow { padding: 3px 8px; font-size: 9px; }
+.course-area .card h3 { font-size: 13px; font-weight: 680; letter-spacing: -.01em; }
+.course-area .desc { font-size: 11px; line-height: 1.5; }
+.course-area .build { padding: 8px 10px; }
+.course-area .build-top { font-size: 10.5px; }
+.course-area .build small { font-size: 9.5px; }
+.course-area .meta span { padding: 2px 8px; font-size: 10px; }
+.course-area .social { font-size: 10.5px; }
+.course-area .card-actions .btn-sm { padding: 0 12px; font-size: 10.5px; }
