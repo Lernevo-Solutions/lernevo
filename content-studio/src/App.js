@@ -1,22 +1,27 @@
 
 import React from "react";
+import { useState } from "react";
 
 import Sidebar from "./component/Sidebar";
 import Course from "./component/course";
 import HomePage from "./component/HomePage";
+import TemplatesPage from "./component/TemplatesPage";
 
 import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 
 export default function App() {
+  const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
+  const location = useLocation();
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
 
       {/* Sidebar */}
-      <Sidebar />
+      {!(templateEditorOpen && location.pathname === "/templates") && <Sidebar />}
 
       {/* Page Content */}
       <main style={{ flex: 1, minWidth: 0 }}>
@@ -38,7 +43,7 @@ export default function App() {
           {/* Other Pages */}
           <Route
             path="/templates"
-            element={<h2>Templates</h2>}
+            element={<TemplatesPage onEditorOpenChange={setTemplateEditorOpen} />}
           />
 
           <Route
