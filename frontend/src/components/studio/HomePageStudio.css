@@ -87,7 +87,7 @@
 .notice-popover > button { margin-left: 8px; border: 0; background: transparent; color: #8791a1; cursor: pointer; }
 .notice-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
 
-.dashboard { width: 100%; max-width: 1600px; margin: 0 auto; padding: 16px 28px 18px; }
+.dashboard { width: 100%; max-width: none; margin: 0; padding: 16px 32px 18px; }
 .hero-banner {
   position: relative;
   display: flex;
@@ -307,4 +307,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+/* before */
+.main-shell .dashboard {
+  margin-left: -55px;
+  width: calc(100% + 55px);
+}
+
+/* after */
+.main-shell .dashboard {
+  margin-left: -35px;
+  width: calc(100% + 35px);
 }

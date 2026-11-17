@@ -901,3 +901,12 @@ label.btn { cursor: pointer; }
 .course-area .meta span { padding: 2px 8px; font-size: 10px; }
 .course-area .social { font-size: 10.5px; }
 .course-area .card-actions .btn-sm { padding: 0 12px; font-size: 10.5px; }
+.course-area,
+.course-area .content,
+.course-area .page {
+  background: #f7f8fa;
+  min-height: 100vh;
+}/* match gap with other pages (~50px from sidebar) */
+.course-area .content {
+  margin-left: -38px;
+}

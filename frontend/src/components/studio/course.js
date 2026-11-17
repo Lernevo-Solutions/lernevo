@@ -543,7 +543,7 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, search }) {
         <div className="hero-bg"><HeroArt /></div>
         <div className="hero-text">
           <span className="hero-chip"><Icon d={I.wand} size={12} /> Lernevo Solutions</span>
-          <h1>My <span>courses</span></h1>
+          <h1><span>Courses</span></h1>
           <p>{courses.length} courses in this demo workspace · everything saves in your browser.</p>
           <div className="hero-chips">
             <span><i className="dot-green" /> {count("Published")} live</span>

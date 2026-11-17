@@ -49,6 +49,31 @@ const definitions = [
   ["Course Summary", "Revisit the ideas learners should carry forward.", "summary", "Your key takeaways", "Bring the most useful ideas together and turn them into a practical next step.", "Conclusion"],
 ];
 
+/* Light pastel slide backgrounds: [background, text colour]. Used when a template is added to a course. */
+const LIGHT_THEMES = {
+  welcome: ["linear-gradient(135deg,#e8f0ff,#f3eaff)", "#1e1b4b"],
+  overview: ["linear-gradient(135deg,#e0fbff,#e3eefe)", "#0c4a6e"],
+  objectives: ["linear-gradient(135deg,#f6f1ff,#ffe9f4)", "#3b0764"],
+  profile: ["linear-gradient(135deg,#e8f0ff,#eceaff)", "#1e1b4b"],
+  info: ["linear-gradient(135deg,#e0f9f8,#e3eefe)", "#0c4a6e"],
+  text: ["linear-gradient(135deg,#eef0ff,#f4eeff)", "#1e1b4b"],
+  image: ["linear-gradient(135deg,#fff5ed,#ffe9f1)", "#7c2d12"],
+  video: ["linear-gradient(135deg,#eceeff,#f6ecff)", "#312e81"],
+  points: ["linear-gradient(135deg,#e6f8f1,#e0f2fe)", "#064e3b"],
+  columns: ["linear-gradient(135deg,#e8eeff,#f3e9ff)", "#1e1b4b"],
+  pdf: ["linear-gradient(135deg,#fff1f2,#fff3e6)", "#881337"],
+  single: ["linear-gradient(135deg,#f1efff,#e8f3ff)", "#312e81"],
+  multiple: ["linear-gradient(135deg,#f6edff,#ffeaf6)", "#3b0764"],
+  truefalse: ["linear-gradient(135deg,#e6f8f1,#e6f0ff)", "#064e3b"],
+  matching: ["linear-gradient(135deg,#fff4e8,#ffeaf1)", "#7c2d12"],
+  short: ["linear-gradient(135deg,#e8eeff,#e0fbff)", "#0c4a6e"],
+  passed: ["linear-gradient(135deg,#e6f9ee,#eefbe3)", "#14532d"],
+  failed: ["linear-gradient(135deg,#fff3ea,#ffeef2)", "#7c2d12"],
+  score: ["linear-gradient(135deg,#e8eeff,#e0fbff)", "#1e3a8a"],
+  thanks: ["linear-gradient(135deg,#f3eaff,#e3f1ff)", "#3b0764"],
+  summary: ["linear-gradient(135deg,#e8f0ff,#f3eaff)", "#1e1b4b"],
+};
+
 export const COURSE_TEMPLATES = definitions.map(([name, description, layoutType, heading, content, category], index) => {
   const editableFields = { heading, description: content };
   if (["welcome", "overview", "objectives", "points", "summary", "thanks"].includes(layoutType)) editableFields.bullets = ["A clear first step", "One useful example", "A practical next action"];
@@ -67,7 +92,7 @@ export const COURSE_TEMPLATES = definitions.map(([name, description, layoutType,
   return {
     id: `${category.toLowerCase()}-${index + 1}`,
     name, category, description, layoutType, heading, content, editableFields,
-    defaultSettings: { background: "#ffffff", textColor: "#0f172a", fontSize: 28, fontFamily: "Inter", alignment: layoutType === "welcome" || layoutType === "thanks" ? "center" : "left", layout: layoutType === "image" ? "Split" : "Centered content" },
+    defaultSettings: { background: (LIGHT_THEMES[layoutType] || ["#ffffff"])[0], textColor: (LIGHT_THEMES[layoutType] || [0, "#0f172a"])[1], fontSize: 28, fontFamily: "Inter", alignment: layoutType === "welcome" || layoutType === "thanks" ? "center" : "left", layout: layoutType === "image" ? "Split" : "Centered content" },
   };
 });
 
