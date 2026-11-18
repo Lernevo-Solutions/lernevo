@@ -120,7 +120,9 @@ export const NAV_SECTIONS = [
   {
     label: "Learning",
     items: [
-      { icon: BookOpen, label: "Courses" },
+      // same page as Content Studio > Courses, but the ?from=learning makes the URL unique,
+      // so the sidebar knows which "Courses" to highlight
+      { icon: BookOpen, label: "Courses", path: "/courses?from=learning" },
       { icon: Library, label: "Library" },
       { icon: GraduationCap, label: "Curriculum" },
     ],
@@ -162,11 +164,16 @@ export const NAV_SECTIONS = [
   },
 ];
 
+// unique id for a menu item (the same label can appear in more than one section)
+const itemId = (section, item) => `${section.label}::${item.label}`;
+// an item can carry its own path; otherwise it uses ROUTE_MAP
+const itemPath = (item) => item.path || ROUTE_MAP[item.label];
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [active, setActive] = useState("Dashboard");
+  const [active, setActive] = useState("Overview::Dashboard");
   // role is remembered so the Timesheet / Scheduler page can follow it (Employee sees only own plans)
   const [role, setRole] = useState(() => {
     try { return localStorage.getItem("lv-role") || "Super Admin"; } catch (err) { return "Super Admin"; }
@@ -194,25 +201,21 @@ export default function Sidebar() {
         ? "/timesheet?tab=scheduler"
         : location.pathname + location.search;
     // look through the real menu items (ROUTE_MAP also has alias keys like "Users")
-    const menuLabels = NAV_SECTIONS.flatMap((s) => s.items.map((it) => it.label));
-    const matchedLabel =
-      menuLabels.find((label) => ROUTE_MAP[label] === current) ||
-      menuLabels.find((label) => ROUTE_MAP[label] === location.pathname);
-    if (matchedLabel) {
-      setActive(matchedLabel);
+    // every entry keeps its section, so two items with the same label (Courses) stay separate
+    const entries = NAV_SECTIONS.flatMap((s) => s.items.map((it) => ({ section: s, item: it })));
+    const matched =
+      entries.find((e) => itemPath(e.item) === current) ||
+      entries.find((e) => itemPath(e.item) === location.pathname);
+    if (matched) {
+      setActive(itemId(matched.section, matched.item));
       // Auto-open the section that contains the active item
-      const section = NAV_SECTIONS.find((s) =>
-        s.items.some((it) => it.label === matchedLabel)
-      );
-      if (section) {
-        setOpenSections((prev) => ({ ...prev, [section.label]: true }));
-      }
+      setOpenSections((prev) => ({ ...prev, [matched.section.label]: true }));
     }
   }, [location.pathname, location.search]);
 
-  const handleItemClick = (label) => {
-    setActive(label);
-    const path = ROUTE_MAP[label];
+  const handleItemClick = (section, item) => {
+    setActive(itemId(section, item));
+    const path = itemPath(item);
     if (path) {
       navigate(path);
     }
@@ -553,13 +556,13 @@ export default function Sidebar() {
                   .filter((item) => !(role === "Employee" && item.label === "Timesheets"))
                   .map((item) => {
                     const Icon = item.icon;
-                    const isActive = active === item.label;
+                    const isActive = active === itemId(section, item);
                     return (
                       <div
                         className="lv-item"
                         data-active={isActive}
                         key={item.label}
-                        onClick={() => handleItemClick(item.label)}
+                        onClick={() => handleItemClick(section, item)}
                       >
                         <Icon />
                         {item.label}
