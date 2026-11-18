@@ -75,6 +75,7 @@ import course from "./components/studio/course";
 import Course from "./components/studio/course";
 import HomePageStudio from "./components/studio/HomePageStudio";
 import TemplatesPage from "./components/studio/TemplatesPage";
+import QuestionBank from "./components/studio/QuestionBank";
 const AppLayout = () => {
   const location = useLocation();
    const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
@@ -110,7 +111,8 @@ const AppLayout = () => {
     "/users",
     "/homestudio",
     "/courses",
-    "/templatesstudio"
+    "/templatesstudio",
+    "/questions",
   ];
 
   const hideNavbarRoutes = [
@@ -137,7 +139,8 @@ const AppLayout = () => {
     "/users",
     "/homestudio",
     "/courses",
-    "/templatesstudio"
+    "/templatesstudio",
+    "/questions",
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
@@ -318,6 +321,8 @@ const AppLayout = () => {
             path="/templatesstudio"
             element={<AdminLayout><TemplatesPage onEditorOpenChange={setTemplateEditorOpen} /></AdminLayout>}
           />
+
+          <Route path="/questions" element={<AdminLayout><QuestionBank /></AdminLayout>} />
 
          
 
