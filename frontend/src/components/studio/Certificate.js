@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Certificate.css";
 
 /* ---------- options ---------- */
@@ -6,15 +6,34 @@ export const DEFAULT_CERT = {
   enabled: true,
   layout: "classic",
   theme: "blue",
+  color1: "#2456ed",
+  color2: "#7c3aed",
   font: "modern",
-  seal: "star",
+  pattern: "none",
+  corners: false,
+  watermark: false,
   logo: "",
   title: "Certificate of Completion",
   subtitle: "This is proudly presented to",
   body: "for successfully completing the course",
   org: "LERNEVO SOLUTIONS",
+  dateLabel: "Date",
+  /* signature */
   signName: "Priya Nair",
   signRole: "Head of Learning",
+  signMode: "typed", // typed | draw | upload
+  signFont: "script", // script | italic
+  signImg: "",
+  showSign2: false,
+  signName2: "Rahul Menon",
+  signRole2: "Chief Executive",
+  /* seal */
+  seal: "star", // star | check | spark | text | none
+  sealStyle: "medal", // medal | rosette | stamp | shield
+  sealColor: "gold", // gold | silver | bronze | theme
+  sealText: "PASS",
+  sealImg: "",
+  /* show / hide */
   showScore: true,
   showDate: true,
   showId: true,
@@ -22,45 +41,104 @@ export const DEFAULT_CERT = {
 
 export const THEMES = {
   blue: ["#2456ed", "#7c3aed"],
-  gold: ["#b7791f", "#f59e0b"],
-  green: ["#0e8a5a", "#34d399"],
-  rose: ["#be123c", "#f97316"],
+  violet: ["#6d28d9", "#ec4899"],
   teal: ["#0e7490", "#22d3ee"],
+  green: ["#0e8a5a", "#34d399"],
+  gold: ["#b7791f", "#f59e0b"],
+  sunset: ["#ea580c", "#db2777"],
+  rose: ["#be123c", "#f97316"],
   midnight: ["#1e293b", "#6366f1"],
 };
-const LAYOUTS = [["classic", "Classic"], ["modern", "Modern"], ["elegant", "Elegant"], ["bold", "Bold"]];
+const LAYOUTS = [["classic", "Classic"], ["modern", "Modern"], ["elegant", "Elegant"], ["bold", "Bold"], ["royal", "Royal"], ["minimal", "Minimal"]];
 const FONTS = [["modern", "Modern"], ["serif", "Serif"], ["script", "Handwritten"]];
-const SEALS = [["star", "★"], ["check", "✓"], ["spark", "✦"], ["none", "None"]];
+const PATTERNS = [["none", "None"], ["dots", "Dots"], ["lines", "Lines"], ["waves", "Waves"]];
+const ICONS = { star: "★", check: "✓", spark: "✦" };
+const SEAL_ICONS = [["star", "★"], ["check", "✓"], ["spark", "✦"], ["text", "Text"], ["none", "None"]];
+const SEAL_STYLES = [["medal", "Medal"], ["rosette", "Rosette"], ["stamp", "Stamp"], ["shield", "Shield"]];
+const SEAL_COLORS = { gold: ["#fde68a", "#f59e0b"], silver: ["#f8fafc", "#94a3b8"], bronze: ["#fcd9b6", "#b4651f"] };
 const TITLE_IDEAS = ["Certificate of Completion", "Certificate of Achievement", "Certificate of Excellence"];
+const PRESETS = [
+  ["Corporate Blue", { layout: "classic", theme: "blue", font: "modern", seal: "star", sealStyle: "medal", sealColor: "gold", pattern: "none", corners: false, signFont: "script" }],
+  ["Royal Gold", { layout: "royal", theme: "midnight", font: "serif", seal: "spark", sealStyle: "rosette", sealColor: "gold", pattern: "waves", corners: true, signFont: "script" }],
+  ["Fresh Teal", { layout: "modern", theme: "teal", font: "modern", seal: "check", sealStyle: "shield", sealColor: "theme", pattern: "dots", corners: false, signFont: "italic" }],
+  ["Script Gold", { layout: "elegant", theme: "gold", font: "script", seal: "star", sealStyle: "rosette", sealColor: "gold", pattern: "none", corners: true, signFont: "script" }],
+  ["Bold Sunset", { layout: "bold", theme: "sunset", font: "modern", seal: "spark", sealStyle: "medal", sealColor: "theme", pattern: "lines", corners: false, signFont: "script" }],
+  ["Minimal Ink", { layout: "minimal", theme: "midnight", font: "serif", seal: "check", sealStyle: "stamp", sealColor: "theme", pattern: "none", corners: false, signFont: "italic" }],
+];
 
 /* always returns a full certificate config for a course (old courses get the defaults) */
 export const getCert = (course) => ({ ...DEFAULT_CERT, ...((course && course.certificate) || {}) });
-
+const colorsOf = (cert) => (cert.theme === "custom" ? [cert.color1 || "#2456ed", cert.color2 || "#7c3aed"] : THEMES[cert.theme] || THEMES.blue);
 const today = () => new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+const labelOf = (list, k) => ((list.find(([x]) => x === k) || [])[1]) || k;
+/* image files -> data URLs, so they survive a page refresh once courses are saved */
+const readImg = (file, cb) => {
+  if (!file || !file.type.startsWith("image/")) return;
+  const r = new FileReader();
+  r.onload = () => cb(String(r.result));
+  r.readAsDataURL(file);
+};
 
-/* ---------- the certificate itself (editor, thumbnails, preview and download) ---------- */
-export function CertificateView({ cert, course, name, score, date }) {
-  const [c1, c2] = THEMES[cert.theme] || THEMES.blue;
+/* ---------- the seal ---------- */
+function Seal({ cert, unit }) {
+  const none = cert.seal === "none" && !cert.sealImg;
+  const content = cert.seal === "text" ? <em className="seal-txt">{cert.sealText}</em> : ICONS[cert.seal] || "★";
+  return (
+    <div className={`cert-seal ss-${cert.sealStyle || "medal"} sc-${cert.sealColor || "gold"}${cert.sealImg ? " ss-img" : ""}${none ? " none" : ""}`} style={unit ? { "--u": unit } : undefined}>
+      <span className="seal-face">{cert.sealImg ? <img src={cert.sealImg} alt="" /> : none ? "" : content}</span>
+    </div>
+  );
+}
+
+/* ---------- the certificate itself (editor, thumbnails, preview and download) ----------
+   onPick(field) is optional: when given, the text on the certificate becomes click-to-edit. */
+export function CertificateView({ cert, course, name, score, date, onPick }) {
+  const [c1, c2] = colorsOf(cert);
   const initials = (name || "NAME").replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase() || "NAM";
   const certId = `LRN-${String(course.id).slice(-5)}-${initials}`;
-  const seal = SEALS.find(([k]) => k === cert.seal) || SEALS[0];
+  const hot = (f, cls = "") => (onPick ? { className: `${cls} cert-hot`.trim(), onClick: () => onPick(f), title: "Click to edit" } : { className: cls });
+  const img1 = cert.signMode !== "typed" && cert.signImg ? cert.signImg : "";
+  const signCls = `cert-sign${cert.signFont === "script" ? " sg-script" : ""}`;
+  const two = cert.showSign2;
+  const dateBox = cert.showDate ? (
+    <div className="cert-fb" key="date">
+      <div className="cert-fb-art"><b>{date || today()}</b></div>
+      <div className="cert-fb-line"><small>{cert.dateLabel || "Date"}</small></div>
+    </div>
+  ) : <div className="cert-fb cert-gap" key="date" />;
+  const sign1 = (
+    <div className="cert-fb" key="s1">
+      <div className="cert-fb-art">{img1 ? <img src={img1} alt="" /> : <span className={signCls}>{cert.signName}</span>}</div>
+      <div className="cert-fb-line"><b {...hot("signName")}>{cert.signName}</b><small {...hot("signRole")}>{cert.signRole}</small></div>
+    </div>
+  );
+  const sign2 = two && (
+    <div className="cert-fb" key="s2">
+      <div className="cert-fb-art"><span className={signCls}>{cert.signName2}</span></div>
+      <div className="cert-fb-line"><b {...hot("signName2")}>{cert.signName2}</b><small {...hot("signRole2")}>{cert.signRole2}</small></div>
+    </div>
+  );
   return (
-    <div className={`cert cert-t-${cert.layout || "classic"} cert-f-${cert.font || "modern"}`} style={{ "--c1": c1, "--c2": c2 }}>
+    <div className={`cert cert-t-${cert.layout || "classic"} cert-f-${cert.font || "modern"} cert-p-${cert.pattern || "none"}`} style={{ "--c1": c1, "--c2": c2 }}>
       <div className="cert-frame">
+        {cert.watermark && (
+          <div className="cert-wm" aria-hidden="true">
+            {cert.logo ? <img src={cert.logo} alt="" /> : <span>{(cert.org || "L").trim()[0] || "L"}</span>}
+          </div>
+        )}
+        {cert.corners && <div className="cert-corners" aria-hidden="true"><i /><i /><i /><i /></div>}
         <div className="cert-org">
           {cert.logo ? <img className="cert-logo-img" src={cert.logo} alt="" /> : <span className="cert-logo">{(cert.org || "L").trim()[0] || "L"}</span>}
-          <span>{cert.org}</span>
+          <span {...hot("org")}>{cert.org}</span>
         </div>
-        <h2 className="cert-title">{cert.title}</h2>
-        <p className="cert-sub">{cert.subtitle}</p>
-        <div className="cert-name">{name || "Learner name"}</div>
-        <p className="cert-body">{cert.body}</p>
+        <h2 {...hot("title", "cert-title")}>{cert.title}</h2>
+        <p {...hot("subtitle", "cert-sub")}>{cert.subtitle}</p>
+        <div {...hot("name", "cert-name")}>{name || "Learner name"}</div>
+        <p {...hot("body", "cert-body")}>{cert.body}</p>
         <div className="cert-course">{course.title}</div>
         {cert.showScore && score != null && <p className="cert-score">Score: {score}%</p>}
-        <div className="cert-foot">
-          {cert.showDate ? <div><b>{date || today()}</b><small>Date</small></div> : <div className="cert-gap" />}
-          <div className={`cert-seal${seal[0] === "none" ? " none" : ""}`}>{seal[0] === "none" ? "" : seal[1]}</div>
-          <div><b className="cert-sign">{cert.signName}</b><small>{cert.signRole}</small></div>
+        <div className={`cert-foot${two ? " four" : ""}`}>
+          {two ? [dateBox, sign1, <Seal cert={cert} key="seal" />, sign2] : [dateBox, <Seal cert={cert} key="seal" />, sign1]}
         </div>
         {cert.showId && <small className="cert-id">Certificate ID: {certId}</small>}
       </div>
@@ -91,6 +169,63 @@ const Toggle = ({ on, onChange, title, sub }) => (
     <span className="ce-tt"><b>{title}</b>{sub && <small>{sub}</small>}</span>
   </button>
 );
+
+/* draw your signature with mouse / finger / pen */
+function SignaturePad({ value, onChange }) {
+  const ref = useRef(null);
+  const drawing = useRef(false);
+  const last = useRef([0, 0]);
+  const [ink, setInk] = useState("#111827");
+  const [empty, setEmpty] = useState(!value);
+
+  useEffect(() => {
+    if (!value) return;
+    const cv = ref.current;
+    const ctx = cv.getContext("2d");
+    const im = new Image();
+    im.onload = () => ctx.drawImage(im, 0, 0, cv.width, cv.height);
+    im.src = value;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pos = (e) => {
+    const cv = ref.current;
+    const r = cv.getBoundingClientRect();
+    return [((e.clientX - r.left) * cv.width) / r.width, ((e.clientY - r.top) * cv.height) / r.height];
+  };
+  const down = (e) => { ref.current.setPointerCapture(e.pointerId); drawing.current = true; last.current = pos(e); };
+  const move = (e) => {
+    if (!drawing.current) return;
+    const ctx = ref.current.getContext("2d");
+    const p = pos(e);
+    ctx.strokeStyle = ink; ctx.lineWidth = 3.4; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(last.current[0], last.current[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
+    last.current = p;
+  };
+  const up = () => {
+    if (!drawing.current) return;
+    drawing.current = false;
+    setEmpty(false);
+    onChange(ref.current.toDataURL("image/png"));
+  };
+  const clear = () => { ref.current.getContext("2d").clearRect(0, 0, 560, 180); setEmpty(true); onChange(""); };
+
+  return (
+    <div className="ce-pad">
+      <div className="ce-pad-top">
+        <span>Draw with mouse, finger or pen</span>
+        <div className="ce-inks">
+          {["#111827", "#1d4ed8", "#7c3aed"].map((c) => <button type="button" key={c} aria-label={`Ink ${c}`} className={ink === c ? "on" : ""} style={{ background: c }} onClick={() => setInk(c)} />)}
+        </div>
+      </div>
+      <canvas ref={ref} width={560} height={180} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
+      <div className="ce-pad-foot">
+        <small>{empty ? "Sign above the line" : "✓ Signature added to the certificate"}</small>
+        <button type="button" className="ce-link" onClick={clear}>Clear</button>
+      </div>
+    </div>
+  );
+}
 
 function HeroArt() {
   return (
@@ -123,13 +258,23 @@ export function CertificateEditor({ course, onBack, onSave }) {
   const [base, setBase] = useState(() => JSON.stringify(getCert(course)));
   const [tab, setTab] = useState("template");
   const [sample, setSample] = useState("Aarav Sharma");
+  const [score, setScore] = useState(92);
   const [toast, setToast] = useState(false);
+  const [full, setFull] = useState(false);
   const dirty = JSON.stringify(c) !== base;
+  const [t1, t2] = colorsOf(c);
 
   const change = (patch) => setC((p) => ({ ...p, ...patch }));
   const set = (k) => (e) => change({ [k]: e.target.value });
   const save = () => { onSave(c); setBase(JSON.stringify(c)); setToast(true); };
-  const pickLogo = (file) => { if (file && file.type.startsWith("image/")) change({ logo: URL.createObjectURL(file) }); };
+  const revert = () => setC(JSON.parse(base));
+
+  /* click a line on the certificate -> jump to its field */
+  const pick = (f) => {
+    if (f === "name") { document.getElementById("ce-sample")?.focus(); return; }
+    setTab(f.endsWith("2") ? "sign" : "text");
+    setTimeout(() => { const el = document.getElementById(`ce-${f}`); if (el) { el.focus(); el.select?.(); } }, 70);
+  };
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -137,7 +282,19 @@ export function CertificateEditor({ course, onBack, onSave }) {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const tabs = [["template", "▦", "Template"], ["text", "Aa", "Text"], ["style", "◐", "Style"], ["options", "⚙", "Options"]];
+  /* Ctrl/Cmd + S saves, Esc closes full screen */
+  useEffect(() => {
+    const h = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); save(); }
+      if (e.key === "Escape") setFull(false);
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  });
+
+  const tabs = [["template", "▦", "Template"], ["text", "Aa", "Text"], ["style", "◐", "Style"], ["sign", "✍", "Sign & Seal"], ["options", "⚙", "Options"]];
+  const sealDemoColors = c.sealColor === "theme" ? { "--c1": t1, "--c2": t2 } : { "--c1": t1, "--c2": t2 };
+  const signLabel = c.signMode === "typed" || !c.signImg ? "Typed signature" : c.signMode === "draw" ? "Drawn signature" : "Uploaded signature";
 
   return (
     <div className="cert-ed">
@@ -147,13 +304,20 @@ export function CertificateEditor({ course, onBack, onSave }) {
           <span className="ce-chip">✦ Certificate studio</span>
           <h1>Design your <span>certificate</span></h1>
           <p>{course.title}</p>
+          <div className="ce-hero-chips">
+            <span>▦ {labelOf(LAYOUTS, c.layout)}</span>
+            <span><i style={{ background: `linear-gradient(135deg, ${t1}, ${t2})` }} /> {c.theme === "custom" ? "Custom colours" : c.theme}</span>
+            <span>✍ {signLabel}</span>
+            <span>◎ {c.sealImg ? "Custom seal" : c.seal === "none" ? "No seal" : labelOf(SEAL_STYLES, c.sealStyle)}</span>
+          </div>
         </div>
         <div className="ce-hero-art"><HeroArt /></div>
         <div className="ce-hero-actions">
           <span className={`ce-state${dirty ? " dirty" : ""}`}>{dirty ? "● Unsaved changes" : "✓ All changes saved"}</span>
           <div>
+            {dirty && <button className="btn btn-ghost" onClick={revert}>↺ Revert</button>}
             <button className="btn btn-ghost" onClick={() => window.print()}>⬇ Download sample</button>
-            <button className="btn btn-primary" onClick={save} disabled={!dirty && !toast}>{toast ? "✓ Saved" : "Save certificate"}</button>
+            <button className="btn btn-primary" onClick={save} disabled={!dirty && !toast} title="Ctrl + S">{toast ? "✓ Saved" : "Save certificate"}</button>
           </div>
         </div>
       </div>
@@ -169,33 +333,47 @@ export function CertificateEditor({ course, onBack, onSave }) {
           </div>
 
           <div className="ce-body" key={tab}>
+            {/* ---------------- TEMPLATE ---------------- */}
             {tab === "template" && (<>
-              <p className="ce-help">Pick a design. Every template keeps your text and colours.</p>
-              <div className="ce-templates">
-                {LAYOUTS.map(([k, label]) => (
-                  <button type="button" key={k} className={`ce-tpl${c.layout === k ? " on" : ""}`} onClick={() => change({ layout: k })}>
-                    <span className="ce-tpl-thumb"><CertificateView cert={{ ...c, layout: k }} course={course} name="Aarav Sharma" /></span>
-                    <b>{label}</b>
-                    {c.layout === k && <i className="ce-tick">✓</i>}
-                  </button>
-                ))}
+              <div className="ce-f"><span>Quick styles <small>One click, full look</small></span>
+                <div className="ce-presets">
+                  {PRESETS.map(([label, p]) => {
+                    const [a, b] = THEMES[p.theme];
+                    return <button type="button" key={label} style={{ background: `linear-gradient(120deg, ${a}, ${b})` }} onClick={() => change(p)}>{label}</button>;
+                  })}
+                </div>
+              </div>
+              <div className="ce-f"><span>Template</span>
+                <div className="ce-templates">
+                  {LAYOUTS.map(([k, label]) => (
+                    <button type="button" key={k} className={`ce-tpl${c.layout === k ? " on" : ""}`} onClick={() => change({ layout: k })}>
+                      <span className="ce-tpl-thumb"><CertificateView cert={{ ...c, layout: k }} course={course} name="Aarav Sharma" /></span>
+                      <b>{label}</b>
+                      {c.layout === k && <i className="ce-tick">✓</i>}
+                    </button>
+                  ))}
+                </div>
               </div>
             </>)}
 
+            {/* ---------------- TEXT ---------------- */}
             {tab === "text" && (<>
+              <p className="ce-help">Tip: you can also click any text on the certificate to jump to its box.</p>
               <label className="ce-f"><span>Certificate title</span>
-                <input value={c.title} onChange={set("title")} maxLength={40} />
+                <input id="ce-title" value={c.title} onChange={set("title")} maxLength={40} />
                 <div className="ce-ideas">{TITLE_IDEAS.map((t) => <button type="button" key={t} onClick={() => change({ title: t })}>{t.replace("Certificate of ", "")}</button>)}</div>
               </label>
-              <label className="ce-f"><span>Line before the name</span><input value={c.subtitle} onChange={set("subtitle")} maxLength={50} /></label>
-              <label className="ce-f"><span>Line after the name</span><input value={c.body} onChange={set("body")} maxLength={60} /></label>
-              <label className="ce-f"><span>Organisation name</span><input value={c.org} onChange={set("org")} maxLength={40} /></label>
+              <label className="ce-f"><span>Line before the name</span><input id="ce-subtitle" value={c.subtitle} onChange={set("subtitle")} maxLength={50} /></label>
+              <label className="ce-f"><span>Line after the name</span><input id="ce-body" value={c.body} onChange={set("body")} maxLength={60} /></label>
+              <label className="ce-f"><span>Organisation name</span><input id="ce-org" value={c.org} onChange={set("org")} maxLength={40} /></label>
               <div className="ce-two">
-                <label className="ce-f"><span>Signed by</span><input value={c.signName} onChange={set("signName")} maxLength={30} /></label>
-                <label className="ce-f"><span>Designation</span><input value={c.signRole} onChange={set("signRole")} maxLength={30} /></label>
+                <label className="ce-f"><span>Signed by</span><input id="ce-signName" value={c.signName} onChange={set("signName")} maxLength={30} /></label>
+                <label className="ce-f"><span>Designation</span><input id="ce-signRole" value={c.signRole} onChange={set("signRole")} maxLength={30} /></label>
               </div>
+              <label className="ce-f"><span>Date label <small>e.g. Date, Issued on, Awarded on</small></span><input id="ce-dateLabel" value={c.dateLabel} onChange={set("dateLabel")} maxLength={20} /></label>
             </>)}
 
+            {/* ---------------- STYLE ---------------- */}
             {tab === "style" && (<>
               <div className="ce-f"><span>Colour theme</span>
                 <div className="ce-themes">
@@ -205,28 +383,120 @@ export function CertificateEditor({ course, onBack, onSave }) {
                       {c.theme === k && "✓"}
                     </button>
                   ))}
+                  <button type="button" title="Your own colours" aria-label="Custom colours" className={`ce-custom${c.theme === "custom" ? " on" : ""}`} onClick={() => change({ theme: "custom" })}>
+                    {c.theme === "custom" ? "✓" : "+"}
+                  </button>
                 </div>
+                {c.theme === "custom" && (
+                  <div className="ce-colors">
+                    <label><small>Colour 1</small><input type="color" value={c.color1} onChange={set("color1")} /></label>
+                    <label><small>Colour 2</small><input type="color" value={c.color2} onChange={set("color2")} /></label>
+                  </div>
+                )}
               </div>
               <div className="ce-f"><span>Font style</span>
                 <div className="ce-seg">
                   {FONTS.map(([k, l]) => <button type="button" key={k} className={c.font === k ? "on" : ""} onClick={() => change({ font: k })}>{l}</button>)}
                 </div>
               </div>
-              <div className="ce-f"><span>Seal</span>
+              <div className="ce-f"><span>Background pattern</span>
                 <div className="ce-seg">
-                  {SEALS.map(([k, l]) => <button type="button" key={k} className={c.seal === k ? "on" : ""} onClick={() => change({ seal: k })}>{l}</button>)}
+                  {PATTERNS.map(([k, l]) => <button type="button" key={k} className={c.pattern === k ? "on" : ""} onClick={() => change({ pattern: k })}>{l}</button>)}
                 </div>
               </div>
+              <Toggle on={c.corners} onChange={() => change({ corners: !c.corners })} title="Corner ornaments" sub="Elegant corner frames on all four corners" />
+              <Toggle on={c.watermark} onChange={() => change({ watermark: !c.watermark })} title="Faint watermark" sub="A soft logo letter behind the text" />
               <div className="ce-f"><span>Logo <small>Optional · replaces the letter mark</small></span>
                 <label className="ce-logo-drop">
                   <span className="ce-logo-prev">{c.logo ? <img src={c.logo} alt="Logo preview" /> : <b>{(c.org || "L").trim()[0] || "L"}</b>}</span>
                   <span className="ce-logo-txt"><b>{c.logo ? "Change logo" : "Upload your logo"}</b><small>PNG or JPG · square works best</small></span>
-                  <input type="file" accept="image/*" hidden onChange={(e) => pickLogo(e.target.files?.[0])} />
+                  <input type="file" accept="image/*" hidden onChange={(e) => readImg(e.target.files?.[0], (v) => change({ logo: v }))} />
                 </label>
                 {c.logo && <button type="button" className="ce-link" onClick={() => change({ logo: "" })}>Remove logo</button>}
               </div>
             </>)}
 
+            {/* ---------------- SIGN & SEAL ---------------- */}
+            {tab === "sign" && (<>
+              <div className="ce-sec"><span>✍</span> Signature</div>
+              <div className="ce-f"><span>How should it look? <small>Shown above the signature line</small></span>
+                <div className="ce-seg">
+                  {[["typed", "Typed"], ["draw", "Draw"], ["upload", "Upload"]].map(([k, l]) => (
+                    <button type="button" key={k} className={c.signMode === k ? "on" : ""} onClick={() => change({ signMode: k })}>{l}</button>
+                  ))}
+                </div>
+                {c.signMode === "typed" && (<>
+                  <div className="ce-seg">
+                    {[["script", "Handwritten"], ["italic", "Classic italic"]].map(([k, l]) => (
+                      <button type="button" key={k} className={c.signFont === k ? "on" : ""} onClick={() => change({ signFont: k })}>{l}</button>
+                    ))}
+                  </div>
+                  <small>Uses “{c.signName}”. Change the name in the Text tab.</small>
+                </>)}
+                {c.signMode === "draw" && <SignaturePad value={c.signImg} onChange={(v) => change({ signImg: v })} />}
+                {c.signMode === "upload" && (<>
+                  <label className="ce-logo-drop">
+                    <span className="ce-logo-prev ce-wide">{c.signImg ? <img src={c.signImg} alt="Signature preview" /> : <b>✍</b>}</span>
+                    <span className="ce-logo-txt"><b>{c.signImg ? "Change signature" : "Upload signature image"}</b><small>PNG with transparent background looks best</small></span>
+                    <input type="file" accept="image/*" hidden onChange={(e) => readImg(e.target.files?.[0], (v) => change({ signImg: v }))} />
+                  </label>
+                  {c.signImg && <button type="button" className="ce-link" onClick={() => change({ signImg: "" })}>Remove signature</button>}
+                </>)}
+              </div>
+
+              <Toggle on={c.showSign2} onChange={() => change({ showSign2: !c.showSign2 })} title="Add a second signature" sub="Two signatories, e.g. HR and CEO" />
+              {c.showSign2 && (
+                <div className="ce-two">
+                  <label className="ce-f"><span>Second signer</span><input id="ce-signName2" value={c.signName2} onChange={set("signName2")} maxLength={30} /></label>
+                  <label className="ce-f"><span>Designation</span><input id="ce-signRole2" value={c.signRole2} onChange={set("signRole2")} maxLength={30} /></label>
+                </div>
+              )}
+
+              <div className="ce-sec"><span>◎</span> Seal</div>
+              <div className="ce-f"><span>Seal style</span>
+                <div className="ce-sealgrid">
+                  {SEAL_STYLES.map(([k, l]) => (
+                    <button type="button" key={k} className={`ce-sealopt${c.sealStyle === k ? " on" : ""}`} onClick={() => change({ sealStyle: k })}>
+                      <span className="ce-sealdemo" style={sealDemoColors}>
+                        <Seal cert={{ ...c, sealStyle: k, seal: c.seal === "none" ? "star" : c.seal, sealImg: "" }} unit="5px" />
+                      </span>
+                      <b>{l}</b>
+                      {c.sealStyle === k && <i className="ce-tick">✓</i>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="ce-f"><span>Inside the seal</span>
+                <div className="ce-seg">
+                  {SEAL_ICONS.map(([k, l]) => <button type="button" key={k} className={c.seal === k ? "on" : ""} onClick={() => change({ seal: k })}>{l}</button>)}
+                </div>
+                {c.seal === "text" && <input id="ce-sealText" value={c.sealText} onChange={(e) => change({ sealText: e.target.value.toUpperCase() })} maxLength={6} placeholder="PASS, A+, 2026…" />}
+              </div>
+              <div className="ce-f"><span>Seal colour</span>
+                <div className="ce-themes">
+                  {Object.entries(SEAL_COLORS).map(([k, [a, b]]) => (
+                    <button type="button" key={k} title={k} aria-label={`${k} seal`} className={c.sealColor === k ? "on" : ""}
+                      style={{ background: `linear-gradient(135deg, ${a}, ${b})` }} onClick={() => change({ sealColor: k })}>
+                      {c.sealColor === k && <span style={{ color: "#7c4a03" }}>✓</span>}
+                    </button>
+                  ))}
+                  <button type="button" title="Match theme" aria-label="Match theme" className={c.sealColor === "theme" ? "on" : ""}
+                    style={{ background: `linear-gradient(135deg, ${t2}, ${t1})` }} onClick={() => change({ sealColor: "theme" })}>
+                    {c.sealColor === "theme" && "✓"}
+                  </button>
+                </div>
+              </div>
+              <div className="ce-f"><span>Your own seal image <small>Optional · replaces the seal</small></span>
+                <label className="ce-logo-drop">
+                  <span className="ce-logo-prev">{c.sealImg ? <img src={c.sealImg} alt="Seal preview" /> : <b>◎</b>}</span>
+                  <span className="ce-logo-txt"><b>{c.sealImg ? "Change seal image" : "Upload a seal or stamp"}</b><small>Round PNG with transparent background</small></span>
+                  <input type="file" accept="image/*" hidden onChange={(e) => readImg(e.target.files?.[0], (v) => change({ sealImg: v }))} />
+                </label>
+                {c.sealImg && <button type="button" className="ce-link" onClick={() => change({ sealImg: "" })}>Remove seal image</button>}
+              </div>
+            </>)}
+
+            {/* ---------------- OPTIONS ---------------- */}
             {tab === "options" && (<>
               <Toggle on={c.enabled} onChange={() => change({ enabled: !c.enabled })} title="Issue certificate on pass" sub="Learners can download it after finishing the course" />
               <Toggle on={c.showDate} onChange={() => change({ showDate: !c.showDate })} title="Show completion date" />
@@ -240,19 +510,33 @@ export function CertificateEditor({ course, onBack, onSave }) {
         <aside className="ce-stage">
           <div className="ce-stage-top">
             <span className="ce-live"><i /> Live preview</span>
-            <label className="ce-name"><small>Preview name</small><input value={sample} onChange={(e) => setSample(e.target.value)} maxLength={40} placeholder="Learner name" /></label>
+            <div className="ce-stage-in">
+              <label className="ce-name"><small>Preview name</small><input id="ce-sample" value={sample} onChange={(e) => setSample(e.target.value)} maxLength={40} placeholder="Learner name" /></label>
+              <label className="ce-name ce-score"><small>Score %</small><input type="number" min="0" max="100" value={score} onChange={(e) => setScore(Math.max(0, Math.min(100, Number(e.target.value) || 0)))} /></label>
+              <button type="button" className="ce-fs" onClick={() => setFull(true)} title="Full screen preview">⛶ Full screen</button>
+            </div>
           </div>
           {/* cert-live: shown on screen, and it is also what gets printed */}
           <div className="ce-desk">
             <div className="cert-print-host cert-live" key={c.layout}>
-              <CertificateView cert={c} course={course} name={sample.trim() || undefined} score={92} />
+              <CertificateView cert={c} course={course} name={sample.trim() || undefined} score={score} onPick={pick} />
             </div>
           </div>
+          <p className="ce-tip">✎ Click any text on the certificate to edit it · Ctrl + S to save</p>
           {!c.enabled && <p className="cert-off">Certificate is switched off, so learners will not see a download button.</p>}
         </aside>
       </div>
 
       {toast && <div className="ce-toast" role="status">✓ Certificate saved for this course</div>}
+
+      {full && (
+        <div className="ce-modal" onClick={() => setFull(false)}>
+          <div className="ce-modal-box" onClick={(e) => e.stopPropagation()}>
+            <button className="ce-modal-x" onClick={() => setFull(false)} aria-label="Close full screen">×</button>
+            <CertificateView cert={c} course={course} name={sample.trim() || undefined} score={score} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

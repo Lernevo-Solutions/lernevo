@@ -1442,5 +1442,6 @@ export default function Edit({ course, onBack, onPreview }) {
     </div>
   );
 }
-/* used by Preview.js so the preview shows exactly what the editor saved */
+/* used by Preview.js so the preview show
+s exactly what the editor saved */
 export { starterSlides, starterBrand, loadCourse, courseStats, useVideoSrc, norm, bySec, BRAND0 };
