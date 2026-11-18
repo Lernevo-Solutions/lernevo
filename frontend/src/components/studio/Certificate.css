@@ -355,3 +355,147 @@
 .cert-pick label { font-size: 13px; font-weight: 700; color: #1a2540; }
 .cert-pick select { min-width: 280px; padding: 10px 14px; border: 1.5px solid #e1e8f5; border-radius: 12px; background: #fff; font-size: 13px; font-weight: 600; }
 .cert-pick + .cert-ed { padding-top: 14px; }
+
+/* =====================================================
+   POLISH PASS: prettier certificate + no wasted space
+   (appended last so it overrides the rules above)
+   ===================================================== */
+
+/* ---------- 1. CERTIFICATE: richer look, tighter spacing ---------- */
+.cert-frame { gap: .55cqw; padding: 2.2cqw 7cqw 2.4cqw; box-shadow: inset 0 0 7cqw color-mix(in srgb, var(--c1) 9%, transparent); }
+.cert-t-bold .cert-frame { box-shadow: none; padding-top: 2.6cqw; }
+.cert-t-royal .cert-frame { box-shadow: inset 0 0 6cqw #f5c4531f; }
+.cert-t-royal { --orn: #f5c453; --ul: #f5c453; --ul2: #fde68a; }
+.cert-t-elegant { --ul: var(--c2); --ul2: var(--c1); }
+
+/* bigger, bolder text so the page feels full, not empty */
+.cert-org { font-size: 1.3cqw; }
+.cert-title { margin-top: .6cqw; font-size: 5.1cqw; }
+.cert-sub, .cert-body { font-size: 1.6cqw; }
+.cert-sub { margin-top: .6cqw; }
+.cert-course { margin-top: .2cqw; font-size: 3cqw; }
+
+/* ornament (line - star - line) above the "this is to certify" line */
+.cert-sub::before { content: "\2726"; display: block; width: 24cqw; margin: 0 auto .9cqw; font-size: 1.3cqw; line-height: 1; text-align: center; color: var(--orn, var(--c1));
+  background:
+    linear-gradient(90deg, transparent, var(--orn, var(--c1))) left center / 41% .12cqw no-repeat,
+    linear-gradient(270deg, transparent, var(--orn, var(--c1))) right center / 41% .12cqw no-repeat; }
+
+/* name underline fades out at both ends */
+.cert-name { padding: .2cqw 3cqw .6cqw; font-size: 4.9cqw; border-bottom-width: .22cqw; border-bottom-style: solid;
+  border-image: linear-gradient(90deg, transparent, var(--ul, var(--c1)) 18%, var(--ul2, var(--c2)) 82%, transparent) 1; }
+.cert-f-script .cert-name { font-size: 6.4cqw; }
+
+/* score becomes a small badge */
+.cert-score { margin-top: .3cqw; padding: .35cqw 1.5cqw; border: .1cqw solid color-mix(in srgb, var(--c1) 30%, transparent); border-radius: 99px; background: color-mix(in srgb, var(--c1) 10%, transparent); color: var(--c1); font-size: 1.3cqw; letter-spacing: .04em; }
+.cert-t-royal .cert-score { border-color: #f5c45366; background: #f5c4531f; color: #fde68a; }
+
+/* footer: less gap above, seal a touch bigger */
+.cert-foot { margin-top: .8cqw; }
+.cert-seal { width: calc(var(--k) * 8.6); height: calc(var(--k) * 8.6); }
+.cert-fb-art { height: 5cqw; }
+
+/* ---------- 2. STUDIO: kill the empty space ---------- */
+.cert-ed { padding: 14px 0 28px; }
+.ce-hero { padding: 14px 28px; gap: 18px; }
+.ce-hero-art { width: 130px; }
+.ce-hero h1 { font-size: clamp(22px, 2.1vw, 30px); }
+.ce-grid { grid-template-columns: 430px minmax(0, 1fr); gap: 18px; margin-top: 14px; }
+
+/* left panel scrolls inside itself, so the page never gets taller than the screen */
+.ce-panel { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }
+.ce-tabs { position: sticky; top: 0; z-index: 3; }
+.ce-body { gap: 16px; padding: 16px; }
+.ce-body > .ce-sec:not(:first-child) { margin-top: 4px; }
+
+/* seal picker + templates take less height */
+.ce-sealgrid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.ce-sealopt { padding: 6px 4px 8px; border-radius: 14px; }
+.ce-sealdemo { height: 54px; }
+.ce-sealopt > b { font-size: 12px; }
+.ce-templates { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ce-tpl { padding: 6px 6px 8px; gap: 6px; border-radius: 14px; }
+.ce-tpl > b { font-size: 12px; }
+
+/* right stage fills its column and stays on screen while you edit */
+.ce-stage { top: 12px; gap: 10px; padding: 14px; }
+.ce-desk { padding: 14px; }
+.ce-tip { margin: 0; }
+
+@media (max-width: 980px) {
+  .ce-panel { position: static; max-height: none; overflow: visible; }
+  .ce-tabs { position: static; }
+  .ce-sealgrid { grid-template-columns: repeat(2, 1fr); }
+  .ce-templates { grid-template-columns: repeat(2, 1fr); }
+}
+
+
+/* =====================================================
+   POLISH 2: extra sparkle
+   ===================================================== */
+.cert { box-shadow: 0 18px 50px #1d2b4533; }
+
+/* soft colour glow in two opposite corners */
+.cert:not(.cert-t-modern):not(.cert-t-bold)::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 0 0, color-mix(in srgb, var(--c1) 24%, transparent), transparent 24cqw),
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--c2) 24%, transparent), transparent 24cqw); }
+
+/* classic: double inner border, bigger corner ornaments */
+.cert-frame::after { inset: 1.1cqw; border: .5cqw double var(--c1); opacity: .32; }
+.cert-corners i { width: 6.5cqw; height: 6.5cqw; }
+.cert-corners i:nth-child(n) { border-width: 0; }
+.cert-corners i:nth-child(1) { border-top-width: .4cqw; border-left-width: .4cqw; }
+.cert-corners i:nth-child(2) { border-top-width: .4cqw; border-right-width: .4cqw; }
+.cert-corners i:nth-child(3) { border-bottom-width: .4cqw; border-left-width: .4cqw; }
+.cert-corners i:nth-child(4) { border-bottom-width: .4cqw; border-right-width: .4cqw; }
+.cert-corners i::after { width: 1.3cqw; height: 1.3cqw; }
+.cert-corners i:nth-child(1)::after { top: -.85cqw; left: -.85cqw; }
+.cert-corners i:nth-child(2)::after { top: -.85cqw; right: -.85cqw; }
+.cert-corners i:nth-child(3)::after { bottom: -.85cqw; left: -.85cqw; }
+.cert-corners i:nth-child(4)::after { bottom: -.85cqw; right: -.85cqw; }
+
+/* organisation as a pill */
+.cert-org { padding: .5cqw 1.8cqw .5cqw .7cqw; border: .1cqw solid color-mix(in srgb, var(--c1) 28%, transparent); border-radius: 99px; background: color-mix(in srgb, var(--c1) 6%, #fff); }
+.cert-t-bold .cert-org { border-color: #ffffff59; background: #ffffff24; }
+.cert-t-royal .cert-org { border-color: #f5c45366; background: #f5c4531a; }
+
+/* title gets a soft shadow so it pops */
+.cert-title { filter: drop-shadow(0 .3cqw .4cqw color-mix(in srgb, var(--c1) 28%, transparent)); }
+.cert-t-royal .cert-title { filter: drop-shadow(0 .3cqw .5cqw #f5b30155); }
+.cert-t-bold .cert-title { filter: drop-shadow(0 .3cqw .5cqw #0003); }
+
+/* spotlight behind the name, highlight band behind the course */
+.cert-name { background-image: radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--c1) 9%, transparent), transparent 70%); }
+.cert-t-royal .cert-name { background-image: radial-gradient(ellipse at 50% 60%, #f5c45324, transparent 70%); }
+.cert-course { padding: .5cqw 6cqw; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c1) 11%, transparent) 25%, color-mix(in srgb, var(--c2) 11%, transparent) 75%, transparent); }
+.cert-t-royal .cert-course { background: linear-gradient(90deg, transparent, #f5c45320 25%, #f5c45320 75%, transparent); }
+
+/* signature lines fade out at the ends */
+.cert-fb-line { border-top-width: .13cqw; border-top-style: solid;
+  border-image: linear-gradient(90deg, transparent, var(--ln, #94a3b8) 15%, var(--ln, #94a3b8) 85%, transparent) 1; }
+.cert-t-royal { --ln: #ffffff66; }
+
+/* ---------- POLISH 3: fill the page, no dead space ---------- */
+.cert-frame { gap: .85cqw; }
+.cert-org { font-size: 1.45cqw; }
+.cert-logo { width: 3.4cqw; height: 3.4cqw; font-size: 1.8cqw; }
+.cert-title { font-size: 5.7cqw; }
+.cert-t-elegant .cert-title { font-size: 4.1cqw; }
+.cert-t-minimal .cert-title { font-size: 4.5cqw; }
+.cert-sub, .cert-body { font-size: 1.8cqw; }
+.cert-name { font-size: 5.4cqw; }
+.cert-f-script .cert-name { font-size: 7cqw; }
+.cert-course { font-size: 3.3cqw; }
+.cert-score { font-size: 1.45cqw; }
+.cert-foot { margin-top: 1.6cqw; }
+.cert-fb-art { height: 5.6cqw; }
+.cert-fb-art b { font-size: 1.8cqw; }
+.cert-fb-line { font-size: 1.45cqw; }
+.cert-fb-line small { font-size: 1.2cqw; }
+.cert-seal { width: calc(var(--k) * 9.4); height: calc(var(--k) * 9.4); }
+.cert-id { font-size: 1.1cqw; bottom: 1.8cqw; }
+/* bold template: pin footer to the bottom so the lower half is not empty */
+.cert-t-bold .cert-frame { padding-bottom: 5cqw; }
+.cert-t-bold .cert-sub { margin-top: 6cqw; }
+.cert-t-bold .cert-foot { margin-top: auto; }
