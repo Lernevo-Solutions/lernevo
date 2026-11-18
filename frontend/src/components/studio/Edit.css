@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap");
 /* =====================================================
    EDIT PAGE (edit.css) — PowerPoint-style course editor
    everything is scoped to .pe (editor) and .ps (slide)
@@ -663,3 +664,220 @@ button.ps-nb:focus-visible { outline: 2px solid var(--b); outline-offset: 2px; }
 /* Video + text layout: the video fills its half like a 16:9 picture */
 .ps-main .ps-media.is-video { aspect-ratio: 16 / 9; }
 .ps-media.fit-contain video { object-fit: contain; background: #000; }
+/* =====================================================
+   UPGRADE v6 — aurora backdrop, colour-coded sections,
+   richer cards, glossy buttons, smoother inputs
+   (CSS only: Edit.js needs no change)
+   ===================================================== */
+.pe { --ring: 0 0 0 4px #4a6cf724; --b2: #8b6cf6;
+  font-family: Inter, "Noto Sans Tamil", system-ui, sans-serif;
+  background:
+    radial-gradient(900px 420px at 6% -8%, #dbe5ff, transparent 62%),
+    radial-gradient(800px 420px at 100% 0, #eee2ff, transparent 62%),
+    radial-gradient(760px 420px at 55% 112%, #d6f3ec, transparent 62%),
+    #f3f6fc; }
+.pe ::selection { background: #cbd7ff; color: #101a35; }
+.pe * { scrollbar-width: thin; scrollbar-color: #c3cdea transparent; }
+.pe ::-webkit-scrollbar { width: 8px; height: 8px; }
+.pe ::-webkit-scrollbar-thumb { background: #c3cdea; border-radius: 99px; }
+.pe ::-webkit-scrollbar-thumb:hover { background: #9fb0e0; }
+
+/* ---- top bar ---- */
+.pe-top { backdrop-filter: blur(14px); box-shadow: 0 8px 28px #3b4bdc14; }
+.pe-logo { background: linear-gradient(140deg, #4f7bff, #8b5cf6 70%, #c084fc); box-shadow: inset 0 1px 0 #ffffff66, 0 8px 20px #6d4af05c; }
+.pe-title { transition: border-color .15s, box-shadow .15s, background .15s; }
+.pe-title:focus { box-shadow: var(--ring); outline: none; }
+.pe-pill { color: #166534; box-shadow: 0 2px 6px #22c55e22; }
+
+/* ---- buttons ---- */
+.pe-btn { box-shadow: 0 1px 2px #1d2b4510; }
+.pe-btn:active:not(:disabled) { transform: translateY(0) scale(.97); box-shadow: none; }
+.pe-primary { position: relative; overflow: hidden; }
+.pe-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, #ffffff44 50%, transparent 70%); transform: translateX(-130%); transition: transform .7s; pointer-events: none; }
+.pe-primary:hover::after { transform: translateX(130%); }
+.pe-tool:active:not(:disabled) { transform: scale(.95); }
+.pe-tool.wide { position: relative; overflow: hidden; }
+.pe-tool.wide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, #ffffff40 50%, transparent 70%); transform: translateX(-130%); transition: transform .7s; pointer-events: none; }
+.pe-tool.wide:hover::after { transform: translateX(130%); }
+
+/* ---- ribbon ---- */
+.pe-ribbon { border-color: #ffffffcc; background: #ffffffcc; box-shadow: 0 1px 0 #fff inset, 0 14px 34px #3b4bdc14; }
+.pe-menu { border: 1px solid #e3e9fb; box-shadow: 0 34px 80px #2a2f8a33; }
+.pe-menu button:hover { border-color: var(--c, var(--b)); background: color-mix(in srgb, var(--cb, #eff4ff) 60%, #fff); }
+
+/* ---- course structure: five section colours become the identity ---- */
+.pe-struct { box-shadow: 0 1px 0 #fff inset, 0 16px 40px #3b4bdc16; }
+.pe-st-head { position: relative; padding-top: 20px; }
+.pe-st-head::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px;
+  background: linear-gradient(90deg, #3b6cf6 0 20%, #7c3aed 20% 40%, #0d9488 40% 60%, #d97706 60% 80%, #db2777 80%); }
+.pe-sec-t:hover { background: color-mix(in srgb, var(--cb) 60%, transparent); }
+.pe-sec-t .pe-ico, .pe-sec-t svg:first-child { transition: transform .2s; }
+.pe-sec-t[aria-expanded="false"] svg:first-child { transform: rotate(-90deg); }
+.pe-it { border-radius: 14px; }
+.pe-it:hover { background: color-mix(in srgb, var(--cb, #f4f7fe) 45%, #fff); }
+.pe-it.on { background: linear-gradient(90deg, color-mix(in srgb, var(--cb, #e8eeff) 90%, #fff), #fff 92%);
+  box-shadow: inset 4px 0 0 var(--c, var(--b)), 0 6px 16px #1d2b4510; }
+.pe-it.on .pe-rt b { color: var(--c, #2748d8); }
+.pe-it .pe-ico { transition: transform .2s; }
+.pe-it:hover .pe-ico, .pe-it.on .pe-ico { transform: scale(1.08) rotate(-3deg); }
+.pe-pick button:hover { background: var(--cb, #fff); box-shadow: 0 6px 14px #1d2b4512; }
+
+/* ---- stage + canvas ---- */
+.pe-stage { background:
+  radial-gradient(540px 280px at 88% 0, #ddd6ff99, transparent 70%),
+  radial-gradient(540px 300px at 0 100%, #c7f0e899, transparent 70%),
+  radial-gradient(#bcc7e6 1px, transparent 1.4px) 0 0 / 22px 22px,
+  #f5f7fd; }
+.pe-canvas { box-shadow: 0 0 0 1px #fff, 0 0 0 7px #ffffff88, 0 4px 10px #1d2b4514, 0 34px 80px #4f46e538; }
+
+/* ---- properties panel ---- */
+.pe-props { box-shadow: 0 1px 0 #fff inset, 0 16px 40px #3b4bdc14; }
+.pe-ph { background: linear-gradient(180deg, #f6f8ff, #fff); border-bottom: 1px solid #eef2fa; padding-bottom: 12px; }
+.pe-tabs button { position: relative; transition: background .15s, color .15s; }
+.pe-tabs button.on::after { content: ""; position: absolute; left: 32%; right: 32%; bottom: 3px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, #5b7cfa, #8b6cf6); }
+.pe-in, .pe-ta, .pe-sel { transition: border-color .15s, box-shadow .15s, background .15s; }
+.pe-in:focus, .pe-ta:focus, .pe-sel:focus { border-color: var(--b); box-shadow: var(--ring); }
+.pe-in:hover:not(:focus), .pe-ta:hover:not(:focus) { border-color: #c9d6f7; }
+.pe-sw.on { border-color: #cfd9ff; background: linear-gradient(135deg, #f7f9ff, #f8f4ff); }
+.pe-sw.on i { background: linear-gradient(110deg, #5b7cfa, #8b6cf6); }
+.pe-seg button, .pe-vmodes button, .pe-layouts button { transition: border-color .15s, background .15s, box-shadow .15s, transform .15s; }
+.pe-layouts button.on, .pe-vmodes button.on { box-shadow: 0 0 0 3px #4a6cf71f, 0 8px 18px #4a6cf71f; }
+.pe-addb:hover, .pe-th-add:hover { box-shadow: 0 6px 16px #4a6cf71a; }
+.pe-pair { transition: box-shadow .15s, border-color .15s; }
+.pe-pair:focus-within { border-color: #c9d6f7; box-shadow: 0 8px 20px #4a6cf714; }
+
+/* ---- footer + toast ---- */
+.pe-foot { box-shadow: 0 8px 24px #3b4bdc0d; }
+.pe-toast { background: linear-gradient(110deg, #18204f, #3a2a86); border: 1px solid #ffffff26; padding: 11px 22px 11px 18px; }
+.pe-toast::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 10px; border-radius: 50%; background: #5eead4; box-shadow: 0 0 0 4px #5eead433; vertical-align: 1px; }
+
+/* =====================================================
+   SLIDES
+   ===================================================== */
+/* cards: each one gets its own accent (cycles through 4 colours) */
+.ps-card:nth-child(4n + 1), .ps-col:nth-child(4n + 1) { --ac: #5b7cfa; }
+.ps-card:nth-child(4n + 2) { --ac: #14b8a6; }
+.ps-card:nth-child(4n + 3) { --ac: #f59e0b; }
+.ps-card:nth-child(4n + 4) { --ac: #ec4899; }
+.ps-card { --ac: #5b7cfa; padding-top: 28px; border-radius: 20px; background: linear-gradient(180deg, #ffffffe6, #ffffffb0); }
+.ps-card::before { content: ""; position: absolute; left: 22px; top: 0; width: 48px; height: 6px; border-radius: 0 0 8px 8px; background: var(--ac); }
+.ps-card-add::before { display: none; }
+.ps-card .ps-num { background: linear-gradient(135deg, var(--ac), color-mix(in srgb, var(--ac) 55%, #fff)); box-shadow: 0 8px 18px color-mix(in srgb, var(--ac) 40%, transparent); }
+.ps-card:hover { box-shadow: 0 22px 44px color-mix(in srgb, var(--ac) 24%, transparent); }
+
+/* bullet rows read as soft pills */
+.ps-items { gap: 11px; }
+.ps-items li { padding: 11px 16px; border-radius: 16px; background: color-mix(in srgb, var(--fg) 5%, transparent); transition: background .2s, transform .2s; }
+.ps-items li:hover { background: color-mix(in srgb, var(--fg) 9%, transparent); transform: translateX(3px); }
+.ps-tick { background: linear-gradient(135deg, #14b8a6, #5b7cfa); }
+
+/* picture frame */
+.ps-media { box-shadow: 0 28px 54px #4f46e535, 0 0 0 8px #ffffffb8, 0 0 0 9px color-mix(in srgb, var(--fg) 10%, transparent); }
+.ps-media.is-video { box-shadow: 0 28px 54px #0f172a55, 0 0 0 6px #ffffffa0; }
+
+/* headings */
+.ps-main .ps-title::after, .ps-stack .ps-title::after { width: 84px; height: 7px; background: linear-gradient(90deg, #38bdf8, #6366f1 55%, #e879f9); }
+.ps-hero .ps-title { letter-spacing: -.04em; }
+.ps-kicker { border: 1px solid #e0e5ff; }
+.ps-head { border-bottom-style: solid; }
+
+/* comparison + stat tiles */
+.ps-col:first-child { border-top-color: #14b8a6; }
+.ps-col:last-child { border-top-color: #f59e0b; }
+.ps-cfg > div { background: linear-gradient(180deg, #ffffffe6, #ffffffb0); }
+.ps-cfg > div:nth-child(4n + 1) b { color: #4a6cf7; }
+.ps-cfg > div:nth-child(4n + 2) b { color: #0d9488; }
+.ps-cfg > div:nth-child(4n + 3) b { color: #d97706; }
+.ps-cfg > div:nth-child(4n + 4) b { color: #db2777; }
+.ps-ring .rf { stroke: #14b8a6; }
+
+/* quiz */
+.ps-opt:hover { box-shadow: 0 12px 26px #4f46e51f; }
+.ps-opt.right { background: linear-gradient(135deg, #ecfdf3, #d9f7e6); }
+.ps-explain { background: linear-gradient(90deg, #eef0ff, #f7f4ff); }
+
+/* player buttons */
+.ps-nb.pri { background: linear-gradient(110deg, #4f7bff, #8b5cf6); box-shadow: 0 8px 18px #6d4af044; }
+.ps-chip { background: color-mix(in srgb, var(--fg) 8%, #fff); }
+
+/* sticky focus for keyboard users inside slides */
+.ps-nb:focus-visible, .ps-add:focus-visible, .ps-opt:focus-visible { outline: 2px solid var(--b); outline-offset: 3px; }
+
+@media (max-width: 860px) { .pe-st-head::before { height: 3px; } }
+@media (prefers-reduced-motion: reduce) {
+  .pe-primary::after, .pe-tool.wide::after { display: none; }
+  .pe-it:hover .pe-ico, .pe-it.on .pe-ico, .ps-items li:hover { transform: none; }
+}
+
+/* =====================================================
+   UPGRADE v7 — question timer, points, difficulty,
+   accent colour, background-shape toggle
+   ===================================================== */
+/* ---- panel: pill choosers ---- */
+.pe-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.pe-chips button { padding: 7px 13px; border: 1.5px solid #e1e8f5; border-radius: 99px; background: #fff; font-size: 12.5px; font-weight: 700; color: #475569; transition: transform .15s, background .15s, border-color .15s, box-shadow .15s; }
+.pe-chips button:hover { border-color: #b9c8f5; transform: translateY(-1px); }
+.pe-chips button.on { color: #fff; border-color: transparent; background: linear-gradient(110deg, #5b7cfa, #8b6cf6); box-shadow: 0 6px 14px #6d7cf63d; }
+.pe-chips button.easy.on { background: linear-gradient(110deg, #22c55e, #14b8a6); box-shadow: 0 6px 14px #22c55e3d; }
+.pe-chips button.medium.on { background: linear-gradient(110deg, #f59e0b, #f97316); box-shadow: 0 6px 14px #f59e0b3d; }
+.pe-chips button.hard.on { background: linear-gradient(110deg, #f43f5e, #db2777); box-shadow: 0 6px 14px #f43f5e3d; }
+
+/* ---- panel: time card ---- */
+.pe-time { margin-top: 18px; padding: 15px; border: 1px solid #f7dfb0; border-radius: 18px; background: linear-gradient(135deg, #fff8ea, #f7f1ff); box-shadow: 0 10px 24px #f59e0b14; }
+.pe-time-h { display: flex; align-items: center; gap: 11px; margin-bottom: 13px; }
+.pe-time-i { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; background: linear-gradient(135deg, #f59e0b, #f97316); box-shadow: 0 8px 18px #f59e0b4d; }
+.pe-time-h > span:nth-child(2) { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.pe-time-h b { font-size: 13px; }
+.pe-time-h small { font-size: 11.5px; line-height: 1.35; color: var(--mut); }
+.pe-time-h em { flex: none; font-style: normal; font-family: "Plus Jakarta Sans", Inter, sans-serif; font-size: 22px; font-weight: 800; color: #c2410c; }
+.pe-time .pe-chips button.on { background: linear-gradient(110deg, #f59e0b, #f97316); box-shadow: 0 6px 14px #f59e0b4d; }
+.pe-lab.sm { margin: 14px 0 6px; font-size: 12px; }
+
+/* ---- panel: accent swatches ---- */
+.pe-swatches { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-bottom: 4px; }
+.pe-swatches button { display: grid; place-items: center; aspect-ratio: 1; padding: 0; border: 2px solid #fff; border-radius: 50%; color: #fff; background: var(--sw); box-shadow: 0 0 0 1.5px #d5ddf2, 0 4px 10px #1d2b4514; transition: transform .15s, box-shadow .15s; }
+.pe-swatches button:hover { transform: scale(1.12); }
+.pe-swatches button.on { box-shadow: 0 0 0 2.5px var(--b), 0 6px 14px #4a6cf73d; }
+
+/* ---- slide: question info chips ---- */
+.ps-qmeta { position: absolute; right: 0; top: 2px; z-index: 2; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 320px; }
+.ps-quiz.has-meta .ps-title { padding-right: 290px; }
+.ps-qchip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #e3e8fb; border-radius: 99px; background: #fff; color: #334155; font-size: 13px; font-weight: 700; line-height: 1; box-shadow: 0 4px 12px #4f46e51f; }
+.ps-qchip.time { color: #b45309; border-color: #fcd9a0; background: linear-gradient(110deg, #fff8e8, #ffeccb); }
+.ps-qchip.pts { color: #4338ca; border-color: #d9ddff; background: linear-gradient(110deg, #f4f5ff, #ebe9ff); }
+.ps-qchip.lv.easy { color: #15803d; border-color: #bbf7d0; background: #ecfdf3; }
+.ps-qchip.lv.medium { color: #b45309; border-color: #fde68a; background: #fffbeb; }
+.ps-qchip.lv.hard { color: #be123c; border-color: #fecdd3; background: #fff1f2; }
+.ps-qchip.hint { color: #0e7490; border-color: #bae6fd; background: #f0f9ff; }
+.ps-qchip.time svg { animation: pePulse 2s ease-in-out infinite; }
+
+/* ---- slide: configuration tiles (now six) ---- */
+.ps-cfg.six { grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+.ps-cfg.six > div { padding: 15px 10px; }
+.ps-cfg.six > div:nth-child(5) b { color: #f59e0b; }
+.ps-cfg.six > div:nth-child(6) b { color: #8b5cf6; }
+.ps-cfg.six b { font-size: calc(34px * var(--k)); }
+
+/* ---- slide: background shapes switch ---- */
+.ps.no-deco .ps-grid, .ps.no-deco .ps-deco { display: none; }
+
+/* ---- slide: accent colour overrides ---- */
+.ps.has-accent .ps-main .ps-title::after, .ps.has-accent .ps-stack .ps-title::after { background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #fff)); }
+.ps.has-accent .ps-tick { background: var(--accent); box-shadow: 0 4px 10px color-mix(in srgb, var(--accent) 40%, transparent); }
+.ps.has-accent .ps-card { --ac: var(--accent); }
+.ps.has-accent .ps-nb.pri, .ps.has-accent .ps-cert, .ps.has-accent .ps-brand b { background: linear-gradient(110deg, var(--accent), color-mix(in srgb, var(--accent) 65%, #000)); }
+.ps.has-accent .ps-kicker { color: var(--accent); }
+.ps.has-accent .ps-ring .rf { stroke: var(--accent); }
+.ps.has-accent .ps-cfg > div b { color: var(--accent); }
+.ps.has-accent .ps-explain { border-left-color: var(--accent); }
+.ps.has-accent .ps-section .ps-hero::before { background: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) { .ps-qchip.time svg { animation: none; } }
+
+
+/* ---- ribbon Timer button (quiz slides) ---- */
+.pe-tool.timer.on { background: linear-gradient(135deg, #fff3dc, #ffe7bf); color: #b45309; box-shadow: inset 0 0 0 1px #fcd9a0; }
+.pe-tool.timer:not(.on) { color: #b45309; }
+.pe-tpop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 40; width: 300px; padding: 14px; border: 1px solid #f7dfb0; border-radius: 18px; background: linear-gradient(135deg, #fffaf0, #fff); box-shadow: 0 30px 70px #b4530933; animation: peIn .16s ease both; }
+.pe-tpop p { margin: 0 0 10px; font-size: 12px; font-weight: 800; color: #b45309; }
+.pe-tpop .pe-chips button.on { background: linear-gradient(110deg, #f59e0b, #f97316); box-shadow: 0 6px 14px #f59e0b4d; }

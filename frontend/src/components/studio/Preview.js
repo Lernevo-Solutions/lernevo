@@ -37,6 +37,8 @@ const P = {
   quiz: "M12 21a9 9 0 100-18 9 9 0 000 18z|M9.5 9.5a2.5 2.5 0 114 2c-1 .6-1.5 1-1.5 2|M12 17h.01",
   layers: "M12 3l9 5-9 5-9-5z|M3 13l9 5 9-5",
   image: "M3 5h18v14H3z|M3 16l5-5 4 4 3-3 6 6",
+  bulb: "M9 18h6|M10 21h4|M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z",
+  lock: "M6 11h12v9H6z|M8 11V8a4 4 0 018 0v3",
 };
 const Ic = ({ n, size = 16, fill }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={fill ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -66,6 +68,9 @@ const slideText = (s) => {
 const splitSentences = (t) => (t.match(/[^.!?।]+[.!?।]*\s*/g) || [t]).map((x) => x.trim()).filter(Boolean);
 
 const QUIZ = ["mcq", "multi", "tf", "short"];
+const fmtT = (s) => (s >= 60 ? (s % 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s / 60} min`) : `${s}s`);
+const ptsOf = (x) => (x.pts > 0 ? x.pts : 1);
+const LEVEL = { easy: "Easy", medium: "Medium", hard: "Hard" };
 const isRight = (s, a) => {
   if (a == null) return false;
   if (s.layout === "multi") return [...a].sort((x, y) => x - y).join() === [...(s.answers || [])].sort((x, y) => x - y).join();
@@ -73,7 +78,7 @@ const isRight = (s, a) => {
   return a === s.answer;
 };
 const passMark = (slides) => { const c = slides.find((x) => x.layout === "config"); return (c && c.cfg && c.cfg.pass) || 70; };
-const withBrand = (list, brand) => list.map((s) => (s.ownBrand ? s : { ...s, bg: brand.bg, fg: brand.fg, font: brand.font }));
+const withBrand = (list, brand) => list.map((s) => (s.ownBrand ? s : { ...s, bg: brand.bg, fg: brand.fg, font: brand.font, accent: brand.accent || "" }));
 const loadSlides = (course) => {
   const { slides, brand } = loadCourse(course);   // exactly what the editor holds (or would open with)
   return withBrand(slides, brand);
@@ -249,10 +254,27 @@ function Art() {
   );
 }
 
+/* ---------- countdown ring for a timed question ---------- */
+function QTimer({ left, qt }) {
+  const R = 20, C = 2 * Math.PI * R;
+  const frac = qt ? Math.max(0, Math.min(1, left / qt)) : 0;
+  const tone = frac <= 0.2 ? " red" : frac <= 0.5 ? " amber" : "";
+  return (
+    <span className={`pv-qt${tone}`} role="timer" aria-label={`${Math.ceil(left)} seconds left`}>
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle className="b" cx="24" cy="24" r={R} />
+        <circle className="f" cx="24" cy="24" r={R} strokeDasharray={C} strokeDashoffset={C * (1 - frac)} transform="rotate(-90 24 24)" />
+      </svg>
+      <b>{Math.ceil(left)}</b>
+    </span>
+  );
+}
+
 /* ---------- one slide ---------- */
-function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect, onRetry, onVideoPlay, result }) {
+function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect, onRetry, onVideoPlay, result, qt = 0, left = 0, showTimer = true, timedOut, liveRef }) {
   const [sel, setSel] = useState([]);
   const [txt, setTxt] = useState("");
+  const [hint, setHint] = useState(false);
   const vsrc = useVideoSrc(s);
   const [vbad, setVbad] = useState(false);
   useEffect(() => setVbad(false), [vsrc]);
@@ -262,14 +284,24 @@ function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect,
   </>);
   const L = s.layout;
   const tone = lum(s.fg) > 0.6 ? "dark" : "light";
-  const style = { background: s.bg, color: s.fg, fontFamily: s.font, textAlign: s.align, "--k": s.k || 1 };
-  const cls = `pv-slide lay-${L} tone-${tone}${s.flip ? " flip" : ""}${s.bold ? " is-bold" : ""}${s.ital ? " is-ital" : ""}`;
+  const style = { background: s.bg, color: s.fg, fontFamily: s.font, textAlign: s.align, "--k": s.k || 1, ...(s.accent ? { "--ac": s.accent, "--soft": `${s.accent}1a` } : {}) };
+  const cls = `pv-slide lay-${L} tone-${tone}${s.flip ? " flip" : ""}${s.bold ? " is-bold" : ""}${s.ital ? " is-ital" : ""}${s.deco === false ? " no-deco" : ""}`;
   const hasVoice = s.voice && s.voice.mode !== "none";
   const r = (i) => ({ "--i": i });
   const isQuiz = QUIZ.includes(L);
   const sub = pick != null;
   const opts = L === "tf" ? ["True", "False"] : s.options || [];
   const ok = sub && isRight(s, pick);
+  const fbHead = timedOut === "none" ? "Time's up! " : `${timedOut === "draft" ? "Time's up. " : ""}${ok ? "Correct! " : "Not quite. "}`;
+  // option order: shuffled once per visit when the author turned "Shuffle answer options" on
+  const order = useMemo(() => {
+    const a = Array.from({ length: opts.length }, (_, k) => k);
+    if (s.shufOpt && (L === "mcq" || L === "multi")) for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; }
+    return a;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.id, s.shufOpt, opts.length]);
+  // lets the timer submit what the learner already picked / typed when time runs out
+  useEffect(() => { if (liveRef) liveRef.current = L === "multi" ? sel : L === "short" ? txt : null; }, [sel, txt, L, liveRef]);
   const st = (k) => {
     if (!sub) return L === "multi" && sel.includes(k) ? " sel" : "";
     if (L === "multi") return (s.answers || []).includes(k) ? " right" : pick.includes(k) ? " wrong" : " dim";
@@ -293,6 +325,16 @@ function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect,
       {L === "thanks" && perfect && <div className="pv-confetti" aria-hidden="true">{Array.from({ length: 34 }, (_, k) => <i key={k} style={{ "--x": `${(k * 37) % 100}%`, "--d": `${(k % 8) * 0.14}s`, "--h": (k * 47) % 360 }} />)}</div>}
       <div className="pv-head"><span className="pv-brand"><b>L</b> LERNEVO SOLUTIONS</span><small>{title}</small></div>
 
+      {isQuiz && (
+        <div className="pv-qside">
+          {s.level && <span className={`pv-qchip lv ${s.level}`}>{LEVEL[s.level]}</span>}
+          {s.pts > 0 && <span className="pv-qchip pts"><Ic n="award" size={12} /> {s.pts} {s.pts === 1 ? "pt" : "pts"}</span>}
+          {s.must && <span className="pv-qchip"><Ic n="lock" size={11} /> Required</span>}
+          {qt > 0 && !showTimer && <span className="pv-qchip time"><Ic n="clock" size={12} /> {fmtT(qt)}</span>}
+          {qt > 0 && showTimer && (!sub || timedOut) && <QTimer left={sub ? 0 : left} qt={qt} />}
+        </div>
+      )}
+
       <div className="pv-body">
         {(L === "welcome" || L === "thanks") && (
           <div className="pv-hero">
@@ -314,7 +356,7 @@ function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect,
           <div className="pv-hero">
             <span className="pv-medal pv-r" style={r(0)}><Ic n={passed ? "award" : "x"} size={34} /></span>
             <h1 className="pv-title pv-r" style={r(1)}>{s.title}</h1>
-            <p className="pv-text pv-r" style={r(2)}>{result.total ? `You answered ${result.right} of ${result.total} correctly (${result.pct}%). Pass mark: ${result.mark}%.` : "This course has no questions."}</p>
+            <p className="pv-text pv-r" style={r(2)}>{result.total ? `You answered ${result.right} of ${result.total} correctly (${result.pct}%). Pass mark: ${result.mark}%.${result.pts !== result.total ? ` Points: ${result.earned}/${result.pts}.` : ""}` : "This course has no questions."}</p>
             <div className="pv-r pv-thx" style={r(3)}>
               <span className={`pv-score${passed ? "" : " bad"}`}><Ic n={passed ? "check" : "x"} size={14} /> {passed ? s.passMsg : s.failMsg}</span>
               {!passed && retry}
@@ -345,7 +387,7 @@ function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect,
         {(L === "text" || L === "config") && (
           <div className="pv-stack">
             {head}
-            {L === "config" && <p className="pv-text pv-r" style={r(2)}><b>Pass mark: {result.mark}%</b> · {result.total} questions</p>}
+            {L === "config" && <p className="pv-text pv-r" style={r(2)}><b>Pass mark: {result.mark}%</b> · {result.total} questions{result.secs > 0 ? ` · ${fmtT(result.secs)} quiz time` : ""}</p>}
           </div>
         )}
 
@@ -367,7 +409,7 @@ function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect,
         )}
 
         {isQuiz && (
-          <div className="pv-stack">
+          <div className="pv-stack pv-hasside">
             <h2 className="pv-title pv-r" style={r(0)}>{s.title}</h2>
             <p className="pv-q pv-r" style={r(1)}>{s.q}</p>
             {L === "short" ? (
@@ -377,17 +419,23 @@ function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect,
               </div>
             ) : (
               <div className="pv-opts">
-                {opts.map((o, k) => (
-                  <button key={k} className={`pv-opt pv-r${st(k)}`} style={r(k + 2)} disabled={sub} onClick={() => (L === "multi" ? setSel((a) => (a.includes(k) ? a.filter((x) => x !== k) : [...a, k])) : onPick(k))}>
-                    <em>{String.fromCharCode(65 + k)}</em><span>{o}</span>
+                {order.map((k, d) => { const o = opts[k]; return (
+                  <button key={k} className={`pv-opt pv-r${st(k)}`} style={r(d + 2)} disabled={sub} onClick={() => (L === "multi" ? setSel((a) => (a.includes(k) ? a.filter((x) => x !== k) : [...a, k])) : onPick(k))}>
+                    <em>{String.fromCharCode(65 + d)}</em><span>{o}</span>
                     {sub && (L === "multi" ? (s.answers || []).includes(k) : k === s.answer) && <Ic n="check" size={16} />}
                     {sub && (L === "multi" ? pick.includes(k) && !(s.answers || []).includes(k) : pick === k && k !== s.answer) && <Ic n="x" size={16} />}
                   </button>
-                ))}
+                ); })}
                 {L === "multi" && !sub && <button className="pv-cert pv-submit" disabled={!sel.length} onClick={() => onPick(sel)}>Check answer</button>}
               </div>
             )}
-            {sub && <p className={`pv-fb ${ok ? "ok" : "no"}`}><b>{ok ? "Correct! " : "Not quite. "}</b>{L === "short" && !ok ? `Answer: ${String(s.accepted || "").split(",")[0].trim()}. ` : ""}{s.explain}</p>}
+            {s.hint && !sub && (
+              <div className="pv-hintw">
+                <button type="button" className="pv-hintbtn" onClick={() => setHint((h) => !h)}><Ic n="bulb" size={14} /> {hint ? "Hide hint" : "Need a hint?"}</button>
+                {hint && <p className="pv-hint">{s.hint}</p>}
+              </div>
+            )}
+            {sub && <p className={`pv-fb ${ok ? "ok" : "no"}`}><b>{fbHead}</b>{L === "short" && !ok ? `Answer: ${String(s.accepted || "").split(",")[0].trim()}. ` : ""}{s.explain}</p>}
           </div>
         )}
       </div>
@@ -411,6 +459,9 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
   const autoRef = useRef(auto); autoRef.current = auto;
   const iRef = useRef(0); iRef.current = i;
   const timer = useRef(null);
+  const blockedRef = useRef(false), liveRef = useRef(null), timeUpRef = useRef(null);
+  const [timedOut, setTimedOut] = useState({});
+  const [tick, setTick] = useState({ id: null, left: 0 });
   const nar = useNarrator(rateRef);
   const s = slides[i];
   const total = slides.length;
@@ -425,6 +476,7 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
     clearTimeout(timer.current);
     const t = Math.max(0, Math.min(total - 1, n));
     if (t === iRef.current) return;
+    if (t > iRef.current && blockedRef.current) return;   // a required question must be answered first
     setDir(t > iRef.current ? 1 : -1); setI(t);
   }, [total]);
 
@@ -472,12 +524,49 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
   const quizzes = slides.filter((x) => QUIZ.includes(x.layout));
   const right = quizzes.filter((x) => isRight(x, answers[x.id])).length;
   const mark = passMark(slides);
-  const scorePct = quizzes.length ? Math.round((right / quizzes.length) * 100) : 100;
+  const totalPts = quizzes.reduce((a, x) => a + ptsOf(x), 0);
+  const earned = quizzes.reduce((a, x) => a + (isRight(x, answers[x.id]) ? ptsOf(x) : 0), 0);
+  const scorePct = totalPts ? Math.round((earned / totalPts) * 100) : 100;
   const score = quizzes.length ? `${right}/${quizzes.length}` : "";
   const passed = !quizzes.length || scorePct >= mark;
   const perfect = !quizzes.length || right === quizzes.length;   // full marks: only then the celebration
-  const result = { right, total: quizzes.length, pct: scorePct, mark };
-  const retry = () => { setAnswers({}); const q = slides.findIndex((x) => QUIZ.includes(x.layout)); if (q >= 0) goTo(q); };
+  const result = { right, total: quizzes.length, pct: scorePct, mark, earned, pts: totalPts, secs: quizzes.reduce((a, x) => a + (x.qtime || 0), 0) };
+  const retry = () => { setAnswers({}); setTimedOut({}); const q = slides.findIndex((x) => QUIZ.includes(x.layout)); if (q >= 0) goTo(q); };
+
+  /* ---- question timer: set by the author in the editor (Timer button / Content tab) ---- */
+  const qt = QUIZ.includes(s.layout) ? (s.qtime || 0) : 0;
+  const answered = answers[s.id] != null;
+  const cfgS = slides.find((x) => x.layout === "config");
+  const showTimer = !cfgS || !cfgS.cfg || cfgS.cfg.showTimer !== false;
+  const autoNext = !cfgS || !cfgS.cfg || cfgS.cfg.autoNext !== false;
+  const blocked = !!s.must && QUIZ.includes(s.layout) && !answered;
+  blockedRef.current = blocked;
+  timeUpRef.current = () => {
+    const sl = slides[iRef.current];
+    if (!sl || !QUIZ.includes(sl.layout)) return;
+    const d = liveRef.current;
+    let ans = sl.layout === "multi" ? [] : sl.layout === "short" ? "" : -1, how = "none";
+    if (sl.layout === "multi" && Array.isArray(d) && d.length) { ans = d; how = "draft"; }
+    else if (sl.layout === "short" && typeof d === "string" && d.trim()) { ans = d.trim(); how = "draft"; }
+    setTimedOut((t) => ({ ...t, [sl.id]: how }));
+    setAnswers((a) => (a[sl.id] != null ? a : { ...a, [sl.id]: ans }));
+    clearTimeout(timer.current);
+    if (autoRef.current) nar.play(sl, { text: `Time's up. ${sl.explain || ""}`, onEnd: () => { timer.current = setTimeout(() => goTo(iRef.current + 1), 1200); } });
+    else { nar.stop(); if (autoNext) timer.current = setTimeout(() => goTo(iRef.current + 1), 2400); }
+  };
+  useEffect(() => {
+    if (!qt || answered) return undefined;
+    const t0 = Date.now();
+    setTick({ id: s.id, left: qt });
+    const iv = setInterval(() => {
+      const l = Math.max(0, qt - (Date.now() - t0) / 1000);
+      setTick({ id: s.id, left: l });
+      if (l <= 0) { clearInterval(iv); timeUpRef.current && timeUpRef.current(); }
+    }, 100);
+    return () => clearInterval(iv);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.id, qt, answered]);
+  const leftNow = tick.id === s.id ? tick.left : qt;
 
   useEffect(() => {
     const h = (e) => {
@@ -512,7 +601,7 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
       <main className="pv-stage-wrap">
         <div className="pv-stage">
           <div key={s.id} className={`pv-slide-in ${dir > 0 ? "fwd" : "back"}`}>
-            <Slide s={s} n={i + 1} total={total} title={course.title} name={name} pick={answers[s.id]} onPick={pick} score={score} passed={passed} perfect={perfect} result={result} onRetry={retry} onVideoPlay={nar.stop} />
+            <Slide s={s} n={i + 1} total={total} title={course.title} name={name} pick={answers[s.id]} onPick={pick} score={score} passed={passed} perfect={perfect} result={result} onRetry={retry} onVideoPlay={nar.stop} qt={qt} left={leftNow} showTimer={showTimer} timedOut={timedOut[s.id]} liveRef={liveRef} />
           </div>
         </div>
       </main>
@@ -539,7 +628,7 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
 
         {i === total - 1
           ? <button className="pv-nav primary" onClick={finish}><span>Finish</span> <Ic n="check" size={15} /></button>
-          : <button className="pv-nav primary" onClick={() => goTo(i + 1)}><span>Next</span> <Ic n="next" size={15} /></button>}
+          : <button className="pv-nav primary" disabled={blocked} title={blocked ? "Answer this question to continue" : undefined} onClick={() => goTo(i + 1)}><span>{blocked ? "Answer to continue" : "Next"}</span> <Ic n="next" size={15} /></button>}
         <div className="pv-bar-prog"><i style={{ width: `${pct}%` }} /></div>
       </footer>
     </div>

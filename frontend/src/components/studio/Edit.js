@@ -164,9 +164,16 @@ const FONTS = [
 ];
 
 // the course branding every slide follows unless it turns on "Override branding"
-const BRAND0 = { bg: THEMES[2].bg, fg: THEMES[2].fg, font: FONTS[0][1] };
+const BRAND0 = { bg: THEMES[2].bg, fg: THEMES[2].fg, font: FONTS[0][1], accent: "" };
 
 const DELAYS = [[0, "Immediate"], [5, "After 5 seconds"], [10, "After 10 seconds"], [15, "After 15 seconds"], [30, "After 30 seconds"], [60, "After 1 minute"], [120, "After 2 minutes"]];
+
+// question timer presets, accent colours, difficulty, points
+const QTIMES = [[0, "No limit"], [15, "15s"], [30, "30s"], [45, "45s"], [60, "1 min"], [90, "90s"], [120, "2 min"], [180, "3 min"]];
+const POINTS = [[1, "1"], [2, "2"], [3, "3"], [5, "5"], [10, "10"]];
+const LEVELS = [["", "Not set"], ["easy", "Easy"], ["medium", "Medium"], ["hard", "Hard"]];
+const ACCENTS = [["", "Rainbow"], ["#5b7cfa", "Blue"], ["#14b8a6", "Teal"], ["#22c55e", "Green"], ["#f59e0b", "Amber"], ["#f97316", "Orange"], ["#ec4899", "Pink"], ["#8b5cf6", "Purple"]];
+const fmtT = (s) => (s >= 60 ? (s % 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s / 60} min`) : `${s}s`);
 
 /* ---------- slide model ---------- */
 const mk = (layout, o = {}) => ({
@@ -176,10 +183,11 @@ const mk = (layout, o = {}) => ({
   points: [["Recognise", "what matters in everyday work"], ["Apply", "it confidently with your team"], ["Report", "problems quickly and clearly"]],
   cols: [["Do", "Describe the right way to do it."], ["Don't", "Describe what to avoid."]],
   q: "Which option is correct?", options: ["Option A", "Option B", "Option C"], answer: 0, answers: [0], accepted: "", explain: "",
-  cfg: { pass: 80, tries: 3, shuffle: true, review: true },
+  cfg: { pass: 80, tries: 3, shuffle: true, review: true, qtime: 0, showTimer: true, autoNext: true },
   passMsg: "Well done! You passed the course.", failMsg: "You did not reach the pass mark. Review the slides and try again.",
   img: "", video: "", poster: "", vfile: "", vver: 0, vfit: "cover", flip: false,
-  bg: BRAND0.bg, fg: BRAND0.fg, font: BRAND0.font, k: 1, align: "left", bold: false, ital: false, notes: "",
+  bg: BRAND0.bg, fg: BRAND0.fg, font: BRAND0.font, accent: "", deco: true,
+  qtime: 0, pts: 1, level: "", hint: "", must: false, shufOpt: false, k: 1, align: "left", bold: false, ital: false, notes: "",
   ownBrand: false, delay: 0, duration: 0, mandatory: false, nav: true,
   voice: { ...DEFAULT_VOICE },
   ...o,
@@ -350,6 +358,13 @@ function Ed({ v, on, cls = "", ph = "Click to edit", tag: T = "div", edit, onKey
   );
 }
 
+/* ---------- pill chooser (time, points, difficulty) ---------- */
+const Chips = ({ opts, val, on }) => (
+  <div className="pe-chips" role="group">
+    {opts.map(([v, n]) => <button key={String(v)} type="button" className={`${val === v ? "on " : ""}${typeof v === "string" ? v : ""}`} aria-pressed={val === v} onClick={() => on(v)}>{n}</button>)}
+  </div>
+);
+
 /* ---------- on/off switch row ---------- */
 const Switch = ({ on, set, t, d }) => (
   <button type="button" role="switch" aria-checked={on} className={`pe-sw${on ? " on" : ""}`} onClick={() => set(!on)}>
@@ -431,8 +446,11 @@ function SlideView({ s, n, title, edit, upd, scale, go, hasPrev, hasNext }) {
     answers: s.answers.filter((a) => a !== i).map((a) => (a > i ? a - 1 : a)),
   });
 
-  const cls = ["ps", `t-${L}`, s.flip ? "flip" : "", s.bold ? "is-bold" : "", s.ital ? "is-ital" : "", edit ? "is-edit" : ""].join(" ");
-  const style = { "--bg": s.bg, "--fg": s.fg, "--k": s.k, fontFamily: s.font, textAlign: s.align, transform: `scale(${scale})` };
+  const cls = ["ps", `t-${L}`, s.flip ? "flip" : "", s.bold ? "is-bold" : "", s.ital ? "is-ital" : "", edit ? "is-edit" : "", s.deco === false ? "no-deco" : "", s.accent ? "has-accent" : ""].join(" ");
+  const style = { "--bg": s.bg, "--fg": s.fg, "--k": s.k, "--accent": s.accent || undefined, fontFamily: s.font, textAlign: s.align, transform: `scale(${scale})` };
+
+  const qmeta = QUIZ.includes(L) && (s.qtime > 0 || s.pts > 0 || s.level || s.must || s.hint);
+  const LV = { easy: "Easy", medium: "Medium", hard: "Hard" };
 
   const itemsBlock = (
     <>
@@ -554,18 +572,29 @@ function SlideView({ s, n, title, edit, upd, scale, go, hasPrev, hasNext }) {
           <div className="ps-stack">
             {head("Quiz title")}
             <Ed edit={edit} cls="ps-body" v={s.body} on={set("body")} ph="Tell learners how the quiz works" />
-            <div className="ps-cfg">
+            <div className="ps-cfg six">
               <div><b>{s.cfg.pass}%</b><span>Pass mark</span></div>
               <div><b>{s.cfg.tries === 0 ? "∞" : s.cfg.tries}</b><span>Attempts</span></div>
               <div><b>{s.cfg.shuffle ? "On" : "Off"}</b><span>Shuffle questions</span></div>
               <div><b>{s.cfg.review ? "On" : "Off"}</b><span>Show answers after</span></div>
+              <div><b>{s.cfg.qtime > 0 ? fmtT(s.cfg.qtime) : "None"}</b><span>Time per question</span></div>
+              <div><b>{s.cfg.showTimer ? "On" : "Off"}</b><span>Show timer</span></div>
             </div>
           </div>
         )}
 
         {QUIZ.includes(L) && (
-          <div className={`ps-stack ps-quiz${(L === "mcq" || L === "multi") && s.options.length > 4 ? " dense" : ""}`}>
+          <div className={`ps-stack ps-quiz${(L === "mcq" || L === "multi") && s.options.length > 4 ? " dense" : ""}${qmeta ? " has-meta" : ""}`}>
             {head("Question title")}
+            {qmeta && (
+              <div className="ps-qmeta">
+                {s.qtime > 0 && <span className="ps-qchip time"><Ic n="clock" size={13} /> {fmtT(s.qtime)}</span>}
+                {s.pts > 0 && <span className="ps-qchip pts"><Ic n="award" size={13} /> {s.pts} {s.pts === 1 ? "pt" : "pts"}</span>}
+                {s.level && <span className={`ps-qchip lv ${s.level}`}>{LV[s.level]}</span>}
+                {s.must && <span className="ps-qchip"><Ic n="lock" size={12} /> Required</span>}
+                {s.hint && <span className="ps-qchip hint" title={s.hint}><Ic n="bulb" size={13} /> Hint</span>}
+              </div>
+            )}
             <Ed edit={edit} cls="ps-q" v={s.q} on={set("q")} ph="Type the question" />
 
             {(L === "mcq" || L === "multi") && (
@@ -754,6 +783,7 @@ export default function Edit({ course, onBack, onPreview }) {
   const [rowMenu, setRowMenu] = useState(null);
   const [closed, setClosed] = useState({});
   const [zoom, setZoom] = useState(1);
+  const [tmenu, setTmenu] = useState(false);
   const [saved, setSaved] = useState("saved");
   const [toast, setToast] = useState("");
   const [dragId, setDragId] = useState(null);
@@ -766,10 +796,11 @@ export default function Edit({ course, onBack, onPreview }) {
   const recRef = useRef(null);
 
   const idx = Math.max(0, slides.findIndex((x) => x.id === selId));
-  const cur = slides[idx];
+  const cur = { qtime: 0, pts: 1, level: "", hint: "", must: false, shufOpt: false, accent: "", deco: true, ...slides[idx],
+    cfg: { qtime: 0, showTimer: true, autoNext: true, ...(slides[idx].cfg || {}) } };
 
   /* slides without "Override branding" follow the course branding */
-  const eff = (s) => (s.ownBrand ? s : { ...s, bg: brand.bg, fg: brand.fg, font: brand.font });
+  const eff = (s) => (s.ownBrand ? s : { ...s, bg: brand.bg, fg: brand.fg, font: brand.font, accent: brand.accent || "" });
   const look = eff(cur);
   const setLook = (p) => (cur.ownBrand ? upd(p) : setBrand((b) => ({ ...b, ...p })));
 
@@ -987,6 +1018,25 @@ export default function Edit({ course, onBack, onPreview }) {
   const desc = area("Description", "body", 3, "Short supporting paragraph");
   const bullets = <StrList label="Bullet points" items={cur.items} onChange={(items) => quiet({ items })} />;
   const feedback = area("Feedback after answering", "explain", 3, "Shown to learners after they answer (optional)");
+  const isChoice = cur.layout === "mcq" || cur.layout === "multi";
+  const quizOpts = (<>
+    <div className="pe-time">
+      <div className="pe-time-h">
+        <span className="pe-time-i"><Ic n="clock" size={18} /></span>
+        <span><b>Time for this question</b><small>{cur.qtime > 0 ? "Countdown starts when the question opens" : "Learners can take as long as they need"}</small></span>
+        <em>{cur.qtime > 0 ? fmtT(cur.qtime) : "∞"}</em>
+      </div>
+      <Chips opts={QTIMES} val={cur.qtime} on={(v) => upd({ qtime: v })} />
+      <label className="pe-lab sm" htmlFor="pe-qt">Custom time (seconds)</label>
+      <input id="pe-qt" className="pe-in" type="number" min="0" max="3600" value={cur.qtime} onChange={(e) => quiet({ qtime: clamp(e.target.value, 0, 3600) })} />
+      <button className="pe-btn full" onClick={() => { commit((sl) => sl.map((x) => (QUIZ.includes(x.layout) ? { ...x, qtime: cur.qtime } : x))); flash("Time applied to every question"); }}>Apply to all questions</button>
+    </div>
+    <Field label="Points for a correct answer"><Chips opts={POINTS} val={cur.pts} on={(v) => upd({ pts: v })} /></Field>
+    <Field label="Difficulty"><Chips opts={LEVELS} val={cur.level} on={(v) => upd({ level: v })} /></Field>
+    {area("Hint", "hint", 2, "A small clue (optional)", "Learners can open this if they get stuck.")}
+    {isChoice && <Switch on={cur.shufOpt} set={(v) => upd({ shufOpt: v })} t="Shuffle answer options" d="Different order each time" />}
+    <Switch on={cur.must} set={(v) => upd({ must: v })} t="Answer required" d="Learner must answer to continue" />
+  </>);
   let contentBody;
   const videoFields = (<>
         <Field label="Upload a video" hint="MP4 (H.264) or WebM works best. The file stays on this device.">
@@ -1029,7 +1079,13 @@ export default function Edit({ course, onBack, onPreview }) {
         <Field label="Attempts allowed" hint="0 means learners can try as many times as they like.">
           <input className="pe-in" type="number" min="0" max="20" aria-label="Attempts allowed" value={cur.cfg.tries} onChange={(e) => quiet({ cfg: { ...cur.cfg, tries: clamp(e.target.value, 0, 20) } })} /></Field>
         <Switch on={cur.cfg.shuffle} set={(v) => upd({ cfg: { ...cur.cfg, shuffle: v } })} t="Shuffle questions" d="Different order for each learner" />
-        <Switch on={cur.cfg.review} set={(v) => upd({ cfg: { ...cur.cfg, review: v } })} t="Show answers after" d="Learners can review the right answers" /></>); break;
+        <Switch on={cur.cfg.review} set={(v) => upd({ cfg: { ...cur.cfg, review: v } })} t="Show answers after" d="Learners can review the right answers" />
+        <Field label="Default time per question" hint="Learners see a countdown for each question. Use the button to give every question this time.">
+          <Chips opts={QTIMES} val={cur.cfg.qtime} on={(v) => upd({ cfg: { ...cur.cfg, qtime: v } })} />
+        </Field>
+        <button className="pe-btn full" onClick={() => { commit((sl) => sl.map((x) => (QUIZ.includes(x.layout) ? { ...x, qtime: cur.cfg.qtime } : x))); flash(cur.cfg.qtime ? `${fmtT(cur.cfg.qtime)} set on every question` : "Time limits removed from every question"); }}><Ic n="clock" size={14} /> Apply to all questions</button>
+        <Switch on={cur.cfg.showTimer} set={(v) => upd({ cfg: { ...cur.cfg, showTimer: v } })} t="Show countdown timer" d="Learners see the time left" />
+        <Switch on={cur.cfg.autoNext} set={(v) => upd({ cfg: { ...cur.cfg, autoNext: v } })} t="Move on when time ends" d="Unanswered counts as wrong" /></>); break;
     case "mcq": case "multi": {
       const multi = cur.layout === "multi";
       contentBody = (<>{heading}{area("Question", "q", 3, "Type the question")}
@@ -1037,7 +1093,7 @@ export default function Edit({ course, onBack, onPreview }) {
           marks={(i) => (multi ? cur.answers.includes(i) : cur.answer === i)} square={multi}
           onMark={(i) => (multi ? upd({ answers: cur.answers.includes(i) ? cur.answers.filter((a) => a !== i) : [...cur.answers, i].sort() }) : upd({ answer: i }))} />
         <small className="pe-hint">{multi ? "Tick every correct answer." : "Tick the one correct answer."}</small>
-        {feedback}</>); break;
+        {feedback}{quizOpts}</>); break;
     }
     case "tf":
       contentBody = (<>{heading}{area("Statement", "q", 3, "Write a statement for learners to judge")}
@@ -1047,13 +1103,13 @@ export default function Edit({ course, onBack, onPreview }) {
             <button type="button" className={`f${cur.answer === 1 ? " on" : ""}`} onClick={() => upd({ answer: 1 })}>False</button>
           </div>
         </Field>
-        {feedback}</>); break;
+        {feedback}{quizOpts}</>); break;
     case "short":
       contentBody = (<>{heading}{area("Question", "q", 3, "Type the question")}
         <Field label="Accepted answers" hint="Separate answers with commas. Capital letters are ignored.">
           <input className="pe-in" aria-label="Accepted answers" value={cur.accepted} placeholder="e.g. 72, 72 hours" onChange={(e) => quiet({ accepted: e.target.value })} />
         </Field>
-        {feedback}</>); break;
+        {feedback}{quizOpts}</>); break;
     case "result":
       contentBody = (<>{heading}{area("If the learner passes", "passMsg", 3, "Message for learners who pass")}{area("If the learner does not pass", "failMsg", 3, "Message for learners who do not pass")}</>); break;
     default:   // welcome, thanks
@@ -1061,10 +1117,13 @@ export default function Edit({ course, onBack, onPreview }) {
   }
 
   const qCount = slides.filter((x) => QUIZ.includes(x.layout)).length;
+  const qList = slides.filter((x) => QUIZ.includes(x.layout));
+  const totalPts = qList.reduce((a, x) => a + (x.pts || 0), 0);
+  const quizSecs = qList.reduce((a, x) => a + (x.qtime || 0), 0);
   const lay = LAY[cur.layout];
 
   return (
-    <div className="pe" onClick={() => { if (menu) setMenu(false); if (rowMenu) setRowMenu(null); }}>
+    <div className="pe" onClick={() => { if (menu) setMenu(false); if (tmenu) setTmenu(false); if (rowMenu) setRowMenu(null); }}>
       {/* ---- top bar ---- */}
       <header className="pe-top">
         <div className="pe-left">
@@ -1134,6 +1193,18 @@ export default function Edit({ course, onBack, onPreview }) {
         <i className="pe-sep" />
         <div className="pe-grp">
           <button className={`pe-tool listen${playing ? " on" : ""}`} onClick={playVoice} title="Listen to this slide's voice"><Ic n={playing ? "stop" : "speaker"} /><span>{playing ? "Stop" : "Listen"}</span></button>
+          {QUIZ.includes(cur.layout) && (
+            <div className="pe-rel">
+              <button className={`pe-tool timer${cur.qtime > 0 ? " on" : ""}`} onClick={() => setTmenu(!tmenu)} title="Set the time for this question"><Ic n="clock" /><span>{cur.qtime > 0 ? fmtT(cur.qtime) : "Timer"}</span></button>
+              {tmenu && (
+                <div className="pe-tpop">
+                  <p>Time for this question</p>
+                  <Chips opts={QTIMES} val={cur.qtime} on={(v) => upd({ qtime: v })} />
+                  <button className="pe-btn full" onClick={() => { commit((sl) => sl.map((x) => (QUIZ.includes(x.layout) ? { ...x, qtime: cur.qtime } : x))); setTmenu(false); flash(cur.qtime ? `${fmtT(cur.qtime)} set on every question` : "Time limits removed from every question"); }}>Apply to all questions</button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="pe-grow" />
         <div className="pe-grp">
@@ -1240,12 +1311,20 @@ export default function Edit({ course, onBack, onPreview }) {
               </div>
               <h4>Custom background</h4>
               <label className="pe-row"><input type="color" value={/^#[0-9a-f]{6}$/i.test(look.bg) ? look.bg : "#ffffff"} onChange={(e) => setLook({ bg: e.target.value })} /><span>Pick a solid colour</span></label>
+              <h4>Accent colour</h4>
+              <div className="pe-swatches">
+                {ACCENTS.map(([c, n]) => {
+                  const on = (look.accent || "") === c;
+                  return <button key={n} type="button" className={on ? "on" : ""} style={{ "--sw": c || "linear-gradient(135deg,#38bdf8,#6366f1,#e879f9)" }} title={n} aria-label={n} aria-pressed={on} onClick={() => setLook({ accent: c })}>{on && <Ic n="check" size={13} />}</button>;
+                })}
+              </div>
+              <Switch on={cur.deco !== false} set={(v) => upd({ deco: v })} t="Background shapes" d="Soft dots and circles behind the slide" />
               <h4>Text size <em>{Math.round(cur.k * 100)}%</em></h4>
               <input type="range" min="70" max="150" step="5" value={Math.round(cur.k * 100)} onChange={(e) => upd({ k: e.target.value / 100 })} />
               <h4>Font</h4>
               <select className="pe-sel full" value={look.font} onChange={(e) => setLook({ font: e.target.value })}>{FONTS.map(([n, v]) => <option key={n} value={v}>{n}</option>)}</select>
               {cur.ownBrand && (
-                <button className="pe-btn full" onClick={() => { setBrand({ bg: cur.bg, fg: cur.fg, font: cur.font }); commit((sl) => sl.map((x) => ({ ...x, ownBrand: false }))); flash("Now the course branding for every slide"); }}>Make this the course branding</button>
+                <button className="pe-btn full" onClick={() => { setBrand({ bg: cur.bg, fg: cur.fg, font: cur.font, accent: cur.accent || "" }); commit((sl) => sl.map((x) => ({ ...x, ownBrand: false }))); flash("Now the course branding for every slide"); }}>Make this the course branding</button>
               )}
               {!cur.ownBrand && slides.some((x) => x.ownBrand) && (
                 <button className="pe-btn full" onClick={() => { commit((sl) => sl.map((x) => ({ ...x, ownBrand: false }))); flash("All slides follow the course branding"); }}>Reset every slide to course branding</button>
@@ -1358,7 +1437,7 @@ export default function Edit({ course, onBack, onPreview }) {
         </aside>
       </div>
 
-      <footer className="pe-foot"><b>{slides.length}</b> slides · <b>{qCount}</b> {qCount === 1 ? "question" : "questions"} · Shortcuts: Ctrl+Z undo · Ctrl+D duplicate · ↑ ↓ switch slides</footer>
+      <footer className="pe-foot"><b>{slides.length}</b> slides · <b>{qCount}</b> {qCount === 1 ? "question" : "questions"} · <b>{totalPts}</b> points{quizSecs > 0 && <> · <b>{fmtT(quizSecs)}</b> quiz time</>} · Shortcuts: Ctrl+Z undo · Ctrl+D duplicate · ↑ ↓ switch slides</footer>
       {toast && <div className="pe-toast" role="status">{toast}</div>}
     </div>
   );

@@ -533,10 +533,12 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, search }) {
   useEffect(() => { setQ(search || ""); }, [search]);   // header search drives this list
   const [tour, setTour] = useState(false);
   const count = (st) => courses.filter((c) => c.status === st).length;
-  const shown = courses.filter(
-    (c) => (filter === "All" || c.status === filter || (filter === "In review" && c.status === "In Review")) &&
-      (c.title + c.tag).toLowerCase().includes(q.toLowerCase())
-  );
+  // the list stays hidden until the learner/author searches: only courses whose NAME matches are shown
+  const term = q.trim().toLowerCase();
+  const searching = term.length > 0;
+  const shown = searching
+    ? courses.filter((c) => (filter === "All" || c.status === filter || (filter === "In review" && c.status === "In Review")) && c.title.toLowerCase().includes(term))
+    : [];
   return (
     <div className="page">
       <section className="hero">
@@ -573,7 +575,6 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, search }) {
       </div>
 
       <div className="filters">
-        <label className="search wide"><Icon d={I.search} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by title, owner or category…" /></label>
         <div className="tabs">
           {["All", "Draft", "In review", "Approved", "Published"].map((t) => (
             <button key={t} className={filter === t ? "on" : ""} onClick={() => setFilter(t)}>{t}</button>
@@ -582,9 +583,14 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, search }) {
         <select className="sort"><option>Recently edited</option><option>Title</option></select>
       </div>
       <div className="section-heading">
-        <h2>All courses</h2>
-        <span className="section-note">{shown.length} shown</span>
+        <h2>{searching ? "Search results" : "Find a course"}</h2>
+        {searching && <span className="section-note">{shown.length} found</span>}
       </div>
+      <label className="find-bar">
+        <Icon d={I.search} size={19} />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Type a course name, then press Edit or Preview" aria-label="Search a course by name" />
+        {q && <button type="button" className="find-x" aria-label="Clear search" onClick={() => setQ("")}>×</button>}
+      </label>
       <div className="grid">
         {shown.map((c) => (
           <article className="card" key={c.id}>
@@ -624,7 +630,27 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, search }) {
             </div>
           </article>
         ))}
-        {!shown.length && <p className="muted">No courses match. Try a different search or filter.</p>}
+        {!searching && (
+          <div className="find-empty">
+            <span className="find-ico"><Icon d={I.search} size={26} /></span>
+            <h3>Search to see your courses</h3>
+            <p>Type a course name in the search box above. The course card appears here with its <b>Edit</b> and <b>Preview</b> buttons.</p>
+            {courses.length > 0 && (
+              <div className="find-chips" role="group" aria-label="Quick find">
+                <small>Quick find</small>
+                {courses.slice(0, 4).map((c) => <button type="button" key={c.id} onClick={() => setQ(c.title)}>{c.title}</button>)}
+              </div>
+            )}
+          </div>
+        )}
+        {searching && !shown.length && (
+          <div className="find-empty none">
+            <span className="find-ico"><Icon d={I.search} size={26} /></span>
+            <h3>No course named “{q.trim()}”</h3>
+            <p>Check the spelling, or try a shorter part of the name{filter !== "All" ? `, or switch the “${filter}” filter back to All` : ""}.</p>
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => { setQ(""); setFilter("All"); }}>Clear search</button>
+          </div>
+        )}
       </div>
     </div>
   );
