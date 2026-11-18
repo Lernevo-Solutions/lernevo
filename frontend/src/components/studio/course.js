@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "./course.css";
 import Edit, { courseStats } from "./Edit";   // new PowerPoint-style editor (edit.js + edit.css)
 import Preview from "./Preview"; // voice-guided preview (Preview.js + Preview.css)
+import { CertificateEditor, DEFAULT_CERT } from "./Certificate"; // certificate designer (Certificate.js + Certificate.css)
 
 /* ---------- media (swap these URLs for your own images / videos) ---------- */
 const PHOTO = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=70`;
@@ -527,7 +528,7 @@ function CoverArt({ course }) {
 }
 
 /* ---------- 1. My courses ---------- */
-function MyCourses({ courses, onCreate, onPreview, onEdit, search }) {
+function MyCourses({ courses, onCreate, onPreview, onEdit, onCert, search }) {
   const [filter, setFilter] = useState("All");
   const [q, setQ] = useState("");
   useEffect(() => { setQ(search || ""); }, [search]);   // header search drives this list
@@ -555,6 +556,7 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, search }) {
         </div>
         <div className="hero-actions">
           <button className="btn btn-primary btn-lg" onClick={onCreate}><Icon d={I.plus} size={16} /> Create course</button>
+          <button className="btn btn-outline btn-lg" onClick={() => onCert(null)}><Icon d={I.award} size={15} /> Certificate</button>
           <button className="btn btn-outline btn-lg" onClick={() => setTour(true)}><Icon d={I.play} size={13} /> Watch quick tour</button>
         </div>
       </section>
@@ -731,6 +733,7 @@ function CreateCourse({ onCancel, onSave }) {
   const finish = (status) => onSave({
     id: Date.now(), status, art: initials, sub: cat, tag: `${cat} · ${f.dept}`,
     title: f.title || "Untitled course", desc: f.desc || "No description yet.", slides: 0, min: Number(cfg.dur) || 10, q: 0, img: f.img, done: 5, edited: "just now",
+    certificate: { ...DEFAULT_CERT, enabled: cfg.cert !== "None", signName: f.owner },
   });
   const ready = [
     { ok: !!f.title.trim(), label: "Course title added" },
@@ -1042,7 +1045,7 @@ function Editor({ course, onBack, onPreview }) {
 
 /* ---------- root: courses area (opens when My Courses is clicked) ---------- */
 export default function Course() {
-  const [view, setView] = useState("courses");   // courses | create | landing | player | editor
+  const [view, setView] = useState("courses");   // courses | create | certificate | landing | player | editor
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [current, setCurrent] = useState(INITIAL_COURSES[0]);
   const [startSlide, setStartSlide] = useState(null);   // slide to open when previewing from the editor
@@ -1056,10 +1059,39 @@ export default function Course() {
             onCreate={() => setView("create")}
             onPreview={(c) => { setCurrent(c); setStartSlide(null); setView("landing"); }}
             onEdit={(c) => { setCurrent(c); setView("editor"); }}
+            onCert={(c) => { setCurrent(c || courses[0]); setView("certificate"); }}
           />
         </main>
       </div>
     );
+
+  // certificate designer: pick a course, edit its certificate, save
+  if (view === "certificate") {
+    const cur = courses.find((x) => x.id === current.id) || courses[0];
+    return (
+      <div className="course-area">
+        <main className="content">
+          <div className="cert-pick">
+            <label htmlFor="cert-course">Course</label>
+            <select id="cert-course" value={cur.id}
+              onChange={(e) => setCurrent(courses.find((x) => x.id === Number(e.target.value)))}>
+              {courses.map((x) => <option key={x.id} value={x.id}>{x.title}</option>)}
+            </select>
+          </div>
+          <CertificateEditor
+            key={cur.id}
+            course={cur}
+            onBack={() => setView("courses")}
+            onSave={(cert) => {
+              const updated = { ...cur, certificate: cert, edited: "just now" };
+              setCurrent(updated);
+              setCourses(courses.map((x) => (x.id === updated.id ? updated : x)));
+            }}
+          />
+        </main>
+      </div>
+    );
+  }
 
   // create screen stays inside the content area, so your sidebar stays visible
   if (view === "create")
