@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./Edit.css";
+import { Logo, BrandName, BrandEditor, LogoPanel, EditableBrand, useBrand } from "./Logo";   // editable logo (Logo.js + Logo.css)
 
 /* =========================================================
    Course editor  (Course structure · slide canvas · properties)
@@ -477,7 +478,7 @@ function SlideView({ s, n, title, edit, upd, scale, go, hasPrev, hasNext }) {
     <div className="ps-wrap" style={{ width: 960 * scale, height: 540 * scale }}>
       <div className={cls} style={style}>
         <i className="ps-grid" /><i className="ps-deco d1" /><i className="ps-deco d2" /><i className="ps-deco d3" />
-        <div className="ps-head"><span className="ps-brand"><b>L</b> LERNEVO SOLUTIONS</span><small>{title}</small></div>
+        <div className="ps-head"><span className="ps-brand">{edit ? <EditableBrand /> : <><Logo as="b" cls="" /> <BrandName /></>}</span><small>{title}</small></div>
 
         {(L === "welcome" || L === "thanks") && (
           <div className="ps-hero">
@@ -784,6 +785,8 @@ export default function Edit({ course, onBack, onPreview, startSlideId }) {
   const [closed, setClosed] = useState({});
   const [zoom, setZoom] = useState(1);
   const [tmenu, setTmenu] = useState(false);
+  const [brandOpen, setBrandOpen] = useState(false);
+  const [brandCfg] = useBrand();
   const [saved, setSaved] = useState("saved");
   const [toast, setToast] = useState("");
   const [dragId, setDragId] = useState(null);
@@ -1128,7 +1131,11 @@ export default function Edit({ course, onBack, onPreview, startSlideId }) {
       <header className="pe-top">
         <div className="pe-left">
           <button className="pe-ib" onClick={() => { saveNow(); onBack(); }} aria-label="Back to courses"><Ic n="back" /></button>
-          <span className="pe-logo">L</span>
+          <span className={`pe-logo${brandCfg.img ? " has-img" : ""}`} role="button" tabIndex={0} title="Change logo" aria-label="Change logo"
+            onClick={(e) => { e.stopPropagation(); setBrandOpen(true); }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setBrandOpen(true); } }}>
+            {brandCfg.img ? <img src={brandCfg.img} alt="Logo" /> : brandCfg.letter}
+          </span>
           <div>
             <input className="pe-title" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Course title" />
             <div className="pe-status">
@@ -1301,6 +1308,8 @@ export default function Edit({ course, onBack, onPreview, startSlideId }) {
                   <small>{cur.ownBrand ? "This slide uses its own styling." : "Changes apply to every slide that follows the course branding."}</small></span>
                 <button type="button" onClick={() => upd({ ownBrand: !cur.ownBrand })}>{cur.ownBrand ? "Use course style" : "Style this slide"}</button>
               </div>
+              <h4>Logo</h4>
+              <LogoPanel />
               <h4>Theme</h4>
               <div className="pe-themes">
                 {THEMES.map((t) => (
@@ -1438,6 +1447,7 @@ export default function Edit({ course, onBack, onPreview, startSlideId }) {
       </div>
 
       <footer className="pe-foot"><b>{slides.length}</b> slides · <b>{qCount}</b> {qCount === 1 ? "question" : "questions"} · <b>{totalPts}</b> points{quizSecs > 0 && <> · <b>{fmtT(quizSecs)}</b> quiz time</>} · Shortcuts: Ctrl+Z undo · Ctrl+D duplicate · ↑ ↓ switch slides</footer>
+      {brandOpen && <BrandEditor onClose={() => setBrandOpen(false)} />}
       {toast && <div className="pe-toast" role="status">{toast}</div>}
     </div>
   );

@@ -1,0 +1,45 @@
+/* logo with an uploaded image: show the picture, drop the gradient square */
+.has-img { background: #fff !important; padding: 0 !important; overflow: hidden; box-shadow: 0 0 0 1px #e3e8f3 !important; }
+.has-img img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* the editor's top-left logo is clickable */
+.pe-logo[role="button"] { cursor: pointer; transition: transform .15s; }
+.pe-logo[role="button"]:hover { transform: scale(1.06); }
+.pe-logo[role="button"]:focus-visible { outline: 2px solid #3159e8; outline-offset: 2px; }
+
+/* edit-logo popup */
+.bm-overlay { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 20px; background: rgba(8, 10, 30, .55); backdrop-filter: blur(4px); }
+.bm-box { width: min(440px, 100%); display: grid; gap: 14px; padding: 20px; border-radius: 18px; background: #fff; color: #101a35; box-shadow: 0 30px 80px rgba(10, 15, 50, .35); font-family: Inter, system-ui, sans-serif; }
+.bm-head { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
+.bm-x { width: 30px; height: 30px; border: 0; border-radius: 50%; background: #eef2fb; font-size: 20px; line-height: 1; cursor: pointer; }
+.bm-x:hover { background: #fee2e2; color: #dc2626; }
+.bm-drop { display: flex; align-items: center; gap: 16px; padding: 14px; border: 2px dashed #b9c8f5; border-radius: 16px; background: linear-gradient(120deg, #f6f9ff, #f4f1ff); cursor: pointer; transition: .2s; }
+.bm-drop:hover, .bm-drop.over { border-color: #2456ed; background: #eaf1ff; }
+.bm-prev { width: 72px; height: 72px; flex: none; display: grid; place-items: center; border-radius: 18px; color: #fff; font-size: 30px; font-weight: 800; background: linear-gradient(135deg, #3b79ff, #7c3aed); }
+.bm-txt { display: grid; gap: 4px; }
+.bm-txt b { font-size: 14px; }
+.bm-txt small { font-size: 12px; color: #64748b; }
+.bm-err { margin: 0; font-size: 12.5px; font-weight: 600; color: #b91c1c; }
+.bm-f { display: grid; gap: 6px; }
+.bm-f span { font-size: 12.5px; font-weight: 700; }
+.bm-f input { padding: 11px 13px; border: 1.5px solid #e1e8f5; border-radius: 11px; background: #f8faff; font: inherit; font-size: 14px; }
+.bm-f input:focus { outline: 0; border-color: #2456ed; background: #fff; box-shadow: 0 0 0 3px #2456ed1f; }
+.bm-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.bm-btn { padding: 9px 16px; border: 1px solid #e0e7f1; border-radius: 10px; background: #fff; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+.bm-btn:hover { background: #f4f6fb; }
+.bm-btn.pri { border-color: transparent; color: #fff; background: linear-gradient(110deg, #3156ff, #6d3df0); }
+.bm-btn.pri:hover { filter: brightness(.95); }
+
+/* editor: upload box in the Design tab */
+.lp { display: grid; gap: 10px; margin-bottom: 6px; }
+.lp-drop { display: flex; align-items: center; gap: 12px; padding: 10px; border: 2px dashed #b9c8f5; border-radius: 14px; background: linear-gradient(120deg, #f6f9ff, #f4f1ff); cursor: pointer; transition: .2s; }
+.lp-drop:hover, .lp-drop.over { border-color: #2456ed; background: #eaf1ff; }
+.lp .bm-prev { width: 52px; height: 52px; border-radius: 14px; font-size: 22px; }
+.lp .bm-txt b { font-size: 13px; } .lp .bm-txt small { font-size: 11px; }
+.lp .bm-f input { padding: 8px 10px; font-size: 12px; }
+.lp .bm-btn { padding: 7px 12px; font-size: 12px; }
+
+/* editor: logo on the slide is clickable */
+.bm-click { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; border-radius: 10px; padding: 2px 6px 2px 2px; margin: -2px; transition: background .15s, box-shadow .15s; }
+.bm-click:hover { background: #ffffff99; box-shadow: 0 0 0 2px #7c9cff; }
+.bm-click:focus-visible { outline: 2px solid #3159e8; outline-offset: 2px; }

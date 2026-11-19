@@ -471,3 +471,8 @@
 
 @media (max-width: 700px) { .pv-hasside .pv-title { padding-right: 0; } .pv-qside { position: static; justify-content: flex-end; margin-bottom: 8px; } }
 @media (prefers-reduced-motion: reduce) { .pv-qt.red { animation: none; } }
+
+/* Keep Back / Next clear of the floating Feedback button (bottom-right on every page).
+   Change --fb-space if the Feedback button is wider or narrower. */
+.pv-bar { --fb-space: 200px; padding-right: calc(clamp(14px, 3vw, 36px) + var(--fb-space)); }
+@media (max-width: 720px) { .pv-bar { padding-right: clamp(14px, 3vw, 36px); padding-bottom: 76px; } }

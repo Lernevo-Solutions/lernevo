@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "./course.css";
 import Edit, { courseStats } from "./Edit";   // new PowerPoint-style editor (edit.js + edit.css)
 import Preview from "./Preview"; // voice-guided preview (Preview.js + Preview.css)
+import { Logo, BrandName, BrandEditor } from "./Logo"; // editable logo + company name (Logo.js + Logo.css)
 import { CertificateEditor, DEFAULT_CERT } from "./Certificate"; // certificate designer (Certificate.js + Certificate.css)
 
 /* ---------- media (swap these URLs for your own images / videos) ---------- */
@@ -428,7 +429,7 @@ function SlideFrame({ course, s, editor }) {
           {Array.from({ length: 28 }, (_, k) => <i key={k} style={{ "--x": `${(k * 37) % 100}%`, "--d": `${(k % 7) * 0.15}s`, "--h": (k * 47) % 360 }} />)}
         </div>
       )}
-      <div className="slide-head"><span className="lb"><span className="logo sm">L</span> LERNEVO SOLUTIONS</span><small>{course.title}</small></div>
+      <div className="slide-head"><span className="lb"><Logo /> <BrandName /></span><small>{course.title}</small></div>
       <div className="slide-main">
         <div className="slide-text">
           <h2>{s.title}</h2>
@@ -533,6 +534,7 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, onCert, search }) {
   const [q, setQ] = useState("");
   useEffect(() => { setQ(search || ""); }, [search]);   // header search drives this list
   const [tour, setTour] = useState(false);
+  const [brandOpen, setBrandOpen] = useState(false);
   const count = (st) => courses.filter((c) => c.status === st).length;
   // the list stays hidden until the learner/author searches: only courses whose NAME matches are shown
   const term = q.trim().toLowerCase();
@@ -557,9 +559,11 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, onCert, search }) {
         <div className="hero-actions">
           <button className="btn btn-primary btn-lg" onClick={onCreate}><Icon d={I.plus} size={16} /> Create course</button>
           <button className="btn btn-outline btn-lg" onClick={() => onCert(null)}><Icon d={I.award} size={15} /> Certificate</button>
+          <button className="btn btn-outline btn-lg" onClick={() => setBrandOpen(true)}><Icon d={I.image} size={15} /> Logo</button>
           <button className="btn btn-outline btn-lg" onClick={() => setTour(true)}><Icon d={I.play} size={13} /> Watch quick tour</button>
         </div>
       </section>
+      {brandOpen && <BrandEditor onClose={() => setBrandOpen(false)} />}
       {tour && <VideoModal src={SAMPLE_VIDEO} poster={SAMPLE_POSTER} title="Quick tour: build a course in minutes" onClose={() => setTour(false)} />}
 
       <div className="stats">
@@ -922,7 +926,7 @@ function PreviewLanding({ course, onStart, onExit }) {
       <div className="landing-bg" />
       <div className="landing-photo" style={course.img ? { backgroundImage: `url(${course.img})` } : undefined} />
       <div className="landing-card">
-        <div className="lbrand"><span className="logo sm">L</span> LERNEVO SOLUTIONS</div>
+        <div className="lbrand"><Logo /> <BrandName /></div>
         <p className="l-cat">{course.tag.split(" · ")[0].toUpperCase()}</p>
         <h1>{course.title}</h1>
         <p className="l-desc">{course.desc}</p>
@@ -963,7 +967,7 @@ function Player({ course, onExit }) {
     <div className="player">
       <div className="p-progress"><i style={{ width: pct + "%" }} /></div>
       <header className="p-top">
-        <div className="p-title"><span className="logo sm">L</span>
+        <div className="p-title"><Logo />
           <div><strong>{course.title}</strong><small>Slide {i + 1} of {PLAYER_SLIDES.length}</small></div></div>
         <div className="p-tools">
           <button className="icon-btn" title="Fullscreen" onClick={() => document.documentElement.requestFullscreen?.()}><Icon d="M4 9V4h5|M20 9V4h-5|M4 15v5h5|M20 15v5h-5" size={13} /></button>
