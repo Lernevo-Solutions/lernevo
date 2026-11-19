@@ -199,7 +199,7 @@
 .pv-foot small { font-size: inherit; color: inherit; display: inline-flex; align-items: center; gap: calc(var(--u) * 1); }
 .pv-vtag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 99px; background: var(--soft); color: var(--ac); font-weight: 700; }
 
-.pv-r { opacity: 0; animation: pvRise .65s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 90ms + 150ms); }
+.pv-r { opacity: 1; animation: pvRise .65s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 90ms + 150ms); }
 @keyframes pvRise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .pv-confetti { position: absolute !important; inset: 0; overflow: hidden; pointer-events: none; z-index: 2 !important; }
 .pv-confetti i { position: absolute; top: -14px; left: var(--x); width: 9px; height: 15px; border-radius: 2px; background: hsl(var(--h) 85% 60%); animation: pvFall 3s var(--d) ease-in forwards; }

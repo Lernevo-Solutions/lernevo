@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Edit, { SlideView, norm, BRAND0 } from "./Edit";
+import Preview from "./Preview";
 import {
   ArrowRight, Check, Eye, Image,
   Layers3, LayoutTemplate, Play, Search, Sparkles, X,
@@ -208,6 +209,7 @@ export default function TemplatesPage({ onEditorOpenChange = NOOP, onPreview = N
   const [active, setActive] = useState(null);
   const [courses, setCourses] = useState(loadTemplateCourses);
   const [editor, setEditor] = useState(null);
+  const [previewSlide, setPreviewSlide] = useState(null);
 
   useEffect(() => {
     const syncCourses = () => {
@@ -262,7 +264,9 @@ export default function TemplatesPage({ onEditorOpenChange = NOOP, onPreview = N
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = previous; };
   }, [editorCourse]);
-  if (editorCourse) return createPortal(<div className="tpl-editor-layer"><Edit key={editorCourse.id} course={editorCourse} startSlideId={editor.slideId} onBack={() => setEditor(null)} onPreview={onPreview} /></div>, document.body);
+  if (editorCourse) return createPortal(<div className="tpl-editor-layer">{previewSlide !== null
+    ? <Preview key={`${editorCourse.id}-${previewSlide}`} course={editorCourse} startSlide={previewSlide} onExit={() => setPreviewSlide(null)} onClose={() => setPreviewSlide(null)} />
+    : <Edit key={editorCourse.id} course={editorCourse} startSlideId={editor.slideId} onBack={() => setEditor(null)} onPreview={(index) => setPreviewSlide(index)} />}</div>, document.body);
 
   return (
     <div className="templates-page">
