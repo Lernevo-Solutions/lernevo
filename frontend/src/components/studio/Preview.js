@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import "./Preview.css";
 import { loadCourse, useVideoSrc } from "./Edit";   // same slide model as the editor
+import { CertificateDownload } from "./Certificate"; // the certificate designed in the Certificate studio
 
 /* =========================================================
    Preview (landing + voice-guided player)
@@ -216,29 +217,6 @@ function VideoModal({ src, title, onClose }) {
   );
 }
 
-function downloadCertificate(name, title, score) {
-  const c = document.createElement("canvas"); c.width = 1600; c.height = 1100;
-  const g = c.getContext("2d");
-  const grad = g.createLinearGradient(0, 0, 1600, 1100);
-  grad.addColorStop(0, "#ffffff"); grad.addColorStop(1, "#eef2ff");
-  g.fillStyle = grad; g.fillRect(0, 0, 1600, 1100);
-  const bar = g.createLinearGradient(0, 0, 1600, 0);
-  bar.addColorStop(0, "#818cf8"); bar.addColorStop(.5, "#6366f1"); bar.addColorStop(1, "#4338ca");
-  g.strokeStyle = bar; g.lineWidth = 14; g.strokeRect(40, 40, 1520, 1020);
-  g.strokeStyle = "#c7d2fe"; g.lineWidth = 2; g.strokeRect(70, 70, 1460, 960);
-  g.textAlign = "center"; g.fillStyle = "#4f46e5";
-  const F = "Plus Jakarta Sans, Inter, system-ui, sans-serif";
-  g.font = `700 30px ${F}`; g.fillText("LERNEVO SOLUTIONS", 800, 190);
-  g.fillStyle = "#0f172a"; g.font = `800 84px ${F}`; g.fillText("Certificate of Completion", 800, 330);
-  g.fillStyle = "#64748b"; g.font = `500 32px ${F}`; g.fillText("This certifies that", 800, 430);
-  g.fillStyle = "#4f46e5"; g.font = `800 96px ${F}`; g.fillText(name || "Learner", 800, 560);
-  g.fillStyle = "#64748b"; g.font = `500 32px ${F}`; g.fillText("has successfully completed", 800, 650);
-  g.fillStyle = "#0f172a"; g.font = `700 54px ${F}`; g.fillText(title, 800, 740);
-  if (score) { g.fillStyle = "#16a34a"; g.font = `700 34px ${F}`; g.fillText(`Quiz score: ${score}`, 800, 820); }
-  g.fillStyle = "#94a3b8"; g.font = `500 26px ${F}`; g.fillText(new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }), 800, 950);
-  c.toBlob((b) => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `certificate-${(name || "learner").replace(/\s+/g, "-").toLowerCase()}.png`; a.click(); });
-}
-
 /* ---------- decorative art used when a slide has no picture ---------- */
 function Art() {
   return (
@@ -271,7 +249,7 @@ function QTimer({ left, qt }) {
 }
 
 /* ---------- one slide ---------- */
-function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect, onRetry, onVideoPlay, result, qt = 0, left = 0, showTimer = true, timedOut, liveRef }) {
+function Slide({ s, n, total, course, title, name, pick, onPick, score, passed, perfect, onRetry, onVideoPlay, result, qt = 0, left = 0, showTimer = true, timedOut, liveRef }) {
   const [sel, setSel] = useState([]);
   const [txt, setTxt] = useState("");
   const [hint, setHint] = useState(false);
@@ -345,7 +323,7 @@ function Slide({ s, n, total, title, name, pick, onPick, score, passed, perfect,
               <div className="pv-r pv-thx" style={r(3)}>
                 {score && <span className={`pv-score${passed ? "" : " bad"}`}><Ic n={passed ? "check" : "x"} size={14} /> Quiz score {score}</span>}
                 {passed
-                  ? <button className="pv-cert" onClick={() => downloadCertificate(name, title, score)}><Ic n="dl" size={16} /> Download certificate</button>
+                  ? <CertificateDownload course={course} name={name || "Learner"} score={result.total ? result.pct : undefined} className="pv-cert" icon={<Ic n="dl" size={16} />} />
                   : <>{retry}<p className="pv-note">You need {result.mark}% or more in the quiz to get your certificate.</p></>}
               </div>
             )}
@@ -601,7 +579,7 @@ function Player({ course, slides, name, startAuto, startAt, startAnswers, onClos
       <main className="pv-stage-wrap">
         <div className="pv-stage">
           <div key={s.id} className={`pv-slide-in ${dir > 0 ? "fwd" : "back"}`}>
-            <Slide s={s} n={i + 1} total={total} title={course.title} name={name} pick={answers[s.id]} onPick={pick} score={score} passed={passed} perfect={perfect} result={result} onRetry={retry} onVideoPlay={nar.stop} qt={qt} left={leftNow} showTimer={showTimer} timedOut={timedOut[s.id]} liveRef={liveRef} />
+            <Slide s={s} n={i + 1} total={total} course={course} title={course.title} name={name} pick={answers[s.id]} onPick={pick} score={score} passed={passed} perfect={perfect} result={result} onRetry={retry} onVideoPlay={nar.stop} qt={qt} left={leftNow} showTimer={showTimer} timedOut={timedOut[s.id]} liveRef={liveRef} />
           </div>
         </div>
       </main>

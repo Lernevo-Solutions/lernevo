@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import TemplatesCourseEditor from "./TemplatesCourseEditor";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import Edit, { SlideView, norm, BRAND0 } from "./Edit";
 import {
-  ArrowRight, Check, Eye, FileText, Image,
+  ArrowRight, Check, Eye, Image,
   Layers3, LayoutTemplate, Play, Search, Sparkles, X,
 } from "lucide-react";
 import "./TemplatesPage.css";
@@ -96,27 +97,91 @@ export const COURSE_TEMPLATES = definitions.map(([name, description, layoutType,
   };
 });
 
-function MiniPreview({ template, large = false }) {
-  const type = template.layoutType;
+/* ------------------------------------------------------------------
+   The real slide for every template.
+   Preview, the card thumbnail and "Use Template" all use THIS object,
+   so what you preview is exactly what opens in the editor (Edit.js).
+   Fields follow Edit.js: layout, title, body, items, points, cols, q, options...
+------------------------------------------------------------------- */
+const TEMPLATE_SLIDES = {
+  welcome: { layout: "welcome", title: "Welcome to the Course", body: "Start your learning journey with a clear, friendly introduction.", align: "center" },
+  overview: { layout: "overview", title: "Your Learning Path", body: "A quick look at the topics, timing and activities in this course.", items: ["20 minutes in total", "Short, practical sections", "A quick quiz at the end"] },
+  objectives: { layout: "objectives", title: "What you’ll learn", body: "By the end of this course, you will be ready to put these ideas into practice.", points: [["Understand", "the key ideas"], ["Apply", "them in your daily work"], ["Share", "what you learn with your team"]] },
+  profile: { layout: "content", title: "Meet your facilitator", body: "A short introduction to the people and experience guiding this course.", items: ["Name and role", "Years of experience", "How to reach them"] },
+  info: { layout: "overview", title: "Course details", body: "Everything you need to know before you begin.", items: ["Duration: 20 minutes", "Audience: All learners", "Certificate on completion"] },
+  text: { layout: "text", title: "A simple idea, clearly explained", body: "Use this space to introduce a concept in plain language. Keep paragraphs short and give learners room to reflect." },
+  image: { layout: "content", title: "Bring the concept to life", body: "Connect a short explanation to a relevant image, diagram or example.", items: ["Add a relevant image", "Explain what it shows", "Link it to the lesson"] },
+  video: { layout: "video", title: "Watch and learn", body: "Explore the idea in this short video, then reflect on one thing you can apply." },
+  points: { layout: "points", title: "Remember these points", body: "A compact summary helps learners focus on what matters most.", points: [["Focus", "on what matters most"], ["Keep it", "short and clear"], ["Take", "one action away"]] },
+  columns: { layout: "twocol", title: "Two ways to look at it", body: "Use parallel columns to compare approaches, examples or before and after.", cols: [["Option one", "Describe the first idea or approach."], ["Option two", "Describe the second idea or approach."]] },
+  pdf: { layout: "content", title: "Download the resource", body: "Keep a practical reference close at hand as you work through the course.", items: ["Course reference guide.pdf", "Keep it close while you work", "Share it with your team"] },
+  single: { layout: "mcq", title: "Quick check", q: "Which action best protects account access?", options: ["Share your password with a colleague", "Turn on multi-factor sign-in", "Use the same password everywhere"], answer: 1, explain: "Multi-factor sign-in blocks most account takeovers." },
+  multiple: { layout: "multi", title: "Quick check", q: "Which details should be verified? Select all that apply.", options: ["The sender’s address", "Where the link really goes", "The font of the email", "The request itself"], answers: [0, 1, 3], explain: "Check the sender, the link and the request before you act." },
+  truefalse: { layout: "tf", title: "True or false", q: "A strong password should be reused across work accounts.", answer: 1, explain: "Reusing a password puts every account at risk." },
+  matching: { layout: "mcq", title: "Match the term", q: "Which description best matches the term “phishing”?", options: ["A fake message that tricks you into sharing details", "A tool that blocks spam", "A way to back up your files"], answer: 0, explain: "Phishing messages pretend to be someone you trust." },
+  short: { layout: "short", title: "Short answer", q: "What would you do first if you received a suspicious email?", accepted: "report, report it", explain: "Report it and do not click anything." },
+  passed: { layout: "result", title: "Congratulations!", passMsg: "You passed the assessment and completed this learning milestone.", failMsg: "Review the key ideas and try the assessment again when you are ready." },
+  failed: { layout: "result", title: "Keep learning", passMsg: "Well done! You passed the assessment.", failMsg: "Review the key ideas and try the assessment again when you are ready." },
+  score: { layout: "result", title: "Your results", passMsg: "A quick recap of your score, progress and recommended next step.", failMsg: "Review the key ideas and try again when you are ready." },
+  thanks: { layout: "thanks", title: "Thank you for learning with us", body: "Your time and attention make a difference. Take these ideas into your next day.", align: "center" },
+  summary: { layout: "takeaways", title: "Your key takeaways", body: "Bring the most useful ideas together and turn them into a practical next step.", items: ["Know the key ideas", "Use one idea today", "Share it with your team"] },
+};
+
+/* Slides 2 and 3 of each preview: the same layout with different sample content */
+const TEMPLATE_MORE = {
+  welcome: [{ title: "Welcome aboard", body: "We are glad you are here. This short course takes about 20 minutes." }, { title: "Let’s get started", body: "Take your time, ask questions and enjoy the journey." }],
+  overview: [{ title: "What’s inside", body: "Three short sections, each with a quick activity.", items: ["Section 1: The basics", "Section 2: Real examples", "Section 3: Your action plan"] }, { title: "How long it takes", body: "Plan your time before you begin.", items: ["Reading: 10 minutes", "Activities: 5 minutes", "Quiz: 5 minutes"] }],
+  objectives: [{ title: "By the end you can", body: "Three skills you will take away.", points: [["Explain", "the idea in your own words"], ["Spot", "it in everyday situations"], ["Act", "with confidence"]] }, { title: "How you will be assessed", body: "A short quiz checks your understanding.", points: [["Quiz", "5 quick questions"], ["Pass mark", "80%"], ["Retries", "Up to 3 attempts"]] }],
+  profile: [{ title: "Your trainer’s background", body: "Share the experience that makes this course worth your time.", items: ["10 years in the field", "Trained 500+ learners", "Happy to answer questions"] }, { title: "How to reach your trainer", body: "Get help any time during the course.", items: ["Email or chat", "Weekly open Q&A", "Reply within one working day"] }],
+  info: [{ title: "Who this course is for", body: "Check this is the right course for you.", items: ["New joiners and current staff", "No previous experience needed", "Works on any device"] }, { title: "What you receive", body: "Complete the course to earn:", items: ["A completion certificate", "A summary guide to keep", "Access to future updates"] }],
+  text: [{ title: "One idea at a time", body: "Break big topics into small steps. Each step should be easy to read in under a minute." }, { title: "Make it personal", body: "Use everyday words and relate each idea to the learner’s own work. Short sentences help learners stay focused." }],
+  image: [{ title: "Show, don’t just tell", body: "A good picture explains an idea faster than a paragraph.", items: ["Use a clear diagram", "Add a real photo", "Label the key parts"] }, { title: "Pick the right image", body: "Choose visuals that support the lesson.", items: ["Keep it simple", "Use high-quality files", "Add a short caption"] }],
+  video: [{ title: "See it in action", body: "Watch the demo, then try it yourself." }, { title: "Video recap", body: "A two-minute recap of the key steps." }],
+  points: [{ title: "Three habits to build", body: "Small habits make a big difference.", points: [["Pause", "before you act"], ["Check", "the details"], ["Ask", "when unsure"]] }, { title: "Quick reminders", body: "Keep these close at hand.", points: [["Be clear", "say what you mean"], ["Be brief", "one idea per slide"], ["Be kind", "support each other"]] }],
+  columns: [{ title: "Before and after", body: "See the difference one change makes.", cols: [["Before", "Long, crowded slides that are hard to follow."], ["After", "Short, clear slides with one idea each."]] }, { title: "Do and don’t", body: "Simple rules for every learner.", cols: [["Do", "Ask questions and share examples."], ["Don’t", "Rush through without reflecting."]] }],
+  pdf: [{ title: "What’s in the guide", body: "A one-page summary you can print or save.", items: ["Key steps at a glance", "Checklists to follow", "Links and contacts"] }, { title: "How to use the guide", body: "Keep it with you as you work.", items: ["Download it once", "Print or save it", "Share it with your team"] }],
+  single: [{ q: "What should you do before clicking a link in an email?", options: ["Click it quickly", "Check where it really goes", "Forward it to everyone"], answer: 1, explain: "Hover over the link to see its real address." }, { q: "Which password is the strongest?", options: ["password123", "Your pet’s name", "A long phrase with numbers and symbols"], answer: 2, explain: "Length and variety make passwords hard to guess." }],
+  multiple: [{ q: "Which are signs of a fake email? Select all that apply.", options: ["Urgent threats", "A misspelled sender address", "A message from a known colleague", "An unexpected attachment"], answers: [0, 1, 3], explain: "A normal message from a colleague is not a warning sign." }, { q: "Which keep your account safe? Select all that apply.", options: ["Multi-factor sign-in", "Sharing your password", "Locking your screen", "Using a unique password"], answers: [0, 2, 3], explain: "Never share your password with anyone." }],
+  truefalse: [{ q: "You should report a suspicious email even if you did not click it.", answer: 0, explain: "Reporting helps protect everyone." }, { q: "It is safe to use public Wi-Fi for sensitive work without protection.", answer: 1, explain: "Use a secure connection for sensitive work." }],
+  matching: [{ q: "Which description best matches “multi-factor sign-in”?", options: ["A second check to prove who you are", "A way to speed up your laptop", "A type of spam filter"], answer: 0, explain: "It adds a second step after your password." }, { q: "Which description best matches a “data breach”?", options: ["A planned system update", "When private data is seen by the wrong people", "A new company policy"], answer: 1, explain: "Report a breach as soon as you spot it." }],
+  short: [{ q: "Name one thing you check before opening an attachment.", accepted: "sender, the sender", explain: "Always check who sent it first." }, { q: "Who do you contact if you think your account is hacked?", accepted: "it, it desk, it team", explain: "Contact the IT desk straight away." }],
+  passed: [{ title: "Well done!", passMsg: "You passed with a great score. Your certificate is ready to download." }, { title: "You did it!", passMsg: "Great work. You have completed every section of this course." }],
+  failed: [{ title: "Almost there", failMsg: "You were close. Review the slides you missed and try again." }, { title: "Try again", failMsg: "Every attempt helps you learn. You still have attempts left." }],
+  score: [{ title: "Your score", passMsg: "You scored above the pass mark. Check your answers below." }, { title: "Your progress", passMsg: "Nice progress. Your next step is the final summary." }],
+  thanks: [{ title: "Thanks for taking part", body: "Your feedback helps us make this course better." }, { title: "See you next time", body: "Keep learning and keep growing." }],
+  summary: [{ title: "Before you go", body: "Three things worth remembering:", items: ["Start small", "Keep practising", "Ask for help early"] }, { title: "Your next steps", body: "Turn what you learned into action:", items: ["Pick one idea to use today", "Tell a colleague what you learned", "Review again in a week"] }],
+};
+
+/* a full Edit.js slide for a template (norm() fills in every other field) */
+function buildSlide(template, section, id, part = 0) {
+  const [bg, fg] = LIGHT_THEMES[template.layoutType] || ["#ffffff", "#0f172a"];
+  return norm({
+    ...TEMPLATE_SLIDES[template.layoutType],
+    ...(part > 0 ? TEMPLATE_MORE[template.layoutType][part - 1] : {}),
+    ...(id ? { id } : {}),
+    templateId: template.id,
+    sec: section || template.category,
+    bg, fg, ownBrand: true,
+  });
+}
+
+/* the real slide, scaled to fit whatever box it is placed in (card thumbnail or preview) */
+function FitSlide({ template, section, part = 0, title = "Your course title" }) {
+  const box = useRef(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return undefined;
+    setWidth(el.clientWidth);
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const slide = useMemo(() => buildSlide(template, section, `preview-${template.id}-${part}`, part), [template, section, part]);
   return (
-    <div className={`tpl-mini ${large ? "tpl-mini-large" : ""} layout-${type}`}>
-      <div className="mini-brand"><span>L</span><i /></div>
-      <div className="mini-content">
-        <div className="mini-copy">
-          <b>{template.heading}</b>
-          <i /><i /><i className="short" />
-        </div>
-        {(["image", "video", "profile", "pdf", "overview"].includes(type)) && <div className={`mini-media ${type}`}>
-          {type === "video" ? <Play size={large ? 32 : 18} fill="currentColor" /> : type === "pdf" ? <FileText size={large ? 38 : 22} /> : type === "profile" ? <span>LM</span> : <><i /><i /><i /></>}
-        </div>}
-        {(["objectives", "points", "summary"].includes(type)) && <div className="mini-list"><i /><i /><i /></div>}
-        {(["single", "multiple", "truefalse", "matching", "short"].includes(type)) && <div className="mini-options"><i /><i /><i /><i /></div>}
-        {(["passed", "failed", "score"].includes(type)) && <div className="mini-score"><b>{type === "failed" ? "TRY" : "92%"}</b><i /></div>}
-        {(["welcome", "thanks"].includes(type)) && <div className="mini-pill"><Sparkles size={10} /> {type === "welcome" ? "LET'S BEGIN" : "COURSE COMPLETE"}</div>}
-        {type === "columns" && <div className="mini-columns"><i /><i /></div>}
-        {type === "info" && <div className="mini-info"><i /><i /><i /></div>}
-      </div>
-      <div className="mini-footer"><i /><i /></div>
+    <div className="live-slide" ref={box}>
+      {width > 0 && <SlideView s={slide} n={1} title={title} edit={false} scale={width / 960} />}
     </div>
   );
 }
@@ -135,14 +200,12 @@ function HeroArt() {
   );
 }
 
-export default function TemplatesPage({ onEditorOpenChange = NOOP }) {
+const editKey = (course) => `lernevo.edit.${course.id}`;
+
+export default function TemplatesPage({ onEditorOpenChange = NOOP, onPreview = NOOP }) {
   const [category, setCategory] = useState("Introduction");
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(null);
-  const [slide, setSlide] = useState(0);
-  const [useTemplate, setUseTemplate] = useState(null);
-  const [courseId, setCourseId] = useState("");
-  const [section, setSection] = useState("");
   const [courses, setCourses] = useState(loadTemplateCourses);
   const [editor, setEditor] = useState(null);
 
@@ -158,60 +221,48 @@ export default function TemplatesPage({ onEditorOpenChange = NOOP }) {
   }, []);
 
   useEffect(() => {
-    if (!active && !useTemplate) return undefined;
-    const onKey = (event) => { if (event.key === "Escape") { setActive(null); setUseTemplate(null); } };
+    if (!active) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") setActive(null);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [active, useTemplate]);
+  }, [active]);
+
+  const dialogRef = useRef(null);
+  /* native <dialog>: always opens in the browser's top layer, centred on the screen, whatever the page layout is */
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (active && dialog && !dialog.open && dialog.showModal) dialog.showModal();
+  }, [active]);
+
+  const openPreview = (template) => setActive(template);
 
   const shown = useMemo(() => COURSE_TEMPLATES.filter((template) => template.category === category &&
     `${template.name} ${template.description} ${template.category}`.toLowerCase().includes(query.trim().toLowerCase())), [category, query]);
-  const openUseTemplate = (template) => {
+
+  /* Use Template: start a NEW course from this exact template and open it in the editor (no pop-up) */
+  const startFromTemplate = (template) => {
+    const slide = buildSlide(template, template.category, `template-slide-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
+    const course = { id: Date.now(), title: "Untitled course", status: "Draft", slides: 1, edited: "just now" };
+    try { localStorage.setItem(editKey(course), JSON.stringify({ v: 2, slides: [slide], brand: BRAND0 })); } catch { /* the editor falls back to its starter slides */ }
+    const updated = [course, ...courses];
+    setCourses(updated);
+    try { localStorage.setItem(COURSE_STORAGE_KEY, JSON.stringify(updated)); } catch { /* keep the new course for this session */ }
     setActive(null);
-    setUseTemplate(template);
-    setCourseId(String(courses[0]?.id ?? ""));
-    setSection(template.category);
-  };
-  const addTemplateToCourse = () => {
-    if (!useTemplate || !courseId || !section) return;
-    const course = courses.find((item) => String(item.id) === String(courseId));
-    if (!course) return;
-    const templateSlides = course.templateSlides || [];
-    const uniqueSlides = templateSlides.filter((item, index) => templateSlides.findIndex((candidate) => (candidate.templateId || candidate.id) === (item.templateId || item.id)) === index);
-    const existingSlide = uniqueSlides.find((item) => item.templateId === useTemplate.id);
-    if (existingSlide) {
-      if (uniqueSlides.length !== templateSlides.length) {
-        const cleanedCourse = { ...course, templateSlides: uniqueSlides, slides: Math.max(0, (course.slides || 0) - (templateSlides.length - uniqueSlides.length)) };
-        const cleanedCourses = courses.map((item) => String(item.id) === String(courseId) ? cleanedCourse : item);
-        setCourses(cleanedCourses);
-        try { localStorage.setItem(COURSE_STORAGE_KEY, JSON.stringify(cleanedCourses)); } catch { /* Keep the de-duplicated course available for this session. */ }
-      }
-      setEditor({ courseId: String(courseId), slideId: existingSlide.id });
-      setUseTemplate(null);
-      return;
-    }
-    const insertedSlide = {
-      id: `template-slide-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      templateId: useTemplate.id,
-      name: useTemplate.name,
-      description: useTemplate.description,
-      layoutType: useTemplate.layoutType,
-      section,
-      content: JSON.parse(JSON.stringify(useTemplate.editableFields)),
-      settings: { ...useTemplate.defaultSettings },
-    };
-    const updatedCourse = { ...course, templateSlides: [...(course.templateSlides || []), insertedSlide], selectedSlideId: insertedSlide.id, slides: (course.slides || 0) + 1, edited: "just now" };
-    const updatedCourses = courses.map((item) => String(item.id) === String(courseId) ? updatedCourse : item);
-    setCourses(updatedCourses);
-    try { localStorage.setItem(COURSE_STORAGE_KEY, JSON.stringify(updatedCourses)); } catch { /* Keep the inserted slide available for this session. */ }
-    setEditor({ courseId: String(courseId), slideId: insertedSlide.id });
-    setUseTemplate(null);
+    setEditor({ courseId: String(course.id), slideId: slide.id });
   };
 
   const editorCourse = editor && courses.find((item) => String(item.id) === editor.courseId);
-  const editorSlide = editorCourse?.templateSlides?.find((item) => item.id === editor.slideId);
-  useEffect(() => { onEditorOpenChange(Boolean(editorCourse && editorSlide)); }, [editorCourse, editorSlide, onEditorOpenChange]);
-  if (editorCourse && editorSlide) return <TemplatesCourseEditor course={editorCourse} selectedSlide={editorSlide} onBack={() => setEditor(null)} />;
+  useEffect(() => { onEditorOpenChange(Boolean(editorCourse)); }, [editorCourse, onEditorOpenChange]);
+  /* the editor takes over the whole screen (no sidebar), the same as when a course is opened from the Courses page */
+  useEffect(() => {
+    if (!editorCourse) return undefined;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [editorCourse]);
+  if (editorCourse) return createPortal(<div className="tpl-editor-layer"><Edit key={editorCourse.id} course={editorCourse} startSlideId={editor.slideId} onBack={() => setEditor(null)} onPreview={onPreview} /></div>, document.body);
 
   return (
     <div className="templates-page">
@@ -233,32 +284,29 @@ export default function TemplatesPage({ onEditorOpenChange = NOOP }) {
             <div className="template-tabs" role="tablist" aria-label="Template categories">{categories.map((item) => <button type="button" role="tab" aria-selected={category === item} className={category === item ? "selected" : ""} key={item} onClick={() => setCategory(item)}>{item}<span>{COURSE_TEMPLATES.filter((template) => template.category === item).length}</span></button>)}</div>
           </div>
           {shown.length ? <div className="template-grid">{shown.map((template) => <article className={`template-card template-card-${template.layoutType}`} key={template.id}>
-            <div className="template-thumb"><MiniPreview template={template} /><span className="thumb-category">{template.category}</span><button className="thumb-preview" aria-label={`Preview ${template.name}`} onClick={() => { setActive(template); setSlide(0); }}><Image size={15} /></button></div>
+            <div className="template-thumb">
+              <button type="button" className="thumb-open" aria-label={`Preview ${template.name}`} onClick={() => openPreview(template)}><FitSlide template={template} /></button>
+              <span className="thumb-category">{template.category}</span>
+              <button className="thumb-preview" aria-label={`Preview ${template.name}`} onClick={() => openPreview(template)}><Image size={15} /></button>
+            </div>
             <div className="template-card-copy"><span className="card-category">{template.category}</span><h3>{template.name}</h3><p>{template.description}</p></div>
-            <div className="template-card-actions"><button className="preview-button" onClick={() => { setActive(template); setSlide(0); }}><Eye size={14} /> Preview</button><button className="use-button" onClick={() => openUseTemplate(template)}>Use Template <ArrowRight size={14} /></button></div>
+            <div className="template-card-actions"><button className="preview-button" onClick={() => openPreview(template)}><Eye size={14} /> Preview</button><button className="use-button" onClick={() => startFromTemplate(template)}>Use Template <ArrowRight size={14} /></button></div>
           </article>)}</div> : <div className="template-empty"><span><Search size={22} /></span><h3>No templates found</h3><p>Try a different search or clear your query to see all {category.toLowerCase()} templates.</p><button onClick={() => setQuery("")}>Clear search</button></div>}
         </section>
       </main>
 
-      {active && <div className="template-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setActive(null); }}>
-        <section className="template-modal" role="dialog" aria-modal="true" aria-labelledby="preview-title">
-          <header className="modal-header"><div><span className="modal-kicker">{active.category} TEMPLATE</span><h2 id="preview-title">{active.name}</h2></div><button className="modal-close" onClick={() => setActive(null)} aria-label="Close preview"><X size={20} /></button></header>
-          <div className="modal-stage"><div className="slide-preview"><div className="slide-preview-head"><span><b>L</b> LERNEVO ACADEMY</span><small>{active.category} · {String(slide + 1).padStart(2, "0")}</small></div><div className={`slide-preview-body preview-${active.layoutType}`}><span className="preview-label">{active.category.toUpperCase()}</span><h3>{slide === 0 ? active.heading : `${active.heading} · Part ${slide + 1}`}</h3><p>{slide === 0 ? active.content : "Explore the next idea, reflect on what you have learned and choose one action to take forward."}</p><MiniPreview template={active} large /></div><div className="slide-preview-foot"><span>LEARNING EXPERIENCE</span><i /></div></div></div>
-          <div className="modal-details"><div><span className="modal-kicker">ABOUT THIS LAYOUT</span><p>{active.description}</p></div><div className="preview-pager"><button aria-label="Previous preview slide" disabled={slide === 0} onClick={() => setSlide((value) => Math.max(0, value - 1))}>‹</button><span>{slide + 1} / 3</span><button aria-label="Next preview slide" disabled={slide === 2} onClick={() => setSlide((value) => Math.min(2, value + 1))}>›</button></div></div>
-          <footer className="modal-footer"><button className="preview-button" onClick={() => setActive(null)}>Close</button><button className="use-button" onClick={() => openUseTemplate(active)}>Use Template <ArrowRight size={14} /></button></footer>
-        </section>
-      </div>}
+      {active && <dialog ref={dialogRef} className="tpl-dialog" aria-label={`${active.name} preview`} onClose={() => setActive(null)} onClick={(event) => { if (event.target === event.currentTarget) setActive(null); }}>
+        <div className="tpl-modal-card">
+          <header className="tpl-modal-head">
+            <div><small>{active.category} template</small><h2>{active.name}</h2></div>
+            <button type="button" className="tpl-modal-close" aria-label="Close preview" onClick={() => setActive(null)}><X size={18} /></button>
+          </header>
+          <div className="tpl-modal-slide"><FitSlide template={active} /></div>
+          <p className="tpl-modal-desc">{active.description}</p>
+          <div className="tpl-modal-actions"><button className="preview-button" onClick={() => setActive(null)}>Close</button><button className="use-button" onClick={() => startFromTemplate(active)}>Use Template <ArrowRight size={14} /></button></div>
+        </div>
+      </dialog>}
 
-      {useTemplate && <div className="template-use-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setUseTemplate(null); }}>
-        <section className="template-use-dialog" role="dialog" aria-modal="true" aria-labelledby="template-use-title">
-          <button className="template-use-close" onClick={() => setUseTemplate(null)} aria-label="Close template selection"><X size={19} /></button>
-          <h2 id="template-use-title">Use “{useTemplate.name}”</h2>
-          <p>Pick where this slide should go.</p>
-          <label>Course<select value={courseId} onChange={(event) => setCourseId(event.target.value)} aria-label="Course">{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select></label>
-          <label>Section<select value={section} onChange={(event) => setSection(event.target.value)} aria-label="Section">{categories.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <footer><button className="preview-button" onClick={() => setUseTemplate(null)}>Cancel</button><button className="use-button" disabled={!courseId || !section} onClick={addTemplateToCourse}>Add Template <ArrowRight size={14} /></button></footer>
-        </section>
-      </div>}
     </div>
   );
 }

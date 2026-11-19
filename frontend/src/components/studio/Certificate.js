@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import "./Certificate.css";
 
 /* ---------- options ---------- */
@@ -10,12 +11,15 @@ export const DEFAULT_CERT = {
   color2: "#7c3aed",
   font: "modern",
   pattern: "none",
+  paper: "auto", // auto | white | cream | mist | parchment
+  foil: false, // shiny gold title
   corners: false,
   watermark: false,
   logo: "",
   title: "Certificate of Completion",
   subtitle: "This is proudly presented to",
   body: "for successfully completing the course",
+  extra: "", // optional small line under the course name, e.g. "Duration: 8 hours"
   org: "LERNEVO SOLUTIONS",
   dateLabel: "Date",
   /* signature */
@@ -35,6 +39,7 @@ export const DEFAULT_CERT = {
   sealImg: "",
   /* show / hide */
   showScore: true,
+  showGrade: true, // Distinction / Merit / Passed badge from the score
   showDate: true,
   showId: true,
 };
@@ -48,8 +53,13 @@ export const THEMES = {
   sunset: ["#ea580c", "#db2777"],
   rose: ["#be123c", "#f97316"],
   midnight: ["#1e293b", "#6366f1"],
+  ocean: ["#0369a1", "#06b6d4"],
+  lavender: ["#7e22ce", "#c084fc"],
+  forest: ["#14532d", "#ca8a04"],
+  graphite: ["#111827", "#64748b"],
 };
-const LAYOUTS = [["classic", "Classic"], ["modern", "Modern"], ["elegant", "Elegant"], ["bold", "Bold"], ["royal", "Royal"], ["minimal", "Minimal"]];
+const LAYOUTS = [["classic", "Classic"], ["modern", "Modern"], ["elegant", "Elegant"], ["bold", "Bold"], ["royal", "Royal"], ["minimal", "Minimal"], ["ribbon", "Ribbon"], ["aurora", "Aurora"]];
+const PAPERS = [["auto", "Auto", "linear-gradient(135deg, #fff 50%, #fffdf7 50%)"], ["white", "White", "#ffffff"], ["cream", "Cream", "#fff8e8"], ["mist", "Mist", "#eef3ff"], ["parchment", "Parchment", "#f6ecd6"]];
 const FONTS = [["modern", "Modern"], ["serif", "Serif"], ["script", "Handwritten"]];
 const PATTERNS = [["none", "None"], ["dots", "Dots"], ["lines", "Lines"], ["waves", "Waves"]];
 const ICONS = { star: "★", check: "✓", spark: "✦" };
@@ -61,15 +71,21 @@ const PRESETS = [
   ["Corporate Blue", { layout: "classic", theme: "blue", font: "modern", seal: "star", sealStyle: "medal", sealColor: "gold", pattern: "none", corners: false, signFont: "script" }],
   ["Royal Gold", { layout: "royal", theme: "midnight", font: "serif", seal: "spark", sealStyle: "rosette", sealColor: "gold", pattern: "waves", corners: true, signFont: "script" }],
   ["Fresh Teal", { layout: "modern", theme: "teal", font: "modern", seal: "check", sealStyle: "shield", sealColor: "theme", pattern: "dots", corners: false, signFont: "italic" }],
-  ["Script Gold", { layout: "elegant", theme: "gold", font: "script", seal: "star", sealStyle: "rosette", sealColor: "gold", pattern: "none", corners: true, signFont: "script" }],
+  ["Script Gold", { layout: "elegant", theme: "gold", font: "script", seal: "star", sealStyle: "rosette", sealColor: "gold", pattern: "none", corners: true, signFont: "script", foil: true }],
   ["Bold Sunset", { layout: "bold", theme: "sunset", font: "modern", seal: "spark", sealStyle: "medal", sealColor: "theme", pattern: "lines", corners: false, signFont: "script" }],
   ["Minimal Ink", { layout: "minimal", theme: "midnight", font: "serif", seal: "check", sealStyle: "stamp", sealColor: "theme", pattern: "none", corners: false, signFont: "italic" }],
+  ["Aurora Glow", { layout: "aurora", theme: "lavender", font: "modern", seal: "spark", sealStyle: "rosette", sealColor: "theme", pattern: "none", corners: false, signFont: "script", paper: "white" }],
+  ["Ocean Ribbon", { layout: "ribbon", theme: "ocean", font: "serif", seal: "star", sealStyle: "medal", sealColor: "gold", pattern: "none", corners: false, signFont: "script" }],
+  ["Forest Honour", { layout: "elegant", theme: "forest", font: "serif", seal: "star", sealStyle: "rosette", sealColor: "gold", pattern: "none", corners: true, signFont: "script", paper: "parchment", foil: true }],
 ];
 
 /* always returns a full certificate config for a course (old courses get the defaults) */
 export const getCert = (course) => ({ ...DEFAULT_CERT, ...((course && course.certificate) || {}) });
 const colorsOf = (cert) => (cert.theme === "custom" ? [cert.color1 || "#2456ed", cert.color2 || "#7c3aed"] : THEMES[cert.theme] || THEMES.blue);
 const today = () => new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+const makeCertId = (course, name) => `LRN-${String(course.id).slice(-5)}-${(name || "NAME").replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase() || "NAM"}`;
+/* score -> [css class, label] for the achievement badge */
+const gradeOf = (s) => (s >= 90 ? ["g-dist", "With Distinction"] : s >= 75 ? ["g-merit", "With Merit"] : ["g-pass", "Successfully Passed"]);
 const labelOf = (list, k) => ((list.find(([x]) => x === k) || [])[1]) || k;
 /* image files -> data URLs, so they survive a page refresh once courses are saved */
 const readImg = (file, cb) => {
@@ -94,8 +110,10 @@ function Seal({ cert, unit }) {
    onPick(field) is optional: when given, the text on the certificate becomes click-to-edit. */
 export function CertificateView({ cert, course, name, score, date, onPick }) {
   const [c1, c2] = colorsOf(cert);
-  const initials = (name || "NAME").replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase() || "NAM";
-  const certId = `LRN-${String(course.id).slice(-5)}-${initials}`;
+  const certId = makeCertId(course, name);
+  const shownName = name || "Learner name";
+  const nmCls = shownName.length > 30 ? " nm-long" : shownName.length > 21 ? " nm-mid" : "";
+  const grade = gradeOf(Number(score) || 0);
   const hot = (f, cls = "") => (onPick ? { className: `${cls} cert-hot`.trim(), onClick: () => onPick(f), title: "Click to edit" } : { className: cls });
   const img1 = cert.signMode !== "typed" && cert.signImg ? cert.signImg : "";
   const signCls = `cert-sign${cert.signFont === "script" ? " sg-script" : ""}`;
@@ -119,7 +137,7 @@ export function CertificateView({ cert, course, name, score, date, onPick }) {
     </div>
   );
   return (
-    <div className={`cert cert-t-${cert.layout || "classic"} cert-f-${cert.font || "modern"} cert-p-${cert.pattern || "none"}`} style={{ "--c1": c1, "--c2": c2 }}>
+    <div className={`cert cert-t-${cert.layout || "classic"} cert-f-${cert.font || "modern"} cert-p-${cert.pattern || "none"} cert-bg-${cert.paper || "auto"}${cert.foil ? " cert-foil" : ""}`} style={{ "--c1": c1, "--c2": c2 }}>
       <div className="cert-frame">
         {cert.watermark && (
           <div className="cert-wm" aria-hidden="true">
@@ -133,10 +151,16 @@ export function CertificateView({ cert, course, name, score, date, onPick }) {
         </div>
         <h2 {...hot("title", "cert-title")}>{cert.title}</h2>
         <p {...hot("subtitle", "cert-sub")}>{cert.subtitle}</p>
-        <div {...hot("name", "cert-name")}>{name || "Learner name"}</div>
+        <div {...hot("name", `cert-name${nmCls}`)}>{shownName}</div>
         <p {...hot("body", "cert-body")}>{cert.body}</p>
         <div className="cert-course">{course.title}</div>
-        {cert.showScore && score != null && <p className="cert-score">Score: {score}%</p>}
+        {cert.extra && <p {...hot("extra", "cert-extra")}>{cert.extra}</p>}
+        {(cert.showScore || cert.showGrade) && score != null && (
+          <div className="cert-meta">
+            {cert.showScore && <p className="cert-score">Score: {score}%</p>}
+            {cert.showGrade && <p className={`cert-grade ${grade[0]}`}>✦ {grade[1]}</p>}
+          </div>
+        )}
         <div className={`cert-foot${two ? " four" : ""}`}>
           {two ? [dateBox, sign1, <Seal cert={cert} key="seal" />, sign2] : [dateBox, <Seal cert={cert} key="seal" />, sign1]}
         </div>
@@ -146,18 +170,50 @@ export function CertificateView({ cert, course, name, score, date, onPick }) {
   );
 }
 
-/* ---------- Download button for the learner (use in Preview.js / player "thanks" slide) ----------
-   <CertificateDownload course={course} name={name} score={score} />
-   Opens the browser print dialog -> "Save as PDF" (A4 landscape). */
-export function CertificateDownload({ course, name, score, label = "Download certificate" }) {
+/* ---------- Download button for the learner (used on the player's "Thank you" slide) ----------
+   <CertificateDownload course={course} name={name} score={92} />
+   score = percentage (0-100). Opens the print dialog -> choose "Save as PDF" (A4 landscape).
+   The printable certificate is rendered straight into <body> (portal), so slide animations,
+   overflow:hidden or transforms in the player can never clip it. */
+export function CertificateDownload({ course, name, score, label = "Download certificate", share = false, className = "btn btn-primary", shareClassName = "btn btn-ghost", icon = "⬇" }) {
   const cert = getCert(course);
   if (!cert.enabled) return null;
+  const download = () => {
+    const prev = document.title;
+    document.title = `Certificate - ${name || "Learner"} - ${course.title}`; /* becomes the PDF file name */
+    document.body.classList.add("cert-printing");
+    const done = () => {
+      document.body.classList.remove("cert-printing");
+      document.title = prev;
+      window.removeEventListener("afterprint", done);
+    };
+    window.addEventListener("afterprint", done);
+    window.print();
+  };
+  /* opens LinkedIn's "Add licence or certification" form, already filled in */
+  const linkedIn = () => {
+    const d = new Date();
+    const u = new URL("https://www.linkedin.com/profile/add");
+    u.searchParams.set("startTask", "CERTIFICATION_NAME");
+    u.searchParams.set("name", course.title);
+    u.searchParams.set("organizationName", cert.org);
+    u.searchParams.set("issueYear", String(d.getFullYear()));
+    u.searchParams.set("issueMonth", String(d.getMonth() + 1));
+    u.searchParams.set("certId", makeCertId(course, name));
+    window.open(u.toString(), "_blank", "noopener,noreferrer");
+  };
   return (
     <>
-      <button className="btn btn-primary" onClick={() => window.print()}>⬇ {label}</button>
-      <div className="cert-print-host" aria-hidden="true">
-        <CertificateView cert={cert} course={course} name={name} score={score} />
-      </div>
+      <span className="cert-actions">
+        <button type="button" className={className} onClick={download}>{icon} {label}</button>
+        {share && <button type="button" className={shareClassName} onClick={linkedIn}>in&nbsp; Add to LinkedIn</button>}
+      </span>
+      {typeof document !== "undefined" && createPortal(
+        <div className="cert-print-host cert-print-root" aria-hidden="true">
+          <CertificateView cert={cert} course={course} name={name} score={score} />
+        </div>,
+        document.body
+      )}
     </>
   );
 }
@@ -227,6 +283,20 @@ function SignaturePad({ value, onChange }) {
   );
 }
 
+/* a short burst of confetti over the preview (on save, or the Celebrate button) */
+const CONFETTI = ["#2456ed", "#7c3aed", "#f59e0b", "#22c55e", "#ec4899", "#06b6d4", "#fde68a"];
+function Confetti() {
+  const bits = useMemo(() => Array.from({ length: 46 }, (_, i) => ({
+    id: i, x: Math.random() * 100, w: 5 + Math.random() * 6, d: 1.8 + Math.random() * 1.6, dl: Math.random() * 0.5,
+    dx: (Math.random() - 0.5) * 160, r: 360 + Math.random() * 540, bg: CONFETTI[i % CONFETTI.length],
+  })), []);
+  return (
+    <div className="ce-confetti" aria-hidden="true">
+      {bits.map((b) => <i key={b.id} style={{ "--x": `${b.x}%`, "--w": `${b.w}px`, "--d": `${b.d}s`, "--dl": `${b.dl}s`, "--dx": `${b.dx}px`, "--r": `${b.r}deg`, "--bg": b.bg }} />)}
+    </div>
+  );
+}
+
 function HeroArt() {
   return (
     <svg viewBox="0 0 220 130" aria-hidden="true">
@@ -261,12 +331,23 @@ export function CertificateEditor({ course, onBack, onSave }) {
   const [score, setScore] = useState(92);
   const [toast, setToast] = useState(false);
   const [full, setFull] = useState(false);
+  const [burst, setBurst] = useState(0);
+  const deskRef = useRef(null);
   const dirty = JSON.stringify(c) !== base;
   const [t1, t2] = colorsOf(c);
 
   const change = (patch) => setC((p) => ({ ...p, ...patch }));
   const set = (k) => (e) => change({ [k]: e.target.value });
-  const save = () => { onSave(c); setBase(JSON.stringify(c)); setToast(true); };
+  const save = () => { onSave(c); setBase(JSON.stringify(c)); setToast(true); setBurst((b) => b + 1); };
+  /* gentle 3D tilt of the certificate following the mouse */
+  const tilt = (e) => {
+    const el = deskRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--rx", `${(-((e.clientY - r.top) / r.height - 0.5) * 5).toFixed(2)}deg`);
+    el.style.setProperty("--ry", `${(((e.clientX - r.left) / r.width - 0.5) * 7).toFixed(2)}deg`);
+  };
+  const untilt = () => { const el = deskRef.current; if (el) { el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg"); } };
   const revert = () => setC(JSON.parse(base));
 
   /* click a line on the certificate -> jump to its field */
@@ -339,7 +420,7 @@ export function CertificateEditor({ course, onBack, onSave }) {
                 <div className="ce-presets">
                   {PRESETS.map(([label, p]) => {
                     const [a, b] = THEMES[p.theme];
-                    return <button type="button" key={label} style={{ background: `linear-gradient(120deg, ${a}, ${b})` }} onClick={() => change(p)}>{label}</button>;
+                    return <button type="button" key={label} style={{ background: `linear-gradient(120deg, ${a}, ${b})` }} onClick={() => change({ paper: "auto", foil: false, ...p })}>{label}</button>;
                   })}
                 </div>
               </div>
@@ -365,6 +446,10 @@ export function CertificateEditor({ course, onBack, onSave }) {
               </label>
               <label className="ce-f"><span>Line before the name</span><input id="ce-subtitle" value={c.subtitle} onChange={set("subtitle")} maxLength={50} /></label>
               <label className="ce-f"><span>Line after the name</span><input id="ce-body" value={c.body} onChange={set("body")} maxLength={60} /></label>
+              <label className="ce-f"><span>Extra line under course <small>Optional</small></span>
+                <input id="ce-extra" value={c.extra} onChange={set("extra")} maxLength={50} placeholder="e.g. Duration: 8 hours" />
+                <div className="ce-ideas">{["Duration: 8 hours", "Verified learning achievement", "With honours"].map((t) => <button type="button" key={t} onClick={() => change({ extra: t })}>{t}</button>)}</div>
+              </label>
               <label className="ce-f"><span>Organisation name</span><input id="ce-org" value={c.org} onChange={set("org")} maxLength={40} /></label>
               <div className="ce-two">
                 <label className="ce-f"><span>Signed by</span><input id="ce-signName" value={c.signName} onChange={set("signName")} maxLength={30} /></label>
@@ -404,6 +489,17 @@ export function CertificateEditor({ course, onBack, onSave }) {
                   {PATTERNS.map(([k, l]) => <button type="button" key={k} className={c.pattern === k ? "on" : ""} onClick={() => change({ pattern: k })}>{l}</button>)}
                 </div>
               </div>
+              <div className="ce-f"><span>Paper colour <small>Royal keeps its dark paper</small></span>
+                <div className="ce-themes">
+                  {PAPERS.map(([k, l, bg]) => (
+                    <button type="button" key={k} title={l} aria-label={`${l} paper`} className={c.paper === k ? "on" : ""}
+                      style={{ background: bg, color: "#334155" }} onClick={() => change({ paper: k })}>
+                      {c.paper === k && "✓"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Toggle on={c.foil} onChange={() => change({ foil: !c.foil })} title="Gold foil title" sub="Shiny gold lettering for the heading" />
               <Toggle on={c.corners} onChange={() => change({ corners: !c.corners })} title="Corner ornaments" sub="Elegant corner frames on all four corners" />
               <Toggle on={c.watermark} onChange={() => change({ watermark: !c.watermark })} title="Faint watermark" sub="A soft logo letter behind the text" />
               <div className="ce-f"><span>Logo <small>Optional · replaces the letter mark</small></span>
@@ -501,6 +597,7 @@ export function CertificateEditor({ course, onBack, onSave }) {
               <Toggle on={c.enabled} onChange={() => change({ enabled: !c.enabled })} title="Issue certificate on pass" sub="Learners can download it after finishing the course" />
               <Toggle on={c.showDate} onChange={() => change({ showDate: !c.showDate })} title="Show completion date" />
               <Toggle on={c.showScore} onChange={() => change({ showScore: !c.showScore })} title="Show quiz score" />
+              <Toggle on={c.showGrade} onChange={() => change({ showGrade: !c.showGrade })} title="Show achievement badge" sub="Distinction 90+ · Merit 75+ · otherwise Passed" />
               <Toggle on={c.showId} onChange={() => change({ showId: !c.showId })} title="Show certificate ID" sub="Helps you verify a certificate later" />
               <button type="button" className="ce-reset" onClick={() => setC({ ...DEFAULT_CERT })}>↺ Reset to default design</button>
             </>)}
@@ -513,11 +610,13 @@ export function CertificateEditor({ course, onBack, onSave }) {
             <div className="ce-stage-in">
               <label className="ce-name"><small>Preview name</small><input id="ce-sample" value={sample} onChange={(e) => setSample(e.target.value)} maxLength={40} placeholder="Learner name" /></label>
               <label className="ce-name ce-score"><small>Score %</small><input type="number" min="0" max="100" value={score} onChange={(e) => setScore(Math.max(0, Math.min(100, Number(e.target.value) || 0)))} /></label>
+              <button type="button" className="ce-fs" onClick={() => setBurst((b) => b + 1)} title="Throw some confetti">✨ Celebrate</button>
               <button type="button" className="ce-fs" onClick={() => setFull(true)} title="Full screen preview">⛶ Full screen</button>
             </div>
           </div>
           {/* cert-live: shown on screen, and it is also what gets printed */}
-          <div className="ce-desk">
+          <div className="ce-desk" ref={deskRef} onMouseMove={tilt} onMouseLeave={untilt}>
+            {burst > 0 && <Confetti key={burst} />}
             <div className="cert-print-host cert-live" key={c.layout}>
               <CertificateView cert={c} course={course} name={sample.trim() || undefined} score={score} onPick={pick} />
             </div>

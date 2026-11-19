@@ -769,13 +769,13 @@ const courseStats = (course) => {
 };
 
 /* ---------- editor ---------- */
-export default function Edit({ course, onBack, onPreview }) {
+export default function Edit({ course, onBack, onPreview, startSlideId }) {
   const KEY = `lernevo.edit.${course.id}`;
   const [init] = useState(() => load(KEY, course));
   const [hist, setHist] = useState({ past: [], present: init.slides, future: [] });
   const [brand, setBrand] = useState(init.brand);
   const slides = hist.present;
-  const [selId, setSelId] = useState(slides[0].id);
+  const [selId, setSelId] = useState(() => (slides.some((x) => x.id === startSlideId) ? startSlideId : slides[0].id));   // startSlideId: open on this slide (used by the Templates page)
   const [title, setTitle] = useState(course.title);
   const [tab, setTab] = useState("design");
   const [menu, setMenu] = useState(false);
@@ -1444,4 +1444,4 @@ export default function Edit({ course, onBack, onPreview }) {
 }
 /* used by Preview.js so the preview show
 s exactly what the editor saved */
-export { starterSlides, starterBrand, loadCourse, courseStats, useVideoSrc, norm, bySec, BRAND0 };
+export { starterSlides, starterBrand, loadCourse, courseStats, useVideoSrc, norm, bySec, BRAND0, SlideView };

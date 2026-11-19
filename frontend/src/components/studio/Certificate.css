@@ -3,10 +3,10 @@
 /* =====================================================
    CERTIFICATE (scales with its own width using cqw units)
    ===================================================== */
-.cert { --pat: color-mix(in srgb, var(--c1) 16%, transparent); container-type: inline-size; position: relative; width: 100%; aspect-ratio: 297 / 210; overflow: hidden; border-radius: 6px; background: #fff; color: #101a35; font-family: Inter, system-ui, sans-serif; box-shadow: 0 14px 40px #1d2b4526; }
+.cert { --pat: color-mix(in srgb, var(--c1) 16%, transparent); container-type: inline-size; position: relative; width: 100%; aspect-ratio: 297 / 210; overflow: hidden; border-radius: 6px; background: var(--paper, #fff); color: #101a35; font-family: Inter, system-ui, sans-serif; box-shadow: 0 14px 40px #1d2b4526; }
 .cert, .cert * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .cert::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, var(--c1), var(--c2)); }
-.cert-frame { position: absolute; inset: 2.2cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .7cqw; padding: 3cqw 7cqw; text-align: center; background-color: #fff; }
+.cert-frame { position: absolute; inset: 2.2cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .7cqw; padding: 3cqw 7cqw; text-align: center; background-color: var(--paper, #fff); }
 .cert-frame::after { content: ""; position: absolute; inset: 1.1cqw; border: .15cqw dashed var(--c1); opacity: .35; pointer-events: none; }
 .cert-org { display: flex; align-items: center; gap: 1cqw; font-size: 1.25cqw; font-weight: 800; letter-spacing: .22em; color: #405174; }
 .cert-logo { display: grid; place-items: center; width: 3cqw; height: 3cqw; border-radius: 28%; background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; font-size: 1.6cqw; font-weight: 800; letter-spacing: 0; }
@@ -96,7 +96,7 @@
 .cert-t-modern .cert-frame::after { display: none; }
 
 /* ----- template: elegant (cream paper, double border) ----- */
-.cert-t-elegant { background: #fffdf7; }
+.cert-t-elegant { background: var(--paper, #fffdf7); }
 .cert-t-elegant::before { inset: 2cqw; background: none; border: .35cqw solid var(--c1); }
 .cert-t-elegant .cert-frame { inset: 3.4cqw; background-color: transparent; }
 .cert-t-elegant .cert-frame::after { inset: 0; border: .12cqw solid var(--c2); opacity: .85; }
@@ -436,7 +436,7 @@
 .cert { box-shadow: 0 18px 50px #1d2b4533; }
 
 /* soft colour glow in two opposite corners */
-.cert:not(.cert-t-modern):not(.cert-t-bold)::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+.cert:not(.cert-t-modern):not(.cert-t-bold):not(.cert-t-ribbon):not(.cert-t-aurora)::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background:
     radial-gradient(circle at 0 0, color-mix(in srgb, var(--c1) 24%, transparent), transparent 24cqw),
     radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--c2) 24%, transparent), transparent 24cqw); }
@@ -499,3 +499,82 @@
 .cert-t-bold .cert-frame { padding-bottom: 5cqw; }
 .cert-t-bold .cert-sub { margin-top: 6cqw; }
 .cert-t-bold .cert-foot { margin-top: auto; }
+
+/* =====================================================
+   UPGRADE: new templates, paper, foil, badge, sparkle
+   ===================================================== */
+
+/* ---------- paper colours (Royal keeps its dark paper) ---------- */
+.cert-bg-white { --paper: #ffffff; }
+.cert-bg-cream { --paper: #fff8e8; }
+.cert-bg-mist { --paper: #eef3ff; }
+.cert-bg-parchment { --paper: #f6ecd6; }
+.cert-bg-parchment .cert-frame { box-shadow: inset 0 0 9cqw #b8863b3d; }
+
+/* ---------- template: ribbon (diagonal colour corners) ---------- */
+.cert-t-ribbon::before { inset: 0 auto auto 0; width: 20cqw; height: 20cqw; background: linear-gradient(135deg, var(--c1) 0 34%, transparent 34% 41%, var(--c2) 41%); clip-path: polygon(0 0, 100% 0, 0 100%); }
+.cert.cert-t-ribbon::after { content: ""; position: absolute; inset: auto 0 0 auto; width: 20cqw; height: 20cqw; pointer-events: none; background: linear-gradient(315deg, var(--c1) 0 34%, transparent 34% 41%, var(--c2) 41%); clip-path: polygon(100% 100%, 0 100%, 100% 0); }
+.cert-t-ribbon .cert-frame { inset: 0; z-index: 1; padding: 2.4cqw 13cqw 3cqw; background-color: transparent; }
+.cert-t-ribbon .cert-frame::after { inset: 2.2cqw; border: .15cqw solid color-mix(in srgb, var(--c1) 35%, transparent); opacity: 1; }
+.cert-t-ribbon .cert-corners { display: none; }
+.cert-t-ribbon .cert-id { bottom: 2.6cqw; }
+
+/* ---------- template: aurora (soft colour glow + glass card) ---------- */
+.cert-t-aurora { background: #f6f8ff; }
+.cert-t-aurora::before { background:
+  radial-gradient(60cqw 45cqw at 6% 10%, color-mix(in srgb, var(--c1) 58%, transparent), transparent 70%),
+  radial-gradient(55cqw 45cqw at 96% 6%, color-mix(in srgb, var(--c2) 52%, transparent), transparent 70%),
+  radial-gradient(60cqw 50cqw at 92% 100%, color-mix(in srgb, var(--c1) 48%, transparent), transparent 70%),
+  radial-gradient(50cqw 40cqw at 0% 100%, color-mix(in srgb, var(--c2) 48%, transparent), transparent 70%); }
+.cert-t-aurora .cert-frame { inset: 3cqw; border-radius: 2.2cqw; background-color: color-mix(in srgb, var(--paper, #fff) 86%, transparent); box-shadow: 0 1.5cqw 5cqw #1d2b4533, inset 0 0 0 .2cqw #fff; }
+.cert-t-aurora .cert-frame::after { inset: 1cqw; border: .12cqw solid color-mix(in srgb, var(--c1) 30%, transparent); border-radius: 1.5cqw; opacity: 1; }
+.cert-t-aurora .cert-corners { display: none; }
+
+/* ---------- gold foil title (any template) ---------- */
+.cert-foil .cert-title { background: linear-gradient(100deg, #8a5a0b, #c98a12 26%, #eab93c 46%, #c07e0e 66%, #8a5a0b); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .25cqw .35cqw #7c4a0355); }
+.cert-foil.cert-t-bold .cert-title { background: linear-gradient(100deg, #fff4c2, #ffe08a 40%, #ffffff 58%, #ffe08a); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .3cqw .5cqw #0004); }
+
+/* ---------- long learner names shrink instead of wrapping ---------- */
+.cert-name.nm-mid { font-size: 4.2cqw; }
+.cert-name.nm-long { font-size: 3.3cqw; }
+.cert-f-script .cert-name.nm-mid { font-size: 5.4cqw; }
+.cert-f-script .cert-name.nm-long { font-size: 4.2cqw; }
+
+/* ---------- extra line + achievement badge ---------- */
+.cert-extra { margin: 0; font-size: 1.35cqw; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #64748b; }
+.cert-t-royal .cert-extra { color: #9fb0d8; }
+.cert-meta { display: flex; align-items: center; justify-content: center; gap: 1cqw; margin-top: .3cqw; }
+.cert-meta .cert-score { margin: 0; }
+.cert-grade { margin: 0; padding: .4cqw 1.5cqw; border-radius: 99px; background: linear-gradient(100deg, var(--c1), var(--c2)); color: #fff; font-size: 1.25cqw; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 .3cqw .8cqw #0002; }
+.cert-grade.g-dist { background: linear-gradient(100deg, #fde68a, #f59e0b); color: #5b3a00; }
+.cert-grade.g-merit { background: linear-gradient(100deg, #f8fafc, #a8b5c7); color: #1e293b; }
+.cert-actions { display: inline-flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- studio extras: tilt, seal shine, confetti (screen only) ---------- */
+.ce-desk { position: relative; }
+.ce-desk .cert-live { transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .15s ease-out; }
+@media print { .cert-print-host { transform: none !important; } }
+
+@media screen {
+  .ce-desk .cert-seal:not(.ss-stamp):not(.ss-img) .seal-face, .ce-modal .cert-seal:not(.ss-stamp):not(.ss-img) .seal-face { position: relative; overflow: hidden; }
+  .ce-desk .cert-seal:not(.ss-stamp):not(.ss-img) .seal-face::after, .ce-modal .cert-seal:not(.ss-stamp):not(.ss-img) .seal-face::after { content: ""; position: absolute; inset: -30%; background: linear-gradient(115deg, transparent 42%, #ffffffaa 50%, transparent 58%); transform: translateX(-130%); animation: ceShine 4.5s ease-in-out 1s infinite; pointer-events: none; }
+}
+@keyframes ceShine { 0% { transform: translateX(-130%); } 35%, 100% { transform: translateX(130%); } }
+
+.ce-confetti { position: absolute; inset: 0; z-index: 5; overflow: hidden; border-radius: 18px; pointer-events: none; }
+.ce-confetti i { position: absolute; top: -6%; left: var(--x); width: var(--w); height: calc(var(--w) * 1.7); border-radius: 2px; background: var(--bg); opacity: 0; animation: ceFall var(--d) cubic-bezier(.3, .6, .4, 1) var(--dl) forwards; }
+@keyframes ceFall { 0% { top: -6%; opacity: 1; transform: translateX(0) rotate(0); } 85% { opacity: 1; } 100% { top: 104%; opacity: 0; transform: translateX(var(--dx)) rotate(var(--r)); } }
+@media (prefers-reduced-motion: reduce) { .ce-confetti { display: none; } .ce-desk .cert-live { transform: none; } .cert-seal .seal-face::after { animation: none !important; } }
+
+/* ---------- SPACE FIX: 8 templates in 2 tidy rows, no leftover padding ---------- */
+.ce-templates { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.ce-tpl { padding: 5px 5px 7px; gap: 5px; }
+.ce-tpl > b { font-size: 11px; }
+.cert-ed { padding-bottom: 0; }
+@media (max-width: 560px) { .ce-templates { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---------- learner download: print ONLY the certificate (host lives directly in <body>) ---------- */
+@media print {
+  body.cert-printing > *:not(.cert-print-root) { display: none !important; }
+  body.cert-printing { margin: 0 !important; overflow: visible !important; height: auto !important; background: #fff !important; }
+}
