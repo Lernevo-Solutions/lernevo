@@ -37,6 +37,7 @@ import {
   Sparkles,
   Palette,
   LifeBuoy,
+  Award,
 } from "lucide-react";
 
 // Maps sidebar item labels to actual app routes.
@@ -67,10 +68,12 @@ export const ROUTE_MAP = {
   "Courses": "/courses",
   Templates: "/templatesstudio",
   "Question Bank": "/questions",
-  "Media Library": "/media",
+  
   "Content Studio": "/studio",
-  Branding: "/branding",
+
   "Help & Docs": "/help",
+  // Certificate section (change this path to match your router)
+  "Certificate Creation": "/certificate",
 };
 
 export const NAV_SECTIONS = [
@@ -111,11 +114,14 @@ export const NAV_SECTIONS = [
       { icon: BookOpen, label: "Courses" },
       { icon: LayoutTemplate, label: "Templates" },
       { icon: ListChecks, label: "Question Bank" },
-      { icon: ImageIcon, label: "Media Library" },
+      
       { icon: Sparkles, label: "Content Studio" },
-      { icon: Palette, label: "Branding" },
       { icon: LifeBuoy, label: "Help & Docs" },
     ],
+  },
+  {
+    label: "Certificate",
+    items: [{ icon: Award, label: "Certificate Creation" }],
   },
   {
     label: "Learning",

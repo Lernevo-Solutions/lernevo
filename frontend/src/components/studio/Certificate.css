@@ -578,3 +578,124 @@
   body.cert-printing > *:not(.cert-print-root) { display: none !important; }
   body.cert-printing { margin: 0 !important; overflow: visible !important; height: auto !important; background: #fff !important; }
 }
+
+/* =====================================================
+   TIGHT PREVIEW: less empty space around + inside the certificate
+   (appended last, so it overrides everything above)
+   ===================================================== */
+
+/* --- page chrome: smaller gaps around the preview --- */
+.cert-ed { padding-top: 6px; padding-bottom: 0; }
+.ce-hero { padding: 10px 24px; }
+.ce-grid { gap: 12px; margin-top: 8px; }
+.ce-stage { top: 8px; gap: 8px; padding: 10px; border-radius: 18px; }
+.ce-desk { padding: 8px; border-radius: 14px; }
+.ce-tip { margin: 0; padding: 0; font-size: 12px; }
+
+/* --- certificate: fill the white area instead of leaving gaps --- */
+.cert-frame { gap: 1cqw; }
+.cert-t-bold .cert-frame { padding-top: 2.2cqw; padding-bottom: 3.6cqw; }
+.cert-t-bold::before { height: 19cqw; }
+.cert-t-bold .cert-sub { margin-top: 3.6cqw; }
+.cert-t-bold .cert-name { font-size: 5.8cqw; }
+.cert-t-bold .cert-course { font-size: 3.6cqw; }
+.cert-t-bold .cert-foot { margin-top: auto; }
+.cert-foot { margin-top: 1cqw; }
+
+@media (max-width: 560px) {
+  .ce-stage { padding: 8px; }
+  .ce-desk { padding: 6px; }
+}
+
+/* =====================================================
+   LEFT PANEL = SAME HEIGHT AS PREVIEW (no empty gap below it)
+   ===================================================== */
+@media (min-width: 981px) {
+  .ce-grid { align-items: stretch; }
+  .ce-panel { position: static; top: auto; max-height: none; overflow: hidden; display: flex; flex-direction: column; align-self: stretch; }
+  .ce-panel > .ce-body { flex: 1 1 auto; align-content: start; }
+  .ce-stage { align-self: start; }
+}
+
+
+/* =====================================================
+   ✨ GLOW-UP: premium look for the whole certificate studio
+   (appended last, so it overrides everything above)
+   ===================================================== */
+
+/* ---------- page background ---------- */
+.cert-ed { position: relative; isolation: isolate; }
+.cert-ed::before { content: ""; position: absolute; inset: -20px -30px; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(520px 320px at 8% 0%, #dbe7ff99, transparent 70%),
+    radial-gradient(620px 360px at 100% 30%, #eadcff80, transparent 70%),
+    radial-gradient(500px 300px at 30% 100%, #d7f3ff66, transparent 70%); }
+
+/* ---------- left panel: floating glass card ---------- */
+.ce-panel { border: 1px solid #e3e9fb; border-radius: 24px; background: linear-gradient(180deg, #ffffff, #fbfcff);
+  box-shadow: 0 20px 44px #2a3a8a1a, 0 2px 6px #1e293b0d; }
+.ce-tabs { gap: 6px; padding: 10px; background: linear-gradient(180deg, #f3f6ff, #eef2fd); border-bottom: 1px solid #e5ebfa; }
+.ce-tabs button { border-radius: 14px; transition: all .22s cubic-bezier(.3, 1.3, .5, 1); }
+.ce-tabs button:hover:not(.on) { transform: translateY(-2px); }
+.ce-tabs button.on { background: linear-gradient(135deg, #2f6df6, #7c3aed); color: #fff; box-shadow: 0 8px 18px #4f46e555; transform: translateY(-1px); }
+.ce-tabs button em { filter: drop-shadow(0 1px 1px #0002); }
+
+/* section titles */
+.ce-sec { font-size: 13px; color: #3b4a7a; }
+.ce-sec span { box-shadow: 0 4px 10px #4f46e540; }
+.ce-sec small, .ce-sec em { color: #8aa0d8; }
+
+/* quick-style chips: glossy, lift + shine on hover */
+.ce-presets button { position: relative; overflow: hidden; border: 1px solid #ffffff55; box-shadow: 0 8px 16px #1d2b4533, inset 0 1px 0 #ffffff66; transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), box-shadow .2s; }
+.ce-presets button::after { content: ""; position: absolute; top: 0; left: -80%; width: 50%; height: 100%; background: linear-gradient(100deg, transparent, #ffffff66, transparent); transform: skewX(-20deg); transition: left .5s; }
+.ce-presets button:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 14px 24px #1d2b4545, inset 0 1px 0 #ffffff80; }
+.ce-presets button:hover::after { left: 130%; }
+
+/* template cards */
+.ce-tpl { border: 2px solid #e6ecfa; border-radius: 16px; background: #fff; box-shadow: 0 3px 10px #1e293b0d; }
+.ce-tpl:hover { border-color: #a9bdf5; transform: translateY(-4px); box-shadow: 0 14px 26px #2456ed26; }
+.ce-tpl.on { border-color: transparent; background: linear-gradient(#fff, #fff) padding-box, linear-gradient(135deg, #2f6df6, #7c3aed, #ec4899) border-box; box-shadow: 0 14px 28px #6d4df233; transform: translateY(-2px); }
+.ce-tpl > b { color: #334155; }
+.ce-tpl.on > b { background: linear-gradient(100deg, #2456ed, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ce-tick { background: linear-gradient(135deg, #2f6df6, #7c3aed); box-shadow: 0 6px 14px #6d4df266; }
+
+/* seal options, toggles, inputs, segmented buttons */
+.ce-sealopt { border-radius: 16px; background: #fff; box-shadow: 0 3px 10px #1e293b0d; }
+.ce-sealopt:hover { transform: translateY(-3px); box-shadow: 0 12px 22px #2456ed22; }
+.ce-f input:not([type=file]):not([type=color]), .ce-name input { transition: border-color .2s, box-shadow .2s, background .2s; }
+.ce-f input:focus:not([type=file]):not([type=color]) { background: #fff; border-color: #6d4df2; box-shadow: 0 0 0 4px #6d4df21f; }
+.ce-seg { background: #eef2fd; box-shadow: inset 0 1px 3px #1e293b12; }
+.ce-seg button.on { background: linear-gradient(135deg, #2f6df6, #7c3aed); color: #fff; box-shadow: 0 6px 14px #4f46e544; }
+.ce-toggle:hover { border-color: #b9c8f5; background: #fff; }
+.ce-toggle.on .ce-tg, .ce-tg.on { background: linear-gradient(135deg, #2f6df6, #7c3aed); }
+
+/* ---------- preview stage: spotlight + gold-edged "frame" ---------- */
+.ce-stage { border: 1px solid #e3e9fb; border-radius: 24px;
+  background: radial-gradient(600px 300px at 70% 0, #e6ecff, transparent 70%), radial-gradient(400px 260px at 0 100%, #f1e8ff, transparent 70%), linear-gradient(180deg, #fdfdff, #f3f6ff);
+  box-shadow: 0 20px 44px #2a3a8a1a, 0 2px 6px #1e293b0d; }
+.ce-live { padding: 5px 12px; border-radius: 99px; background: #e7f9f0; color: #0e8a5a; border: 1px solid #c8f0dc; }
+.ce-fs, .ce-stage-top .btn { transition: transform .18s, box-shadow .18s, background .18s, border-color .18s; }
+.ce-fs:hover { transform: translateY(-2px); box-shadow: 0 8px 18px #2456ed26; }
+.ce-desk { border-radius: 18px; background-color: #e4eafd;
+  background-image: radial-gradient(#9fb0e6 1px, transparent 1px), linear-gradient(135deg, #e9eeff, #efe7ff);
+  background-size: 18px 18px, 100% 100%;
+  box-shadow: inset 0 3px 14px #1d2b4518, 0 0 0 1px #d6dffa; }
+.ce-desk .cert { border-radius: 4px; box-shadow: 0 26px 56px #1d2b4550, 0 6px 16px #1d2b4526, 0 0 0 1px #ffffff99; }
+.ce-tip { color: #7f93c9; letter-spacing: .01em; }
+
+/* ---------- certificate itself: more luxurious details ---------- */
+.cert-title { text-shadow: 0 2px 0 #ffffff80; }
+.cert-t-bold .cert-title { text-shadow: 0 3px 14px #1e1b4b55; }
+.cert-name { letter-spacing: .01em; }
+.cert-course { letter-spacing: -.01em; }
+.cert-org { box-shadow: 0 4px 12px #1d2b4514; }
+.cert-seal { filter: drop-shadow(0 calc(var(--k) * .7) calc(var(--k) * 1.2) #0000004d); }
+.seal-face { box-shadow: inset 0 calc(var(--k) * .25) calc(var(--k) * .5) #ffffff80, inset 0 calc(var(--k) * -.3) calc(var(--k) * .6) #0000002e; }
+.cert-grade { box-shadow: 0 .4cqw 1cqw #f59e0b55, inset 0 .15cqw 0 #ffffff66; }
+.cert-fb-line { border-top-color: var(--c1); border-top-width: .16cqw; }
+.cert-id { letter-spacing: .12em; }
+
+/* ---------- modal + toast ---------- */
+.ce-toast { background: linear-gradient(135deg, #1e1b4b, #312e81); box-shadow: 0 16px 36px #1e1b4b66; }
+
+@media print { .cert-ed::before { display: none !important; } }

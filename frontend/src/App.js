@@ -76,6 +76,8 @@ import Course from "./components/studio/course";
 import HomePageStudio from "./components/studio/HomePageStudio";
 import TemplatesPage from "./components/studio/TemplatesPage";
 import QuestionBank from "./components/studio/QuestionBank";
+import { CertificateEditor } from "./components/studio/Certificate";
+
 const AppLayout = () => {
   const location = useLocation();
    const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
@@ -113,6 +115,7 @@ const AppLayout = () => {
     "/courses",
     "/templatesstudio",
     "/questions",
+    "/certificate",
   ];
 
   const hideNavbarRoutes = [
@@ -141,6 +144,7 @@ const AppLayout = () => {
     "/courses",
     "/templatesstudio",
     "/questions",
+    "/certificate",
   ];
 
   const hideFooter = hideFooterRoutes.includes(location.pathname);
@@ -324,7 +328,19 @@ const AppLayout = () => {
 
           <Route path="/questions" element={<AdminLayout><QuestionBank /></AdminLayout>} />
 
-         
+           <Route
+  path="/certificate"
+  element={
+    <AdminLayout>
+      <CertificateEditor
+        course={{ id: "sample", title: "Sample Course" }}
+        onBack={() => window.history.back()}
+        onSave={(cert) => console.log("Certificate saved:", cert)}
+      />
+    </AdminLayout>
+  }
+/>
+      
 
           {/* Default Route */}
           <Route

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "./course.css";
 import Edit, { courseStats } from "./Edit";   // new PowerPoint-style editor (edit.js + edit.css)
 import Preview from "./Preview"; // voice-guided preview (Preview.js + Preview.css)
-import { Logo, BrandName, BrandEditor } from "./Logo"; // editable logo + company name (Logo.js + Logo.css)
+import { Logo, BrandName } from "./Logo"; // editable logo + company name (Logo.js + Logo.css)
 import { CertificateEditor, DEFAULT_CERT } from "./Certificate"; // certificate designer (Certificate.js + Certificate.css)
 
 /* ---------- media (swap these URLs for your own images / videos) ---------- */
@@ -534,7 +534,6 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, onCert, search }) {
   const [q, setQ] = useState("");
   useEffect(() => { setQ(search || ""); }, [search]);   // header search drives this list
   const [tour, setTour] = useState(false);
-  const [brandOpen, setBrandOpen] = useState(false);
   const count = (st) => courses.filter((c) => c.status === st).length;
   // the list stays hidden until the learner/author searches: only courses whose NAME matches are shown
   const term = q.trim().toLowerCase();
@@ -558,12 +557,9 @@ function MyCourses({ courses, onCreate, onPreview, onEdit, onCert, search }) {
         </div>
         <div className="hero-actions">
           <button className="btn btn-primary btn-lg" onClick={onCreate}><Icon d={I.plus} size={16} /> Create course</button>
-          <button className="btn btn-outline btn-lg" onClick={() => onCert(null)}><Icon d={I.award} size={15} /> Certificate</button>
-          <button className="btn btn-outline btn-lg" onClick={() => setBrandOpen(true)}><Icon d={I.image} size={15} /> Logo</button>
           <button className="btn btn-outline btn-lg" onClick={() => setTour(true)}><Icon d={I.play} size={13} /> Watch quick tour</button>
         </div>
       </section>
-      {brandOpen && <BrandEditor onClose={() => setBrandOpen(false)} />}
       {tour && <VideoModal src={SAMPLE_VIDEO} poster={SAMPLE_POSTER} title="Quick tour: build a course in minutes" onClose={() => setTour(false)} />}
 
       <div className="stats">
