@@ -875,6 +875,8 @@ button.ps-nb:focus-visible { outline: 2px solid var(--b); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .ps-qchip.time svg { animation: none; } }
 
 
+
+
 /* ---- ribbon Timer button (quiz slides) ---- */
 .pe-tool.timer.on { background: linear-gradient(135deg, #fff3dc, #ffe7bf); color: #b45309; box-shadow: inset 0 0 0 1px #fcd9a0; }
 .pe-tool.timer:not(.on) { color: #b45309; }
