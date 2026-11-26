@@ -10,10 +10,10 @@ import "./HomePageStudio.css";
 const ROUTES = {
   home: "/",
   courses: "/courses",
-  templates: "/templates",
+  templates: "/templatesstudio",
   questions: "/questions",
   media: "/media",
-  studio: "/studio",
+  studio: "/courses",
   branding: "/branding",
   settings: "/settings",
   help: "/help",
@@ -152,7 +152,10 @@ function Dashboard({ onNavigate }) {
 
 export default function HomePage() {
   const routerNavigate = useNavigate();
-  const navigate = (id) => routerNavigate(ROUTES[id] || "/");
+  const navigate = (id) =>
+    routerNavigate(ROUTES[id] || "/", {
+      state: id === "studio" ? { openCreate: true } : undefined,
+    });
 
   return (
     <div className="main-shell">

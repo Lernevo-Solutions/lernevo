@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./course.css";
 import Edit, { courseStats } from "./Edit";   // new PowerPoint-style editor (edit.js + edit.css)
 import Preview from "./Preview"; // voice-guided preview (Preview.js + Preview.css)
@@ -1045,10 +1046,18 @@ function Editor({ course, onBack, onPreview }) {
 
 /* ---------- root: courses area (opens when My Courses is clicked) ---------- */
 export default function Course() {
-  const [view, setView] = useState("courses");   // courses | create | certificate | landing | player | editor
+  const location = useLocation();
+  const routerNavigate = useNavigate();
+  const [view, setView] = useState(location.state?.openCreate ? "create" : "courses");   // courses | create | certificate | landing | player | editor
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [current, setCurrent] = useState(INITIAL_COURSES[0]);
   const [startSlide, setStartSlide] = useState(null);   // slide to open when previewing from the editor
+
+  // clear the router flag so a page refresh does not reopen the create screen
+  useEffect(() => {
+    if (location.state?.openCreate) routerNavigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (view === "courses")
     return (
@@ -1125,4 +1134,3 @@ export default function Course() {
     </div>
   );
 }
-
