@@ -19,19 +19,7 @@
 .ts-wrap *, .ts-wrap *::before, .ts-wrap *::after { box-sizing: border-box; }
 .ts-wrap button { font-family: inherit; }
 
-@media (prefers-color-scheme: dark) {
-  .ts-wrap {
-    --ts-bg: #0b1226; --ts-card: #121b33; --ts-ink: #e8eefc; --ts-mute: #93a1c0; --ts-line: #233052; --ts-soft: #182646;
-    --ts-blue: #6c93ff; --ts-blue-d: #9db8ff; --ts-today: #16264a;
-    --ts-ok: #22d3ee; --ts-okb: #0b2f3a;
-    --ts-pen: #fbbf24; --ts-penb: #38290d;
-    --ts-ot: #fb923c; --ts-otb: #3a2410;
-    --ts-off: #7e8cab; --ts-offb: #161f38;
-    --ts-lv: #fb8da3; --ts-lvb: #38182a;
-    --ts-hol: #b79cff; --ts-holb: #2a1f4a;
-    --ts-teal: #a5b4fc; --ts-tealb: #1d2150;
-  }
-}
+
 
 /* ---------- My Timesheet button (next to search) + back button ---------- */
 .ts-btn.ts-mine { border-color: var(--ts-blue); color: var(--ts-blue); background: var(--ts-soft); white-space: nowrap; }
@@ -60,14 +48,7 @@
 .ts-head p { color: #3f5a94; margin-bottom: 16px; }
 .ts-head .ts-chip { background: rgba(255, 255, 255, .65); border: 1px solid rgba(37, 99, 235, .22); border-radius: 99px; padding: 5px 12px; color: #3f5a94; }
 .ts-head .ts-chip b { color: #0f1f45; }
-@media (prefers-color-scheme: dark) {
-  .ts-head { background: linear-gradient(135deg, #172647 0%, #1c3366 100%); border-color: #2b4278; }
-  .ts-head::before, .ts-head::after { background: rgba(255, 255, 255, .06); }
-  .ts-head h1 { color: #9db8ff; }
-  .ts-head p { color: #aab9d9; }
-  .ts-head .ts-chip { background: rgba(255, 255, 255, .08); border-color: rgba(157, 184, 255, .3); color: #aab9d9; }
-  .ts-head .ts-chip b { color: #e8eefc; }
-}
+
 
 /* ---------- KPI band ---------- */
 .ts-kpis {
@@ -119,9 +100,7 @@
   font-weight: 800; font-size: 12px; margin-right: 10px;
   background: hsl(var(--h, 220) 80% 92%); color: hsl(var(--h, 220) 60% 28%);
 }
-@media (prefers-color-scheme: dark) {
-  .ts-av { background: hsl(var(--h, 220) 35% 24%); color: hsl(var(--h, 220) 85% 85%); }
-}
+
 .ts-name { border: 0; background: none; color: var(--ts-ink); font-size: 14px; font-weight: 800; cursor: pointer; padding: 0; text-align: left; display: block; }
 .ts-name:hover { color: var(--ts-blue); text-decoration: underline; }
 .ts-badge { font-weight: 700; border-radius: 6px; padding: 3px 7px; font-size: 12px; align-self: flex-start; }
@@ -179,14 +158,7 @@
 .ts-tk-3 { --t: #be185d; --tb: #fde8f2; }
 .ts-tk-4 { --t: #b45309; --tb: #fef3d6; }
 .ts-tk-5 { --t: #0369a1; --tb: #e0f2fe; }
-@media (prefers-color-scheme: dark) {
-  .ts-tk-0 { --t: #8fb0ff; --tb: #1a2b52; }
-  .ts-tk-1 { --t: #c4b0ff; --tb: #2a1f4a; }
-  .ts-tk-2 { --t: #5eead4; --tb: #0f2e2c; }
-  .ts-tk-3 { --t: #f9a8d4; --tb: #3a1830; }
-  .ts-tk-4 { --t: #fcd34d; --tb: #38290d; }
-  .ts-tk-5 { --t: #7dd3fc; --tb: #0c2a3d; }
-}
+
 .ts-st { color: var(--c); font-size: 11px; font-weight: 700; line-height: 1.2; }
 
 .ts-dc--ok { --c: var(--ts-ok); --cb: var(--ts-okb); border-color: transparent; border-left-color: var(--ts-ok); background: linear-gradient(135deg, var(--ts-okb), var(--ts-card) 130%); }
@@ -329,10 +301,7 @@
 }
 .ts-back:hover { background: #fff; border-color: #2563eb; }
 .ts-back:focus-visible { outline: 3px solid var(--ts-focus); outline-offset: 2px; }
-@media (prefers-color-scheme: dark) {
-  .ts-back { background: rgba(255, 255, 255, .08); border-color: rgba(157, 184, 255, .3); color: #9db8ff; }
-  .ts-back:hover { background: rgba(255, 255, 255, .16); }
-}
+
 
 .ts-tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px; }
 .ts-tcard {
@@ -351,9 +320,7 @@
   width: 42px; height: 42px; border-radius: 12px; flex: none; display: grid; place-items: center; font-weight: 800; font-size: 14px;
   background: hsl(var(--h, 220) 80% 92%); color: hsl(var(--h, 220) 60% 28%);
 }
-@media (prefers-color-scheme: dark) {
-  .ts-tic { background: hsl(var(--h, 220) 35% 24%); color: hsl(var(--h, 220) 85% 85%); }
-}
+
 .ts-ttitle { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .ts-ttitle b { font-size: 16px; font-weight: 800; }
 .ts-ttitle small { color: var(--ts-mute); font-size: 12px; }
